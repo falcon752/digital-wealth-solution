@@ -1,0 +1,108 @@
+@import "tailwindcss";
+
+/* ─── Class-based dark mode for next-themes ─────────────────────────────── */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ─── Brand color palette ────────────────────────────────────────────────── */
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  --color-brand-50:  #f5f3ff;
+  --color-brand-100: #ede9fe;
+  --color-brand-200: #ddd6fe;
+  --color-brand-300: #c4b5fd;
+  --color-brand-400: #a78bfa;
+  --color-brand-500: #8b5cf6;
+  --color-brand-600: #7c3aed;
+  --color-brand-700: #6d28d9;
+  --color-brand-800: #5b21b6;
+  --color-brand-900: #4c1d95;
+  --color-brand-950: #2e1065;
+
+  /* Surface tokens (light mode defaults) */
+  --color-surface-page:   #f8f7ff;
+  --color-surface-card:   rgba(255,255,255,0.80);
+  --color-surface-input:  rgba(255,255,255,0.90);
+  --color-border:         rgba(124,58,237,0.18);
+  --color-text-primary:   #1a1535;
+  --color-text-secondary: #5b21b6;
+  --color-text-muted:     #6b7280;
+}
+
+/* ─── Light mode CSS vars ────────────────────────────────────────────────── */
+:root {
+  --bg-page:       #f8f7ff;
+  --bg-card:       rgba(255,255,255,0.80);
+  --bg-input:      rgba(255,255,255,0.90);
+  --border-color:  rgba(124,58,237,0.18);
+  --text-primary:  #1a1535;
+  --text-secondary:#5b21b6;
+  --text-muted:    #6b7280;
+  --glow:          rgba(124,58,237,0.25);
+}
+
+/* ─── Dark mode CSS vars ─────────────────────────────────────────────────── */
+.dark {
+  --bg-page:       #070613;
+  --bg-card:       rgba(255,255,255,0.04);
+  --bg-input:      rgba(255,255,255,0.06);
+  --border-color:  rgba(167,139,250,0.15);
+  --text-primary:  #f0ecff;
+  --text-secondary:#a78bfa;
+  --text-muted:    #6b7280;
+  --glow:          rgba(139,92,246,0.35);
+}
+
+/* ─── Base ───────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background-color: var(--bg-page);
+  color: var(--text-primary);
+  font-family: var(--font-sans, system-ui, sans-serif);
+  min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ─── Scrollbar ──────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(139,92,246,0.4); border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(139,92,246,0.7); }
+
+/* ─── Glass card utility ─────────────────────────────────────────────────── */
+.glass {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* ─── Purple glow utilities ──────────────────────────────────────────────── */
+.glow-sm  { box-shadow: 0 0 16px var(--glow); }
+.glow-md  { box-shadow: 0 0 32px var(--glow); }
+
+/* ─── Gradient text ──────────────────────────────────────────────────────── */
+.gradient-text {
+  background: linear-gradient(135deg, #a78bfa 0%, #7c3aed 50%, #4c1d95 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ─── Animated gradient background for landing ─────────────────────────── */
+.hero-bg {
+  background: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(124,58,237,0.35) 0%, transparent 60%),
+              radial-gradient(ellipse 60% 40% at 80% 80%, rgba(139,92,246,0.2) 0%, transparent 50%),
+              var(--bg-page);
+}
+
+/* ─── Grid dot pattern ───────────────────────────────────────────────────── */
+.dot-grid {
+  background-image: radial-gradient(rgba(139,92,246,0.25) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+

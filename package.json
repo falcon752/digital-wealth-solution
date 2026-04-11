@@ -1,0 +1,13 @@
+{
+  "name": "digital-wealth-solution",
+  "version": "1.0.0",
+  "description": "Digital Wealth Solution – full-stack crypto management platform",
+  "private": true,
+  "scripts": {
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npx next dev",
+    "start:backend": "cd backend && npm start",
+    "start:frontend": "cd frontend && npx next start",
+    "install:all": "cd backend && npm install && cd ../frontend && npm install --legacy-peer-deps"
+  }
+}
