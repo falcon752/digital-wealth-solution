@@ -23,7 +23,7 @@ export default function LandingPage() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3">
             <Image
-              src="https://digitalwealthpartners.b-cdn.net/wp-content/uploads/2024/05/Webinar-logo.png"
+              src="/dwp-logo.png"
               alt="Digital Wealth Solution"
               width={220}
               height={70}
@@ -167,7 +167,7 @@ export default function LandingPage() {
               {/* DWP logo on top of image */}
               <div className="absolute inset-0 flex items-end justify-center pb-10">
                 <Image
-                  src="https://digitalwealthpartners.b-cdn.net/wp-content/uploads/2024/05/Webinar-logo.png"
+                  src="/dwp-logo.png"
                   alt="DWS"
                   width={320}
                   height={120}
@@ -515,7 +515,7 @@ export default function LandingPage() {
             {/* Col 1 - about */}
             <div className="md:col-span-2">
               <Image
-                src="https://digitalwealthpartners.b-cdn.net/wp-content/uploads/2024/05/Webinar-logo.png"
+                src="/dwp-logo.png"
                 alt="Digital Wealth Solution"
                 width={180}
                 height={50}
