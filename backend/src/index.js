@@ -5,7 +5,7 @@ const rateLimit = require('express-rate-limit');
 const path = require('path');
 require('dotenv').config();
 
-const { initDB } = require('./database');
+const { connectDB } = require('./database');
 const authRoutes = require('./routes/auth');
 const usersRoutes = require('./routes/users');
 const assetsRoutes = require('./routes/assets');
@@ -78,8 +78,8 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-// Initialize DB and start server
-initDB()
+// Connect to MongoDB and start server
+connectDB()
   .then(() => {
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT} [${process.env.NODE_ENV || 'development'}]`);

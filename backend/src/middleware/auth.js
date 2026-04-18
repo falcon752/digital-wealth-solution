@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
-const { getDB } = require('../database');
+const { User } = require('../database');
 
-function authenticate(req, res, next) {
+async function authenticate(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'Authentication required' });
@@ -10,10 +10,7 @@ function authenticate(req, res, next) {
   const token = authHeader.split(' ')[1];
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
-    const db = getDB();
-    const user = db.prepare(
-      'SELECT id, email, firstName, lastName, role, isActive FROM users WHERE id = ?'
-    ).get(payload.userId);
+    const user = await User.findById(payload.userId).select('_id email firstName lastName role isActive');
 
     if (!user || !user.isActive) {
       return res.status(401).json({ error: 'Account not found or deactivated' });

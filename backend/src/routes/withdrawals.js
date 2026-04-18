@@ -2,15 +2,14 @@ const express = require('express');
 const speakeasy = require('speakeasy');
 const crypto = require('crypto');
 const { body, validationResult } = require('express-validator');
-const { v4: uuidv4 } = require('uuid');
-const { getDB } = require('../database');
+const { Asset, User, Withdrawal } = require('../database');
 const { authenticate } = require('../middleware/auth');
 const { logActivity } = require('../utils/activity');
 const { sendOTPEmail } = require('../utils/email');
 
 const router = express.Router();
 
-// POST /api/withdrawals  (user submits withdrawal request)
+// POST /api/withdrawals
 router.post('/', authenticate, [
   body('assetId').notEmpty(),
   body('amount').isFloat({ min: 0.000001 }),
@@ -21,157 +20,158 @@ router.post('/', authenticate, [
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
   const { assetId, amount, destinationAddress, usdValue } = req.body;
-  const db = getDB();
 
-  const asset = db.prepare('SELECT id FROM assets WHERE id = ? AND isActive = 1').get(assetId);
-  if (!asset) return res.status(404).json({ error: 'Asset not found or inactive' });
-
-  // Check balance
-  const balance = db.prepare('SELECT totalUSD FROM balances WHERE userId = ?').get(req.user.id);
-  const withdrawUSD = usdValue ? parseFloat(usdValue) : 0;
-  if (withdrawUSD > 0 && (balance?.totalUSD || 0) < withdrawUSD) {
-    return res.status(400).json({ error: 'Insufficient balance' });
-  }
-
-  const withdrawalId = uuidv4();
-
-  // Generate OTP
-  const otp = crypto.randomInt(100000, 999999).toString();
-  const otpExpiry = new Date(Date.now() + 10 * 60 * 1000).toISOString();
-
-  db.prepare(`
-    INSERT INTO withdrawals (id, userId, assetId, amount, usdValue, destinationAddress, status, otpCode, otpExpiry)
-    VALUES (?, ?, ?, ?, ?, ?, 'pending', ?, ?)
-  `).run(
-    withdrawalId,
-    req.user.id,
-    assetId,
-    parseFloat(amount),
-    withdrawUSD || null,
-    destinationAddress,
-    otp,
-    otpExpiry
-  );
-
-  // Send OTP email
-  const user = db.prepare('SELECT email, firstName, antiPhishingPhrase FROM users WHERE id = ?').get(req.user.id);
   try {
-    await sendOTPEmail(user.email, user.firstName, otp, user.antiPhishingPhrase);
-  } catch (emailErr) {
-    console.error('OTP email failed:', emailErr.message);
-  }
+    const asset = await Asset.findOne({ _id: assetId, isActive: true });
+    if (!asset) return res.status(404).json({ error: 'Asset not found or inactive' });
 
-  logActivity(req.user.id, 'WITHDRAWAL_SUBMITTED', { withdrawalId, amount, assetId }, req);
-  res.status(201).json({
-    message: 'Withdrawal submitted. Check your email for the OTP verification code.',
-    withdrawalId,
-    requiresOTP: true,
-  });
+    const user = await User.findById(req.user.id).select('balance email firstName antiPhishingPhrase');
+    const withdrawUSD = usdValue ? parseFloat(usdValue) : 0;
+    if (withdrawUSD > 0 && (user?.balance || 0) < withdrawUSD) {
+      return res.status(400).json({ error: 'Insufficient balance' });
+    }
+
+    const otp = crypto.randomInt(100000, 999999).toString();
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
+
+    const withdrawal = await Withdrawal.create({
+      userId: req.user.id,
+      assetId,
+      amount: parseFloat(amount),
+      usdValue: withdrawUSD || null,
+      destinationAddress,
+      status: 'pending',
+      otpCode: otp,
+      otpExpiry,
+    });
+
+    try {
+      await sendOTPEmail(user.email, user.firstName, otp, user.antiPhishingPhrase);
+    } catch (emailErr) {
+      console.error('OTP email failed:', emailErr.message);
+    }
+
+    logActivity(req.user.id, 'WITHDRAWAL_SUBMITTED', { withdrawalId: withdrawal.id, amount, assetId }, req);
+    res.status(201).json({
+      message: 'Withdrawal submitted. Check your email for the OTP verification code.',
+      withdrawalId: withdrawal.id,
+      requiresOTP: true,
+    });
+  } catch (err) {
+    console.error('Withdrawal error:', err);
+    res.status(500).json({ error: 'Failed to submit withdrawal' });
+  }
 });
 
 // POST /api/withdrawals/:id/verify-otp
 router.post('/:id/verify-otp', authenticate, [
   body('otp').notEmpty().isLength({ min: 6, max: 6 }),
-], (req, res) => {
+], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-  const db = getDB();
-  const withdrawal = db.prepare(
-    'SELECT * FROM withdrawals WHERE id = ? AND userId = ?'
-  ).get(req.params.id, req.user.id);
+  try {
+    const withdrawal = await Withdrawal.findOne({ _id: req.params.id, userId: req.user.id });
+    if (!withdrawal) return res.status(404).json({ error: 'Withdrawal not found' });
+    if (withdrawal.status !== 'pending') return res.status(400).json({ error: 'Withdrawal is no longer pending' });
 
-  if (!withdrawal) return res.status(404).json({ error: 'Withdrawal not found' });
-  if (withdrawal.status !== 'pending') {
-    return res.status(400).json({ error: 'Withdrawal is no longer pending' });
-  }
-
-  if (!withdrawal.otpCode || new Date(withdrawal.otpExpiry) < new Date()) {
-    return res.status(400).json({ error: 'OTP has expired. Please submit a new withdrawal.' });
-  }
-
-  if (withdrawal.otpCode !== req.body.otp) {
-    logActivity(req.user.id, 'WITHDRAWAL_OTP_FAILED', { withdrawalId: req.params.id }, req);
-    return res.status(400).json({ error: 'Invalid OTP code' });
-  }
-
-  // OTP verified – check 2FA if enabled
-  const user = db.prepare('SELECT twoFactorEnabled, twoFactorSecret FROM users WHERE id = ?').get(req.user.id);
-
-  if (user.twoFactorEnabled) {
-    const { totpCode } = req.body;
-    if (!totpCode) {
-      return res.status(200).json({ requiresTOTP: true, message: 'Please provide your 2FA code' });
+    if (!withdrawal.otpCode || new Date(withdrawal.otpExpiry) < new Date()) {
+      return res.status(400).json({ error: 'OTP has expired. Please submit a new withdrawal.' });
     }
-    const verified = speakeasy.totp.verify({
-      secret: user.twoFactorSecret,
-      encoding: 'base32',
-      token: totpCode,
-      window: 1,
-    });
-    if (!verified) {
-      return res.status(400).json({ error: 'Invalid 2FA code' });
-    }
-    db.prepare(
-      "UPDATE withdrawals SET otpCode = NULL, otpExpiry = NULL, twoFactorVerified = 1, updatedAt = datetime('now') WHERE id = ?"
-    ).run(req.params.id);
-  } else {
-    db.prepare(
-      "UPDATE withdrawals SET otpCode = NULL, otpExpiry = NULL WHERE id = ?"
-    ).run(req.params.id);
-  }
 
-  logActivity(req.user.id, 'WITHDRAWAL_VERIFIED', { withdrawalId: req.params.id }, req);
-  res.json({ message: 'Withdrawal verified successfully. Awaiting admin approval.' });
+    if (withdrawal.otpCode !== req.body.otp) {
+      logActivity(req.user.id, 'WITHDRAWAL_OTP_FAILED', { withdrawalId: req.params.id }, req);
+      return res.status(400).json({ error: 'Invalid OTP code' });
+    }
+
+    const user = await User.findById(req.user.id).select('twoFactorEnabled twoFactorSecret');
+
+    if (user.twoFactorEnabled) {
+      const { totpCode } = req.body;
+      if (!totpCode) {
+        return res.status(200).json({ requiresTOTP: true, message: 'Please provide your 2FA code' });
+      }
+      const verified = speakeasy.totp.verify({
+        secret: user.twoFactorSecret,
+        encoding: 'base32',
+        token: totpCode,
+        window: 1,
+      });
+      if (!verified) return res.status(400).json({ error: 'Invalid 2FA code' });
+
+      await Withdrawal.findByIdAndUpdate(req.params.id, {
+        otpCode: null,
+        otpExpiry: null,
+        twoFactorVerified: true,
+      });
+    } else {
+      await Withdrawal.findByIdAndUpdate(req.params.id, { otpCode: null, otpExpiry: null });
+    }
+
+    logActivity(req.user.id, 'WITHDRAWAL_VERIFIED', { withdrawalId: req.params.id }, req);
+    res.json({ message: 'Withdrawal verified successfully. Awaiting admin approval.' });
+  } catch (err) {
+    console.error('Verify OTP error:', err);
+    res.status(500).json({ error: 'Verification failed' });
+  }
 });
 
-// GET /api/withdrawals  (user's own withdrawals)
-router.get('/', authenticate, (req, res) => {
-  const db = getDB();
+// GET /api/withdrawals
+router.get('/', authenticate, async (req, res) => {
   const { page = 1, limit = 20, status } = req.query;
   const offset = (parseInt(page) - 1) * parseInt(limit);
+  const filter = { userId: req.user.id };
+  if (status) filter.status = status;
 
-  let query = `
-    SELECT w.id, w.amount, w.usdValue, w.destinationAddress, w.status,
-           w.adminNote, w.createdAt, w.processedAt,
-           a.name as assetName, a.symbol as assetSymbol
-    FROM withdrawals w
-    JOIN assets a ON a.id = w.assetId
-    WHERE w.userId = ?
-  `;
-  const params = [req.user.id];
+  try {
+    const [withdrawals, total] = await Promise.all([
+      Withdrawal.find(filter)
+        .sort({ createdAt: -1 })
+        .skip(offset)
+        .limit(parseInt(limit))
+        .populate('assetId', 'name symbol')
+        .lean(),
+      Withdrawal.countDocuments(filter),
+    ]);
 
-  if (status) {
-    query += ' AND w.status = ?';
-    params.push(status);
+    const mapped = withdrawals.map((w) => ({
+      id: w._id.toString(),
+      amount: w.amount,
+      usdValue: w.usdValue,
+      destinationAddress: w.destinationAddress,
+      status: w.status,
+      adminNote: w.adminNote,
+      createdAt: w.createdAt,
+      processedAt: w.processedAt,
+      assetName: w.assetId?.name,
+      assetSymbol: w.assetId?.symbol,
+    }));
+
+    res.json({ withdrawals: mapped, total, page: parseInt(page), limit: parseInt(limit) });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch withdrawals' });
   }
-
-  query += ' ORDER BY w.createdAt DESC LIMIT ? OFFSET ?';
-  params.push(parseInt(limit), offset);
-
-  const withdrawals = db.prepare(query).all(...params);
-
-  const countQuery = status
-    ? 'SELECT COUNT(*) as total FROM withdrawals WHERE userId = ? AND status = ?'
-    : 'SELECT COUNT(*) as total FROM withdrawals WHERE userId = ?';
-  const countParams = status ? [req.user.id, status] : [req.user.id];
-  const { total } = db.prepare(countQuery).get(...countParams);
-
-  res.json({ withdrawals, total, page: parseInt(page), limit: parseInt(limit) });
 });
 
 // GET /api/withdrawals/:id
-router.get('/:id', authenticate, (req, res) => {
-  const db = getDB();
-  const withdrawal = db.prepare(`
-    SELECT w.*, a.name as assetName, a.symbol as assetSymbol
-    FROM withdrawals w
-    JOIN assets a ON a.id = w.assetId
-    WHERE w.id = ? AND w.userId = ?
-  `).get(req.params.id, req.user.id);
+router.get('/:id', authenticate, async (req, res) => {
+  try {
+    const w = await Withdrawal.findOne({ _id: req.params.id, userId: req.user.id })
+      .populate('assetId', 'name symbol')
+      .lean();
+    if (!w) return res.status(404).json({ error: 'Withdrawal not found' });
 
-  if (!withdrawal) return res.status(404).json({ error: 'Withdrawal not found' });
-  res.json({ withdrawal });
+    res.json({
+      withdrawal: {
+        ...w,
+        id: w._id.toString(),
+        assetName: w.assetId?.name,
+        assetSymbol: w.assetId?.symbol,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch withdrawal' });
+  }
 });
 
 module.exports = router;

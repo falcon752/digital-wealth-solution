@@ -1,135 +1,130 @@
-const { DatabaseSync } = require('node:sqlite');
+const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-const { v4: uuidv4 } = require('uuid');
-const path = require('path');
 
-const DB_PATH = process.env.DB_PATH || './database.sqlite';
-
-let db;
-
-function getDB() {
-  if (!db) {
-    db = new DatabaseSync(path.resolve(DB_PATH));
-    db.exec("PRAGMA journal_mode = WAL");
-    db.exec("PRAGMA foreign_keys = ON");
-  }
-  return db;
+// ─── JSON transform helper ────────────────────────────────────────────────────
+function applyToJSON(schema) {
+  schema.set('toJSON', {
+    virtuals: true,
+    transform: (doc, ret) => {
+      ret.id = ret._id.toString();
+      delete ret._id;
+      delete ret.__v;
+      return ret;
+    },
+  });
 }
 
-async function initDB() {
-  const database = getDB();
+// ─── USER ─────────────────────────────────────────────────────────────────────
+const userSchema = new mongoose.Schema(
+  {
+    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    password: { type: String, required: true },
+    firstName: { type: String, required: true, trim: true },
+    lastName: { type: String, required: true, trim: true },
+    role: { type: String, enum: ['user', 'admin'], default: 'user' },
+    isActive: { type: Boolean, default: true },
+    antiPhishingPhrase: { type: String, default: null },
+    twoFactorSecret: { type: String, default: null },
+    twoFactorEnabled: { type: Boolean, default: false },
+    balance: { type: Number, default: 0 },
+  },
+  { timestamps: true }
+);
+applyToJSON(userSchema);
+const User = mongoose.model('User', userSchema);
 
-  database.exec(`
-    CREATE TABLE IF NOT EXISTS users (
-      id TEXT PRIMARY KEY,
-      email TEXT UNIQUE NOT NULL,
-      password TEXT NOT NULL,
-      firstName TEXT NOT NULL,
-      lastName TEXT NOT NULL,
-      role TEXT NOT NULL DEFAULT 'user',
-      isActive INTEGER NOT NULL DEFAULT 1,
-      antiPhishingPhrase TEXT,
-      twoFactorSecret TEXT,
-      twoFactorEnabled INTEGER NOT NULL DEFAULT 0,
-      createdAt TEXT NOT NULL DEFAULT (datetime('now')),
-      updatedAt TEXT NOT NULL DEFAULT (datetime('now'))
-    );
+// ─── ASSET ────────────────────────────────────────────────────────────────────
+const assetSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true, trim: true },
+    symbol: { type: String, required: true, unique: true, uppercase: true, trim: true },
+    walletAddress: { type: String, required: true },
+    qrCodeImage: { type: String, default: null },
+    network: { type: String, default: null },
+    minDeposit: { type: Number, default: 0 },
+    isActive: { type: Boolean, default: true },
+  },
+  { timestamps: true }
+);
+applyToJSON(assetSchema);
+const Asset = mongoose.model('Asset', assetSchema);
 
-    CREATE TABLE IF NOT EXISTS balances (
-      id TEXT PRIMARY KEY,
-      userId TEXT NOT NULL UNIQUE,
-      totalUSD REAL NOT NULL DEFAULT 0,
-      createdAt TEXT NOT NULL DEFAULT (datetime('now')),
-      updatedAt TEXT NOT NULL DEFAULT (datetime('now')),
-      FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
-    );
+// ─── DEPOSIT ──────────────────────────────────────────────────────────────────
+const depositSchema = new mongoose.Schema(
+  {
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    assetId: { type: mongoose.Schema.Types.ObjectId, ref: 'Asset', required: true },
+    amount: { type: Number, required: true },
+    usdValue: { type: Number, default: null },
+    txHash: { type: String, default: null },
+    status: { type: String, enum: ['pending', 'confirmed', 'rejected'], default: 'pending' },
+    adminNote: { type: String, default: null },
+    confirmedAt: { type: Date, default: null },
+  },
+  { timestamps: true }
+);
+applyToJSON(depositSchema);
+const Deposit = mongoose.model('Deposit', depositSchema);
 
-    CREATE TABLE IF NOT EXISTS assets (
-      id TEXT PRIMARY KEY,
-      name TEXT NOT NULL,
-      symbol TEXT NOT NULL UNIQUE,
-      walletAddress TEXT NOT NULL,
-      qrCodeImage TEXT,
-      network TEXT,
-      minDeposit REAL DEFAULT 0,
-      isActive INTEGER NOT NULL DEFAULT 1,
-      createdAt TEXT NOT NULL DEFAULT (datetime('now')),
-      updatedAt TEXT NOT NULL DEFAULT (datetime('now'))
-    );
+// ─── WITHDRAWAL ───────────────────────────────────────────────────────────────
+const withdrawalSchema = new mongoose.Schema(
+  {
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    assetId: { type: mongoose.Schema.Types.ObjectId, ref: 'Asset', required: true },
+    amount: { type: Number, required: true },
+    usdValue: { type: Number, default: null },
+    destinationAddress: { type: String, required: true },
+    status: {
+      type: String,
+      enum: ['pending', 'approved', 'completed', 'rejected'],
+      default: 'pending',
+    },
+    adminNote: { type: String, default: null },
+    otpCode: { type: String, default: null },
+    otpExpiry: { type: Date, default: null },
+    twoFactorVerified: { type: Boolean, default: false },
+    processedAt: { type: Date, default: null },
+  },
+  { timestamps: true }
+);
+applyToJSON(withdrawalSchema);
+const Withdrawal = mongoose.model('Withdrawal', withdrawalSchema);
 
-    CREATE TABLE IF NOT EXISTS deposits (
-      id TEXT PRIMARY KEY,
-      userId TEXT NOT NULL,
-      assetId TEXT NOT NULL,
-      amount REAL NOT NULL,
-      usdValue REAL,
-      txHash TEXT,
-      status TEXT NOT NULL DEFAULT 'pending',
-      adminNote TEXT,
-      createdAt TEXT NOT NULL DEFAULT (datetime('now')),
-      confirmedAt TEXT,
-      FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,
-      FOREIGN KEY (assetId) REFERENCES assets(id)
-    );
+// ─── ACTIVITY LOG ─────────────────────────────────────────────────────────────
+const activityLogSchema = new mongoose.Schema(
+  {
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    action: { type: String, required: true },
+    details: { type: mongoose.Schema.Types.Mixed, default: null },
+    ipAddress: { type: String, default: null },
+    userAgent: { type: String, default: null },
+  },
+  { timestamps: { createdAt: true, updatedAt: false } }
+);
+applyToJSON(activityLogSchema);
+const ActivityLog = mongoose.model('ActivityLog', activityLogSchema);
 
-    CREATE TABLE IF NOT EXISTS withdrawals (
-      id TEXT PRIMARY KEY,
-      userId TEXT NOT NULL,
-      assetId TEXT NOT NULL,
-      amount REAL NOT NULL,
-      usdValue REAL,
-      destinationAddress TEXT NOT NULL,
-      status TEXT NOT NULL DEFAULT 'pending',
-      adminNote TEXT,
-      otpCode TEXT,
-      otpExpiry TEXT,
-      twoFactorVerified INTEGER NOT NULL DEFAULT 0,
-      createdAt TEXT NOT NULL DEFAULT (datetime('now')),
-      processedAt TEXT,
-      FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,
-      FOREIGN KEY (assetId) REFERENCES assets(id)
-    );
+// ─── CONNECT + SEED ───────────────────────────────────────────────────────────
+async function connectDB() {
+  await mongoose.connect(process.env.MONGODB_URI);
+  console.log('MongoDB connected');
 
-    CREATE TABLE IF NOT EXISTS activity_logs (
-      id TEXT PRIMARY KEY,
-      userId TEXT,
-      action TEXT NOT NULL,
-      details TEXT,
-      ipAddress TEXT,
-      userAgent TEXT,
-      createdAt TEXT NOT NULL DEFAULT (datetime('now')),
-      FOREIGN KEY (userId) REFERENCES users(id) ON DELETE SET NULL
-    );
-  `);
-
-  // Seed admin user if not exists
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@digitalwealthsolution.com';
-  const adminExists = database.prepare('SELECT id FROM users WHERE email = ?').get(adminEmail);
-
-  if (!adminExists) {
-    const adminId = uuidv4();
-    const hashedPassword = await bcrypt.hash(
-      process.env.ADMIN_PASSWORD || 'Admin@SecurePass123',
-      12
-    );
-    database.prepare(`
-      INSERT INTO users (id, email, password, firstName, lastName, role)
-      VALUES (?, ?, ?, ?, ?, 'admin')
-    `).run(
-      adminId,
-      adminEmail,
-      hashedPassword,
-      process.env.ADMIN_FIRST_NAME || 'Super',
-      process.env.ADMIN_LAST_NAME || 'Admin'
-    );
-    database.prepare(`
-      INSERT INTO balances (id, userId) VALUES (?, ?)
-    `).run(uuidv4(), adminId);
-    console.log(`Admin user seeded: ${adminEmail}`);
+  const exists = await User.findOne({ email: adminEmail });
+  if (!exists) {
+    const hashed = await bcrypt.hash(process.env.ADMIN_PASSWORD || 'Admin@SecurePass123', 12);
+    await User.create({
+      email: adminEmail,
+      password: hashed,
+      firstName: process.env.ADMIN_FIRST_NAME || 'Super',
+      lastName: process.env.ADMIN_LAST_NAME || 'Admin',
+      role: 'admin',
+      isActive: true,
+    });
+    console.log(`Admin seeded: ${adminEmail}`);
   }
 
-  console.log('Database initialized successfully');
-  return database;
+  console.log('Database ready');
 }
 
-module.exports = { getDB, initDB };
+module.exports = { connectDB, User, Asset, Deposit, Withdrawal, ActivityLog };

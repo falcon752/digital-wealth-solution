@@ -2,9 +2,8 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const speakeasy = require('speakeasy');
-const { v4: uuidv4 } = require('uuid');
 const { body, validationResult } = require('express-validator');
-const { getDB } = require('../database');
+const { User } = require('../database');
 const { authenticate } = require('../middleware/auth');
 const { logActivity } = require('../utils/activity');
 const { sendWelcomeEmail } = require('../utils/email');
@@ -22,45 +21,29 @@ router.post('/register', [
   body('lastName').trim().notEmpty().isLength({ max: 50 }),
 ], async (req, res) => {
   const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
   const { email, password, firstName, lastName } = req.body;
-  const db = getDB();
 
   try {
-    const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
-    if (existing) {
-      return res.status(409).json({ error: 'Email already registered' });
-    }
+    const existing = await User.findOne({ email });
+    if (existing) return res.status(409).json({ error: 'Email already registered' });
 
     const hashedPassword = await bcrypt.hash(password, 12);
-    const userId = uuidv4();
+    const user = await User.create({ email, password: hashedPassword, firstName, lastName, role: 'user' });
 
-    db.prepare(`
-      INSERT INTO users (id, email, password, firstName, lastName, role)
-      VALUES (?, ?, ?, ?, ?, 'user')
-    `).run(userId, email, hashedPassword, firstName, lastName);
-
-    db.prepare(`
-      INSERT INTO balances (id, userId, totalUSD) VALUES (?, ?, 0)
-    `).run(uuidv4(), userId);
-
-    logActivity(userId, 'USER_REGISTERED', { email }, req);
-
-    // Send welcome email (non-blocking)
+    logActivity(user.id, 'USER_REGISTERED', { email }, req);
     sendWelcomeEmail(email, firstName).catch(() => {});
 
     const token = jwt.sign(
-      { userId, role: 'user' },
+      { userId: user.id, role: 'user' },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
     );
 
     res.status(201).json({
       token,
-      user: { id: userId, email, firstName, lastName, role: 'user' },
+      user: { id: user.id, email, firstName, lastName, role: 'user' },
     });
   } catch (err) {
     console.error('Register error:', err);
@@ -74,25 +57,15 @@ router.post('/login', [
   body('password').notEmpty(),
 ], async (req, res) => {
   const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
   const { email, password, totpCode } = req.body;
-  const db = getDB();
 
   try {
-    const user = db.prepare(
-      'SELECT * FROM users WHERE email = ?'
-    ).get(email);
+    const user = await User.findOne({ email });
+    if (!user) return res.status(401).json({ error: 'Invalid email or password' });
 
-    if (!user) {
-      return res.status(401).json({ error: 'Invalid email or password' });
-    }
-
-    if (!user.isActive) {
-      return res.status(403).json({ error: 'Account has been deactivated' });
-    }
+    if (!user.isActive) return res.status(403).json({ error: 'Account has been deactivated' });
 
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) {
@@ -100,11 +73,8 @@ router.post('/login', [
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    // 2FA check
     if (user.twoFactorEnabled) {
-      if (!totpCode) {
-        return res.status(200).json({ requires2FA: true });
-      }
+      if (!totpCode) return res.status(200).json({ requires2FA: true });
       const verified = speakeasy.totp.verify({
         secret: user.twoFactorSecret,
         encoding: 'base32',
@@ -133,7 +103,7 @@ router.post('/login', [
         firstName: user.firstName,
         lastName: user.lastName,
         role: user.role,
-        twoFactorEnabled: !!user.twoFactorEnabled,
+        twoFactorEnabled: user.twoFactorEnabled,
         antiPhishingPhrase: user.antiPhishingPhrase,
       },
     });
@@ -144,95 +114,83 @@ router.post('/login', [
 });
 
 // GET /api/auth/me
-router.get('/me', authenticate, (req, res) => {
-  const db = getDB();
-  const user = db.prepare(
-    'SELECT id, email, firstName, lastName, role, isActive, twoFactorEnabled, antiPhishingPhrase, createdAt FROM users WHERE id = ?'
-  ).get(req.user.id);
-
-  if (!user) return res.status(404).json({ error: 'User not found' });
-  res.json({ user });
+router.get('/me', authenticate, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password -twoFactorSecret');
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json({ user });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch user' });
+  }
 });
 
 // POST /api/auth/setup-2fa
-router.post('/setup-2fa', authenticate, (req, res) => {
+router.post('/setup-2fa', authenticate, async (req, res) => {
   const secret = speakeasy.generateSecret({
     name: `Digital Wealth Solution (${req.user.email})`,
     length: 20,
   });
 
-  const db = getDB();
-  db.prepare('UPDATE users SET twoFactorSecret = ? WHERE id = ?')
-    .run(secret.base32, req.user.id);
-
-  res.json({
-    secret: secret.base32,
-    otpauthUrl: secret.otpauth_url,
-  });
+  try {
+    await User.findByIdAndUpdate(req.user.id, { twoFactorSecret: secret.base32 });
+    res.json({ secret: secret.base32, otpauthUrl: secret.otpauth_url });
+  } catch (err) {
+    res.status(500).json({ error: 'Setup failed' });
+  }
 });
 
 // POST /api/auth/confirm-2fa
 router.post('/confirm-2fa', authenticate, [
   body('token').notEmpty(),
-], (req, res) => {
+], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-  const db = getDB();
-  const user = db.prepare('SELECT twoFactorSecret FROM users WHERE id = ?').get(req.user.id);
+  try {
+    const user = await User.findById(req.user.id).select('twoFactorSecret');
+    if (!user?.twoFactorSecret) return res.status(400).json({ error: '2FA setup not initiated' });
 
-  if (!user || !user.twoFactorSecret) {
-    return res.status(400).json({ error: '2FA setup not initiated' });
+    const verified = speakeasy.totp.verify({
+      secret: user.twoFactorSecret,
+      encoding: 'base32',
+      token: req.body.token,
+      window: 1,
+    });
+    if (!verified) return res.status(400).json({ error: 'Invalid verification code' });
+
+    await User.findByIdAndUpdate(req.user.id, { twoFactorEnabled: true });
+    logActivity(req.user.id, '2FA_ENABLED', null, req);
+    res.json({ message: '2FA enabled successfully' });
+  } catch (err) {
+    res.status(500).json({ error: 'Confirmation failed' });
   }
-
-  const verified = speakeasy.totp.verify({
-    secret: user.twoFactorSecret,
-    encoding: 'base32',
-    token: req.body.token,
-    window: 1,
-  });
-
-  if (!verified) {
-    return res.status(400).json({ error: 'Invalid verification code' });
-  }
-
-  db.prepare('UPDATE users SET twoFactorEnabled = 1 WHERE id = ?').run(req.user.id);
-  logActivity(req.user.id, '2FA_ENABLED', null, req);
-
-  res.json({ message: '2FA enabled successfully' });
 });
 
 // POST /api/auth/disable-2fa
 router.post('/disable-2fa', authenticate, [
   body('token').notEmpty(),
-], (req, res) => {
+], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-  const db = getDB();
-  const user = db.prepare('SELECT twoFactorSecret, twoFactorEnabled FROM users WHERE id = ?').get(req.user.id);
+  try {
+    const user = await User.findById(req.user.id).select('twoFactorSecret twoFactorEnabled');
+    if (!user?.twoFactorEnabled) return res.status(400).json({ error: '2FA is not enabled' });
 
-  if (!user || !user.twoFactorEnabled) {
-    return res.status(400).json({ error: '2FA is not enabled' });
+    const verified = speakeasy.totp.verify({
+      secret: user.twoFactorSecret,
+      encoding: 'base32',
+      token: req.body.token,
+      window: 1,
+    });
+    if (!verified) return res.status(400).json({ error: 'Invalid verification code' });
+
+    await User.findByIdAndUpdate(req.user.id, { twoFactorEnabled: false, twoFactorSecret: null });
+    logActivity(req.user.id, '2FA_DISABLED', null, req);
+    res.json({ message: '2FA disabled successfully' });
+  } catch (err) {
+    res.status(500).json({ error: 'Disable failed' });
   }
-
-  const verified = speakeasy.totp.verify({
-    secret: user.twoFactorSecret,
-    encoding: 'base32',
-    token: req.body.token,
-    window: 1,
-  });
-
-  if (!verified) {
-    return res.status(400).json({ error: 'Invalid verification code' });
-  }
-
-  db.prepare(
-    'UPDATE users SET twoFactorEnabled = 0, twoFactorSecret = NULL WHERE id = ?'
-  ).run(req.user.id);
-
-  logActivity(req.user.id, '2FA_DISABLED', null, req);
-  res.json({ message: '2FA disabled successfully' });
 });
 
 module.exports = router;
