@@ -167,7 +167,7 @@ export default function LandingPage() {
               {/* DWP logo on top of image */}
               <div className="absolute inset-0 flex items-end justify-center pb-10">
                 <Image
-                  src="/dwp-logo.png"
+                  src="/hero-logo.png"
                   alt="DWS"
                   width={320}
                   height={120}
