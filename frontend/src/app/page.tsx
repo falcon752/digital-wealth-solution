@@ -36,20 +36,19 @@ export default function LandingPage() {
           {/* Nav links */}
           <div className="hidden lg:flex items-center gap-8">
             {[
-              { label: 'Home', href: '/' },
-              { label: 'Services', href: '/dashboard' },
-              { label: 'Digital Asset Custody', href: '/dashboard/deposit' },
-              { label: 'About Digital Wealth Partners', href: '#mission' },
-              { label: 'Blog', href: '#' },
-            ].map(({ label, href }) => (
-              <Link
+              { label: 'Home' },
+              { label: 'Services' },
+              { label: 'Digital Asset Custody' },
+              { label: 'About Digital Wealth Partners' },
+              { label: 'Blog' },
+            ].map(({ label }) => (
+              <span
                 key={label}
-                href={href}
-                className="text-sm font-medium transition-colors hover:opacity-70"
-                style={{ color: '#1e266d', letterSpacing: '0.01em' }}
+                className="text-sm font-medium cursor-default"
+                style={{ color: '#1e266d', letterSpacing: '0.01em', opacity: 0.5 }}
               >
                 {label}
-              </Link>
+              </span>
             ))}
           </div>
 
