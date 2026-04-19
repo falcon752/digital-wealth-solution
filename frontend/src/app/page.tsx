@@ -21,7 +21,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-6 py-0 flex items-center justify-between" style={{ height: '80px' }}>
 
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-3">
+          <Link href="#" className="flex items-center gap-3">
             <Image
               src="/dwp-logo.png"
               alt="Digital Wealth Solution"
@@ -36,25 +36,26 @@ export default function LandingPage() {
           {/* Nav links */}
           <div className="hidden lg:flex items-center gap-8">
             {[
-              { label: 'Home' },
-              { label: 'Services' },
-              { label: 'Digital Asset Custody' },
-              { label: 'About Digital Wealth Partners' },
-              { label: 'Blog' },
-            ].map(({ label }) => (
-              <span
+              { label: 'Home', href: '#' },
+              { label: 'Services', href: '#' },
+              { label: 'Digital Asset Custody', href: '#' },
+              { label: 'About Digital Wealth Partners', href: '#' },
+              { label: 'Blog', href: '#' },
+            ].map(({ label, href }) => (
+              <Link
                 key={label}
-                className="text-sm font-medium cursor-default"
-                style={{ color: '#1e266d', letterSpacing: '0.01em', opacity: 0.5 }}
+                href={href}
+                className="text-sm font-medium transition-colors hover:opacity-70"
+                style={{ color: '#1e266d', letterSpacing: '0.01em' }}
               >
                 {label}
-              </span>
+              </Link>
             ))}
           </div>
 
           {/* CTA button */}
           <Link
-            href="/login"
+            href="#"
             className="hidden lg:inline-flex items-center text-sm font-semibold text-white px-5 py-2.5 rounded transition-opacity hover:opacity-90"
             style={{ backgroundColor: '#2C3342' }}
           >
@@ -113,7 +114,7 @@ export default function LandingPage() {
             {/* Buttons */}
             <div className="flex flex-wrap gap-4 items-center">
               <Link
-                href="/register"
+                href="#"
                 className="inline-flex items-center gap-2 text-white font-semibold px-7 py-3.5 rounded transition-opacity hover:opacity-90"
                 style={{ backgroundColor: '#2C3342', fontSize: '16px' }}
               >
@@ -124,7 +125,7 @@ export default function LandingPage() {
               </Link>
 
               <Link
-                href="/dashboard"
+                href="#"
                 className="inline-flex items-center font-semibold px-7 py-3.5 rounded border transition-colors hover:bg-gray-50"
                 style={{ borderColor: '#2C3342', color: '#2C3342', fontSize: '16px' }}
               >
@@ -282,7 +283,7 @@ export default function LandingPage() {
                 something more conservative.
               </p>
               <Link
-                href="/register"
+                href="#"
                 className="inline-flex items-center gap-2 text-white font-semibold px-6 py-3 rounded transition-opacity hover:opacity-90"
                 style={{ backgroundColor: '#2C3342', fontSize: '15px' }}
               >
@@ -373,7 +374,7 @@ export default function LandingPage() {
                     {desc}
                   </p>
                   <Link
-                    href="/register"
+                    href="#"
                     className="text-sm font-semibold transition-opacity hover:opacity-70"
                     style={{ color: '#AD7F4E' }}
                   >
@@ -453,7 +454,7 @@ export default function LandingPage() {
             Your Gateway to Digital Investments
           </h1>
           <Link
-            href="/register"
+            href="#"
             className="relative z-10 inline-block font-semibold px-10 py-4 rounded text-white transition-opacity hover:opacity-90"
             style={{ backgroundColor: '#AD7F4E', fontSize: '16px' }}
           >
@@ -473,7 +474,7 @@ export default function LandingPage() {
           Speak to a team member at Digital Wealth Solution to learn more
         </h3>
         <Link
-          href="/register"
+          href="#"
           className="inline-block font-semibold px-8 py-3.5 rounded text-white transition-opacity hover:opacity-90"
           style={{ backgroundColor: '#AD7F4E', fontSize: '15px' }}
         >
@@ -494,7 +495,7 @@ export default function LandingPage() {
             {['Home', 'Services', 'About Digital Wealth Solution', 'Blog', 'Contact Us'].map((item, i, arr) => (
               <span key={item} className="flex items-center gap-6">
                 <Link
-                  href="/"
+                  href="#"
                   className="text-sm transition-colors hover:opacity-80"
                   style={{ color: '#BDBEC8' }}
                 >
@@ -583,11 +584,11 @@ export default function LandingPage() {
               © {new Date().getFullYear()} Digital Wealth Solution — All Rights Reserved
             </p>
             <div className="flex items-center gap-5">
-              <Link href="/login" className="text-xs hover:underline" style={{ color: '#AD7F4E' }}>
+              <Link href="#" className="text-xs hover:underline" style={{ color: '#AD7F4E' }}>
                 Client Login
               </Link>
               <span style={{ color: 'rgba(255,255,255,0.2)' }}>|</span>
-              <Link href="/register" className="text-xs hover:underline" style={{ color: '#AD7F4E' }}>
+              <Link href="#" className="text-xs hover:underline" style={{ color: '#AD7F4E' }}>
                 Get Started
               </Link>
             </div>
