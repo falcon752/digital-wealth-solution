@@ -14,10 +14,11 @@ interface Tab {
 
 interface DashboardHeaderProps {
   title: string;
+  subtitle?: string;
   tabs?: Tab[];
 }
 
-export default function DashboardHeader({ title, tabs }: DashboardHeaderProps) {
+export default function DashboardHeader({ title, subtitle, tabs }: DashboardHeaderProps) {
   const { user } = useAuth();
   const pathname = usePathname();
 
