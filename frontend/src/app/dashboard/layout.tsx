@@ -17,13 +17,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (isLoading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-brand-400 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[var(--bg-page)]">
+    <div className="flex h-screen overflow-hidden bg-gray-100 dark:bg-gray-800">
       <DashboardSidebar />
       <main className="flex-1 overflow-y-auto">{children}</main>
     </div>

@@ -106,3 +106,20 @@ body {
   background-size: 28px 28px;
 }
 
+/* ─── Auth page color overrides (blue palette, neutral text) ─────────────── */
+.auth-page {
+  --text-primary:   #111827;
+  --text-secondary: #374151;
+  --text-muted:     #6b7280;
+  --border-color:   #d1d5db;
+  --bg-input:       #ffffff;
+}
+.dark .auth-page {
+  --text-primary:   #f9fafb;
+  --text-secondary: #e5e7eb;
+  --text-muted:     #9ca3af;
+  --border-color:   rgba(255,255,255,0.12);
+  --bg-input:       rgba(255,255,255,0.06);
+  --bg-card:        rgba(255,255,255,0.05);
+}
+

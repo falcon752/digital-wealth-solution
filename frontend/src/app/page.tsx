@@ -1,27 +1,38 @@
+'use client';
+
 import Link from 'next/link';
 import Image from 'next/image';
+import { useEffect, useState } from 'react';
 
 export default function LandingPage() {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
   return (
     <div
       style={{ fontFamily: "'Source Sans Pro', 'Inter', sans-serif" }}
       className="min-h-screen bg-white"
     >
 
-      {/* ── Google Font ──────────────────────────────────────────────────*/}
-      {/* loaded via <head> in layout – here we scope inline styles only  */}
-
       {/* ═══════════════════════════════════════════════════════════════ */}
-      {/* NAVBAR                                                           */}
+      {/* NAVBAR – fixed, floats over hero                                */}
       {/* ═══════════════════════════════════════════════════════════════ */}
       <nav
-        className="w-full sticky top-0 z-50 bg-white"
-        style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.07)' }}
+        className="w-full fixed top-0 left-0 right-0 z-50 transition-all duration-300"
+        style={{
+          backgroundColor: scrolled ? '#ffffff' : 'transparent',
+          boxShadow: scrolled ? '0 2px 12px rgba(0,0,0,0.07)' : 'none',
+        }}
       >
         <div className="max-w-7xl mx-auto px-6 py-0 flex items-center justify-between" style={{ height: '80px' }}>
 
           {/* Logo */}
-          <Link href="#" className="flex items-center gap-3">
+          <Link href="/" className="flex items-center gap-3">
             <Image
               src="/dwp-logo.png"
               alt="Digital Wealth Solution"
@@ -36,10 +47,10 @@ export default function LandingPage() {
           {/* Nav links */}
           <div className="hidden lg:flex items-center gap-8">
             {[
-              { label: 'Home', href: '#' },
-              { label: 'Services', href: '#' },
-              { label: 'Digital Asset Custody', href: '#' },
-              { label: 'About Digital Wealth Partners', href: '#' },
+              { label: 'Home', href: '/' },
+              { label: 'Services', href: '/services' },
+              { label: 'Digital Asset Custody', href: '/dashboard/deposit' },
+              { label: 'About Digital Wealth Partners', href: '#mission' },
               { label: 'Blog', href: '#' },
             ].map(({ label, href }) => (
               <Link
@@ -55,7 +66,7 @@ export default function LandingPage() {
 
           {/* CTA button */}
           <Link
-            href="#"
+            href="/login"
             className="hidden lg:inline-flex items-center text-sm font-semibold text-white px-5 py-2.5 rounded transition-opacity hover:opacity-90"
             style={{ backgroundColor: '#2C3342' }}
           >
@@ -114,7 +125,7 @@ export default function LandingPage() {
             {/* Buttons */}
             <div className="flex flex-wrap gap-4 items-center">
               <Link
-                href="#"
+                href="/register"
                 className="inline-flex items-center gap-2 text-white font-semibold px-7 py-3.5 rounded transition-opacity hover:opacity-90"
                 style={{ backgroundColor: '#2C3342', fontSize: '16px' }}
               >
@@ -125,7 +136,7 @@ export default function LandingPage() {
               </Link>
 
               <Link
-                href="#"
+                href="/dashboard"
                 className="inline-flex items-center font-semibold px-7 py-3.5 rounded border transition-colors hover:bg-gray-50"
                 style={{ borderColor: '#2C3342', color: '#2C3342', fontSize: '16px' }}
               >
@@ -283,7 +294,7 @@ export default function LandingPage() {
                 something more conservative.
               </p>
               <Link
-                href="#"
+                href="/register"
                 className="inline-flex items-center gap-2 text-white font-semibold px-6 py-3 rounded transition-opacity hover:opacity-90"
                 style={{ backgroundColor: '#2C3342', fontSize: '15px' }}
               >
@@ -374,7 +385,7 @@ export default function LandingPage() {
                     {desc}
                   </p>
                   <Link
-                    href="#"
+                    href="/register"
                     className="text-sm font-semibold transition-opacity hover:opacity-70"
                     style={{ color: '#AD7F4E' }}
                   >
@@ -454,7 +465,7 @@ export default function LandingPage() {
             Your Gateway to Digital Investments
           </h1>
           <Link
-            href="#"
+            href="/register"
             className="relative z-10 inline-block font-semibold px-10 py-4 rounded text-white transition-opacity hover:opacity-90"
             style={{ backgroundColor: '#AD7F4E', fontSize: '16px' }}
           >
@@ -474,7 +485,7 @@ export default function LandingPage() {
           Speak to a team member at Digital Wealth Solution to learn more
         </h3>
         <Link
-          href="#"
+          href="/register"
           className="inline-block font-semibold px-8 py-3.5 rounded text-white transition-opacity hover:opacity-90"
           style={{ backgroundColor: '#AD7F4E', fontSize: '15px' }}
         >
@@ -495,7 +506,7 @@ export default function LandingPage() {
             {['Home', 'Services', 'About Digital Wealth Solution', 'Blog', 'Contact Us'].map((item, i, arr) => (
               <span key={item} className="flex items-center gap-6">
                 <Link
-                  href="#"
+                  href="/"
                   className="text-sm transition-colors hover:opacity-80"
                   style={{ color: '#BDBEC8' }}
                 >
@@ -584,11 +595,11 @@ export default function LandingPage() {
               © {new Date().getFullYear()} Digital Wealth Solution — All Rights Reserved
             </p>
             <div className="flex items-center gap-5">
-              <Link href="#" className="text-xs hover:underline" style={{ color: '#AD7F4E' }}>
+              <Link href="/login" className="text-xs hover:underline" style={{ color: '#AD7F4E' }}>
                 Client Login
               </Link>
               <span style={{ color: 'rgba(255,255,255,0.2)' }}>|</span>
-              <Link href="#" className="text-xs hover:underline" style={{ color: '#AD7F4E' }}>
+              <Link href="/register" className="text-xs hover:underline" style={{ color: '#AD7F4E' }}>
                 Get Started
               </Link>
             </div>
