@@ -2,78 +2,17 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import Navbar from '@/components/layout/Navbar';
+import SiteFooter from '@/components/layout/SiteFooter';
 
 export default function LandingPage() {
-  const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
-
   return (
     <div
       style={{ fontFamily: "'Source Sans Pro', 'Inter', sans-serif" }}
       className="min-h-screen bg-white"
     >
 
-      {/* ═══════════════════════════════════════════════════════════════ */}
-      {/* NAVBAR – fixed, floats over hero                                */}
-      {/* ═══════════════════════════════════════════════════════════════ */}
-      <nav
-        className="w-full fixed top-0 left-0 right-0 z-50 transition-all duration-300"
-        style={{
-          backgroundColor: scrolled ? '#ffffff' : 'transparent',
-          boxShadow: scrolled ? '0 2px 12px rgba(0,0,0,0.07)' : 'none',
-        }}
-      >
-        <div className="max-w-7xl mx-auto px-6 py-0 flex items-center justify-between" style={{ height: '80px' }}>
-
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-3">
-            <Image
-              src="/dwp-logo.png"
-              alt="Digital Wealth Solution"
-              width={220}
-              height={70}
-              className="h-[70px] w-auto object-contain"
-              unoptimized
-              priority
-            />
-          </Link>
-
-          {/* Nav links */}
-          <div className="hidden lg:flex items-center gap-8">
-            {[
-              { label: 'Home', href: '/' },
-              { label: 'Services', href: '/services' },
-              { label: 'Digital Asset Custody', href: '/dashboard/deposit' },
-              { label: 'About Digital Wealth Partners', href: '#mission' },
-              { label: 'Blog', href: '#' },
-            ].map(({ label, href }) => (
-              <Link
-                key={label}
-                href={href}
-                className="text-sm font-medium transition-colors hover:opacity-70"
-                style={{ color: '#1e266d', letterSpacing: '0.01em' }}
-              >
-                {label}
-              </Link>
-            ))}
-          </div>
-
-          {/* CTA button */}
-          <Link
-            href="/login"
-            className="hidden lg:inline-flex items-center text-sm font-semibold text-white px-5 py-2.5 rounded transition-opacity hover:opacity-90"
-            style={{ backgroundColor: '#2C3342' }}
-          >
-            Contact Us
-          </Link>
-        </div>
-      </nav>
+      <Navbar transparent={true} />
 
       {/* ═══════════════════════════════════════════════════════════════ */}
       {/* HERO                                                             */}
@@ -245,7 +184,7 @@ export default function LandingPage() {
                 style={{ boxShadow: '0 4px 24px rgba(44,51,66,0.10)' }}
               >
                 <div
-                  className="flex-shrink-0 mt-1"
+                  className="shrink-0 mt-1"
                   style={{ color: '#A87A49' }}
                 >
                   {icon}
@@ -493,119 +432,7 @@ export default function LandingPage() {
         </Link>
       </section>
 
-      {/* ═══════════════════════════════════════════════════════════════ */}
-      {/* FOOTER                                                           */}
-      {/* ═══════════════════════════════════════════════════════════════ */}
-      <footer>
-        {/* Top nav bar */}
-        <div
-          style={{ backgroundColor: '#2C3342', borderBottom: '1px solid rgba(255,255,255,0.07)' }}
-          className="py-5 px-6"
-        >
-          <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center gap-6">
-            {['Home', 'Services', 'About Digital Wealth Solution', 'Blog', 'Contact Us'].map((item, i, arr) => (
-              <span key={item} className="flex items-center gap-6">
-                <Link
-                  href="/"
-                  className="text-sm transition-colors hover:opacity-80"
-                  style={{ color: '#BDBEC8' }}
-                >
-                  {item}
-                </Link>
-                {i < arr.length - 1 && (
-                  <span style={{ color: 'rgba(255,255,255,0.15)' }}>|</span>
-                )}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {/* Upper footer */}
-        <div style={{ backgroundColor: '#2C3342' }} className="py-14 px-6">
-          <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10">
-            {/* Col 1 - about */}
-            <div className="md:col-span-2">
-              <Image
-                src="/dwp-logo.png"
-                alt="Digital Wealth Solution"
-                width={180}
-                height={50}
-                className="h-11 w-auto object-contain mb-5"
-                style={{ filter: 'brightness(0) invert(1)' }}
-                unoptimized
-              />
-              <p className="text-sm leading-relaxed mb-6" style={{ color: '#BDBEC8' }}>
-                Digital Wealth Solution is a platform providing secure custody and active management
-                of digital assets. Transparent, fiduciary-first, and built for the modern investor.
-                Based in Dallas, Texas.
-              </p>
-              <p className="text-sm mb-2" style={{ color: '#BDBEC8' }}>
-                (307) 309-2027
-              </p>
-              <div className="flex flex-wrap gap-3 text-xs mt-4">
-                {['Disclaimer', 'Privacy Policy', 'Terms of Service', 'Legal'].map((lnk, i, arr) => (
-                  <span key={lnk} className="flex items-center gap-3">
-                    <a href="#" className="transition-colors hover:opacity-80" style={{ color: '#AD7F4E' }}>
-                      {lnk}
-                    </a>
-                    {i < arr.length - 1 && <span style={{ color: 'rgba(255,255,255,0.2)' }}>|</span>}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Col 2 - Quick Links */}
-            <div>
-              <h4 className="text-white font-semibold mb-5 text-sm uppercase" style={{ letterSpacing: '0.08em' }}>
-                Quick Links
-              </h4>
-              <ul className="space-y-3">
-                {['Who We Serve', 'What We Do'].map((item) => (
-                  <li key={item}>
-                    <a href="#" className="text-sm transition-colors hover:opacity-80" style={{ color: '#BDBEC8' }}>
-                      {item}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Col 3 - Key Services */}
-            <div>
-              <h4 className="text-white font-semibold mb-5 text-sm uppercase" style={{ letterSpacing: '0.08em' }}>
-                Key Services
-              </h4>
-              <ul className="space-y-3">
-                {['Crypto Custody', 'Crypto Wealth Management', 'Crypto Lending'].map((item) => (
-                  <li key={item}>
-                    <a href="#" className="text-sm transition-colors hover:opacity-80" style={{ color: '#BDBEC8' }}>
-                      {item}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        {/* Lower footer */}
-        <div style={{ backgroundColor: '#2A2F3A' }} className="py-5 px-6">
-          <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
-            <p className="text-xs" style={{ color: '#BDBEC8' }}>
-              © {new Date().getFullYear()} Digital Wealth Solution — All Rights Reserved
-            </p>
-            <div className="flex items-center gap-5">
-              <Link href="/login" className="text-xs hover:underline" style={{ color: '#AD7F4E' }}>
-                Client Login
-              </Link>
-              <span style={{ color: 'rgba(255,255,255,0.2)' }}>|</span>
-              <Link href="/register" className="text-xs hover:underline" style={{ color: '#AD7F4E' }}>
-                Get Started
-              </Link>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
 
     </div>
   );
