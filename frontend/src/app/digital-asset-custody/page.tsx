@@ -43,8 +43,11 @@ export default function DigitalAssetCustodyPage() {
       <Navbar />
 
       {/* ─── MAIN CONTENT ────────────────────────────────────────────── */}
-      <div className="pt-24 pb-20">
-        <div className="max-w-5xl mx-auto px-8">
+      <div className="pt-24 pb-20" style={{ backgroundColor: '#f5f6f8' }}>
+        <div
+          className="max-w-6xl mx-auto px-10 bg-white"
+          style={{ boxShadow: '0 0 40px rgba(0,0,0,0.08)', minHeight: '60vh' }}
+        >
 
           {/* ── Intro ── */}
           <section className="py-10">
@@ -85,7 +88,7 @@ export default function DigitalAssetCustodyPage() {
                     solutions can support your specific requirements.
                   </p>
                   <Link
-                    href="/login"
+                    href="/contact"
                     className="shrink-0 inline-block font-semibold text-white px-6 py-3 rounded transition-opacity hover:opacity-90"
                     style={{ backgroundColor: '#2C3342', fontSize: '14px' }}
                   >

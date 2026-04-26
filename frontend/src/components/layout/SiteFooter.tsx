@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import Image from 'next/image';
 
 const FOOTER_LINKS = [
   { label: 'Home', href: '/' },
@@ -10,9 +9,24 @@ const FOOTER_LINKS = [
   { label: 'Contact us', href: '#' },
 ];
 
-const QUICK_LINKS = ['Who We Serve', 'What We Do'];
-const KEY_SERVICES = ['Crypto Custody', 'Crypto Wealth Management', 'Crypto Lending'];
-const LEGAL_LINKS = ['Disclaimer', 'Privacy Policy', 'Terms of Service', 'Legal'];
+const QUICK_LINKS = [
+  { label: 'Who We Serve', href: '#' },
+  { label: 'What We Do', href: '#' },
+];
+
+const KEY_SERVICES = [
+  { label: 'Crypto Custody', href: '#' },
+  { label: 'Crypto Wealth Management', href: '#' },
+  { label: 'Crypto Lending', href: '#' },
+];
+
+const LEGAL_LINKS = [
+  { label: 'Disclaimer', href: '#' },
+  { label: 'Privacy Policy', href: '#' },
+  { label: 'Terms of Service', href: '#' },
+  { label: 'Legal', href: '#' },
+  { label: 'Onboarding Fee Refund Policy', href: '#' },
+];
 
 export default function SiteFooter() {
   return (
@@ -22,23 +36,21 @@ export default function SiteFooter() {
         style={{ backgroundColor: '#2C3342', borderBottom: '1px solid rgba(255,255,255,0.07)' }}
         className="py-5 px-6"
       >
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center gap-6">
-          {FOOTER_LINKS.map((item, i, arr) => (
-            <span key={item.label} className="flex items-center gap-6">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between">
+          <div className="flex flex-wrap items-center gap-6">
+            {FOOTER_LINKS.map((item) => (
               <Link
+                key={item.label}
                 href={item.href}
                 className="text-sm transition-colors hover:opacity-80"
                 style={{ color: '#BDBEC8' }}
               >
                 {item.label}
               </Link>
-              {i < arr.length - 1 && (
-                <span style={{ color: 'rgba(255,255,255,0.15)' }}>|</span>
-              )}
-            </span>
-          ))}
+            ))}
+          </div>
           {/* X / Twitter */}
-          <a href="#" aria-label="Twitter/X" className="ml-4 transition-opacity hover:opacity-70">
+          <a href="#" aria-label="Twitter/X" className="transition-opacity hover:opacity-70 ml-6">
             <svg viewBox="0 0 24 24" fill="white" className="w-5 h-5">
               <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.742l7.736-8.858L2.002 2.25h6.958l4.265 5.643 5.019-5.643zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
             </svg>
@@ -49,27 +61,20 @@ export default function SiteFooter() {
       {/* ── Upper footer ── */}
       <div style={{ backgroundColor: '#2C3342' }} className="py-14 px-6">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10">
-          {/* Col 1 — brand */}
-          <div className="md:col-span-2">
-            <Image
-              src="/dwp-logo.png"
-              alt="Digital Wealth Partners"
-              width={180}
-              height={50}
-              className="h-11 w-auto object-contain mb-5"
-              style={{ filter: 'brightness(0) invert(1)' }}
-              unoptimized
-            />
+          {/* Col 1 — description */}
+          <div>
             <p className="text-sm leading-relaxed mb-6" style={{ color: '#BDBEC8' }}>
-              Digital Wealth Partners is an SEC-registered investment adviser providing fiduciary
+              Digital Wealth Partners is An SEC-registered investment adviser providing fiduciary
               guidance on digital assets and traditional wealth management. Based in Dallas, Texas.
             </p>
-            <p className="text-sm mb-2" style={{ color: '#BDBEC8' }}>(307) 309-2027</p>
-            <div className="flex flex-wrap gap-3 text-xs mt-4">
+            <p className="text-sm mb-6" style={{ color: '#BDBEC8' }}>
+              Contact us (307) 309-2027
+            </p>
+            <div className="flex flex-wrap gap-2 text-xs">
               {LEGAL_LINKS.map((lnk, i, arr) => (
-                <span key={lnk} className="flex items-center gap-3">
-                  <a href="#" className="transition-colors hover:opacity-80" style={{ color: '#AD7F4E' }}>
-                    {lnk}
+                <span key={lnk.label} className="flex items-center gap-2">
+                  <a href={lnk.href} className="transition-colors hover:opacity-80" style={{ color: '#AD7F4E' }}>
+                    {lnk.label}
                   </a>
                   {i < arr.length - 1 && (
                     <span style={{ color: 'rgba(255,255,255,0.2)' }}>|</span>
@@ -81,17 +86,14 @@ export default function SiteFooter() {
 
           {/* Col 2 — Quick Links */}
           <div>
-            <h4
-              className="text-white font-semibold mb-5 text-sm uppercase"
-              style={{ letterSpacing: '0.08em' }}
-            >
+            <h4 className="text-white font-semibold mb-5 text-sm">
               Quick Links
             </h4>
             <ul className="space-y-3">
               {QUICK_LINKS.map((item) => (
-                <li key={item}>
-                  <a href="#" className="text-sm transition-colors hover:opacity-80" style={{ color: '#BDBEC8' }}>
-                    {item}
+                <li key={item.label}>
+                  <a href={item.href} className="text-sm transition-colors hover:opacity-80" style={{ color: '#AD7F4E' }}>
+                    {item.label}
                   </a>
                 </li>
               ))}
@@ -100,17 +102,14 @@ export default function SiteFooter() {
 
           {/* Col 3 — Key Services */}
           <div>
-            <h4
-              className="text-white font-semibold mb-5 text-sm uppercase"
-              style={{ letterSpacing: '0.08em' }}
-            >
+            <h4 className="text-white font-semibold mb-5 text-sm">
               Key Services
             </h4>
             <ul className="space-y-3">
               {KEY_SERVICES.map((item) => (
-                <li key={item}>
-                  <a href="#" className="text-sm transition-colors hover:opacity-80" style={{ color: '#BDBEC8' }}>
-                    {item}
+                <li key={item.label}>
+                  <a href={item.href} className="text-sm transition-colors hover:opacity-80" style={{ color: '#AD7F4E' }}>
+                    {item.label}
                   </a>
                 </li>
               ))}
@@ -118,7 +117,7 @@ export default function SiteFooter() {
           </div>
 
           {/* Col 4 — IAPD */}
-          <div className="hidden md:block">
+          <div>
             <a href="#" className="font-bold text-sm leading-snug" style={{ color: '#AD7F4E' }}>
               IAPD – Investment<br />Advisor Public<br />Disclosure
             </a>
@@ -128,19 +127,14 @@ export default function SiteFooter() {
 
       {/* ── Lower footer ── */}
       <div style={{ backgroundColor: '#2A2F3A' }} className="py-5 px-6">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
-          <p className="text-xs" style={{ color: '#BDBEC8' }}>
-            © {new Date().getFullYear()} Digital Wealth Partners — All Rights Reserved
+        <div className="max-w-7xl mx-auto flex items-center justify-center">
+          <p className="text-sm" style={{ color: '#BDBEC8' }}>
+            © 2025{' '}
+            <a href="/" className="hover:opacity-80" style={{ color: '#AD7F4E' }}>
+              Digital Wealth Partners
+            </a>
+            {' '}- All Rights Reserved
           </p>
-          <div className="flex items-center gap-5">
-            <Link href="/login" className="text-xs hover:underline" style={{ color: '#AD7F4E' }}>
-              Client Login
-            </Link>
-            <span style={{ color: 'rgba(255,255,255,0.2)' }}>|</span>
-            <Link href="/register" className="text-xs hover:underline" style={{ color: '#AD7F4E' }}>
-              Get Started
-            </Link>
-          </div>
         </div>
       </div>
     </footer>

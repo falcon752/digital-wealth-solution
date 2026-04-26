@@ -134,7 +134,7 @@ export default function LandingPage() {
       {/* SERVICES – Your Portfolio with One Coordinated Plan             */}
       {/* ═══════════════════════════════════════════════════════════════ */}
       <section className="bg-white py-24">
-        <div className="max-w-4xl mx-auto px-6">
+        <div className="max-w-6xl mx-auto px-6">
           <h2
             className="font-bold text-center mb-16"
             style={{ color: '#1e266d', fontSize: '36px' }}
@@ -351,7 +351,7 @@ export default function LandingPage() {
 
       {/* Extra paragraph from original DWP */}
       <section className="py-0 pb-16 bg-white">
-        <div className="max-w-4xl mx-auto px-6 text-center">
+        <div className="max-w-6xl mx-auto px-6 text-center">
           <p style={{ color: '#445781', fontSize: '18px' }} className="leading-relaxed">
             DWS manages investments in crypto, blockchain-based assets, and other digital assets
             that most traditional firms won&apos;t touch. We build portfolios around each client&apos;s

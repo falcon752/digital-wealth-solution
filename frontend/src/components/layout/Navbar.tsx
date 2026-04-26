@@ -71,7 +71,7 @@ export default function Navbar({ transparent = false }: NavbarProps) {
 
         {/* Desktop CTA */}
         <Link
-          href="/login"
+          href="/contact"
           className="hidden lg:inline-flex items-center text-sm font-semibold text-white px-5 py-2.5 rounded transition-opacity hover:opacity-90"
           style={{ backgroundColor: '#2C3342' }}
         >
@@ -130,7 +130,7 @@ export default function Navbar({ transparent = false }: NavbarProps) {
             </Link>
           ))}
           <Link
-            href="/login"
+            href="/contact"
             onClick={() => setMenuOpen(false)}
             className="mt-3 text-center text-sm font-semibold text-white px-5 py-3 rounded transition-opacity hover:opacity-90"
             style={{ backgroundColor: '#2C3342' }}
