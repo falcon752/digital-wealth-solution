@@ -23,21 +23,21 @@ export default function LandingPage() {
       >
         {/* Dot grid – top right */}
         <div
-          className="absolute top-4 right-4 grid gap-3 pointer-events-none"
-          style={{ gridTemplateColumns: 'repeat(12, 10px)', gridTemplateRows: 'repeat(10, 10px)' }}
+          className="absolute top-4 right-4 grid gap-[6px] pointer-events-none"
+          style={{ gridTemplateColumns: 'repeat(12, 4px)', gridTemplateRows: 'repeat(10, 4px)' }}
         >
           {Array.from({ length: 120 }).map((_, i) => (
-            <div key={i} className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#c8ccd6' }} />
+            <div key={i} className="w-1 h-1 rounded-full" style={{ backgroundColor: '#c8ccd6' }} />
           ))}
         </div>
 
         {/* Dot grid – bottom center-left */}
         <div
-          className="absolute bottom-8 left-[32%] grid gap-3 pointer-events-none"
-          style={{ gridTemplateColumns: 'repeat(8, 10px)', gridTemplateRows: 'repeat(4, 10px)' }}
+          className="absolute bottom-8 left-[32%] grid gap-[6px] pointer-events-none"
+          style={{ gridTemplateColumns: 'repeat(8, 4px)', gridTemplateRows: 'repeat(4, 4px)' }}
         >
           {Array.from({ length: 32 }).map((_, i) => (
-            <div key={i} className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#c8ccd6' }} />
+            <div key={i} className="w-1 h-1 rounded-full" style={{ backgroundColor: '#c8ccd6' }} />
           ))}
         </div>
 
@@ -247,11 +247,11 @@ export default function LandingPage() {
             {/* Dot grid accent */}
             <div className="hidden md:block md:col-span-1 pt-6">
               <div
-                className="grid gap-3"
-                style={{ gridTemplateColumns: 'repeat(5, 10px)', gridTemplateRows: 'repeat(8, 10px)' }}
+                className="grid gap-[6px]"
+                style={{ gridTemplateColumns: 'repeat(5, 4px)', gridTemplateRows: 'repeat(8, 4px)' }}
               >
                 {Array.from({ length: 40 }).map((_, i) => (
-                  <div key={i} className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#c8ccd6' }} />
+                  <div key={i} className="w-1 h-1 rounded-full" style={{ backgroundColor: '#c8ccd6' }} />
                 ))}
               </div>
             </div>
@@ -338,11 +338,11 @@ export default function LandingPage() {
           {/* Bottom dot grid accent */}
           <div className="flex justify-end mt-4">
             <div
-              className="grid gap-3"
-              style={{ gridTemplateColumns: 'repeat(8, 10px)', gridTemplateRows: 'repeat(4, 10px)' }}
+              className="grid gap-[6px]"
+              style={{ gridTemplateColumns: 'repeat(8, 4px)', gridTemplateRows: 'repeat(4, 4px)' }}
             >
               {Array.from({ length: 32 }).map((_, i) => (
-                <div key={i} className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#c8ccd6' }} />
+                <div key={i} className="w-1 h-1 rounded-full" style={{ backgroundColor: '#c8ccd6' }} />
               ))}
             </div>
           </div>
@@ -362,54 +362,73 @@ export default function LandingPage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════ */}
-      {/* CTA – Your Gateway to Digital Investments                       */}
+      {/* BANNER – Your Gateway to Digital Investments                    */}
       {/* ═══════════════════════════════════════════════════════════════ */}
-      <section className="py-16 px-6">
-        <div
-          className="max-w-5xl mx-auto rounded-3xl px-10 py-28 text-center relative overflow-hidden"
-          style={{ backgroundColor: '#2C3342' }}
-        >
-          {/* Dots – top right */}
+      <section className="py-10 px-6">
+        <div className="max-w-6xl mx-auto rounded-2xl overflow-hidden relative" style={{ minHeight: '480px' }}>
+
+          {/* Background photo – right side bleeds edge-to-edge */}
+          <Image
+            src="/team.png"
+            alt="Team meeting"
+            fill
+            className="object-cover object-center"
+            sizes="100vw"
+          />
+
+          {/* Dark gradient overlay – strong on left, fades to transparent on right */}
           <div
-            className="absolute top-8 right-10 grid gap-2 pointer-events-none"
-            style={{ gridTemplateColumns: 'repeat(6, 6px)', gridTemplateRows: 'repeat(5, 6px)' }}
-          >
-            {Array.from({ length: 30 }).map((_, i) => (
-              <div key={i} className="w-1.5 h-1.5 rounded-full bg-white opacity-20" />
-            ))}
-          </div>
-          {/* Dots – bottom center */}
+            className="absolute inset-0"
+            style={{
+              background: 'linear-gradient(to right, rgba(44,51,66,0.97) 38%, rgba(44,51,66,0.75) 58%, rgba(44,51,66,0.10) 100%)',
+            }}
+          />
+
+          {/* Dot grid – top right */}
           <div
-            className="absolute bottom-8 left-1/2 -translate-x-1/2 grid gap-2 pointer-events-none"
-            style={{ gridTemplateColumns: 'repeat(6, 6px)', gridTemplateRows: 'repeat(3, 6px)' }}
+            className="absolute top-8 right-10 grid gap-[6px] pointer-events-none"
+            style={{ gridTemplateColumns: 'repeat(8, 4px)', gridTemplateRows: 'repeat(6, 4px)' }}
           >
-            {Array.from({ length: 18 }).map((_, i) => (
-              <div key={i} className="w-1.5 h-1.5 rounded-full bg-white opacity-20" />
+            {Array.from({ length: 48 }).map((_, i) => (
+              <div key={i} className="w-1 h-1 rounded-full bg-white opacity-25" />
             ))}
           </div>
 
-          <p
-            className="text-white mb-6 leading-relaxed max-w-3xl mx-auto relative z-10"
-            style={{ fontSize: '17px', opacity: 0.80 }}
+          {/* Dot grid – bottom left */}
+          <div
+            className="absolute bottom-8 left-10 grid gap-[6px] pointer-events-none"
+            style={{ gridTemplateColumns: 'repeat(6, 4px)', gridTemplateRows: 'repeat(4, 4px)' }}
           >
-            DWS manages investments in crypto, blockchain-based assets, and other digital assets
-            that most traditional firms won&apos;t touch. We build portfolios around each client&apos;s
-            risk comfort and goals, with a focus on generating outsized returns in a space where
-            most people are guessing.
-          </p>
-          <h1
-            className="font-bold text-white mb-10 relative z-10"
-            style={{ fontSize: '44px' }}
-          >
-            Your Gateway to Digital Investments
-          </h1>
-          <Link
-            href="/register"
-            className="relative z-10 inline-block font-semibold px-10 py-4 rounded text-white transition-opacity hover:opacity-90"
-            style={{ backgroundColor: '#AD7F4E', fontSize: '16px' }}
-          >
-            Get Started
-          </Link>
+            {Array.from({ length: 24 }).map((_, i) => (
+              <div key={i} className="w-1 h-1 rounded-full bg-white opacity-25" />
+            ))}
+          </div>
+
+          {/* Text content */}
+          <div className="relative z-10 px-12 py-20 max-w-xl">
+            <p
+              className="text-white leading-relaxed mb-6"
+              style={{ fontSize: '15px', opacity: 0.82 }}
+            >
+              DWS manages investments in crypto, blockchain-based assets, and other digital assets
+              that most traditional firms won&apos;t touch. We build portfolios around each client&apos;s
+              risk comfort and goals, with a focus on generating outsized returns in a space where
+              most people are guessing.
+            </p>
+            <h2
+              className="font-bold text-white mb-10 leading-tight"
+              style={{ fontSize: '42px' }}
+            >
+              Your Gateway to<br />Digital Investments
+            </h2>
+            <Link
+              href="/register"
+              className="inline-block font-semibold px-8 py-3.5 rounded text-white transition-opacity hover:opacity-90"
+              style={{ backgroundColor: '#2C3342', border: '2px solid rgba(255,255,255,0.35)', fontSize: '15px' }}
+            >
+              Get Started
+            </Link>
+          </div>
         </div>
       </section>
 

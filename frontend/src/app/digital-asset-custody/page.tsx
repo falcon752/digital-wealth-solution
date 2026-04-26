@@ -44,80 +44,80 @@ export default function DigitalAssetCustodyPage() {
 
       {/* ─── MAIN CONTENT ────────────────────────────────────────────── */}
       <div className="pt-24 pb-20">
-        <div className="max-w-4xl mx-auto px-8">
+        <div className="max-w-5xl mx-auto px-8">
 
           {/* ── Intro ── */}
           <section className="py-10">
-            <h1
-              className="font-bold mb-5"
-              style={{ color: '#1e266d', fontSize: '22px' }}
-            >
-              Digital Asset Custody with Digital Wealth Partners
-            </h1>
-            <p style={{ color: '#4a5568', fontSize: '15px', lineHeight: '1.75' }}>
-              Digital Asset Custody plays an important role in the changing world of cryptocurrencies
-              and blockchain-based assets. With the market value exceeding $1 trillion and financial
-              institutions entering the space, secure custody solutions support investor confidence
-              and wider adoption. These services provide secure storage of cryptographic keys, which
-              establish ownership and enable transactions of digital assets.
-            </p>
+            <div style={{ border: '1px solid #e5e7eb', borderRadius: '2px', padding: '28px 32px' }}>
+              <h1
+                className="font-bold mb-4"
+                style={{ color: '#1e266d', fontSize: '22px' }}
+              >
+                Digital Asset Custody with Digital Wealth Partners
+              </h1>
+              <p style={{ color: '#4a5568', fontSize: '15px', lineHeight: '1.75' }}>
+                Digital Asset Custody plays an important role in the changing world of cryptocurrencies
+                and blockchain-based assets. With the market value exceeding $1 trillion and financial
+                institutions entering the space, secure custody solutions support investor confidence
+                and wider adoption. These services provide secure storage of cryptographic keys, which
+                establish ownership and enable transactions of digital assets.
+              </p>
+            </div>
           </section>
 
           {/* ── Build Your Strategy / Already a Client ── */}
-          <section className="my-6">
-            <div
-              className="grid md:grid-cols-2"
-              style={{ border: '1px solid #e5e7eb', borderRadius: '2px' }}
-            >
+          <section className="my-10">
+            <div className="grid md:grid-cols-2 gap-16">
               {/* Left */}
-              <div
-                className="p-10"
-                style={{ borderRight: '1px solid #e5e7eb' }}
-              >
+              <div>
                 <h2
-                  className="font-bold mb-4"
-                  style={{ color: '#1e266d', fontSize: '26px' }}
+                  className="font-bold mb-5"
+                  style={{ color: '#1e266d', fontSize: '28px' }}
                 >
                   Build Your Strategy
                 </h2>
-                <p
-                  className="mb-7 leading-relaxed"
-                  style={{ color: '#4a5568', fontSize: '14.5px' }}
-                >
-                  Ready to get started? Contact Digital Wealth Partners to discuss how our custody
-                  solutions can support your specific requirements.
-                </p>
-                <Link
-                  href="/login"
-                  className="inline-block font-semibold text-white px-6 py-3 rounded transition-opacity hover:opacity-90"
-                  style={{ backgroundColor: '#2C3342', fontSize: '14px' }}
-                >
-                  Contact Us
-                </Link>
+                <div className="flex items-start gap-6">
+                  <p
+                    className="leading-relaxed flex-1"
+                    style={{ color: '#4a5568', fontSize: '14.5px' }}
+                  >
+                    Ready to get started? Contact Digital Wealth Partners to discuss how our custody
+                    solutions can support your specific requirements.
+                  </p>
+                  <Link
+                    href="/login"
+                    className="shrink-0 inline-block font-semibold text-white px-6 py-3 rounded transition-opacity hover:opacity-90"
+                    style={{ backgroundColor: '#2C3342', fontSize: '14px' }}
+                  >
+                    Contact Us
+                  </Link>
+                </div>
               </div>
 
               {/* Right */}
-              <div className="p-10">
+              <div>
                 <h2
-                  className="font-bold mb-4"
-                  style={{ color: '#1e266d', fontSize: '26px' }}
+                  className="font-bold mb-5"
+                  style={{ color: '#1e266d', fontSize: '28px' }}
                 >
                   Already a Client?
                 </h2>
-                <p
-                  className="mb-7 leading-relaxed"
-                  style={{ color: '#4a5568', fontSize: '14.5px' }}
-                >
-                  If you&apos;re already a Digital Wealth Partners client and need to pay your
-                  onboarding fee, click this button to enter your payment details.
-                </p>
-                <Link
-                  href="/dashboard/deposit"
-                  className="inline-block font-semibold text-white px-6 py-3 rounded transition-opacity hover:opacity-90"
-                  style={{ backgroundColor: '#2C3342', fontSize: '14px' }}
-                >
-                  Pay Onboarding Fee
-                </Link>
+                <div className="flex items-start gap-6">
+                  <p
+                    className="leading-relaxed flex-1"
+                    style={{ color: '#4a5568', fontSize: '14.5px' }}
+                  >
+                    If you&apos;re already a Digital Wealth Partners client and need to pay your
+                    onboarding fee, click this button to enter your payment details.
+                  </p>
+                  <Link
+                    href="/dashboard/deposit"
+                    className="shrink-0 inline-block font-semibold text-white px-6 py-3 rounded transition-opacity hover:opacity-90"
+                    style={{ backgroundColor: '#2C3342', fontSize: '14px' }}
+                  >
+                    Pay Onboarding Fee
+                  </Link>
+                </div>
               </div>
             </div>
           </section>
