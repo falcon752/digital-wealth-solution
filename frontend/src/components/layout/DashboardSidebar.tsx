@@ -6,16 +6,14 @@ import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
 import {
-  LayoutDashboard, ArrowDownToLine, ArrowUpFromLine, Clock,
-  Settings, LogOut, Users, Package, Activity,
+  BarChart2, Building2, CircleDollarSign,
+  LayoutDashboard, ArrowDownToLine, ArrowUpFromLine, Users, Package, Activity,
 } from 'lucide-react';
 
 const userNav = [
-  { href: '/dashboard', icon: LayoutDashboard, label: 'Overview' },
-  { href: '/dashboard/deposit', icon: ArrowDownToLine, label: 'Deposit' },
-  { href: '/dashboard/withdraw', icon: ArrowUpFromLine, label: 'Withdraw' },
-  { href: '/dashboard/transactions', icon: Clock, label: 'Transactions' },
-  { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
+  { href: '/dashboard', icon: BarChart2, label: 'Overview' },
+  { href: '/dashboard/llc', icon: Building2, label: 'LLC Management' },
+  { href: '/dashboard/crypto', icon: CircleDollarSign, label: 'Manage Crypto Assets' },
 ];
 
 const adminNav = [
@@ -34,16 +32,16 @@ export default function DashboardSidebar() {
   const navItems = user?.role === 'admin' ? adminNav : userNav;
 
   return (
-    <aside className="flex flex-col h-screen w-52 shrink-0 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800">
+    <aside className="flex flex-col h-screen w-56 shrink-0 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800">
       {/* Logo */}
-      <div className="px-4 py-4 border-b border-gray-200 dark:border-gray-800">
+      <div className="px-5 py-4 border-b border-gray-200 dark:border-gray-800">
         <Link href="/">
           <Image src="/wyoming.png" alt="Wyoming" width={130} height={36} className="h-9 w-auto" priority />
         </Link>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto">
+      <nav className="flex-1 py-4 px-3 space-y-1">
         {navItems.map(({ href, icon: Icon, label }) => {
           const active = pathname === href || (href !== '/dashboard' && href !== '/admin' && pathname.startsWith(href));
           return (
@@ -53,7 +51,7 @@ export default function DashboardSidebar() {
               className={cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-150 text-sm font-medium',
                 active
-                  ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400'
+                  ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400'
                   : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
               )}
             >
@@ -65,15 +63,8 @@ export default function DashboardSidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="border-t border-gray-200 dark:border-gray-800 p-3">
-        <button
-          onClick={logout}
-          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 transition-all text-sm font-medium mb-3"
-        >
-          <LogOut size={18} className="shrink-0" />
-          <span>Log out</span>
-        </button>
-        <p className="px-1 text-xs text-gray-400 dark:text-gray-600 leading-tight">
+      <div className="border-t border-gray-200 dark:border-gray-800 px-5 py-4">
+        <p className="text-xs text-gray-400 dark:text-gray-600 leading-snug">
           Digital Wealth Solution<br />
           Asset Management Platform
         </p>

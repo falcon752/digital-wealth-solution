@@ -35,8 +35,11 @@ export default function ContactPage() {
       </div>
 
       {/* ── Content ── */}
-      <div className="py-16 px-6">
-        <div className="max-w-5xl mx-auto">
+      <div className="pt-10 pb-20 px-6" style={{ backgroundColor: '#f5f6f8' }}>
+        <div
+          className="max-w-6xl mx-auto px-10 bg-white py-10"
+          style={{ boxShadow: '0 0 40px rgba(0,0,0,0.08)', minHeight: '60vh' }}
+        >
           <div className="grid md:grid-cols-2 gap-16 items-start">
 
             {/* ── Left: form ── */}

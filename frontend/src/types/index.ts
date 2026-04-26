@@ -111,3 +111,28 @@ export interface AdminStats {
   totalWithdrawnUSD: number;
   recentActivity: ActivityLog[];
 }
+
+export interface LLCApplication {
+  id: string;
+  userId?: string;
+  companyName: string;
+  entityType: string;
+  companyType: 'new' | 'existing';
+  state: string;
+  status: 'pending' | 'approved' | 'processing' | 'rejected';
+  stateFee: number;
+  adminNote?: string | null;
+  createdAt: string;
+  processedAt?: string | null;
+  // admin extras
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+}
+
+export interface LLCStats {
+  approved: number;
+  pending: number;
+  processing: number;
+  rejected: number;
+}

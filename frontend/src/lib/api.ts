@@ -58,6 +58,7 @@ export const usersAPI = {
 // ─── Assets ───────────────────────────────────────────────────────────────
 export const assetsAPI = {
   list: () => api.get('/assets'),
+  prices: () => api.get('/assets/prices'),
   get: (id: string) => api.get(`/assets/${id}`),
   // admin
   adminList: () => api.get('/admin/assets'),
@@ -106,6 +107,18 @@ export const withdrawalsAPI = {
     api.put(`/admin/withdrawals/${id}/complete`, data),
   reject: (id: string, data?: { adminNote?: string }) =>
     api.put(`/admin/withdrawals/${id}/reject`, data),
+};
+
+// ─── LLC ─────────────────────────────────────────────────────────────────
+export const llcAPI = {
+  list: () => api.get('/llc'),
+  stats: () => api.get('/llc/stats'),
+  create: (data: { companyName: string; entityType: string; state: string; companyType?: 'new' | 'existing'; stateFee?: number }) =>
+    api.post('/llc', data),
+  // admin
+  adminList: () => api.get('/llc/admin'),
+  adminUpdate: (id: string, data: { status?: string; stateFee?: number; adminNote?: string }) =>
+    api.put(`/llc/admin/${id}`, data),
 };
 
 // ─── Admin ────────────────────────────────────────────────────────────────

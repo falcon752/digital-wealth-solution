@@ -8,7 +8,7 @@ const NAV_LINKS = [
   { label: 'Home', href: '/' },
   { label: 'Services', href: '/services' },
   { label: 'Digital Asset Custody', href: '/digital-asset-custody' },
-  { label: 'About Digital Wealth Partners', href: '/#mission' },
+  { label: 'About Digital Wealth Partners', href: '/about' },
   { label: 'Blog', href: '#' },
 ];
 

@@ -8,13 +8,13 @@ import Badge from '@/components/ui/Badge';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
 import {
-  DollarSign, TrendingUp, Clock, ArrowDownToLine, ArrowUpFromLine, X,
+  DollarSign, CheckCircle2, Clock, ArrowDownToLine, ArrowUpFromLine, X,
 } from 'lucide-react';
 import Link from 'next/link';
 
 const TABS = [
   { label: 'Dashboard', href: '/dashboard' },
-  { label: 'Transactions', href: '/dashboard/transactions' },
+  { label: 'LLC Management', href: '/dashboard/llc' },
 ];
 
 export default function UserDashboard() {
@@ -93,7 +93,7 @@ export default function UserDashboard() {
                   <p className="text-sm text-green-500 mt-1">Confirmed deposits</p>
                 </div>
                 <div className="w-12 h-12 bg-green-50 dark:bg-green-900/20 rounded-full flex items-center justify-center shrink-0">
-                  <TrendingUp size={22} className="text-green-500" />
+                  <CheckCircle2 size={22} className="text-green-500" />
                 </div>
               </div>
 

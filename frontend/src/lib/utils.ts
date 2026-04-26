@@ -39,6 +39,8 @@ export function getStatusColor(status: string): string {
       return 'text-amber-400 bg-amber-400/10 border-amber-400/20';
     case 'rejected':
       return 'text-red-400 bg-red-400/10 border-red-400/20';
+    case 'processing':
+      return 'text-blue-500 bg-blue-500/10 border-blue-500/20';
     default:
       return 'text-gray-400 bg-gray-400/10 border-gray-400/20';
   }
