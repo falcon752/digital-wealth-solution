@@ -3,11 +3,12 @@ const { body, validationResult } = require('express-validator');
 const { Asset, Deposit } = require('../database');
 const { authenticate } = require('../middleware/auth');
 const { logActivity } = require('../utils/activity');
+const { upload } = require('../middleware/upload');
 
 const router = express.Router();
 
 // POST /api/deposits
-router.post('/', authenticate, [
+router.post('/', authenticate, upload.single('proofImage'), [
   body('assetId').notEmpty(),
   body('amount').isFloat({ min: 0.000001 }),
   body('txHash').optional().trim().isLength({ max: 200 }),
@@ -17,6 +18,7 @@ router.post('/', authenticate, [
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
   const { assetId, amount, txHash, usdValue } = req.body;
+  const proofImage = req.file ? req.file.filename : null;
 
   try {
     const asset = await Asset.findOne({ _id: assetId, isActive: true });
@@ -28,6 +30,7 @@ router.post('/', authenticate, [
       amount: parseFloat(amount),
       usdValue: usdValue ? parseFloat(usdValue) : null,
       txHash: txHash || null,
+      proofImage,
       status: 'pending',
     });
 

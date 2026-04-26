@@ -7,7 +7,42 @@ const { authenticate, requireAdmin } = require('../middleware/auth');
 const { upload } = require('../middleware/upload');
 const { logActivity } = require('../utils/activity');
 
+const COIN_IDS = {
+  BTC: 'bitcoin', ETH: 'ethereum', DOGE: 'dogecoin', LTC: 'litecoin',
+  XRP: 'ripple', USDT: 'tether', USDC: 'usd-coin', BNB: 'binancecoin',
+  SOL: 'solana', ADA: 'cardano', TRX: 'tron', MATIC: 'matic-network',
+  DOT: 'polkadot', AVAX: 'avalanche-2', LINK: 'chainlink', SHIB: 'shiba-inu',
+  BCH: 'bitcoin-cash', XLM: 'stellar', ATOM: 'cosmos', UNI: 'uniswap',
+};
+
 const router = express.Router();
+
+// GET /api/assets/prices  — live USD prices proxied from CoinGecko
+router.get('/prices', authenticate, async (req, res) => {
+  try {
+    const assets = await Asset.find({ isActive: true }).select('symbol').lean();
+    const symbols = assets.map((a) => a.symbol.toUpperCase());
+    const ids = [...new Set(symbols.map((s) => COIN_IDS[s]).filter(Boolean))].join(',');
+
+    if (!ids) return res.json({ prices: {} });
+
+    const r = await fetch(
+      `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd`,
+      { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(8000) }
+    );
+    const data = await r.json();
+
+    const prices = {};
+    symbols.forEach((sym) => {
+      const cgId = COIN_IDS[sym];
+      if (cgId && data[cgId]?.usd) prices[sym] = data[cgId].usd;
+    });
+
+    res.json({ prices });
+  } catch {
+    res.json({ prices: {} });
+  }
+});
 
 // GET /api/assets
 router.get('/', authenticate, async (req, res) => {

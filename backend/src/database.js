@@ -57,6 +57,7 @@ const depositSchema = new mongoose.Schema(
     amount: { type: Number, required: true },
     usdValue: { type: Number, default: null },
     txHash: { type: String, default: null },
+    proofImage: { type: String, default: null },
     status: { type: String, enum: ['pending', 'confirmed', 'rejected'], default: 'pending' },
     adminNote: { type: String, default: null },
     confirmedAt: { type: Date, default: null },
@@ -89,6 +90,28 @@ const withdrawalSchema = new mongoose.Schema(
 );
 applyToJSON(withdrawalSchema);
 const Withdrawal = mongoose.model('Withdrawal', withdrawalSchema);
+
+// ─── LLC APPLICATION ──────────────────────────────────────────────────────────
+const llcApplicationSchema = new mongoose.Schema(
+  {
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    companyName: { type: String, required: true, trim: true },
+    entityType: { type: String, required: true, trim: true, default: 'llc' },
+    companyType: { type: String, enum: ['new', 'existing'], default: 'new' },
+    state: { type: String, required: true, trim: true },
+    status: {
+      type: String,
+      enum: ['pending', 'approved', 'processing', 'rejected'],
+      default: 'pending',
+    },
+    stateFee: { type: Number, default: 0 },
+    adminNote: { type: String, default: null },
+    processedAt: { type: Date, default: null },
+  },
+  { timestamps: true }
+);
+applyToJSON(llcApplicationSchema);
+const LLCApplication = mongoose.model('LLCApplication', llcApplicationSchema);
 
 // ─── ACTIVITY LOG ─────────────────────────────────────────────────────────────
 const activityLogSchema = new mongoose.Schema(
@@ -127,4 +150,4 @@ async function connectDB() {
   console.log('Database ready');
 }
 
-module.exports = { connectDB, User, Asset, Deposit, Withdrawal, ActivityLog };
+module.exports = { connectDB, User, Asset, Deposit, Withdrawal, ActivityLog, LLCApplication };
