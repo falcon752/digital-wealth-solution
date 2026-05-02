@@ -5,12 +5,44 @@ import Image from 'next/image';
 import Navbar from '@/components/layout/Navbar';
 import SiteFooter from '@/components/layout/SiteFooter';
 
+const radioStyle = `
+  .custom-radio {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #9ca3af;
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+    flex-shrink: 0;
+    position: relative;
+    transition: border-color 0.15s;
+  }
+  .custom-radio:checked {
+    border-color: #2563eb;
+    background: transparent;
+  }
+  .custom-radio:checked::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #2563eb;
+  }
+`;
+
 export default function ContactPage() {
   const [message, setMessage] = useState('');
   const [acknowledged, setAcknowledged] = useState(false);
 
   return (
     <div style={{ fontFamily: "'Source Sans Pro', 'Inter', sans-serif" }} className="min-h-screen bg-white">
+      <style>{radioStyle}</style>
       <Navbar />
 
       {/* ── Hero banner ── */}
@@ -148,7 +180,7 @@ export default function ContactPage() {
                     <div className="space-y-1">
                       {['Yes', 'No'].map((v) => (
                         <label key={v} className="flex items-center gap-2 text-sm" style={{ color: '#4a5568' }}>
-                          <input type="radio" name="married" value={v} />
+                          <input type="radio" name="married" value={v} className="custom-radio" />
                           {v}
                         </label>
                       ))}
@@ -161,7 +193,7 @@ export default function ContactPage() {
                     <div className="space-y-1">
                       {['Yes', 'No'].map((v) => (
                         <label key={v} className="flex items-center gap-2 text-sm" style={{ color: '#4a5568' }}>
-                          <input type="radio" name="children" value={v} />
+                          <input type="radio" name="children" value={v} className="custom-radio" />
                           {v}
                         </label>
                       ))}
@@ -211,7 +243,7 @@ export default function ContactPage() {
                     <div className="space-y-1">
                       {['Yes', 'No'].map((v) => (
                         <label key={v} className="flex items-center gap-2 text-sm" style={{ color: '#4a5568' }}>
-                          <input type="radio" name="xrp" value={v} />
+                          <input type="radio" name="xrp" value={v} className="custom-radio" />
                           {v}
                         </label>
                       ))}
@@ -227,7 +259,7 @@ export default function ContactPage() {
                   <div className="space-y-1">
                     {['Existing DWP Client', 'Not Currently a DWP Client'].map((v) => (
                       <label key={v} className="flex items-center gap-2 text-sm" style={{ color: '#4a5568' }}>
-                        <input type="radio" name="existing" value={v} />
+                        <input type="radio" name="existing" value={v} className="custom-radio" />
                         {v}
                       </label>
                     ))}

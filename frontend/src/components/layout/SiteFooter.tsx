@@ -21,7 +21,7 @@ const KEY_SERVICES = [
 ];
 
 const LEGAL_LINKS = [
-  { label: 'Disclaimer', href: '#' },
+  { label: 'Disclaimer', href: '/disclaimer' },
   { label: 'Privacy Policy', href: '#' },
   { label: 'Terms of Service', href: '#' },
   { label: 'Legal', href: '#' },
