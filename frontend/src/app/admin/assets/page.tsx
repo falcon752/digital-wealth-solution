@@ -35,7 +35,7 @@ export default function AdminAssetsPage() {
 
   const load = () => {
     setLoading(true);
-    assetsAPI.adminList().then((r) => setAssets(r.data)).finally(() => setLoading(false));
+    assetsAPI.adminList().then((r) => setAssets(r.data.assets ?? [])).finally(() => setLoading(false));
   };
 
   useEffect(load, []);
@@ -52,7 +52,7 @@ export default function AdminAssetsPage() {
     setEditing(a);
     setForm({ name: a.name, symbol: a.symbol, walletAddress: a.walletAddress, network: a.network ?? '', minDeposit: String(a.minDeposit ?? 0) });
     setQrFile(null);
-    setQrPreview(a.qrCodeUrl || null);
+    setQrPreview(a.qrCodeImage || null);
     setShowModal(true);
   };
 
@@ -145,8 +145,8 @@ export default function AdminAssetsPage() {
                       </td>
                       <td className="px-4 py-3 text-sm text-[var(--text-secondary)]">{a.minDeposit}</td>
                       <td className="px-4 py-3">
-                        {a.qrCodeUrl ? (
-                          <img src={`${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}${a.qrCodeUrl}`} alt="QR" className="w-10 h-10 rounded-lg object-contain bg-white" />
+                        {a.qrCodeImage ? (
+                          <img src={`${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}${a.qrCodeImage}`} alt="QR" className="w-10 h-10 rounded-lg object-contain bg-white" />
                         ) : (
                           <div className="w-10 h-10 rounded-lg bg-brand-500/10 flex items-center justify-center">
                             <ImageIcon size={16} className="text-[var(--text-muted)]" />

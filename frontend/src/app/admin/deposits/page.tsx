@@ -31,7 +31,7 @@ export default function AdminDepositsPage() {
   const load = useCallback(() => {
     setLoading(true);
     const params = activeTab !== 'all' ? { status: activeTab } : {};
-    depositsAPI.adminList(params).then((r) => setDeposits(r.data)).finally(() => setLoading(false));
+    depositsAPI.adminList(params).then((r) => setDeposits(r.data.deposits ?? [])).finally(() => setLoading(false));
   }, [activeTab]);
 
   useEffect(load, [load]);

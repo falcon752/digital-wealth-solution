@@ -9,7 +9,8 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       {/* Navbar */}
       <nav className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700/50 bg-white dark:bg-gray-900">
         <Link href="/" className="flex items-center">
-          <Image src="/wyoming.png" alt="Wyoming" width={140} height={40} className="h-10 w-auto" priority />
+          <Image src="/wyoming.png" alt="Wyoming" width={140} height={40} className="h-10 w-auto block dark:hidden" priority />
+          <Image src="/wyoming-dark.png" alt="Wyoming" width={140} height={40} className="h-10 w-auto hidden dark:block" priority />
         </Link>
         <ThemeToggle />
       </nav>

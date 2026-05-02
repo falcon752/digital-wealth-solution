@@ -229,7 +229,7 @@ function ReceiveModal({ asset, onClose }: { asset: AssetRow; onClose: () => void
           {asset.qrCodeImage && (
             <div className="flex items-center justify-center">
               <Image
-                src={`${apiBase}/uploads/${asset.qrCodeImage}`}
+                src={`${apiBase}${asset.qrCodeImage}`}
                 alt="QR Code"
                 width={160}
                 height={160}

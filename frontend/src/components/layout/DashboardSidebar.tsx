@@ -35,8 +35,9 @@ export default function DashboardSidebar() {
     <aside className="flex flex-col h-screen w-56 shrink-0 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800">
       {/* Logo */}
       <div className="px-5 py-4 border-b border-gray-200 dark:border-gray-800">
-        <Link href="/">
-          <Image src="/wyoming.png" alt="Wyoming" width={130} height={36} className="h-9 w-auto" priority />
+        <Link href="/" className="relative inline-flex">
+          <Image src="/wyoming.png" alt="Wyoming" width={130} height={36} className="h-9 w-auto block dark:hidden" priority />
+          <Image src="/wyoming-dark.png" alt="Wyoming" width={130} height={36} className="h-9 w-auto hidden dark:block" priority />
         </Link>
       </div>
 
