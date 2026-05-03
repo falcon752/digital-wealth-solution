@@ -5,7 +5,7 @@ import ThemeToggle from '@/components/layout/ThemeToggle';
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="auth-page min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900">
+    <div className="auth-page min-h-screen flex flex-col">
       {/* Navbar */}
       <nav className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700/50 bg-white dark:bg-gray-900">
         <Link href="/" className="flex items-center">

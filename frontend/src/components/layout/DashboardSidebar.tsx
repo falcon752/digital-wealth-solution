@@ -32,9 +32,9 @@ export default function DashboardSidebar() {
   const navItems = user?.role === 'admin' ? adminNav : userNav;
 
   return (
-    <aside className="flex flex-col h-screen w-56 shrink-0 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800">
+    <aside className="flex flex-col h-screen w-56 shrink-0 bg-[#1e1e1e] border-r border-[#2d2d2d]">
       {/* Logo */}
-      <div className="px-5 py-4 border-b border-gray-200 dark:border-gray-800">
+      <div className="px-5 py-4 border-b border-[#2d2d2d]">
         <Link href="/" className="relative inline-flex">
           <Image src="/wyoming.png" alt="Wyoming" width={130} height={36} className="h-9 w-auto block dark:hidden" priority />
           <Image src="/wyoming-dark.png" alt="Wyoming" width={130} height={36} className="h-9 w-auto hidden dark:block" priority />
@@ -52,8 +52,8 @@ export default function DashboardSidebar() {
               className={cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-150 text-sm font-medium',
                 active
-                  ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400'
-                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
+                  ? 'bg-[#252525] text-white'
+                  : 'text-gray-400 hover:bg-[#252525] hover:text-white'
               )}
             >
               <Icon size={18} className="shrink-0" />

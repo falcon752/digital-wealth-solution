@@ -23,7 +23,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[var(--bg-page)]">
+    <div className="flex h-screen overflow-hidden bg-[#1e1e1e] dashboard-shell">
       <DashboardSidebar />
       <main className="flex-1 overflow-y-auto">{children}</main>
     </div>

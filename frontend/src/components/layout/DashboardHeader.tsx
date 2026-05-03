@@ -42,9 +42,9 @@ export default function DashboardHeader({ title, subtitle, tabs }: DashboardHead
   const settingsHref = user?.role === 'admin' ? '/admin' : '/dashboard/settings';
 
   return (
-    <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-10">
+    <header className="bg-[#1e1e1e] border-b border-[#2d2d2d] sticky top-0 z-10">
       <div className="flex items-center justify-between px-6 h-14">
-        <h1 className="text-lg font-bold text-gray-900 dark:text-white shrink-0">{title}</h1>
+        <h1 className="text-lg font-bold text-white shrink-0">{title}</h1>
 
         {/* Center tabs */}
         {tabs && (
@@ -87,9 +87,9 @@ export default function DashboardHeader({ title, subtitle, tabs }: DashboardHead
             </button>
 
             {open && (
-              <div className="absolute right-0 mt-2 w-52 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-lg py-1 z-50">
-                <div className="px-4 py-2.5 border-b border-gray-100 dark:border-gray-800">
-                  <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+              <div className="absolute right-0 mt-2 w-52 rounded-xl bg-[#1e1e1e] border border-[#2d2d2d] shadow-lg py-1 z-50">
+                <div className="px-4 py-2.5 border-b border-[#2d2d2d]">
+                  <p className="text-sm font-semibold text-white truncate">
                     {user?.firstName} {user?.lastName}
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user?.email}</p>
@@ -97,14 +97,14 @@ export default function DashboardHeader({ title, subtitle, tabs }: DashboardHead
                 <Link
                   href={settingsHref}
                   onClick={() => setOpen(false)}
-                  className="flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                  className="flex items-center gap-2.5 px-4 py-2 text-sm text-gray-300 hover:bg-[#252525] transition-colors"
                 >
                   <Settings size={15} />
                   Settings
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                  className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-red-500 hover:bg-[#252525] transition-colors"
                 >
                   <LogOut size={15} />
                   Log out

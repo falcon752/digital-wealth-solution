@@ -113,6 +113,11 @@ body {
   --text-muted:     #6b7280;
   --border-color:   #d1d5db;
   --bg-input:       #ffffff;
+  background: radial-gradient(circle at top left, rgba(59,130,246,0.16) 0%, transparent 24%),
+              radial-gradient(circle at 90% 20%, rgba(59,130,246,0.12) 0%, transparent 18%),
+              radial-gradient(circle at 50% 80%, rgba(59,130,246,0.08) 0%, transparent 22%),
+              var(--bg-page);
+  background-attachment: fixed;
 }
 .dark .auth-page {
   --text-primary:   #f9fafb;
@@ -121,5 +126,32 @@ body {
   --border-color:   rgba(255,255,255,0.12);
   --bg-input:       rgba(255,255,255,0.06);
   --bg-card:        rgba(255,255,255,0.05);
+  background: radial-gradient(circle at 15% 20%, rgba(59,130,246,0.18) 0%, transparent 24%),
+              radial-gradient(circle at 85% 10%, rgba(59,130,246,0.12) 0%, transparent 18%),
+              radial-gradient(circle at 50% 80%, rgba(99,102,241,0.1) 0%, transparent 22%),
+              linear-gradient(180deg, #020617 0%, #08122d 45%, #0b1736 100%);
+  background-attachment: fixed;
+}
+
+/* ─── Dashboard/admin background shell ───────────────────────────────────── */
+.dashboard-shell {
+  background: #1e1e1e;
+}
+.dark .dashboard-shell {
+  background: #1e1e1e;
+}
+
+/* ─── Dashboard/admin flat dark panels ──────────────────────────────────── */
+.dashboard-shell :where(div, section, article, main, header, footer, nav, form, table, thead, tbody, tr, td, th) {
+  background-color: #1e1e1e !important;
+  border-color: rgba(255,255,255,0.08) !important;
+  box-shadow: none !important;
+}
+
+.dashboard-shell .glass {
+  background-color: #1e1e1e !important;
+  border-color: rgba(255,255,255,0.08) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
 }
 
