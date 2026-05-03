@@ -36,7 +36,7 @@ export default function UserDashboard() {
 
       {/* Welcome banner */}
       {bannerVisible && (
-        <div className="bg-linear-to-r from-blue-500 to-indigo-600 px-6 py-3 flex items-center justify-between shrink-0">
+        <div className="bg-linear-to-r from-blue-500 to-blue-700 px-6 py-3 flex items-center justify-between shrink-0">
           <p className="text-sm text-white">
             👋 <strong>Welcome back, {user?.firstName}!</strong>{' '}
             Manage your crypto assets and track your investment portfolio.

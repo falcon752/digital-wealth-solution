@@ -36,7 +36,8 @@ export default function DashboardSidebar() {
       {/* Logo */}
       <div className="px-5 py-4 border-b border-gray-200 dark:border-gray-800">
         <Link href="/">
-          <Image src="/wyoming.png" alt="Wyoming" width={130} height={36} className="h-9 w-auto" priority />
+          <Image src="/wyoming light.png" alt="Wyoming" width={130} height={36} className="h-9 w-auto dark:hidden" priority />
+          <Image src="/wyoming-dark.png" alt="Wyoming" width={130} height={36} className="h-9 w-auto hidden dark:block" priority />
         </Link>
       </div>
 
@@ -51,7 +52,7 @@ export default function DashboardSidebar() {
               className={cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-150 text-sm font-medium',
                 active
-                  ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400'
+                  ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400'
                   : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
               )}
             >

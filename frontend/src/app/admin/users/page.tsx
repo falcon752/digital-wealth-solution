@@ -113,7 +113,7 @@ export default function AdminUsersPage() {
                         <div className="text-xs text-[var(--text-muted)]">{u.email}</div>
                       </td>
                       <td className="px-4 py-3">
-                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${u.role === 'admin' ? 'bg-purple-500/20 text-purple-300' : 'bg-brand-500/10 text-brand-400'}`}>
+                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${u.role === 'admin' ? 'bg-blue-500/20 text-blue-300' : 'bg-brand-500/10 text-brand-400'}`}>
                           {u.role}
                         </span>
                       </td>
