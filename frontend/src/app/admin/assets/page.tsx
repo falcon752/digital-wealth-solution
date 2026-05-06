@@ -35,7 +35,7 @@ export default function AdminAssetsPage() {
 
   const load = () => {
     setLoading(true);
-    assetsAPI.adminList().then((r) => setAssets(r.data)).finally(() => setLoading(false));
+    assetsAPI.adminList().then((r) => setAssets(Array.isArray(r.data) ? r.data : (r.data.assets ?? []))).finally(() => setLoading(false));
   };
 
   useEffect(load, []);

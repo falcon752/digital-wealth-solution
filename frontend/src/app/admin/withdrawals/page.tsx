@@ -32,7 +32,7 @@ export default function AdminWithdrawalsPage() {
   const load = useCallback(() => {
     setLoading(true);
     const params = activeTab !== 'all' ? { status: activeTab } : {};
-    withdrawalsAPI.adminList(params).then((r) => setWithdrawals(r.data)).finally(() => setLoading(false));
+    withdrawalsAPI.adminList(params).then((r) => setWithdrawals(Array.isArray(r.data) ? r.data : (r.data.withdrawals ?? []))).finally(() => setLoading(false));
   }, [activeTab]);
 
   useEffect(load, [load]);

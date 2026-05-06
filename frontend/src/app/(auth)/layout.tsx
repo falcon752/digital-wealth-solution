@@ -22,7 +22,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       {/* Footer */}
       <footer className="px-6 py-4 border-t border-gray-200 dark:border-gray-700/50 bg-white dark:bg-gray-900">
         <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p className="text-xs text-(--text-muted)">© 2025 Digital Wealth Solution. All rights reserved.</p>
+          <p className="text-xs text-(--text-muted)">© 2025 Digital Wealth Partner. All rights reserved.</p>
           <div className="flex items-center gap-4">
             <Link href="#" className="text-xs text-(--text-muted) hover:text-(--text-primary) transition-colors">Privacy Policy</Link>
             <Link href="#" className="text-xs text-(--text-muted) hover:text-(--text-primary) transition-colors">Terms of Service</Link>

@@ -1,7 +1,7 @@
 {
   "name": "digital-wealth-backend",
   "version": "1.0.0",
-  "description": "Digital Wealth Solution - Backend API",
+  "description": "Digital Wealth Partner - Backend API",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",

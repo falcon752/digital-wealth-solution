@@ -34,7 +34,7 @@ export default function SettingsPage() {
   useEffect(() => {
     profileForm.reset({ firstName: user?.firstName || '', lastName: user?.lastName || '' });
     apForm.reset({ phrase: user?.antiPhishingPhrase || '' });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const saveProfile = async (data: { firstName: string; lastName: string }) => {
@@ -128,11 +128,10 @@ export default function SettingsPage() {
               <button
                 key={t.key}
                 onClick={() => setTab(t.key)}
-                className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                  tab === t.key
+                className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${tab === t.key
                     ? 'bg-brand-600/20 text-brand-400 border border-brand-500/30'
                     : 'glass text-[var(--text-muted)] hover:text-brand-400'
-                }`}
+                  }`}
               >
                 {t.label}
               </button>
@@ -241,7 +240,7 @@ export default function SettingsPage() {
             <Card>
               <h2 className="text-base font-semibold text-[var(--text-primary)] mb-2">Anti-Phishing Phrase</h2>
               <p className="text-sm text-[var(--text-muted)] mb-5">
-                Set a custom phrase that will appear in all emails from Digital Wealth Solution.
+                Set a custom phrase that will appear in all emails from Digital Wealth Partner.
                 If you receive an email without this phrase, it may be a phishing attempt.
               </p>
               <form onSubmit={apForm.handleSubmit(saveAntiPhishing)} className="space-y-4">

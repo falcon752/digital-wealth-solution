@@ -67,7 +67,7 @@ export default function LoginPage() {
         </div>
         <h1 className="text-3xl font-bold text-(--text-primary)">Welcome Back</h1>
         <p className="text-(--text-muted) text-sm mt-2 max-w-xs mx-auto">
-          Sign in to your Digital Wealth Solution account to continue your journey.
+          Sign in to your Digital Wealth Partner account to continue your journey.
         </p>
       </div>
 

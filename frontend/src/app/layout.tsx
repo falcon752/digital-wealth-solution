@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Digital Wealth Solution",
+  title: "Digital Wealth Partner",
   description: "Secure crypto asset management platform",
 };
 

@@ -104,7 +104,7 @@ export default function LandingPage() {
             >
               <Image
                 src="/dallas-downtown.png"
-                alt="Digital Wealth Solution"
+                alt="Digital Wealth Partner"
                 fill
                 className="object-cover"
                 priority
@@ -440,7 +440,7 @@ export default function LandingPage() {
           className="font-semibold mb-6"
           style={{ color: '#1e266d', fontSize: '24px' }}
         >
-          Speak to a team member at Digital Wealth Solution to learn more
+          Speak to a team member at Digital Wealth Partner to learn more
         </h3>
         <Link
           href="/register"

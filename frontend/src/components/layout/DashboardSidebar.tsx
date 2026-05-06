@@ -66,7 +66,7 @@ export default function DashboardSidebar() {
       {/* Footer */}
       <div className="border-t border-gray-200 dark:border-gray-800 px-5 py-4">
         <p className="text-xs text-gray-400 dark:text-gray-600 leading-snug">
-          Digital Wealth Solution<br />
+          Digital Wealth Partner<br />
           Asset Management Platform
         </p>
       </div>

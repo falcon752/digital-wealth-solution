@@ -12,13 +12,13 @@ import { Search, ToggleLeft, ToggleRight, DollarSign } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface UserRow {
-  id: number;
+  id: string;
   email: string;
   firstName: string;
   lastName: string;
   role: string;
-  isActive: number;
-  totalUSD: number;
+  isActive: boolean;
+  balance: number;
   createdAt: string;
 }
 
@@ -40,7 +40,7 @@ export default function AdminUsersPage() {
   const load = useCallback(() => {
     setLoading(true);
     adminAPI.getUsers(debouncedSearch ? { search: debouncedSearch } : {})
-      .then((r) => setUsers(r.data))
+      .then((r) => setUsers(Array.isArray(r.data) ? r.data : (r.data.users ?? [])))
       .finally(() => setLoading(false));
   }, [debouncedSearch]);
 
@@ -56,7 +56,7 @@ export default function AdminUsersPage() {
     }
   };
 
-  const openBalance = (u: UserRow) => { setBalanceTarget(u); setNewBalance(String(u.totalUSD || 0)); };
+  const openBalance = (u: UserRow) => { setBalanceTarget(u); setNewBalance(String(u.balance || 0)); };
 
   const handleSetBalance = async () => {
     if (!balanceTarget) return;
@@ -117,7 +117,7 @@ export default function AdminUsersPage() {
                           {u.role}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-sm text-[var(--text-primary)]">{formatCurrency(u.totalUSD || 0)}</td>
+                      <td className="px-4 py-3 text-sm text-[var(--text-primary)]">{formatCurrency(u.balance || 0)}</td>
                       <td className="px-4 py-3"><Badge status={u.isActive ? 'active' : 'inactive'} /></td>
                       <td className="px-4 py-3 hidden md:table-cell text-xs text-[var(--text-muted)]">{formatDate(u.createdAt)}</td>
                       <td className="px-4 py-3">
