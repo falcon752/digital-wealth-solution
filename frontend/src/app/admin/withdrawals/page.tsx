@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { withdrawalsAPI } from '@/lib/api';
 import { Withdrawal } from '@/types';
@@ -24,10 +24,16 @@ export default function AdminWithdrawalsPage() {
   const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const highlightId = searchParams.get('highlight');
+
   const [actionTarget, setActionTarget] = useState<Withdrawal | null>(null);
   const [actionType, setActionType] = useState<ActionType>(null);
   const [adminNote, setAdminNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [highlightedId, setHighlightedId] = useState<string | null>(null);
+
+  const rowRefs = useRef<Record<string, HTMLTableRowElement | null>>({});
+  const didAutoOpen = useRef(false);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -36,6 +42,23 @@ export default function AdminWithdrawalsPage() {
   }, [activeTab]);
 
   useEffect(load, [load]);
+
+  // Deep-link: auto-scroll, highlight and open modal for ?highlight=id
+  useEffect(() => {
+    if (!highlightId || loading || didAutoOpen.current) return;
+    const target = withdrawals.find((w) => w.id === highlightId);
+    if (!target) return;
+    didAutoOpen.current = true;
+    setHighlightedId(highlightId);
+    setTimeout(() => {
+      rowRefs.current[highlightId]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 150);
+    if (target.status === 'pending') {
+      setActionTarget(target);
+      setActionType('approve');
+      setAdminNote('');
+    }
+  }, [highlightId, loading, withdrawals]);
 
   const openAction = (w: Withdrawal, type: ActionType) => {
     setActionTarget(w);
@@ -103,7 +126,11 @@ export default function AdminWithdrawalsPage() {
                 </thead>
                 <tbody>
                   {withdrawals.map((w) => (
-                    <tr key={w.id} className="border-b border-[var(--border)] last:border-0 hover:bg-brand-500/5 transition-colors">
+                    <tr
+                        key={w.id}
+                        ref={(el) => { rowRefs.current[w.id] = el; }}
+                        className={`border-b border-[var(--border)] last:border-0 hover:bg-brand-500/5 transition-colors ${highlightedId === w.id ? 'ring-2 ring-inset ring-blue-500 bg-blue-500/5' : ''}`}
+                      >
                       <td className="px-4 py-3">
                         <div className="text-sm font-medium text-[var(--text-primary)]">{w.userEmail || '—'}</div>
                       </td>

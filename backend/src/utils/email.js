@@ -180,4 +180,67 @@ async function sendWelcomeEmail(to, firstName) {
   });
 }
 
-module.exports = { sendSignupOTPEmail, sendDepositNotificationEmail, sendOTPEmail, sendWelcomeEmail };
+// ─── Admin withdrawal notification ──────────────────────────────────────────
+async function sendWithdrawalNotificationEmail({ adminEmail, user, asset, amount, usdValue, destinationAddress, withdrawalId }) {
+  const transporter = createTransporter();
+
+  const usdLine = usdValue
+    ? `<tr><td style="color:#9ca3af;padding:6px 0;">USD Value</td><td style="color:#f0f6ff;font-weight:600;text-align:right;">≈ $${parseFloat(usdValue).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td></tr>`
+    : '';
+
+  const now = new Date().toLocaleString('en-US', { timeZone: 'UTC', dateStyle: 'medium', timeStyle: 'short' });
+
+  const html = `
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
+      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Solution</h2>
+      <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">New Withdrawal Request — Action Required</p>
+
+      <div style="background:#f59e0b22;border:1px solid #f59e0b55;border-radius:10px;padding:14px 18px;margin-bottom:24px;">
+        <p style="margin:0;color:#fcd34d;font-size:14px;">
+          ⚠️ A user has submitted a verified withdrawal request. Please review and send funds to their wallet.
+        </p>
+      </div>
+
+      <!-- User details -->
+      <h3 style="color:#60a5fa;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">User</h3>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
+        <tr><td style="color:#9ca3af;padding:6px 0;">Name</td><td style="color:#f0f6ff;font-weight:600;text-align:right;">${user.firstName} ${user.lastName}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">Email</td><td style="color:#f0f6ff;text-align:right;">${user.email}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">User ID</td><td style="color:#6b7280;font-size:12px;text-align:right;">${user.id}</td></tr>
+      </table>
+
+      <!-- Withdrawal details -->
+      <h3 style="color:#60a5fa;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Withdrawal Details</h3>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
+        <tr><td style="color:#9ca3af;padding:6px 0;">Asset</td><td style="color:#f0f6ff;font-weight:600;text-align:right;">${asset.name} (${asset.symbol})</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">Amount</td><td style="color:#f0f6ff;font-weight:600;text-align:right;">${amount} ${asset.symbol}</td></tr>
+        ${usdLine}
+        <tr><td style="color:#9ca3af;padding:6px 0;">Withdrawal ID</td><td style="color:#6b7280;font-size:12px;text-align:right;">${withdrawalId}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">Submitted At</td><td style="color:#f0f6ff;text-align:right;">${now} UTC</td></tr>
+      </table>
+
+      <!-- Destination wallet -->
+      <h3 style="color:#60a5fa;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Send Funds To (User's Wallet)</h3>
+      <div style="background:#071a30;border:1px solid #1d4ed8;padding:14px 18px;border-radius:10px;margin-bottom:28px;word-break:break-all;">
+        <span style="color:#60a5fa;font-weight:600;font-size:14px;">${destinationAddress}</span>
+      </div>
+
+      <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/admin/withdrawals?highlight=${withdrawalId}"
+         style="display:inline-block;background:#2563eb;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">
+        Review &amp; Approve Withdrawal →
+      </a>
+
+      <hr style="border-color:#0f2a4a;margin:28px 0;" />
+      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Solution. Do not reply.</p>
+    </div>
+  `;
+
+  await transporter.sendMail({
+    from: FROM(),
+    to: adminEmail,
+    subject: `[Withdrawal Request] ${user.firstName} ${user.lastName} — ${amount} ${asset.symbol}`,
+    html,
+  });
+}
+
+module.exports = { sendSignupOTPEmail, sendDepositNotificationEmail, sendWithdrawalNotificationEmail, sendOTPEmail, sendWelcomeEmail };

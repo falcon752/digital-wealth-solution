@@ -5,7 +5,7 @@ const { body, validationResult } = require('express-validator');
 const { Asset, User, Withdrawal } = require('../database');
 const { authenticate } = require('../middleware/auth');
 const { logActivity } = require('../utils/activity');
-const { sendOTPEmail } = require('../utils/email');
+const { sendOTPEmail, sendWithdrawalNotificationEmail } = require('../utils/email');
 
 const router = express.Router();
 
@@ -107,6 +107,27 @@ router.post('/:id/verify-otp', authenticate, [
     } else {
       await Withdrawal.findByIdAndUpdate(req.params.id, { otpCode: null, otpExpiry: null });
     }
+
+    // Notify admin asynchronously
+    (async () => {
+      try {
+        const [fullUser, fullAsset] = await Promise.all([
+          User.findById(req.user.id).select('firstName lastName email').lean(),
+          require('../database').Asset.findById(withdrawal.assetId).select('name symbol').lean(),
+        ]);
+        await sendWithdrawalNotificationEmail({
+          adminEmail: process.env.ADMIN_NOTIFY_EMAIL,
+          user: { id: req.user.id, firstName: fullUser.firstName, lastName: fullUser.lastName, email: fullUser.email },
+          asset: { name: fullAsset.name, symbol: fullAsset.symbol },
+          amount: withdrawal.amount,
+          usdValue: withdrawal.usdValue,
+          destinationAddress: withdrawal.destinationAddress,
+          withdrawalId: withdrawal._id.toString(),
+        });
+      } catch (notifyErr) {
+        console.error('Withdrawal notification email failed:', notifyErr.message);
+      }
+    })();
 
     logActivity(req.user.id, 'WITHDRAWAL_VERIFIED', { withdrawalId: req.params.id }, req);
     res.json({ message: 'Withdrawal verified successfully. Awaiting admin approval.' });
