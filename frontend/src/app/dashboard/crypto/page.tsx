@@ -315,6 +315,9 @@ function SendModal({
   onClose: () => void;
   onSuccess: () => void;
 }) {
+  const [step, setStep] = useState<'form' | 'otp'>('form');
+  const [withdrawalId, setWithdrawalId] = useState<string | null>(null);
+  const [otp, setOtp] = useState('');
   const [validationError, setValidationError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [amountMode, setAmountMode] = useState<'usd' | 'crypto'>('usd');
@@ -347,16 +350,35 @@ function SendModal({
 
     setIsSubmitting(true);
     try {
-      await withdrawalsAPI.create({
+      const res = await withdrawalsAPI.create({
         assetId: asset.id,
         amount: cryptoAmount,
         destinationAddress: data.destinationAddress,
         usdValue: usdAmount,
       });
-      toast.success('Withdrawal request submitted!');
-      onSuccess();
+      setWithdrawalId(res.data.withdrawalId);
+      toast.success('OTP sent to your email. Please verify to complete.');
+      setStep('otp');
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Failed to submit';
+      setValidationError(msg);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const verifyOtp = async () => {
+    if (!withdrawalId || otp.length !== 6) {
+      setValidationError('Enter the 6-digit OTP from your email.');
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      await withdrawalsAPI.verifyOTP(withdrawalId, { otp });
+      toast.success('Withdrawal verified! Awaiting admin approval.');
+      onSuccess();
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Invalid OTP';
       setValidationError(msg);
     } finally {
       setIsSubmitting(false);
@@ -372,7 +394,7 @@ function SendModal({
             <div className="w-16 h-16 rounded-full border-2 border-red-400 flex items-center justify-center mx-auto mb-4">
               <X size={28} className="text-red-400" />
             </div>
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Validation Error</h3>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Error</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">{validationError}</p>
             <button
               onClick={() => setValidationError(null)}
@@ -384,76 +406,123 @@ function SendModal({
         </div>
       )}
 
-      {/* Send form */}
       <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-0 sm:p-4">
         <div className="bg-white dark:bg-gray-900 w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 max-h-[90vh] overflow-y-auto">
-          {/* Header */}
-          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800">
-            <button onClick={onClose} className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
-              <X size={20} />
-            </button>
-            <p className="font-semibold text-gray-900 dark:text-white">Send {asset.name}</p>
-            <div className="w-5" />
-          </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="px-5 py-6 space-y-6">
-            {/* Amount */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Amount to Receive</label>
+          {/* ── Step 1: Withdrawal form ── */}
+          {step === 'form' && (
+            <>
+              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800">
+                <button onClick={onClose} className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
+                  <X size={20} />
+                </button>
+                <p className="font-semibold text-gray-900 dark:text-white">Withdraw {asset.name}</p>
+                <div className="w-5" />
+              </div>
+
+              <form onSubmit={handleSubmit(onSubmit)} className="px-5 py-6 space-y-6">
+                {/* Amount */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Amount</label>
+                    <button
+                      type="button"
+                      onClick={() => setAmountMode((m) => m === 'usd' ? 'crypto' : 'usd')}
+                      className="text-xs font-medium text-gray-500 dark:text-gray-400 border border-gray-300 dark:border-gray-600 rounded-lg px-2.5 py-1 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                    >
+                      {amountMode === 'usd' ? `USD ↔ ${asset.symbol}` : `${asset.symbol} ↔ USD`}
+                    </button>
+                  </div>
+                  <div className="flex items-center bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+                    <input
+                      {...register('amount')}
+                      type="number"
+                      step="any"
+                      placeholder="0.00"
+                      className="flex-1 px-4 py-3.5 bg-transparent text-gray-900 dark:text-white text-base focus:outline-none"
+                    />
+                    <span className="pr-4 text-sm font-semibold text-blue-600 dark:text-blue-400">
+                      {amountMode === 'usd' ? 'USD' : asset.symbol}
+                    </span>
+                  </div>
+                  {errors.amount && <p className="text-xs text-red-500 mt-1">{errors.amount.message}</p>}
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-2 text-center">
+                    ≈ {converted} {amountMode === 'usd' ? asset.symbol : 'USD'}
+                  </p>
+                </div>
+
+                {/* Destination wallet */}
+                <div>
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                    Your Destination Wallet Address
+                  </label>
+                  <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl">
+                    <input
+                      {...register('destinationAddress')}
+                      type="text"
+                      placeholder="0x... or bc1..."
+                      className="w-full px-4 py-3.5 bg-transparent text-gray-900 dark:text-white text-sm focus:outline-none"
+                    />
+                  </div>
+                  {errors.destinationAddress && (
+                    <p className="text-xs text-red-500 mt-1">{errors.destinationAddress.message}</p>
+                  )}
+                </div>
+
                 <button
-                  type="button"
-                  onClick={() => setAmountMode((m) => m === 'usd' ? 'crypto' : 'usd')}
-                  className="text-xs font-medium text-gray-500 dark:text-gray-400 border border-gray-300 dark:border-gray-600 rounded-lg px-2.5 py-1 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full py-4 rounded-2xl bg-[#2d5be3] text-white font-semibold text-base hover:opacity-90 transition-opacity disabled:opacity-60"
                 >
-                  {amountMode === 'usd' ? `USD ↔ ${asset.symbol}` : `${asset.symbol} ↔ USD`}
+                  {isSubmitting ? 'Submitting…' : 'Request Withdrawal'}
+                </button>
+              </form>
+            </>
+          )}
+
+          {/* ── Step 2: OTP verification ── */}
+          {step === 'otp' && (
+            <>
+              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800">
+                <button onClick={() => setStep('form')} className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 transition-colors text-sm">
+                  ← Back
+                </button>
+                <p className="font-semibold text-gray-900 dark:text-white">Verify Withdrawal</p>
+                <div className="w-12" />
+              </div>
+
+              <div className="px-5 py-8 space-y-6 text-center">
+                <div className="w-16 h-16 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center mx-auto">
+                  <span className="text-2xl">📧</span>
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900 dark:text-white mb-1">Check your email</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    We sent a 6-digit verification code to your registered email. Enter it below to confirm this withdrawal.
+                  </p>
+                </div>
+
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  maxLength={6}
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.slice(0, 6))}
+                  placeholder="000000"
+                  className="w-full text-center text-2xl font-bold tracking-widest px-4 py-4 rounded-2xl border-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 transition-colors"
+                />
+
+                <button
+                  onClick={verifyOtp}
+                  disabled={isSubmitting || otp.length !== 6}
+                  className="w-full py-4 rounded-2xl bg-[#2d5be3] text-white font-semibold text-base hover:opacity-90 transition-opacity disabled:opacity-60"
+                >
+                  {isSubmitting ? 'Verifying…' : 'Confirm Withdrawal'}
                 </button>
               </div>
-              <div className="flex items-center bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
-                <input
-                  {...register('amount')}
-                  type="number"
-                  step="any"
-                  placeholder="0.00"
-                  className="flex-1 px-4 py-3.5 bg-transparent text-gray-900 dark:text-white text-base focus:outline-none"
-                />
-                <span className="pr-4 text-sm font-semibold text-blue-600 dark:text-blue-400">
-                  {amountMode === 'usd' ? 'USD' : asset.symbol}
-                </span>
-              </div>
-              {errors.amount && <p className="text-xs text-red-500 mt-1">{errors.amount.message}</p>}
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-2 text-center">
-                ≈ {converted} {amountMode === 'usd' ? asset.symbol : 'USD'}
-              </p>
-            </div>
+            </>
+          )}
 
-            {/* Wallet address */}
-            <div>
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                Receive Wallet Address
-              </label>
-              <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl">
-                <input
-                  {...register('destinationAddress')}
-                  type="text"
-                  placeholder=""
-                  className="w-full px-4 py-3.5 bg-transparent text-gray-900 dark:text-white text-sm focus:outline-none"
-                />
-              </div>
-              {errors.destinationAddress && (
-                <p className="text-xs text-red-500 mt-1">{errors.destinationAddress.message}</p>
-              )}
-            </div>
-
-            {/* Submit */}
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full py-4 rounded-2xl bg-[#2d5be3] text-white font-semibold text-base hover:opacity-90 transition-opacity disabled:opacity-60"
-            >
-              {isSubmitting ? 'Submitting…' : 'Send Coin'}
-            </button>
-          </form>
         </div>
       </div>
     </>

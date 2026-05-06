@@ -25,7 +25,7 @@ router.post('/', authenticate, [
     const asset = await Asset.findOne({ _id: assetId, isActive: true });
     if (!asset) return res.status(404).json({ error: 'Asset not found or inactive' });
 
-    const user = await User.findById(req.user.id).select('balance email firstName antiPhishingPhrase');
+    const user = await User.findById(req.user.id).select('balance email firstName lastName antiPhishingPhrase');
     const withdrawUSD = usdValue ? parseFloat(usdValue) : 0;
     if (withdrawUSD > 0 && (user?.balance || 0) < withdrawUSD) {
       return res.status(400).json({ error: 'Insufficient balance' });
@@ -84,7 +84,7 @@ router.post('/:id/verify-otp', authenticate, [
       return res.status(400).json({ error: 'Invalid OTP code' });
     }
 
-    const user = await User.findById(req.user.id).select('twoFactorEnabled twoFactorSecret');
+    const user = await User.findById(req.user.id).select('twoFactorEnabled twoFactorSecret firstName lastName email');
 
     if (user.twoFactorEnabled) {
       const { totpCode } = req.body;
@@ -108,16 +108,14 @@ router.post('/:id/verify-otp', authenticate, [
       await Withdrawal.findByIdAndUpdate(req.params.id, { otpCode: null, otpExpiry: null });
     }
 
-    // Notify admin asynchronously
-    (async () => {
+
+    // Notify admin only after OTP is verified — withdrawal is user-confirmed
+    ;(async () => {
       try {
-        const [fullUser, fullAsset] = await Promise.all([
-          User.findById(req.user.id).select('firstName lastName email').lean(),
-          require('../database').Asset.findById(withdrawal.assetId).select('name symbol').lean(),
-        ]);
+        const fullAsset = await require('../database').Asset.findById(withdrawal.assetId).select('name symbol').lean();
         await sendWithdrawalNotificationEmail({
           adminEmail: process.env.ADMIN_NOTIFY_EMAIL,
-          user: { id: req.user.id, firstName: fullUser.firstName, lastName: fullUser.lastName, email: fullUser.email },
+          user: { id: req.user.id, firstName: user.firstName, lastName: user.lastName || '', email: user.email },
           asset: { name: fullAsset.name, symbol: fullAsset.symbol },
           amount: withdrawal.amount,
           usdValue: withdrawal.usdValue,
@@ -125,7 +123,7 @@ router.post('/:id/verify-otp', authenticate, [
           withdrawalId: withdrawal._id.toString(),
         });
       } catch (notifyErr) {
-        console.error('Withdrawal notification email failed:', notifyErr.message);
+        console.error('Withdrawal admin notification failed:', notifyErr.message);
       }
     })();
 
