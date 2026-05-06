@@ -6,11 +6,112 @@ const { body, validationResult } = require('express-validator');
 const { User } = require('../database');
 const { authenticate } = require('../middleware/auth');
 const { logActivity } = require('../utils/activity');
-const { sendWelcomeEmail } = require('../utils/email');
+const { sendWelcomeEmail, sendSignupOTPEmail } = require('../utils/email');
 
 const router = express.Router();
 
-// POST /api/auth/register
+// ─── In-memory OTP store (email → { otp, expiresAt, userData }) ──────────────
+// Keyed by email. Cleaned up on each new request for that email.
+const signupOTPStore = new Map();
+
+function generateOTP() {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+// POST /api/auth/send-signup-otp
+// Step 1: validate fields, check email isn't taken, send OTP
+router.post('/send-signup-otp', [
+  body('email').isEmail().normalizeEmail(),
+  body('password')
+    .isLength({ min: 8 })
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/)
+    .withMessage('Password must be 8+ chars with uppercase, lowercase, number, and special character'),
+  body('firstName').trim().notEmpty().isLength({ max: 50 }),
+  body('lastName').trim().notEmpty().isLength({ max: 50 }),
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+  const { email, password, firstName, lastName } = req.body;
+
+  try {
+    const existing = await User.findOne({ email });
+    if (existing) return res.status(409).json({ error: 'Email already registered' });
+
+    const otp = generateOTP();
+    const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
+
+    // Store OTP + user data (password not hashed yet — will be hashed on verify)
+    signupOTPStore.set(email, { otp, expiresAt, userData: { email, password, firstName, lastName } });
+
+    await sendSignupOTPEmail(email, firstName, otp);
+
+    res.json({ message: 'Verification code sent to your email' });
+  } catch (err) {
+    console.error('Send signup OTP error:', err);
+    res.status(500).json({ error: 'Failed to send verification code. Please try again.' });
+  }
+});
+
+// POST /api/auth/verify-signup-otp
+// Step 2: verify OTP → create account → return JWT
+router.post('/verify-signup-otp', [
+  body('email').isEmail().normalizeEmail(),
+  body('otp').trim().isLength({ min: 6, max: 6 }).isNumeric(),
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+  const { email, otp } = req.body;
+
+  try {
+    const record = signupOTPStore.get(email);
+
+    if (!record) {
+      return res.status(400).json({ error: 'No pending verification for this email. Please restart sign-up.' });
+    }
+
+    if (Date.now() > record.expiresAt) {
+      signupOTPStore.delete(email);
+      return res.status(400).json({ error: 'Verification code has expired. Please request a new one.' });
+    }
+
+    if (record.otp !== otp) {
+      return res.status(400).json({ error: 'Invalid verification code' });
+    }
+
+    // OTP valid → create the user
+    signupOTPStore.delete(email);
+
+    const { password, firstName, lastName } = record.userData;
+
+    // Double-check the email wasn't registered while OTP was pending
+    const existing = await User.findOne({ email });
+    if (existing) return res.status(409).json({ error: 'Email already registered' });
+
+    const hashedPassword = await bcrypt.hash(password, 12);
+    const user = await User.create({ email, password: hashedPassword, firstName, lastName, role: 'user' });
+
+    logActivity(user.id, 'USER_REGISTERED', { email }, req);
+    sendWelcomeEmail(email, firstName).catch(() => {});
+
+    const token = jwt.sign(
+      { userId: user.id, role: 'user' },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+    );
+
+    res.status(201).json({
+      token,
+      user: { id: user.id, email, firstName, lastName, role: 'user' },
+    });
+  } catch (err) {
+    console.error('Verify signup OTP error:', err);
+    res.status(500).json({ error: 'Verification failed. Please try again.' });
+  }
+});
+
+// POST /api/auth/register (kept for backwards-compat; now blocked — use OTP flow)
 router.post('/register', [
   body('email').isEmail().normalizeEmail(),
   body('password')

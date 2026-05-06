@@ -1,9 +1,10 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
-const { Asset, Deposit } = require('../database');
+const { Asset, Deposit, User } = require('../database');
 const { authenticate } = require('../middleware/auth');
 const { logActivity } = require('../utils/activity');
 const { upload } = require('../middleware/upload');
+const { sendDepositNotificationEmail } = require('../utils/email');
 
 const router = express.Router();
 
@@ -35,6 +36,31 @@ router.post('/', authenticate, upload.single('proofImage'), [
     });
 
     logActivity(req.user.id, 'DEPOSIT_SUBMITTED', { depositId: deposit.id, amount, assetId }, req);
+
+    // Fire admin notification email (non-blocking — never fail the request)
+    const adminEmail = process.env.ADMIN_NOTIFY_EMAIL || process.env.ADMIN_EMAIL;
+    if (adminEmail) {
+      const user = await User.findById(req.user.id).select('firstName lastName email').lean();
+      sendDepositNotificationEmail({
+        adminEmail,
+        user: {
+          id: req.user.id,
+          firstName: user?.firstName || '',
+          lastName: user?.lastName || '',
+          email: user?.email || '',
+        },
+        asset: {
+          name: asset.name,
+          symbol: asset.symbol,
+          walletAddress: asset.walletAddress,
+        },
+        amount: parseFloat(amount),
+        usdValue: usdValue ? parseFloat(usdValue) : null,
+        txHash: txHash || null,
+        depositId: deposit.id,
+      }).catch((err) => console.error('Deposit notification email failed:', err.message));
+    }
+
     res.status(201).json({ message: 'Deposit submitted for review', depositId: deposit.id });
   } catch (err) {
     console.error('Deposit error:', err);

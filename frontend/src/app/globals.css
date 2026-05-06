@@ -21,25 +21,25 @@
   --color-brand-950: #172554;
 
   /* Surface tokens (light mode defaults) */
-  --color-surface-page:   #f0f6ff;
-  --color-surface-card:   rgba(255,255,255,0.80);
-  --color-surface-input:  rgba(255,255,255,0.90);
-  --color-border:         rgba(37,99,235,0.18);
-  --color-text-primary:   #0f172a;
-  --color-text-secondary: #1d4ed8;
+  --color-surface-page:   #f9fafb;
+  --color-surface-card:   #ffffff;
+  --color-surface-input:  #ffffff;
+  --color-border:         #e5e7eb;
+  --color-text-primary:   #111827;
+  --color-text-secondary: #374151;
   --color-text-muted:     #6b7280;
 }
 
 /* ─── Light mode CSS vars ────────────────────────────────────────────────── */
 :root {
-  --bg-page:       #f0f6ff;
-  --bg-card:       rgba(255,255,255,0.80);
-  --bg-input:      rgba(255,255,255,0.90);
-  --border-color:  rgba(37,99,235,0.18);
-  --text-primary:  #0f172a;
-  --text-secondary:#1d4ed8;
+  --bg-page:       #f9fafb;
+  --bg-card:       #ffffff;
+  --bg-input:      #ffffff;
+  --border-color:  #e5e7eb;
+  --text-primary:  #111827;
+  --text-secondary:#374151;
   --text-muted:    #6b7280;
-  --glow:          rgba(37,99,235,0.25);
+  --glow:          rgba(37,99,235,0.12);
 }
 
 /* ─── Dark mode CSS vars ─────────────────────────────────────────────────── */

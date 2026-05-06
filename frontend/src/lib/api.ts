@@ -33,6 +33,10 @@ export default api;
 export const authAPI = {
   register: (data: { email: string; password: string; firstName: string; lastName: string }) =>
     api.post('/auth/register', data),
+  sendSignupOTP: (data: { email: string; password: string; firstName: string; lastName: string }) =>
+    api.post('/auth/send-signup-otp', data),
+  verifySignupOTP: (data: { email: string; otp: string }) =>
+    api.post('/auth/verify-signup-otp', data),
   login: (data: { email: string; password: string; totpCode?: string }) =>
     api.post('/auth/login', data),
   me: () => api.get('/auth/me'),

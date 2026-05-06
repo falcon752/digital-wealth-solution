@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -9,9 +9,9 @@ import toast from 'react-hot-toast';
 import Image from 'next/image';
 import {
   Bell, ChevronDown, AlignJustify, ArrowDownToLine,
-  QrCode, Zap, ArrowLeftRight, LayoutGrid, X, Copy, Check,
+  QrCode, Zap, ArrowLeftRight, LayoutGrid, X, Copy, Check, ChevronRight,
 } from 'lucide-react';
-import { assetsAPI, depositsAPI, usersAPI } from '@/lib/api';
+import { assetsAPI, depositsAPI, usersAPI, withdrawalsAPI } from '@/lib/api';
 import { Asset } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 
@@ -262,7 +262,7 @@ function AssetPickerModal({
   onClose,
 }: {
   assets: AssetRow[];
-  mode: 'buy' | 'receive';
+  mode: 'buy' | 'receive' | 'send';
   onSelect: (asset: AssetRow) => void;
   onClose: () => void;
 }) {
@@ -271,7 +271,7 @@ function AssetPickerModal({
       <div className="bg-white dark:bg-gray-900 w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 max-h-[70vh] flex flex-col">
         <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
           <p className="font-bold text-gray-900 dark:text-white">
-            {mode === 'buy' ? 'Buy — Select Asset' : 'Receive — Select Asset'}
+            {mode === 'buy' ? 'Buy — Select Asset' : mode === 'receive' ? 'Receive — Select Asset' : 'Send — Select Asset'}
           </p>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
             <X size={20} />
@@ -297,6 +297,169 @@ function AssetPickerModal({
   );
 }
 
+// ─── Send modal ─────────────────────────────────────────────────────────────
+const sendSchema = z.object({
+  amount: z.string().refine((v) => !isNaN(Number(v)) && Number(v) > 0, 'Amount must be > 0'),
+  destinationAddress: z.string().min(10, 'Enter a valid wallet address'),
+});
+type SendForm = z.infer<typeof sendSchema>;
+
+function SendModal({
+  asset,
+  userBalance,
+  onClose,
+  onSuccess,
+}: {
+  asset: AssetRow;
+  userBalance: number;
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [amountMode, setAmountMode] = useState<'usd' | 'crypto'>('usd');
+
+  const { register, handleSubmit, watch, formState: { errors } } = useForm<SendForm>({
+    resolver: zodResolver(sendSchema),
+  });
+
+  const amountValue = watch('amount');
+
+  const converted = useMemo(() => {
+    const n = Number(amountValue);
+    if (!n) return '0.00';
+    if (amountMode === 'usd') {
+      return asset.price ? (n / asset.price).toFixed(8) : '0.00';
+    }
+    return asset.price ? (n * asset.price).toFixed(2) : '0.00';
+  }, [amountValue, amountMode, asset.price]);
+
+  const onSubmit = async (data: SendForm) => {
+    const n = Number(data.amount);
+    const usdAmount = amountMode === 'usd' ? n : (asset.price ? n * asset.price : 0);
+
+    if (usdAmount > userBalance) {
+      setValidationError('Insufficient balance.');
+      return;
+    }
+
+    const cryptoAmount = amountMode === 'usd' ? (asset.price ? n / asset.price : 0) : n;
+
+    setIsSubmitting(true);
+    try {
+      await withdrawalsAPI.create({
+        assetId: asset.id,
+        amount: cryptoAmount,
+        destinationAddress: data.destinationAddress,
+        usdValue: usdAmount,
+      });
+      toast.success('Withdrawal request submitted!');
+      onSuccess();
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Failed to submit';
+      setValidationError(msg);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <>
+      {/* Validation error overlay */}
+      {validationError && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/30 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-8 max-w-xs w-full text-center">
+            <div className="w-16 h-16 rounded-full border-2 border-red-400 flex items-center justify-center mx-auto mb-4">
+              <X size={28} className="text-red-400" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Validation Error</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">{validationError}</p>
+            <button
+              onClick={() => setValidationError(null)}
+              className="px-10 py-2.5 rounded-xl bg-red-500 text-white font-semibold hover:opacity-90 transition-opacity"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Send form */}
+      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-0 sm:p-4">
+        <div className="bg-white dark:bg-gray-900 w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 max-h-[90vh] overflow-y-auto">
+          {/* Header */}
+          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800">
+            <button onClick={onClose} className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
+              <X size={20} />
+            </button>
+            <p className="font-semibold text-gray-900 dark:text-white">Send {asset.name}</p>
+            <div className="w-5" />
+          </div>
+
+          <form onSubmit={handleSubmit(onSubmit)} className="px-5 py-6 space-y-6">
+            {/* Amount */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Amount to Receive</label>
+                <button
+                  type="button"
+                  onClick={() => setAmountMode((m) => m === 'usd' ? 'crypto' : 'usd')}
+                  className="text-xs font-medium text-gray-500 dark:text-gray-400 border border-gray-300 dark:border-gray-600 rounded-lg px-2.5 py-1 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                >
+                  {amountMode === 'usd' ? `USD ↔ ${asset.symbol}` : `${asset.symbol} ↔ USD`}
+                </button>
+              </div>
+              <div className="flex items-center bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+                <input
+                  {...register('amount')}
+                  type="number"
+                  step="any"
+                  placeholder="0.00"
+                  className="flex-1 px-4 py-3.5 bg-transparent text-gray-900 dark:text-white text-base focus:outline-none"
+                />
+                <span className="pr-4 text-sm font-semibold text-blue-600 dark:text-blue-400">
+                  {amountMode === 'usd' ? 'USD' : asset.symbol}
+                </span>
+              </div>
+              {errors.amount && <p className="text-xs text-red-500 mt-1">{errors.amount.message}</p>}
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-2 text-center">
+                ≈ {converted} {amountMode === 'usd' ? asset.symbol : 'USD'}
+              </p>
+            </div>
+
+            {/* Wallet address */}
+            <div>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                Receive Wallet Address
+              </label>
+              <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl">
+                <input
+                  {...register('destinationAddress')}
+                  type="text"
+                  placeholder=""
+                  className="w-full px-4 py-3.5 bg-transparent text-gray-900 dark:text-white text-sm focus:outline-none"
+                />
+              </div>
+              {errors.destinationAddress && (
+                <p className="text-xs text-red-500 mt-1">{errors.destinationAddress.message}</p>
+              )}
+            </div>
+
+            {/* Submit */}
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full py-4 rounded-2xl bg-[#2d5be3] text-white font-semibold text-base hover:opacity-90 transition-opacity disabled:opacity-60"
+            >
+              {isSubmitting ? 'Submitting…' : 'Send Coin'}
+            </button>
+          </form>
+        </div>
+      </div>
+    </>
+  );
+}
+
 // ─── Main page ──────────────────────────────────────────────────────────────
 export default function CryptoAssetsPage() {
   const { user } = useAuth();
@@ -308,9 +471,10 @@ export default function CryptoAssetsPage() {
   const [activeAction, setActiveAction] = useState<ActiveAction>('buy');
 
   // modal state
-  const [pickerMode, setPickerMode] = useState<'buy' | 'receive' | null>(null);
+  const [pickerMode, setPickerMode] = useState<'buy' | 'receive' | 'send' | null>(null);
   const [buyAsset, setBuyAsset] = useState<AssetRow | null>(null);
   const [receiveAsset, setReceiveAsset] = useState<AssetRow | null>(null);
+  const [sendAsset, setSendAsset] = useState<AssetRow | null>(null);
 
   const load = () => {
     setLoading(true);
@@ -338,13 +502,14 @@ export default function CryptoAssetsPage() {
     setActiveAction(action);
     if (action === 'buy') router.push('/dashboard/crypto/deposit');
     else if (action === 'receive') setPickerMode('receive');
-    else if (action === 'send') router.push('/dashboard/crypto/send');
+    else if (action === 'send') setPickerMode('send');
     else if (action === 'swap') toast('Swap is coming soon!', { icon: '⏳' });
   };
 
   const handleAssetRowClick = (asset: AssetRow) => {
     if (activeAction === 'buy') setBuyAsset(asset);
     else if (activeAction === 'receive') setReceiveAsset(asset);
+    else if (activeAction === 'send') setSendAsset(asset);
   };
 
   return (
@@ -433,7 +598,7 @@ export default function CryptoAssetsPage() {
           {assets.map((asset) => (
             <button
               key={asset.id}
-              onClick={() => handleAssetRowClick(asset)}
+              onClick={() => router.push(`/dashboard/crypto/${asset.symbol}`)}
               className="w-full flex items-center px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors text-left"
             >
               {/* Coin icon */}
@@ -442,20 +607,17 @@ export default function CryptoAssetsPage() {
               </div>
               {/* Name / price */}
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-gray-900 dark:text-white">{asset.symbol}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{asset.name}</p>
-                {asset.price != null && (
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                    ${asset.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </p>
-                )}
-              </div>
-              {/* Balance */}
-              <div className="text-right shrink-0 ml-4">
-                <p className="text-sm font-medium text-gray-900 dark:text-white tabular-nums">
+                <p className="text-sm font-bold text-gray-900 dark:text-white">
+                  {asset.name} ({asset.symbol})
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                   0.00000000 {asset.symbol}
                 </p>
-                <p className="text-xs text-[#2d5be3] mt-0.5">$0.00</p>
+              </div>
+              {/* View Details */}
+              <div className="flex items-center gap-1 shrink-0 ml-4 text-gray-400 dark:text-gray-500">
+                <span className="text-xs font-medium">View Details</span>
+                <ChevronRight size={14} />
               </div>
             </button>
           ))}
@@ -463,14 +625,16 @@ export default function CryptoAssetsPage() {
       )}
 
       {/* Asset picker modal */}
-      {pickerMode && !buyAsset && !receiveAsset && (
+      {pickerMode && !buyAsset && !receiveAsset && !sendAsset && (
         <AssetPickerModal
           assets={assets}
           mode={pickerMode}
           onSelect={(a) => {
+            const mode = pickerMode;
             setPickerMode(null);
-            if (pickerMode === 'buy') setBuyAsset(a);
-            else setReceiveAsset(a);
+            if (mode === 'buy') setBuyAsset(a);
+            else if (mode === 'receive') setReceiveAsset(a);
+            else setSendAsset(a);
           }}
           onClose={() => setPickerMode(null)}
         />
@@ -493,6 +657,16 @@ export default function CryptoAssetsPage() {
         <ReceiveModal
           asset={receiveAsset}
           onClose={() => setReceiveAsset(null)}
+        />
+      )}
+
+      {/* Send modal */}
+      {sendAsset && (
+        <SendModal
+          asset={sendAsset}
+          userBalance={balance}
+          onClose={() => setSendAsset(null)}
+          onSuccess={() => { setSendAsset(null); load(); }}
         />
       )}
     </div>
