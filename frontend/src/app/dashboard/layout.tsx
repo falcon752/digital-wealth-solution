@@ -3,7 +3,9 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { SidebarProvider } from '@/context/SidebarContext';
 import DashboardSidebar from '@/components/layout/DashboardSidebar';
+import MobileBottomNav from '@/components/layout/MobileBottomNav';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
@@ -23,9 +25,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-100 dark:bg-gray-800">
-      <DashboardSidebar />
-      <main className="flex-1 overflow-y-auto">{children}</main>
-    </div>
+    <SidebarProvider>
+      <div className="flex h-screen overflow-hidden bg-gray-100 dark:bg-gray-800">
+        <DashboardSidebar />
+        <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
+          {children}
+        </main>
+        <MobileBottomNav />
+      </div>
+    </SidebarProvider>
   );
 }

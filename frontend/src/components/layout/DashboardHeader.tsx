@@ -1,8 +1,9 @@
 'use client';
 
 import { useAuth } from '@/context/AuthContext';
+import { useSidebar } from '@/context/SidebarContext';
 import ThemeToggle from './ThemeToggle';
-import { ChevronDown, LogOut } from 'lucide-react';
+import { ChevronDown, LogOut, Menu } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useRef, useState, useEffect } from 'react';
@@ -21,6 +22,7 @@ interface DashboardHeaderProps {
 
 export default function DashboardHeader({ title, subtitle, tabs }: DashboardHeaderProps) {
   const { user, logout } = useAuth();
+  const { openSidebar } = useSidebar();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -37,12 +39,28 @@ export default function DashboardHeader({ title, subtitle, tabs }: DashboardHead
 
   return (
     <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-10">
-      <div className="flex items-center justify-between px-6 h-14">
-        <h1 className="text-lg font-bold text-gray-900 dark:text-white shrink-0">{title}</h1>
+      <div className="flex items-center justify-between px-4 md:px-6 h-14 gap-3">
 
-        {/* Center tabs */}
+        {/* Left: hamburger (mobile) + title */}
+        <div className="flex items-center gap-2 min-w-0">
+          <button
+            onClick={openSidebar}
+            className="md:hidden p-2 -ml-1 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors shrink-0"
+            aria-label="Open menu"
+          >
+            <Menu size={22} />
+          </button>
+          <div className="min-w-0">
+            <h1 className="text-base md:text-lg font-bold text-gray-900 dark:text-white truncate">{title}</h1>
+            {subtitle && (
+              <p className="text-xs text-gray-500 dark:text-gray-400 truncate hidden sm:block">{subtitle}</p>
+            )}
+          </div>
+        </div>
+
+        {/* Center tabs — desktop only */}
         {tabs && (
-          <nav className="flex items-center">
+          <nav className="hidden md:flex items-center">
             {tabs.map((tab) => {
               const active = pathname === tab.href;
               return (
@@ -53,7 +71,7 @@ export default function DashboardHeader({ title, subtitle, tabs }: DashboardHead
                     'px-4 h-14 inline-flex items-center text-sm font-medium border-b-2 transition-colors',
                     active
                       ? 'border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400'
-                      : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600'
+                      : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
                   )}
                 >
                   {tab.label}
@@ -63,7 +81,7 @@ export default function DashboardHeader({ title, subtitle, tabs }: DashboardHead
           </nav>
         )}
 
-        {/* Right: theme toggle + user avatar */}
+        {/* Right: theme toggle + avatar */}
         <div className="flex items-center gap-2 shrink-0">
           <ThemeToggle />
           <div className="relative" ref={dropdownRef}>
@@ -71,7 +89,7 @@ export default function DashboardHeader({ title, subtitle, tabs }: DashboardHead
               <div className="w-9 h-9 rounded-full bg-[#1e3a5f] flex items-center justify-center text-white text-xs font-bold shadow-md">
                 {user?.firstName?.[0]}{user?.lastName?.[0]}
               </div>
-              <ChevronDown size={16} className={cn('text-gray-400 dark:text-gray-500 transition-transform', open && 'rotate-180')} />
+              <ChevronDown size={16} className={cn('text-gray-400 dark:text-gray-500 transition-transform hidden md:block', open && 'rotate-180')} />
             </button>
 
             {open && (
@@ -92,6 +110,29 @@ export default function DashboardHeader({ title, subtitle, tabs }: DashboardHead
           </div>
         </div>
       </div>
+
+      {/* Mobile tabs — below the header bar */}
+      {tabs && (
+        <div className="md:hidden flex border-t border-gray-100 dark:border-gray-800 overflow-x-auto">
+          {tabs.map((tab) => {
+            const active = pathname === tab.href;
+            return (
+              <Link
+                key={tab.href}
+                href={tab.href}
+                className={cn(
+                  'flex-1 text-center px-4 py-2.5 text-sm font-medium border-b-2 whitespace-nowrap transition-colors',
+                  active
+                    ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                    : 'border-transparent text-gray-500 dark:text-gray-400'
+                )}
+              >
+                {tab.label}
+              </Link>
+            );
+          })}
+        </div>
+      )}
     </header>
   );
 }
