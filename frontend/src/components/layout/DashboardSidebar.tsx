@@ -58,7 +58,7 @@ export default function DashboardSidebar() {
         {/* Logo + close button */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-800">
           <Link href="/" onClick={closeSidebar}>
-            <Image src="/wyoming light.png" alt="Logo" width={130} height={36} className="h-9 w-auto dark:hidden" priority />
+            <Image src="/wyoming-light.png" alt="Logo" width={130} height={36} className="h-9 w-auto dark:hidden" priority />
             <Image src="/wyoming-dark.png" alt="Logo" width={130} height={36} className="h-9 w-auto hidden dark:block" priority />
           </Link>
           <button
