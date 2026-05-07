@@ -302,6 +302,8 @@ router.put('/withdrawals/:id/complete', authenticate, requireAdmin, [
     if (!w) return res.status(404).json({ error: 'Withdrawal not found' });
     if (w.status !== 'approved') return res.status(400).json({ error: 'Withdrawal must be approved first' });
 
+    console.log(`[WITHDRAWAL COMPLETE] id=${req.params.id} usdValue=${w.usdValue} userId=${w.userId}`);
+
     await Withdrawal.findByIdAndUpdate(req.params.id, {
       status: 'completed',
       adminNote: req.body.adminNote || null,
@@ -309,11 +311,16 @@ router.put('/withdrawals/:id/complete', authenticate, requireAdmin, [
     });
 
     if (w.usdValue > 0) {
-      await User.findByIdAndUpdate(w.userId, {
-        $inc: { balance: -w.usdValue },
-      });
-      // Ensure balance doesn't go negative
+      const result = await User.findByIdAndUpdate(
+        w.userId,
+        { $inc: { balance: -w.usdValue } },
+        { new: true }
+      ).select('balance email');
+      // Ensure balance never goes negative
       await User.updateOne({ _id: w.userId, balance: { $lt: 0 } }, { balance: 0 });
+      console.log(`[WITHDRAWAL COMPLETE] Balance deducted → user=${result?.email} newBalance=${result?.balance}`);
+    } else {
+      console.warn(`[WITHDRAWAL COMPLETE] usdValue is ${w.usdValue} — balance NOT deducted for userId=${w.userId}`);
     }
 
     logActivity(req.user.id, 'WITHDRAWAL_COMPLETED', { withdrawalId: req.params.id }, req);

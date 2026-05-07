@@ -32,6 +32,9 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
+// Trust Nginx proxy — required for express-rate-limit behind a reverse proxy
+app.set('trust proxy', 1);
+
 // Rate limiting
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
