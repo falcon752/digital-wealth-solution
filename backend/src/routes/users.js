@@ -1,5 +1,6 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
+const mongoose = require('mongoose');
 const { body, validationResult } = require('express-validator');
 const { User, Deposit, Withdrawal, Asset } = require('../database');
 const { authenticate } = require('../middleware/auth');
@@ -99,15 +100,17 @@ router.get('/dashboard-stats', authenticate, async (req, res) => {
   try {
     const userId = req.user.id;
 
+    const userObjectId = new mongoose.Types.ObjectId(userId);
+
     const [user, depositedAgg, withdrawnAgg, pendingDeposits, pendingWithdrawals, recentDeposits, recentWithdrawals] =
       await Promise.all([
         User.findById(userId).select('balance'),
         Deposit.aggregate([
-          { $match: { userId: req.user._id, status: 'confirmed' } },
+          { $match: { userId: userObjectId, status: 'confirmed' } },
           { $group: { _id: null, total: { $sum: '$usdValue' } } },
         ]),
         Withdrawal.aggregate([
-          { $match: { userId: req.user._id, status: 'completed' } },
+          { $match: { userId: userObjectId, status: 'completed' } },
           { $group: { _id: null, total: { $sum: '$usdValue' } } },
         ]),
         Deposit.countDocuments({ userId, status: 'pending' }),

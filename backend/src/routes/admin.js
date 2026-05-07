@@ -180,6 +180,8 @@ router.put('/deposits/:id/confirm', authenticate, requireAdmin, [
 
     const usdValue = req.body.usdValue ? parseFloat(req.body.usdValue) : (deposit.usdValue || 0);
 
+    console.log(`[DEPOSIT CONFIRM] id=${req.params.id} usdValue=${usdValue} userId=${deposit.userId}`);
+
     await Deposit.findByIdAndUpdate(req.params.id, {
       status: 'confirmed',
       usdValue,
@@ -188,7 +190,14 @@ router.put('/deposits/:id/confirm', authenticate, requireAdmin, [
     });
 
     if (usdValue > 0) {
-      await User.findByIdAndUpdate(deposit.userId, { $inc: { balance: usdValue } });
+      const result = await User.findByIdAndUpdate(
+        deposit.userId,
+        { $inc: { balance: usdValue } },
+        { new: true }
+      ).select('balance email');
+      console.log(`[DEPOSIT CONFIRM] Balance updated → user=${result?.email} newBalance=${result?.balance}`);
+    } else {
+      console.warn(`[DEPOSIT CONFIRM] usdValue is 0 — balance NOT updated for userId=${deposit.userId}`);
     }
 
     logActivity(req.user.id, 'DEPOSIT_CONFIRMED', { depositId: req.params.id, usdValue }, req);
