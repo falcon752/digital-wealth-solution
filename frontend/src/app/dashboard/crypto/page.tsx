@@ -8,8 +8,8 @@ import { z } from 'zod';
 import toast from 'react-hot-toast';
 import Image from 'next/image';
 import {
-  Bell, ChevronDown, AlignJustify, ArrowDownToLine,
-  QrCode, Zap, ArrowLeftRight, LayoutGrid, X, Copy, Check, ChevronRight,
+  Bell, ChevronDown, AlignJustify, ArrowDownToLine, ArrowUpFromLine,
+  Clock, ArrowLeftRight, LayoutGrid, X, Copy, Check, ChevronRight,
 } from 'lucide-react';
 import { assetsAPI, depositsAPI, usersAPI, withdrawalsAPI } from '@/lib/api';
 import { Asset } from '@/types';
@@ -569,8 +569,8 @@ export default function CryptoAssetsPage() {
 
   const handleActionClick = (action: ActiveAction) => {
     setActiveAction(action);
-    if (action === 'buy') router.push('/dashboard/crypto/deposit');
-    else if (action === 'receive') setPickerMode('receive');
+    if (action === 'buy') router.push('/dashboard/crypto/deposits');
+    else if (action === 'receive') setPickerMode('buy'); // open full deposit form
     else if (action === 'send') setPickerMode('send');
     else if (action === 'swap') toast('Swap is coming soon!', { icon: '⏳' });
   };
@@ -609,9 +609,9 @@ export default function CryptoAssetsPage() {
       {/* Action buttons */}
       <div className="grid grid-cols-4 gap-3 px-5 pb-6 shrink-0">
         {([
-          { key: 'send', icon: ArrowDownToLine, label: 'Send' },
-          { key: 'receive', icon: QrCode, label: 'Receive' },
-          { key: 'buy', icon: Zap, label: 'Buy' },
+          { key: 'send', icon: ArrowUpFromLine, label: 'Withdraw' },
+          { key: 'receive', icon: ArrowDownToLine, label: 'Deposit' },
+          { key: 'buy', icon: Clock, label: 'History' },
           { key: 'swap', icon: ArrowLeftRight, label: 'Swap' },
         ] as const).map(({ key, icon: Icon, label }) => (
           <button
