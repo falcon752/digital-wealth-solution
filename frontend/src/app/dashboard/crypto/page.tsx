@@ -8,8 +8,8 @@ import { z } from 'zod';
 import toast from 'react-hot-toast';
 import Image from 'next/image';
 import {
-  Bell, ChevronDown, AlignJustify, ArrowDownToLine, ArrowUpFromLine,
-  Clock, ArrowLeftRight, LayoutGrid, X, Copy, Check, ChevronRight,
+  Bell, ChevronDown, AlignJustify, ArrowDownToLine,
+  QrCode, Zap, ArrowLeftRight, LayoutGrid, X, Copy, Check, ChevronRight,
 } from 'lucide-react';
 import { assetsAPI, depositsAPI, usersAPI, withdrawalsAPI } from '@/lib/api';
 import { Asset } from '@/types';
@@ -205,7 +205,15 @@ function BuyModal({
 }
 
 // ─── Receive modal ─────────────────────────────────────────────────────────
-function ReceiveModal({ asset, onClose }: { asset: AssetRow; onClose: () => void }) {
+function ReceiveModal({
+  asset,
+  onClose,
+  onDeposit,
+}: {
+  asset: AssetRow;
+  onClose: () => void;
+  onDeposit: () => void;   // transitions to the full deposit form
+}) {
   const [copied, setCopied] = useState(false);
   const apiBase = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:5000';
 
@@ -247,6 +255,13 @@ function ReceiveModal({ asset, onClose }: { asset: AssetRow; onClose: () => void
           >
             {copied ? <Check size={16} /> : <Copy size={16} />}
             {copied ? 'Copied!' : 'Copy Address'}
+          </button>
+          {/* After sending, user notifies admin via the deposit form */}
+          <button
+            onClick={onDeposit}
+            className="w-full py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center justify-center gap-2"
+          >
+            I&apos;ve sent the funds — Notify Admin →
           </button>
         </div>
       </div>
@@ -569,8 +584,8 @@ export default function CryptoAssetsPage() {
 
   const handleActionClick = (action: ActiveAction) => {
     setActiveAction(action);
-    if (action === 'buy') router.push('/dashboard/crypto/deposits');
-    else if (action === 'receive') setPickerMode('buy'); // open full deposit form
+    if (action === 'buy') router.push('/dashboard/crypto/deposit');
+    else if (action === 'receive') setPickerMode('receive');
     else if (action === 'send') setPickerMode('send');
     else if (action === 'swap') toast('Swap is coming soon!', { icon: '⏳' });
   };
@@ -609,19 +624,18 @@ export default function CryptoAssetsPage() {
       {/* Action buttons */}
       <div className="grid grid-cols-4 gap-3 px-5 pb-6 shrink-0">
         {([
-          { key: 'send', icon: ArrowUpFromLine, label: 'Withdraw' },
-          { key: 'receive', icon: ArrowDownToLine, label: 'Deposit' },
-          { key: 'buy', icon: Clock, label: 'History' },
+          { key: 'send', icon: ArrowDownToLine, label: 'Send' },
+          { key: 'receive', icon: QrCode, label: 'Receive' },
+          { key: 'buy', icon: Zap, label: 'Buy' },
           { key: 'swap', icon: ArrowLeftRight, label: 'Swap' },
         ] as const).map(({ key, icon: Icon, label }) => (
           <button
             key={key}
             onClick={() => handleActionClick(key)}
-            className={`flex flex-col items-center justify-center gap-2 py-4 rounded-2xl text-sm font-medium transition-all ${
-              activeAction === key
+            className={`flex flex-col items-center justify-center gap-2 py-4 rounded-2xl text-sm font-medium transition-all ${activeAction === key
                 ? 'bg-[#2d5be3] text-white shadow-lg shadow-blue-500/25'
                 : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-            }`}
+              }`}
           >
             <Icon size={20} />
             <span className="text-xs">{label}</span>
@@ -636,11 +650,10 @@ export default function CryptoAssetsPage() {
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`px-1 py-3 mr-6 text-sm font-semibold border-b-2 transition-colors ${
-                tab === t
+              className={`px-1 py-3 mr-6 text-sm font-semibold border-b-2 transition-colors ${tab === t
                   ? 'border-[#2d5be3] text-[#2d5be3]'
                   : 'border-transparent text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
-              }`}
+                }`}
             >
               {t === 'nfts' ? 'NFTs' : 'Crypto'}
             </button>
@@ -726,6 +739,11 @@ export default function CryptoAssetsPage() {
         <ReceiveModal
           asset={receiveAsset}
           onClose={() => setReceiveAsset(null)}
+          onDeposit={() => {
+            const asset = receiveAsset;
+            setReceiveAsset(null);
+            setBuyAsset(asset); // open the full deposit form for same asset
+          }}
         />
       )}
 
