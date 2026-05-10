@@ -10,11 +10,15 @@ import DashboardHeader from '@/components/layout/DashboardHeader';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Card from '@/components/ui/Card';
+import { useSearchParams } from 'next/navigation';
 import { Shield, Key, AlertTriangle, Check } from 'lucide-react';
 
 export default function SettingsPage() {
   const { user, refreshUser } = useAuth();
-  const [tab, setTab] = useState<'profile' | 'security' | '2fa' | 'antiphish'>('profile');
+  const searchParams = useSearchParams();
+  const initialTab = (searchParams.get('tab') as any) || 'profile';
+  
+  const [tab, setTab] = useState<'profile' | 'security' | '2fa' | 'antiphish'>(initialTab);
   const [qrData, setQrData] = useState<{ secret: string; otpauthUrl: string } | null>(null);
   const [totpConfirm, setTotpConfirm] = useState('');
   const [disableToken, setDisableToken] = useState('');

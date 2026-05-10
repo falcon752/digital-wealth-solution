@@ -8,7 +8,7 @@ import Badge from '@/components/ui/Badge';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
 import {
-  DollarSign, CheckCircle2, Clock, ArrowDownToLine, ArrowUpFromLine, X,
+  DollarSign, CheckCircle2, Clock, ArrowDownToLine, ArrowUpFromLine, X, Shield,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -47,6 +47,26 @@ export default function UserDashboard() {
           >
             <X size={16} />
           </button>
+        </div>
+      )}
+
+      {/* Security Banner (Anti-Phishing) */}
+      {!user?.antiPhishingPhrase && (
+        <div className="bg-amber-500/10 border-b border-amber-500/20 px-6 py-2.5 flex items-center gap-3 shrink-0">
+          <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center shrink-0">
+            <Shield size={16} className="text-amber-500" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs sm:text-sm text-amber-200 font-medium">
+              Action Required: Your Anti-Phishing Phrase is not set. 
+              <span className="hidden sm:inline text-amber-200/70 ml-1">Set it now to verify all official emails from us.</span>
+            </p>
+          </div>
+          <Link href="/dashboard/settings?tab=antiphish">
+            <button className="px-3 py-1.5 bg-amber-500 text-amber-950 text-xs font-bold rounded-lg hover:bg-amber-400 transition-colors whitespace-nowrap">
+              Set Phrase
+            </button>
+          </Link>
         </div>
       )}
 
