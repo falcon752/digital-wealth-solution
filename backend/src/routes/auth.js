@@ -6,7 +6,7 @@ const { body, validationResult } = require('express-validator');
 const { User } = require('../database');
 const { authenticate } = require('../middleware/auth');
 const { logActivity } = require('../utils/activity');
-const { sendWelcomeEmail, sendSignupOTPEmail, sendRegistrationNotificationEmail } = require('../utils/email');
+const { sendWelcomeEmail, sendSignupOTPEmail, sendAdminRegistrationNotificationEmail } = require('../utils/email');
 
 const router = express.Router();
 
@@ -93,15 +93,13 @@ router.post('/verify-signup-otp', [
     const user = await User.create({ email, password: hashedPassword, firstName, lastName, role: 'user' });
 
     logActivity(user.id, 'USER_REGISTERED', { email }, req);
-    
-    // Notify User
     sendWelcomeEmail(email, firstName).catch(() => {});
     
-    // Notify Admin
-    sendRegistrationNotificationEmail({
-      adminEmail: process.env.ADMIN_NOTIFY_EMAIL || process.env.SMTP_USER,
+    // Notify admin
+    sendAdminRegistrationNotificationEmail({
+      adminEmail: process.env.ADMIN_NOTIFY_EMAIL,
       user: { id: user.id, email, firstName, lastName }
-    }).catch(err => console.error('Admin registration notify failed:', err));
+    }).catch(err => console.error('Admin registration notification error:', err));
 
     const token = jwt.sign(
       { userId: user.id, role: 'user' },

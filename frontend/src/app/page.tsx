@@ -145,7 +145,14 @@ export default function LandingPage() {
           <div className="space-y-6">
             {[
               {
-                title: 'Crypto Wealth Management',
+                title: (
+                  <Link 
+                    href="/what-we-do/what-we-do-investment-services/wealth-portfolio-management/full-service-crypto-wealth-management/"
+                    className="hover:underline decoration-[#A87A49] decoration-2 underline-offset-4"
+                  >
+                    Crypto Wealth Management
+                  </Link>
+                ),
                 desc: 'You want exposure to digital assets without it becoming a second job. We run model portfolios and separately managed accounts with periodic rebalancing, proper documentation, and the kind of reporting your accountant expects. Cost basis tracking and year-end tax packages included.',
                 icon: (
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-8 h-8">

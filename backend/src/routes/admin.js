@@ -3,7 +3,6 @@ const { body, validationResult } = require('express-validator');
 const { User, Asset, Deposit, Withdrawal, ActivityLog } = require('../database');
 const { authenticate, requireAdmin } = require('../middleware/auth');
 const { logActivity } = require('../utils/activity');
-const { sendDepositStatusEmail, sendWithdrawalStatusEmail } = require('../utils/email');
 
 const router = express.Router();
 
@@ -202,24 +201,6 @@ router.put('/deposits/:id/confirm', authenticate, requireAdmin, [
     }
 
     logActivity(req.user.id, 'DEPOSIT_CONFIRMED', { depositId: req.params.id, usdValue }, req);
-
-    // Notify user
-    ;(async () => {
-      try {
-        const fullUser = await User.findById(deposit.userId).select('email firstName antiPhishingPhrase');
-        const asset = await Asset.findById(deposit.assetId).select('symbol');
-        if (fullUser && asset) {
-          await sendDepositStatusEmail(fullUser.email, fullUser.firstName, {
-            amount: deposit.amount,
-            symbol: asset.symbol,
-            status: 'confirmed',
-            adminNote: req.body.adminNote,
-            antiPhishingPhrase: fullUser.antiPhishingPhrase
-          });
-        }
-      } catch (err) { console.error('User notify failed:', err); }
-    })();
-
     res.json({ message: 'Deposit confirmed and balance updated' });
   } catch (err) {
     console.error('Confirm deposit error:', err);
@@ -244,24 +225,6 @@ router.put('/deposits/:id/reject', authenticate, requireAdmin, [
     });
 
     logActivity(req.user.id, 'DEPOSIT_REJECTED', { depositId: req.params.id }, req);
-
-    // Notify user
-    ;(async () => {
-      try {
-        const fullUser = await User.findById(deposit.userId).select('email firstName antiPhishingPhrase');
-        const asset = await Asset.findById(deposit.assetId).select('symbol');
-        if (fullUser && asset) {
-          await sendDepositStatusEmail(fullUser.email, fullUser.firstName, {
-            amount: deposit.amount,
-            symbol: asset.symbol,
-            status: 'rejected',
-            adminNote: req.body.adminNote,
-            antiPhishingPhrase: fullUser.antiPhishingPhrase
-          });
-        }
-      } catch (err) { console.error('User notify failed:', err); }
-    })();
-
     res.json({ message: 'Deposit rejected' });
   } catch (err) {
     res.status(500).json({ error: 'Failed to reject deposit' });
@@ -322,24 +285,6 @@ router.put('/withdrawals/:id/approve', authenticate, requireAdmin, [
     });
 
     logActivity(req.user.id, 'WITHDRAWAL_APPROVED', { withdrawalId: req.params.id }, req);
-
-    // Notify user
-    ;(async () => {
-      try {
-        const fullUser = await User.findById(w.userId).select('email firstName antiPhishingPhrase');
-        const asset = await Asset.findById(w.assetId).select('symbol');
-        if (fullUser && asset) {
-          await sendWithdrawalStatusEmail(fullUser.email, fullUser.firstName, {
-            amount: w.amount,
-            symbol: asset.symbol,
-            status: 'approved',
-            adminNote: req.body.adminNote,
-            antiPhishingPhrase: fullUser.antiPhishingPhrase
-          });
-        }
-      } catch (err) { console.error('User notify failed:', err); }
-    })();
-
     res.json({ message: 'Withdrawal approved' });
   } catch (err) {
     res.status(500).json({ error: 'Failed to approve withdrawal' });
@@ -379,24 +324,6 @@ router.put('/withdrawals/:id/complete', authenticate, requireAdmin, [
     }
 
     logActivity(req.user.id, 'WITHDRAWAL_COMPLETED', { withdrawalId: req.params.id }, req);
-
-    // Notify user
-    ;(async () => {
-      try {
-        const fullUser = await User.findById(w.userId).select('email firstName antiPhishingPhrase');
-        const asset = await Asset.findById(w.assetId).select('symbol');
-        if (fullUser && asset) {
-          await sendWithdrawalStatusEmail(fullUser.email, fullUser.firstName, {
-            amount: w.amount,
-            symbol: asset.symbol,
-            status: 'completed',
-            adminNote: req.body.adminNote,
-            antiPhishingPhrase: fullUser.antiPhishingPhrase
-          });
-        }
-      } catch (err) { console.error('User notify failed:', err); }
-    })();
-
     res.json({ message: 'Withdrawal completed and balance deducted' });
   } catch (err) {
     console.error('Complete withdrawal error:', err);
@@ -423,24 +350,6 @@ router.put('/withdrawals/:id/reject', authenticate, requireAdmin, [
     });
 
     logActivity(req.user.id, 'WITHDRAWAL_REJECTED', { withdrawalId: req.params.id }, req);
-
-    // Notify user
-    ;(async () => {
-      try {
-        const fullUser = await User.findById(w.userId).select('email firstName antiPhishingPhrase');
-        const asset = await Asset.findById(w.assetId).select('symbol');
-        if (fullUser && asset) {
-          await sendWithdrawalStatusEmail(fullUser.email, fullUser.firstName, {
-            amount: w.amount,
-            symbol: asset.symbol,
-            status: 'rejected',
-            adminNote: req.body.adminNote,
-            antiPhishingPhrase: fullUser.antiPhishingPhrase
-          });
-        }
-      } catch (err) { console.error('User notify failed:', err); }
-    })();
-
     res.json({ message: 'Withdrawal rejected' });
   } catch (err) {
     res.status(500).json({ error: 'Failed to reject withdrawal' });
