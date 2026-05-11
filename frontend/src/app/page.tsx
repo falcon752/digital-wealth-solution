@@ -77,13 +77,15 @@ export default function LandingPage() {
 
                 {/* Scroll arrow */}
                 <div className="relative">
-                  <div
-                    className="inline-flex items-center justify-center w-10 h-10 rounded-full border border-[#2C3342] text-[#2C3342] animate-bounce cursor-pointer hover:bg-[#2C3342] hover:text-white transition-colors"
+                  <button
+                    onClick={() => document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' })}
+                    className="inline-flex items-center justify-center w-10 h-10 rounded-full border border-[#2C3342] text-[#2C3342] animate-bounce cursor-pointer hover:bg-[#2C3342] hover:text-white transition-colors focus:outline-none"
+                    aria-label="Scroll to services"
                   >
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
                       <path d="M12 5v14M5 12l7 7 7-7" />
                     </svg>
-                  </div>
+                  </button>
                 </div>
               </div>
 
@@ -152,7 +154,7 @@ export default function LandingPage() {
       {/* ═══════════════════════════════════════════════════════════════ */}
       {/* SERVICES – Your Portfolio with One Coordinated Plan             */}
       {/* ═══════════════════════════════════════════════════════════════ */}
-      <section className="bg-white py-24">
+      <section id="services" className="bg-white py-24">
         <div className="max-w-6xl mx-auto px-6">
           <FadeIn direction="up">
             <h2
@@ -514,7 +516,7 @@ export default function LandingPage() {
             Speak to a team member at Digital Wealth Partners to learn more
           </h3>
           <Link
-            href="/register"
+            href="/contact"
             className="inline-block font-bold px-10 py-5 rounded-md text-white transition-all hover:opacity-90 hover:scale-105 shadow-lg whitespace-nowrap"
             style={{ backgroundColor: '#2C3342', fontSize: '15px' }}
           >
