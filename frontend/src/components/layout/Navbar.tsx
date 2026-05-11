@@ -77,7 +77,7 @@ export default function Navbar({ transparent = false }: NavbarProps) {
               <path d="M21 21l-4.35-4.35" />
             </svg>
           </button>
-          
+
           <Link
             href="/contact"
             className="inline-flex items-center text-[15px] font-bold text-white px-7 py-3 rounded-sm transition-all hover:opacity-90 active:scale-95 shadow-[0px_4px_12px_rgba(44,51,66,0.2)]"
