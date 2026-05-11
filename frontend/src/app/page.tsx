@@ -19,8 +19,8 @@ export default function LandingPage() {
       {/* HERO                                                             */}
       {/* ═══════════════════════════════════════════════════════════════ */}
       <section
-        className="relative w-full overflow-hidden flex items-center"
-        style={{ backgroundColor: 'rgba(44, 51, 66, 0.07)', minHeight: '820px' }}
+        className="relative w-full overflow-hidden flex items-center min-h-[650px] md:min-h-[820px]"
+        style={{ backgroundColor: 'rgba(44, 51, 66, 0.07)' }}
       >
         <div className="max-w-7xl mx-auto px-6 py-20 w-full relative">
           <FadeIn>
@@ -30,9 +30,9 @@ export default function LandingPage() {
               <div className="lg:col-span-7 relative z-10">
                 <h1
                   className="font-bold leading-tight mb-8"
-                  style={{ 
-                    color: '#1e266d', 
-                    fontSize: '51px', 
+                  style={{
+                    color: '#1e266d',
+                    fontSize: '51px',
                     lineHeight: '51px',
                     fontFamily: "'Cormorant Garamond', 'Playfair Display', serif"
                   }}
@@ -54,8 +54,8 @@ export default function LandingPage() {
                   <Link
                     href="/register"
                     className="inline-flex items-center gap-2 text-white font-semibold px-[35px] py-[18px] rounded transition-all hover:opacity-90 active:scale-95"
-                    style={{ 
-                      backgroundColor: '#2C3342', 
+                    style={{
+                      backgroundColor: '#2C3342',
                       fontSize: '16px',
                       boxShadow: '0px 15px 35px 0px rgba(44, 51, 66, 0.15)'
                     }}
@@ -69,10 +69,10 @@ export default function LandingPage() {
                   <Link
                     href="/dashboard"
                     className="inline-flex items-center font-semibold px-[35px] py-[18px] rounded border transition-all hover:bg-[#2C3342] hover:text-white active:scale-95"
-                    style={{ 
-                      borderColor: '#2C3342', 
-                      color: '#2C3342', 
-                      fontSize: '16px' 
+                    style={{
+                      borderColor: '#2C3342',
+                      color: '#2C3342',
+                      fontSize: '16px'
                     }}
                   >
                     View Services
@@ -130,10 +130,10 @@ export default function LandingPage() {
                       className="absolute inset-0"
                       style={{ backgroundColor: 'rgba(198, 156, 109, 0.05)' }}
                     />
-                    
+
                     {/* DWP logo overlay */}
-                    <div className="absolute inset-0 flex items-end justify-center pb-12">
-                      <div className="w-4/5 transform translate-y-4">
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-4/5 transform md:translate-y-4">
                         <Image
                           src="/hero-logo.png"
                           alt="DWP Logo"
@@ -268,9 +268,9 @@ export default function LandingPage() {
                 </p>
                 <Link
                   href="/register"
-                  className="inline-flex items-center gap-3 text-white font-bold px-9 py-5 rounded-md transition-all hover:translate-y-[-2px] hover:shadow-xl active:scale-95"
-                  style={{ 
-                    backgroundColor: '#2C3342', 
+                  className="inline-flex items-center gap-3 text-white font-bold px-7 py-3.5 rounded-md transition-all hover:translate-y-[-2px] hover:shadow-xl active:scale-95"
+                  style={{
+                    backgroundColor: '#2C3342',
                     fontSize: '15px',
                     boxShadow: '0 15px 30px rgba(44, 51, 66, 0.2)'
                   }}
@@ -285,7 +285,7 @@ export default function LandingPage() {
 
             {/* Right – Staggered Grid */}
             <div className="lg:col-span-7 relative">
-              
+
               {/* Dot grid background - Top Left */}
               <div
                 className="absolute -top-12 -left-12 grid gap-[8px] pointer-events-none z-0"
@@ -306,15 +306,15 @@ export default function LandingPage() {
                 ))}
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 relative z-10">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-[30px] relative z-10">
                 {/* Column 1 - Shifted Down */}
-                <div className="space-y-10 pt-20">
+                <div className="space-y-[30px] lg:pt-20">
                   {[
                     {
                       title: 'Digital Asset Expertise',
                       desc: 'Our partners have been in crypto for years and they build strategies based on experience.',
                       icon: (
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" className="w-9 h-9">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" className="w-8 h-8">
                           <rect x="3" y="4" width="18" height="16" rx="2" />
                           <circle cx="9" cy="10" r="2" />
                           <path d="M15 8h2M15 12h2M7 15h10" />
@@ -325,7 +325,7 @@ export default function LandingPage() {
                       title: 'Bespoke Investment Solutions',
                       desc: 'Personalized strategies aligned with your goals and risk tolerance.',
                       icon: (
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" className="w-9 h-9">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" className="w-8 h-8">
                           <path d="M3 20v-4M8 20v-8M13 20V4M18 20v-10" />
                           <path d="M3 20h18" />
                         </svg>
@@ -334,30 +334,30 @@ export default function LandingPage() {
                   ].map(({ title, desc, icon }, idx) => (
                     <FadeIn key={title} direction="up" delay={idx * 0.1}>
                       <div
-                        className="bg-white rounded-2xl p-12 h-full transition-all hover:translate-y-[-8px] duration-300"
-                        style={{ boxShadow: '0 25px 60px rgba(44, 51, 66, 0.05)' }}
+                        className="bg-white rounded-[5px] p-[40px_35px] h-full transition-all hover:translate-y-[-5px] duration-300"
+                        style={{ boxShadow: 'rgba(38, 42, 76, 0.1) 0px 5px 70px 0px' }}
                       >
                         <div
-                          className="flex items-center justify-center rounded-xl mb-10"
-                          style={{ width: '80px', height: '80px', backgroundColor: '#EAD3BA', color: '#A87A49', opacity: 0.9 }}
+                          className="flex items-center justify-center rounded-[5px] mb-8"
+                          style={{ width: '70px', height: '70px', backgroundColor: '#E3C5A4', color: '#A87A49' }}
                         >
                           {icon}
                         </div>
                         <h4
-                          className="font-bold mb-5 leading-tight"
-                          style={{ color: '#1e266d', fontSize: '24px' }}
+                          className="font-bold mb-4 leading-tight"
+                          style={{ color: '#1e266d', fontSize: '16px' }}
                         >
                           {title}
                         </h4>
                         <p
-                          className="mb-10 leading-relaxed"
-                          style={{ color: '#4a5568', fontSize: '16px', opacity: 0.85 }}
+                          className="mb-8 leading-relaxed text-[16px]"
+                          style={{ color: '#000000', opacity: 0.9 }}
                         >
                           {desc}
                         </p>
                         <Link
                           href="/register"
-                          className="text-[15px] font-medium transition-opacity hover:opacity-70"
+                          className="text-[14px] font-bold transition-opacity hover:opacity-70"
                           style={{ color: '#AD7F4E' }}
                         >
                           Learn More
@@ -368,13 +368,13 @@ export default function LandingPage() {
                 </div>
 
                 {/* Column 2 - Shifted Up */}
-                <div className="space-y-10 -mt-20">
+                <div className="space-y-[30px] lg:-mt-20">
                   {[
                     {
                       title: 'Education Mindset',
                       desc: "We'll teach you how digital assets actually work.",
                       icon: (
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" className="w-9 h-9">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" className="w-8 h-8">
                           <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
                           <path d="M6 12v5c3 3 9 3 12 0v-5" />
                         </svg>
@@ -384,7 +384,7 @@ export default function LandingPage() {
                       title: 'Security and Trust',
                       desc: "We're committed to security, regulatory compliance and transparent communication.",
                       icon: (
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" className="w-9 h-9">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" className="w-8 h-8">
                           <path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z" />
                           <path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" />
                           <circle cx="12" cy="14" r="2" />
@@ -394,30 +394,30 @@ export default function LandingPage() {
                   ].map(({ title, desc, icon }, idx) => (
                     <FadeIn key={title} direction="up" delay={idx * 0.1 + 0.2}>
                       <div
-                        className="bg-white rounded-2xl p-12 h-full transition-all hover:translate-y-[-8px] duration-300"
-                        style={{ boxShadow: '0 25px 60px rgba(44, 51, 66, 0.05)' }}
+                        className="bg-white rounded-[5px] p-[40px_35px] h-full transition-all hover:translate-y-[-5px] duration-300"
+                        style={{ boxShadow: 'rgba(38, 42, 76, 0.1) 0px 5px 70px 0px' }}
                       >
                         <div
-                          className="flex items-center justify-center rounded-xl mb-10"
-                          style={{ width: '80px', height: '80px', backgroundColor: '#EAD3BA', color: '#A87A49', opacity: 0.9 }}
+                          className="flex items-center justify-center rounded-[5px] mb-8"
+                          style={{ width: '70px', height: '70px', backgroundColor: '#E3C5A4', color: '#A87A49' }}
                         >
                           {icon}
                         </div>
                         <h4
-                          className="font-bold mb-5 leading-tight"
-                          style={{ color: '#1e266d', fontSize: '24px' }}
+                          className="font-bold mb-4 leading-tight"
+                          style={{ color: '#1e266d', fontSize: '16px' }}
                         >
                           {title}
                         </h4>
                         <p
-                          className="mb-10 leading-relaxed"
-                          style={{ color: '#4a5568', fontSize: '16px', opacity: 0.85 }}
+                          className="mb-8 leading-relaxed text-[16px]"
+                          style={{ color: '#000000', opacity: 0.9 }}
                         >
                           {desc}
                         </p>
                         <Link
                           href="/register"
-                          className="text-[15px] font-medium transition-opacity hover:opacity-70"
+                          className="text-[14px] font-bold transition-opacity hover:opacity-70"
                           style={{ color: '#AD7F4E' }}
                         >
                           Learn More
@@ -446,24 +446,10 @@ export default function LandingPage() {
       </section>
 
       {/* Extra paragraph from original DWP */}
-      <section className="py-0 pb-16 bg-white">
-        <div className="max-w-6xl mx-auto px-6 text-center">
-          <p style={{ color: '#445781', fontSize: '18px' }} className="leading-relaxed">
-            DWS manages investments in crypto, blockchain-based assets, and other digital assets
-            that most traditional firms won&apos;t touch. We build portfolios around each client&apos;s
-            risk comfort and goals, with a focus on generating outsized returns in a space where
-            most people are guessing.
-          </p>
-        </div>
-      </section>
+      <section className="py-20 px-6 bg-white">
+        <div className="max-w-6xl mx-auto rounded-[30px] overflow-hidden relative shadow-2xl" style={{ minHeight: '420px' }}>
 
-      {/* ═══════════════════════════════════════════════════════════════ */}
-      {/* BANNER – Your Gateway to Digital Investments                    */}
-      {/* ═══════════════════════════════════════════════════════════════ */}
-      <section className="py-10 px-6">
-        <div className="max-w-6xl mx-auto rounded-2xl overflow-hidden relative" style={{ minHeight: '480px' }}>
-
-          {/* Background photo – right side bleeds edge-to-edge */}
+          {/* Background photo */}
           <Image
             src="/team.png"
             alt="Team meeting"
@@ -472,85 +458,57 @@ export default function LandingPage() {
             sizes="100vw"
           />
 
-          {/* Dark gradient overlay – strong on left, fades to transparent on right */}
+          {/* Subtle overlay for button readability if needed, but screenshot is clean */}
           <div
-            className="absolute inset-0"
-            style={{
-              background: 'linear-gradient(to right, rgba(44,51,66,0.97) 38%, rgba(44,51,66,0.75) 58%, rgba(44,51,66,0.10) 100%)',
-            }}
+            className="absolute inset-0 bg-black/5"
           />
 
-          {/* Dot grid – top right */}
+          {/* Dot grid – bottom center-left */}
           <div
-            className="absolute top-8 right-10 grid gap-[6px] pointer-events-none"
-            style={{ gridTemplateColumns: 'repeat(8, 4px)', gridTemplateRows: 'repeat(6, 4px)' }}
+            className="absolute bottom-10 left-1/4 grid gap-[6px] pointer-events-none z-10"
+            style={{ gridTemplateColumns: 'repeat(12, 4px)', gridTemplateRows: 'repeat(5, 4px)' }}
           >
-            {Array.from({ length: 48 }).map((_, i) => (
-              <div key={i} className="w-1 h-1 rounded-full bg-white opacity-25" />
-            ))}
-          </div>
-
-          {/* Dot grid – bottom left */}
-          <div
-            className="absolute bottom-8 left-10 grid gap-[6px] pointer-events-none"
-            style={{ gridTemplateColumns: 'repeat(6, 4px)', gridTemplateRows: 'repeat(4, 4px)' }}
-          >
-            {Array.from({ length: 24 }).map((_, i) => (
-              <div key={i} className="w-1 h-1 rounded-full bg-white opacity-25" />
+            {Array.from({ length: 60 }).map((_, i) => (
+              <div key={i} className="w-1 h-1 rounded-full bg-white opacity-40" />
             ))}
           </div>
 
           {/* Text content */}
-          <FadeIn direction="right" className="relative z-10 px-12 py-20 max-w-xl">
-            <div>
-              <p
-                className="text-white leading-relaxed mb-6"
-                style={{ fontSize: '15px', opacity: 0.82 }}
-              >
-                DWS manages investments in crypto, blockchain-based assets, and other digital assets
-                that most traditional firms won&apos;t touch. We build portfolios around each client&apos;s
-                risk comfort and goals, with a focus on generating outsized returns in a space where
-                most people are guessing.
-              </p>
-              <h2
-                className="font-bold text-white mb-10 leading-tight"
-                style={{ fontSize: '42px' }}
-              >
-                Your Gateway to<br />Digital Investments
-              </h2>
+          <div className="absolute inset-0 flex items-center px-12 md:px-24">
+            <FadeIn direction="right">
               <Link
                 href="/register"
-                className="inline-block font-semibold px-8 py-3.5 rounded text-white transition-opacity hover:opacity-90"
-                style={{ backgroundColor: '#2C3342', border: '2px solid rgba(255,255,255,0.35)', fontSize: '15px' }}
+                className="inline-block font-bold px-10 py-5 rounded-md text-white transition-all hover:opacity-90 hover:scale-105 shadow-xl"
+                style={{ backgroundColor: '#2C3342', fontSize: '15px' }}
               >
                 Get Started
               </Link>
-            </div>
-          </FadeIn>
+            </FadeIn>
+          </div>
         </div>
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════ */}
       {/* CONTACT BAR                                                      */}
       {/* ═══════════════════════════════════════════════════════════════ */}
-      <section className="py-14 text-center bg-white">
-        <h3
-          className="font-semibold mb-6"
-          style={{ color: '#1e266d', fontSize: '24px' }}
-        >
-          Speak to a team member at Digital Wealth Partner to learn more
-        </h3>
-        <Link
-          href="/register"
-          className="inline-block font-semibold px-8 py-3.5 rounded text-white transition-opacity hover:opacity-90"
-          style={{ backgroundColor: '#AD7F4E', fontSize: '15px' }}
-        >
-          Contact Us
-        </Link>
+      <section className="py-24 text-center bg-white">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16">
+          <h3
+            className="font-bold text-2xl md:text-[34px] leading-tight"
+            style={{ color: '#1e266d' }}
+          >
+            Speak to a team member at Digital Wealth Partners to learn more
+          </h3>
+          <Link
+            href="/register"
+            className="inline-block font-bold px-10 py-5 rounded-md text-white transition-all hover:opacity-90 hover:scale-105 shadow-lg whitespace-nowrap"
+            style={{ backgroundColor: '#2C3342', fontSize: '15px' }}
+          >
+            Contact Us
+          </Link>
+        </div>
       </section>
 
       <SiteFooter />
 
-    </div>
-  );
 }
