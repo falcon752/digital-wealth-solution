@@ -510,5 +510,6 @@ export default function LandingPage() {
       </section>
 
       <SiteFooter />
-
+    </div>
+  );
 }
