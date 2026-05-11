@@ -22,27 +22,26 @@ export default function LandingPage() {
         className="relative w-full overflow-hidden flex items-center min-h-[650px] md:min-h-[820px]"
         style={{ backgroundColor: 'rgba(44, 51, 66, 0.07)' }}
       >
-        <div className="max-w-7xl mx-auto px-6 py-20 w-full relative">
+        <div className="max-w-7xl mx-auto px-6 pt-32 pb-20 md:py-20 w-full relative">
           <FadeIn>
             <div className="grid lg:grid-cols-12 gap-16 items-center">
 
               {/* ── Left: Content ── */}
               <div className="lg:col-span-7 relative z-10">
                 <h1
-                  className="font-bold leading-tight mb-8"
+                  className="font-bold mb-8 text-[32px] sm:text-[42px] md:text-[51px] leading-tight md:leading-[51px]"
                   style={{
                     color: '#1e266d',
-                    fontSize: '51px',
-                    lineHeight: '51px',
-                    fontFamily: "'Cormorant Garamond', 'Playfair Display', serif"
+                    fontFamily: "Arial, sans-serif",
+                    fontWeight: "bold"
                   }}
                 >
                   Your crypto should be secure &amp; your wealth plan shouldn&apos;t ignore it.
                 </h1>
 
                 <p
-                  className="mb-12 leading-relaxed max-w-2xl"
-                  style={{ color: '#000000', fontSize: '18px', opacity: 0.8 }}
+                  className="mb-12 leading-relaxed max-w-2xl text-[16px] md:text-[18px]"
+                  style={{ color: '#000000', opacity: 0.8 }}
                 >
                   Digital Wealth Partners brings institutional custody, active portfolio management,
                   and coordinated financial planning together under one fiduciary roof. For individuals,
@@ -50,29 +49,26 @@ export default function LandingPage() {
                 </p>
 
                 {/* Buttons */}
-                <div className="flex flex-wrap gap-5 items-center mb-16">
+                <div className="flex flex-col sm:flex-row gap-5 items-start sm:items-center mb-16">
                   <Link
                     href="/register"
-                    className="inline-flex items-center gap-2 text-white font-semibold px-[35px] py-[18px] rounded transition-all hover:opacity-90 active:scale-95"
+                    className="inline-flex items-center justify-center text-white font-bold px-10 py-4 rounded transition-all hover:opacity-90 active:scale-95"
                     style={{
                       backgroundColor: '#2C3342',
-                      fontSize: '16px',
-                      boxShadow: '0px 15px 35px 0px rgba(44, 51, 66, 0.15)'
+                      fontSize: '15px',
+                      boxShadow: '0px 10px 25px 0px rgba(44, 51, 66, 0.2)'
                     }}
                   >
                     Get Started
-                    <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 ml-1">
-                      <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
-                    </svg>
                   </Link>
 
                   <Link
                     href="/dashboard"
-                    className="inline-flex items-center font-semibold px-[35px] py-[18px] rounded border transition-all hover:bg-[#2C3342] hover:text-white active:scale-95"
+                    className="inline-flex items-center justify-center font-semibold px-10 py-4 rounded border transition-all hover:bg-[#2C3342] hover:text-white active:scale-95"
                     style={{
                       borderColor: '#2C3342',
                       color: '#2C3342',
-                      fontSize: '16px'
+                      fontSize: '15px'
                     }}
                   >
                     View Services
@@ -92,7 +88,7 @@ export default function LandingPage() {
               </div>
 
               {/* ── Right: Image Card ── */}
-              <div className="lg:col-span-5 relative flex items-center justify-center lg:justify-end">
+              <div className="hidden lg:flex lg:col-span-5 relative items-center justify-center lg:justify-end">
                 <div className="relative">
                   {/* Dot grids */}
                   <div
@@ -446,43 +442,61 @@ export default function LandingPage() {
       </section>
 
       {/* Extra paragraph from original DWP */}
-      <section className="py-20 px-6 bg-white">
-        <div className="max-w-6xl mx-auto rounded-[30px] overflow-hidden relative shadow-2xl" style={{ minHeight: '420px' }}>
-
-          {/* Background photo */}
-          <Image
-            src="/team.png"
-            alt="Team meeting"
-            fill
-            className="object-cover object-center"
-            sizes="100vw"
-          />
-
-          {/* Subtle overlay for button readability if needed, but screenshot is clean */}
-          <div
-            className="absolute inset-0 bg-black/5"
-          />
-
-          {/* Dot grid – bottom center-left */}
-          <div
-            className="absolute bottom-10 left-1/4 grid gap-[6px] pointer-events-none z-10"
-            style={{ gridTemplateColumns: 'repeat(12, 4px)', gridTemplateRows: 'repeat(5, 4px)' }}
-          >
-            {Array.from({ length: 60 }).map((_, i) => (
-              <div key={i} className="w-1 h-1 rounded-full bg-white opacity-40" />
-            ))}
+      <section className="relative w-full pt-24 md:pt-32 pb-12 px-4 md:px-8 overflow-hidden bg-white">
+        <div 
+          className="max-w-[1400px] mx-auto min-h-[500px] md:min-h-[650px] relative overflow-hidden rounded-[30px] md:rounded-[50px] shadow-2xl flex items-center"
+        >
+          {/* Background Image with Overlay */}
+          <div className="absolute inset-0 z-0">
+            <Image
+              src="/team.png"
+              alt="Team Meeting"
+              fill
+              className="object-cover object-center"
+              priority
+            />
+            {/* Darker overlay on left for text readability */}
+            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent md:bg-black/20" />
           </div>
 
-          {/* Text content */}
-          <div className="absolute inset-0 flex items-center px-12 md:px-24">
-            <FadeIn direction="right">
-              <Link
-                href="/register"
-                className="inline-block font-bold px-10 py-5 rounded-md text-white transition-all hover:opacity-90 hover:scale-105 shadow-xl"
-                style={{ backgroundColor: '#2C3342', fontSize: '15px' }}
-              >
-                Get Started
-              </Link>
+          <div className="max-w-7xl mx-auto px-6 md:px-16 py-12 md:py-20 w-full relative z-10 text-white">
+            <FadeIn>
+              <div className="max-w-2xl">
+                {/* Top dot grid for desktop */}
+                <div className="hidden md:grid grid-cols-12 gap-2 mb-8 opacity-40">
+                  {Array.from({ length: 48 }).map((_, i) => (
+                    <div key={i} className="w-1 h-1 rounded-full bg-white" />
+                  ))}
+                </div>
+
+                <p className="mb-6 text-[14px] md:text-[16px] leading-relaxed max-w-xl opacity-90 font-medium">
+                  DWP manages investments in crypto, blockchain-based assets, and other digital assets that most traditional firms won&apos;t touch. We build portfolios around each client&apos;s risk comfort and goals, with a focus on generating outsized returns in a space where most people are guessing.
+                </p>
+
+                <h1
+                  className="font-bold mb-10 text-[36px] sm:text-[48px] md:text-[64px] leading-[1.1]"
+                  style={{
+                    fontFamily: "Arial, sans-serif",
+                    fontWeight: "bold"
+                  }}
+                >
+                  Your Gateway to Digital <br className="hidden md:block" /> Investments
+                </h1>
+
+                {/* Buttons */}
+                <div className="flex flex-col sm:flex-row gap-5 items-start sm:items-center mb-10">
+                  <Link
+                    href="/register"
+                    className="inline-flex items-center justify-center text-white font-bold px-10 py-4 rounded transition-all hover:bg-opacity-90 active:scale-95"
+                    style={{
+                      backgroundColor: '#2C3342',
+                      fontSize: '15px',
+                    }}
+                  >
+                    Get Started
+                  </Link>
+                </div>
+              </div>
             </FadeIn>
           </div>
         </div>

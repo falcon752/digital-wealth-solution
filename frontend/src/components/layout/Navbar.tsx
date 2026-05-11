@@ -87,34 +87,43 @@ export default function Navbar({ transparent = false }: NavbarProps) {
           </Link>
         </div>
 
-        {/* Mobile hamburger */}
-        <button
-          className="lg:hidden flex flex-col justify-center items-center gap-1.5 w-9 h-9"
-          onClick={() => setMenuOpen((o) => !o)}
-          aria-label="Toggle menu"
-        >
-          <span
-            className="block w-6 h-0.5 transition-all duration-300 origin-center"
-            style={{
-              backgroundColor: '#1e266d',
-              transform: menuOpen ? 'translateY(8px) rotate(45deg)' : 'none',
-            }}
-          />
-          <span
-            className="block w-6 h-0.5 transition-all duration-300"
-            style={{
-              backgroundColor: '#1e266d',
-              opacity: menuOpen ? 0 : 1,
-            }}
-          />
-          <span
-            className="block w-6 h-0.5 transition-all duration-300 origin-center"
-            style={{
-              backgroundColor: '#1e266d',
-              transform: menuOpen ? 'translateY(-8px) rotate(-45deg)' : 'none',
-            }}
-          />
-        </button>
+        {/* Mobile menu & search */}
+        <div className="flex lg:hidden items-center gap-4">
+          <button className="text-[#1e266d] hover:opacity-70 transition-opacity">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-5 h-5">
+              <circle cx="11" cy="11" r="8" />
+              <path d="M21 21l-4.35-4.35" />
+            </svg>
+          </button>
+
+          <button
+            className="flex flex-col justify-center items-center gap-1.5 w-9 h-9"
+            onClick={() => setMenuOpen((o) => !o)}
+            aria-label="Toggle menu"
+          >
+            <span
+              className="block w-6 h-0.5 transition-all duration-300 origin-center"
+              style={{
+                backgroundColor: '#1e266d',
+                transform: menuOpen ? 'translateY(8px) rotate(45deg)' : 'none',
+              }}
+            />
+            <span
+              className="block w-6 h-0.5 transition-all duration-300"
+              style={{
+                backgroundColor: '#1e266d',
+                opacity: menuOpen ? 0 : 1,
+              }}
+            />
+            <span
+              className="block w-6 h-0.5 transition-all duration-300 origin-center"
+              style={{
+                backgroundColor: '#1e266d',
+                transform: menuOpen ? 'translateY(-8px) rotate(-45deg)' : 'none',
+              }}
+            />
+          </button>
+        </div>
       </div>
 
       {/* ── Mobile dropdown ── */}

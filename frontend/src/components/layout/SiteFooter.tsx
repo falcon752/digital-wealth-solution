@@ -17,9 +17,9 @@ const QUICK_LINKS = [
 
 const KEY_SERVICES = [
   { label: 'Crypto Custody', href: 'digital-asset-custody' },
-  { 
-    label: 'Crypto Wealth Management', 
-    href: '/what-we-do/what-we-do-investment-services/wealth-portfolio-management/full-service-crypto-wealth-management/' 
+  {
+    label: 'Crypto Wealth Management',
+    href: '/what-we-do/what-we-do-investment-services/wealth-portfolio-management/full-service-crypto-wealth-management/'
   },
   { label: 'Crypto Lending', href: '/what-we-do/banking-cash-management/digital-asset-lending/' },
 ];
@@ -34,7 +34,7 @@ const LEGAL_LINKS = [
 
 export default function SiteFooter() {
   return (
-    <footer style={{ backgroundColor: '#1E266D' }} className="text-white">
+    <footer style={{ backgroundColor: '#2c3342' }} className="text-white">
       {/* ── Top nav bar ── */}
       <div
         style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}
@@ -53,12 +53,12 @@ export default function SiteFooter() {
               </Link>
             ))}
           </div>
-          
+
           <div className="flex items-center gap-6">
             {/* LinkedIn */}
             <a href="#" aria-label="LinkedIn" className="transition-opacity hover:opacity-70">
               <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-white/80">
-                <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
               </svg>
             </a>
             {/* X / Twitter */}
@@ -74,7 +74,7 @@ export default function SiteFooter() {
       {/* ── Main footer content ── */}
       <div className="py-20 px-6">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-16 lg:gap-24">
-          
+
           {/* Col 1 — description */}
           <div className="space-y-8">
             <p className="text-[15px] leading-relaxed opacity-90" style={{ color: '#BDBEC8' }}>
@@ -123,11 +123,11 @@ export default function SiteFooter() {
 
           {/* Col 4 — IAPD */}
           <div>
-            <a 
-              href="https://adviserinfo.sec.gov/" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="font-bold text-[17px] leading-snug hover:opacity-80 transition-opacity" 
+            <a
+              href="https://adviserinfo.sec.gov/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-bold text-[17px] leading-snug hover:opacity-80 transition-opacity"
               style={{ color: '#AD7F4E' }}
             >
               IAPD – Investment<br />Advisor Public<br />Disclosure
