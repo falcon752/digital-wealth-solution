@@ -249,18 +249,18 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid md:grid-cols-12 gap-12 items-start">
 
-            {/* Left */}
-            <FadeIn direction="left" className="md:col-span-4">
-              <div>
+            {/* Left Content */}
+            <FadeIn direction="left" className="lg:col-span-5">
+              <div className="max-w-md">
                 <h2
-                  className="font-bold leading-snug mb-6"
-                  style={{ color: '#1e266d', fontSize: '30px' }}
+                  className="font-bold leading-tight mb-8"
+                  style={{ color: '#1e266d', fontSize: '38px', fontFamily: "'Cormorant Garamond', serif" }}
                 >
                   Our Mission: Help clients protect and build wealth with digital assets
                 </h2>
                 <p
-                  className="mb-8 leading-relaxed"
-                  style={{ color: '#4a5568', fontSize: '16px' }}
+                  className="mb-10 leading-relaxed"
+                  style={{ color: '#4a5568', fontSize: '17px', opacity: 0.9 }}
                 >
                   We know digital assets and alternative investments well enough to build strategies
                   that fit what each client actually needs, whether that&apos;s aggressive growth or
@@ -268,106 +268,165 @@ export default function LandingPage() {
                 </p>
                 <Link
                   href="/register"
-                  className="inline-flex items-center gap-2 text-white font-semibold px-6 py-3 rounded transition-opacity hover:opacity-90"
-                  style={{ backgroundColor: '#2C3342', fontSize: '15px' }}
+                  className="inline-flex items-center gap-3 text-white font-bold px-9 py-5 rounded-md transition-all hover:translate-y-[-2px] hover:shadow-xl active:scale-95"
+                  style={{ 
+                    backgroundColor: '#2C3342', 
+                    fontSize: '15px',
+                    boxShadow: '0 15px 30px rgba(44, 51, 66, 0.2)'
+                  }}
                 >
                   Our Services
-                  <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-                    <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                  <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
+                    <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
                   </svg>
                 </Link>
               </div>
             </FadeIn>
 
-            {/* Dot grid accent */}
-            <div className="hidden md:block md:col-span-1 pt-6">
+            {/* Right – Staggered Grid */}
+            <div className="lg:col-span-7 relative">
+              
+              {/* Dot grid background - Top Left */}
               <div
-                className="grid gap-[6px]"
-                style={{ gridTemplateColumns: 'repeat(5, 4px)', gridTemplateRows: 'repeat(8, 4px)' }}
+                className="absolute -top-12 -left-12 grid gap-[8px] pointer-events-none z-0"
+                style={{ gridTemplateColumns: 'repeat(10, 4px)', gridTemplateRows: 'repeat(12, 4px)' }}
               >
-                {Array.from({ length: 40 }).map((_, i) => (
-                  <div key={i} className="w-1 h-1 rounded-full" style={{ backgroundColor: '#c8ccd6' }} />
+                {Array.from({ length: 120 }).map((_, i) => (
+                  <div key={i} className="w-1 h-1 rounded-full bg-[#2c3342] opacity-10" />
                 ))}
               </div>
-            </div>
 
-            {/* Right – 4 cards in 2 columns */}
-            <div className="md:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-5">
-              {[
-                {
-                  title: 'Digital Asset Expertise',
-                  desc: 'Our partners have been in crypto for years and they build strategies based on experience.',
-                  icon: (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-6 h-6">
-                      <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                      <path d="M2 17l10 5 10-5" />
-                      <path d="M2 12l10 5 10-5" />
-                    </svg>
-                  ),
-                },
-                {
-                  title: 'Education Mindset',
-                  desc: "We'll teach you how digital assets actually work.",
-                  icon: (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-6 h-6">
-                      <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" />
-                      <path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" />
-                    </svg>
-                  ),
-                },
-                {
-                  title: 'Bespoke Investment Solutions',
-                  desc: 'Personalized strategies aligned with your goals and risk tolerance.',
-                  icon: (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-6 h-6">
-                      <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
-                  ),
-                },
-                {
-                  title: 'Security and Trust',
-                  desc: "We're committed to security, regulatory compliance and transparent communication.",
-                  icon: (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-6 h-6">
-                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                    </svg>
-                  ),
-                },
-              ].map(({ title, desc, icon }, idx) => (
-                <FadeIn key={title} direction="up" delay={idx * 0.1}>
-                  <div
-                    className="bg-white rounded-lg p-7 h-full"
-                    style={{ boxShadow: '0 4px 24px rgba(44,51,66,0.09)' }}
-                  >
-                    {/* Tan icon square */}
-                    <div
-                      className="flex items-center justify-center rounded-lg mb-5"
-                      style={{ width: '56px', height: '56px', backgroundColor: '#E3C5A4', color: '#A87A49' }}
-                    >
-                      {icon}
-                    </div>
-                    <h4
-                      className="font-bold mb-3"
-                      style={{ color: '#1e266d', fontSize: '17px' }}
-                    >
-                      {title}
-                    </h4>
-                    <p
-                      className="mb-4 leading-relaxed"
-                      style={{ color: '#4a5568', fontSize: '14px' }}
-                    >
-                      {desc}
-                    </p>
-                    <Link
-                      href="/register"
-                      className="text-sm font-semibold transition-opacity hover:opacity-70"
-                      style={{ color: '#AD7F4E' }}
-                    >
-                      Learn More
-                    </Link>
-                  </div>
-                </FadeIn>
-              ))}
+              {/* Dot grid background - Bottom Right */}
+              <div
+                className="absolute -bottom-12 -right-4 grid gap-[8px] pointer-events-none z-0"
+                style={{ gridTemplateColumns: 'repeat(12, 4px)', gridTemplateRows: 'repeat(8, 4px)' }}
+              >
+                {Array.from({ length: 96 }).map((_, i) => (
+                  <div key={i} className="w-1 h-1 rounded-full bg-[#2c3342] opacity-10" />
+                ))}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 relative z-10">
+                {/* Column 1 - Shifted Down */}
+                <div className="space-y-10 pt-20">
+                  {[
+                    {
+                      title: 'Digital Asset Expertise',
+                      desc: 'Our partners have been in crypto for years and they build strategies based on experience.',
+                      icon: (
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" className="w-9 h-9">
+                          <rect x="3" y="4" width="18" height="16" rx="2" />
+                          <circle cx="9" cy="10" r="2" />
+                          <path d="M15 8h2M15 12h2M7 15h10" />
+                        </svg>
+                      ),
+                    },
+                    {
+                      title: 'Bespoke Investment Solutions',
+                      desc: 'Personalized strategies aligned with your goals and risk tolerance.',
+                      icon: (
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" className="w-9 h-9">
+                          <path d="M3 20v-4M8 20v-8M13 20V4M18 20v-10" />
+                          <path d="M3 20h18" />
+                        </svg>
+                      ),
+                    },
+                  ].map(({ title, desc, icon }, idx) => (
+                    <FadeIn key={title} direction="up" delay={idx * 0.1}>
+                      <div
+                        className="bg-white rounded-2xl p-12 h-full transition-all hover:translate-y-[-8px] duration-300"
+                        style={{ boxShadow: '0 25px 60px rgba(44, 51, 66, 0.05)' }}
+                      >
+                        <div
+                          className="flex items-center justify-center rounded-xl mb-10"
+                          style={{ width: '80px', height: '80px', backgroundColor: '#EAD3BA', color: '#A87A49', opacity: 0.9 }}
+                        >
+                          {icon}
+                        </div>
+                        <h4
+                          className="font-bold mb-5 leading-tight"
+                          style={{ color: '#1e266d', fontSize: '24px' }}
+                        >
+                          {title}
+                        </h4>
+                        <p
+                          className="mb-10 leading-relaxed"
+                          style={{ color: '#4a5568', fontSize: '16px', opacity: 0.85 }}
+                        >
+                          {desc}
+                        </p>
+                        <Link
+                          href="/register"
+                          className="text-[15px] font-medium transition-opacity hover:opacity-70"
+                          style={{ color: '#AD7F4E' }}
+                        >
+                          Learn More
+                        </Link>
+                      </div>
+                    </FadeIn>
+                  ))}
+                </div>
+
+                {/* Column 2 - Shifted Up */}
+                <div className="space-y-10 -mt-20">
+                  {[
+                    {
+                      title: 'Education Mindset',
+                      desc: "We'll teach you how digital assets actually work.",
+                      icon: (
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" className="w-9 h-9">
+                          <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+                          <path d="M6 12v5c3 3 9 3 12 0v-5" />
+                        </svg>
+                      ),
+                    },
+                    {
+                      title: 'Security and Trust',
+                      desc: "We're committed to security, regulatory compliance and transparent communication.",
+                      icon: (
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" className="w-9 h-9">
+                          <path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z" />
+                          <path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" />
+                          <circle cx="12" cy="14" r="2" />
+                        </svg>
+                      ),
+                    },
+                  ].map(({ title, desc, icon }, idx) => (
+                    <FadeIn key={title} direction="up" delay={idx * 0.1 + 0.2}>
+                      <div
+                        className="bg-white rounded-2xl p-12 h-full transition-all hover:translate-y-[-8px] duration-300"
+                        style={{ boxShadow: '0 25px 60px rgba(44, 51, 66, 0.05)' }}
+                      >
+                        <div
+                          className="flex items-center justify-center rounded-xl mb-10"
+                          style={{ width: '80px', height: '80px', backgroundColor: '#EAD3BA', color: '#A87A49', opacity: 0.9 }}
+                        >
+                          {icon}
+                        </div>
+                        <h4
+                          className="font-bold mb-5 leading-tight"
+                          style={{ color: '#1e266d', fontSize: '24px' }}
+                        >
+                          {title}
+                        </h4>
+                        <p
+                          className="mb-10 leading-relaxed"
+                          style={{ color: '#4a5568', fontSize: '16px', opacity: 0.85 }}
+                        >
+                          {desc}
+                        </p>
+                        <Link
+                          href="/register"
+                          className="text-[15px] font-medium transition-opacity hover:opacity-70"
+                          style={{ color: '#AD7F4E' }}
+                        >
+                          Learn More
+                        </Link>
+                      </div>
+                    </FadeIn>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 

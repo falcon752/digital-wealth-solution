@@ -55,7 +55,7 @@ export default function SiteFooter() {
           </div>
           {/* X / Twitter */}
           <a href="#" aria-label="Twitter/X" className="transition-opacity hover:opacity-70 ml-6">
-            <svg viewBox="0 0 24 24" fill="#AD7F4E" className="w-5 h-5">
+            <svg viewBox="0 0 24 24" fill="#FFFFFF" className="w-5 h-5">
               <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.742l7.736-8.858L2.002 2.25h6.958l4.265 5.643 5.019-5.643zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
             </svg>
           </a>
