@@ -19,118 +19,138 @@ export default function LandingPage() {
       {/* HERO                                                             */}
       {/* ═══════════════════════════════════════════════════════════════ */}
       <section
-        className="relative w-full overflow-hidden"
-        style={{ backgroundColor: '#eef0f3', minHeight: '760px' }}
+        className="relative w-full overflow-hidden flex items-center"
+        style={{ backgroundColor: 'rgba(44, 51, 66, 0.07)', minHeight: '820px' }}
       >
-        {/* Dot grid – top right */}
-        <div
-          className="absolute top-4 right-4 grid gap-[6px] pointer-events-none"
-          style={{ gridTemplateColumns: 'repeat(12, 4px)', gridTemplateRows: 'repeat(10, 4px)' }}
-        >
-          {Array.from({ length: 120 }).map((_, i) => (
-            <div key={i} className="w-1 h-1 rounded-full" style={{ backgroundColor: '#c8ccd6' }} />
-          ))}
-        </div>
+        <div className="max-w-7xl mx-auto px-6 py-20 w-full relative">
+          <FadeIn>
+            <div className="grid lg:grid-cols-12 gap-16 items-center">
 
-        {/* Dot grid – bottom center-left */}
-        <div
-          className="absolute bottom-8 left-[32%] grid gap-[6px] pointer-events-none"
-          style={{ gridTemplateColumns: 'repeat(8, 4px)', gridTemplateRows: 'repeat(4, 4px)' }}
-        >
-          {Array.from({ length: 32 }).map((_, i) => (
-            <div key={i} className="w-1 h-1 rounded-full" style={{ backgroundColor: '#c8ccd6' }} />
-          ))}
-        </div>
-
-        <FadeIn>
-          <div className="max-w-7xl mx-auto px-6 py-28 grid md:grid-cols-2 gap-10 items-center">
-
-            {/* ── Left: text ── */}
-            <div className="relative z-10">
-              <h2
-                className="font-extrabold leading-tight mb-7"
-                style={{ color: '#1e266d', fontSize: '51px', lineHeight: '58px' }}
-              >
-                Your crypto should be secure &amp; your wealth plan shouldn&apos;t ignore it.
-              </h2>
-
-              <p
-                className="mb-10 leading-relaxed"
-                style={{ color: '#4a5568', fontSize: '20px' }}
-              >
-                Digital Wealth Partners brings institutional custody, active portfolio management,
-                and coordinated financial planning together under one fiduciary roof. For individuals,
-                families, and advisors who want digital assets managed properly.
-              </p>
-
-              {/* Buttons */}
-              <div className="flex flex-wrap gap-4 items-center">
-                <Link
-                  href="/register"
-                  className="inline-flex items-center gap-2 text-white font-semibold px-7 py-3.5 rounded transition-opacity hover:opacity-90"
-                  style={{ backgroundColor: '#2C3342', fontSize: '16px' }}
+              {/* ── Left: Content ── */}
+              <div className="lg:col-span-7 relative z-10">
+                <h1
+                  className="font-bold leading-tight mb-8"
+                  style={{ 
+                    color: '#1e266d', 
+                    fontSize: '51px', 
+                    lineHeight: '51px',
+                    fontFamily: "'Cormorant Garamond', 'Playfair Display', serif"
+                  }}
                 >
-                  Get Started
-                  <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-                    <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
-                  </svg>
-                </Link>
+                  Your crypto should be secure &amp; your wealth plan shouldn&apos;t ignore it.
+                </h1>
 
-                <Link
-                  href="/dashboard"
-                  className="inline-flex items-center font-semibold px-7 py-3.5 rounded border transition-colors hover:bg-gray-50"
-                  style={{ borderColor: '#2C3342', color: '#2C3342', fontSize: '16px' }}
+                <p
+                  className="mb-12 leading-relaxed max-w-2xl"
+                  style={{ color: '#000000', fontSize: '18px', opacity: 0.8 }}
                 >
-                  View Services
-                </Link>
-              </div>
+                  Digital Wealth Partners brings institutional custody, active portfolio management,
+                  and coordinated financial planning together under one fiduciary roof. For individuals,
+                  families, and advisors who want digital assets managed properly.
+                </p>
 
-              {/* Scroll arrow */}
-              <div className="mt-14">
-                <div
-                  className="inline-flex items-center justify-center w-9 h-9 rounded-full border-2"
-                  style={{ borderColor: '#2C3342', color: '#2C3342' }}
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
-                    <path d="M12 5v14M5 12l7 7 7-7" />
-                  </svg>
+                {/* Buttons */}
+                <div className="flex flex-wrap gap-5 items-center mb-16">
+                  <Link
+                    href="/register"
+                    className="inline-flex items-center gap-2 text-white font-semibold px-[35px] py-[18px] rounded transition-all hover:opacity-90 active:scale-95"
+                    style={{ 
+                      backgroundColor: '#2C3342', 
+                      fontSize: '16px',
+                      boxShadow: '0px 15px 35px 0px rgba(44, 51, 66, 0.15)'
+                    }}
+                  >
+                    Get Started
+                    <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 ml-1">
+                      <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </Link>
+
+                  <Link
+                    href="/dashboard"
+                    className="inline-flex items-center font-semibold px-[35px] py-[18px] rounded border transition-all hover:bg-[#2C3342] hover:text-white active:scale-95"
+                    style={{ 
+                      borderColor: '#2C3342', 
+                      color: '#2C3342', 
+                      fontSize: '16px' 
+                    }}
+                  >
+                    View Services
+                  </Link>
+                </div>
+
+                {/* Scroll arrow */}
+                <div className="relative">
+                  <div
+                    className="inline-flex items-center justify-center w-10 h-10 rounded-full border border-[#2C3342] text-[#2C3342] animate-bounce cursor-pointer hover:bg-[#2C3342] hover:text-white transition-colors"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
+                      <path d="M12 5v14M5 12l7 7 7-7" />
+                    </svg>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* ── Right: dallas image card ── */}
-            <div className="relative flex items-center justify-center">
-              <div
-                className="relative overflow-hidden rounded-lg shadow-2xl"
-                style={{ width: '400px', height: '560px', maxWidth: '100%' }}
-              >
-                <Image
-                  src="/dallas-downtown.png"
-                  alt="Digital Wealth Partner"
-                  fill
-                  className="object-cover"
-                  priority
-                />
-                {/* Dark overlay to blend image like the original */}
-                <div
-                  className="absolute inset-0"
-                  style={{ backgroundColor: 'rgba(44,51,66,0.18)' }}
-                />
-                {/* DWP logo on top of image */}
-                <div className="absolute inset-0 flex items-end justify-center pb-10">
-                  <Image
-                    src="/hero-logo.png"
-                    alt="DWS"
-                    width={320}
-                    height={120}
-                    className="w-4/5 object-contain"
-                    unoptimized
-                  />
+              {/* ── Right: Image Card ── */}
+              <div className="lg:col-span-5 relative flex items-center justify-center lg:justify-end">
+                <div className="relative">
+                  {/* Dot grids */}
+                  <div
+                    className="absolute -top-10 -right-16 grid gap-[6px] pointer-events-none z-0"
+                    style={{ gridTemplateColumns: 'repeat(12, 4px)', gridTemplateRows: 'repeat(20, 4px)' }}
+                  >
+                    {Array.from({ length: 240 }).map((_, i) => (
+                      <div key={i} className="w-1 h-1 rounded-full bg-[#2c3342] opacity-20" />
+                    ))}
+                  </div>
+
+                  <div
+                    className="absolute -bottom-12 -left-8 grid gap-[6px] pointer-events-none z-0"
+                    style={{ gridTemplateColumns: 'repeat(20, 4px)', gridTemplateRows: 'repeat(10, 4px)' }}
+                  >
+                    {Array.from({ length: 200 }).map((_, i) => (
+                      <div key={i} className="w-1 h-1 rounded-full bg-[#2c3342] opacity-20" />
+                    ))}
+                  </div>
+
+                  {/* Main Card */}
+                  <div
+                    className="relative overflow-hidden rounded-[10px] shadow-[0px_30px_60px_rgba(0,0,0,0.12)] z-10"
+                    style={{ width: '420px', height: '580px', maxWidth: '100%' }}
+                  >
+                    <Image
+                      src="/dallas-downtown.png"
+                      alt="Digital Wealth Partner"
+                      fill
+                      className="object-cover grayscale-[40%] brightness-95 contrast-105"
+                      priority
+                    />
+                    {/* Subtle warm overlay */}
+                    <div
+                      className="absolute inset-0"
+                      style={{ backgroundColor: 'rgba(198, 156, 109, 0.05)' }}
+                    />
+                    
+                    {/* DWP logo overlay */}
+                    <div className="absolute inset-0 flex items-end justify-center pb-12">
+                      <div className="w-4/5 transform translate-y-4">
+                        <Image
+                          src="/hero-logo.png"
+                          alt="DWP Logo"
+                          width={400}
+                          height={150}
+                          className="w-full object-contain filter drop-shadow-lg"
+                          unoptimized
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
+
             </div>
-          </div>
-        </FadeIn>
+          </FadeIn>
+        </div>
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════ */}
