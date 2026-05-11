@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import Navbar from '@/components/layout/Navbar';
 import SiteFooter from '@/components/layout/SiteFooter';
+import FadeIn from '@/components/animations/FadeIn';
 
 export default function LandingPage() {
   return (
@@ -41,93 +42,95 @@ export default function LandingPage() {
           ))}
         </div>
 
-        <div className="max-w-7xl mx-auto px-6 py-28 grid md:grid-cols-2 gap-10 items-center">
+        <FadeIn>
+          <div className="max-w-7xl mx-auto px-6 py-28 grid md:grid-cols-2 gap-10 items-center">
 
-          {/* ── Left: text ── */}
-          <div className="relative z-10">
-            <h2
-              className="font-extrabold leading-tight mb-7"
-              style={{ color: '#1e266d', fontSize: '51px', lineHeight: '58px' }}
-            >
-              Your crypto should be secure &amp; your wealth plan shouldn&apos;t ignore it.
-            </h2>
-
-            <p
-              className="mb-10 leading-relaxed"
-              style={{ color: '#4a5568', fontSize: '20px' }}
-            >
-              Digital Wealth Partners brings institutional custody, active portfolio management,
-              and coordinated financial planning together under one fiduciary roof. For individuals,
-              families, and advisors who want digital assets managed properly.
-            </p>
-
-            {/* Buttons */}
-            <div className="flex flex-wrap gap-4 items-center">
-              <Link
-                href="/register"
-                className="inline-flex items-center gap-2 text-white font-semibold px-7 py-3.5 rounded transition-opacity hover:opacity-90"
-                style={{ backgroundColor: '#2C3342', fontSize: '16px' }}
+            {/* ── Left: text ── */}
+            <div className="relative z-10">
+              <h2
+                className="font-extrabold leading-tight mb-7"
+                style={{ color: '#1e266d', fontSize: '51px', lineHeight: '58px' }}
               >
-                Get Started
-                <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-                  <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
-              </Link>
+                Your crypto should be secure &amp; your wealth plan shouldn&apos;t ignore it.
+              </h2>
 
-              <Link
-                href="/dashboard"
-                className="inline-flex items-center font-semibold px-7 py-3.5 rounded border transition-colors hover:bg-gray-50"
-                style={{ borderColor: '#2C3342', color: '#2C3342', fontSize: '16px' }}
+              <p
+                className="mb-10 leading-relaxed"
+                style={{ color: '#4a5568', fontSize: '20px' }}
               >
-                View Services
-              </Link>
-            </div>
+                Digital Wealth Partners brings institutional custody, active portfolio management,
+                and coordinated financial planning together under one fiduciary roof. For individuals,
+                families, and advisors who want digital assets managed properly.
+              </p>
 
-            {/* Scroll arrow */}
-            <div className="mt-14">
-              <div
-                className="inline-flex items-center justify-center w-9 h-9 rounded-full border-2"
-                style={{ borderColor: '#2C3342', color: '#2C3342' }}
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
-                  <path d="M12 5v14M5 12l7 7 7-7" />
-                </svg>
+              {/* Buttons */}
+              <div className="flex flex-wrap gap-4 items-center">
+                <Link
+                  href="/register"
+                  className="inline-flex items-center gap-2 text-white font-semibold px-7 py-3.5 rounded transition-opacity hover:opacity-90"
+                  style={{ backgroundColor: '#2C3342', fontSize: '16px' }}
+                >
+                  Get Started
+                  <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                    <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                </Link>
+
+                <Link
+                  href="/dashboard"
+                  className="inline-flex items-center font-semibold px-7 py-3.5 rounded border transition-colors hover:bg-gray-50"
+                  style={{ borderColor: '#2C3342', color: '#2C3342', fontSize: '16px' }}
+                >
+                  View Services
+                </Link>
+              </div>
+
+              {/* Scroll arrow */}
+              <div className="mt-14">
+                <div
+                  className="inline-flex items-center justify-center w-9 h-9 rounded-full border-2"
+                  style={{ borderColor: '#2C3342', color: '#2C3342' }}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
+                    <path d="M12 5v14M5 12l7 7 7-7" />
+                  </svg>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* ── Right: dallas image card ── */}
-          <div className="relative flex items-center justify-center">
-            <div
-              className="relative overflow-hidden rounded-lg shadow-2xl"
-              style={{ width: '400px', height: '560px', maxWidth: '100%' }}
-            >
-              <Image
-                src="/dallas-downtown.png"
-                alt="Digital Wealth Partner"
-                fill
-                className="object-cover"
-                priority
-              />
-              {/* Dark overlay to blend image like the original */}
+            {/* ── Right: dallas image card ── */}
+            <div className="relative flex items-center justify-center">
               <div
-                className="absolute inset-0"
-                style={{ backgroundColor: 'rgba(44,51,66,0.18)' }}
-              />
-              {/* DWP logo on top of image */}
-              <div className="absolute inset-0 flex items-end justify-center pb-10">
+                className="relative overflow-hidden rounded-lg shadow-2xl"
+                style={{ width: '400px', height: '560px', maxWidth: '100%' }}
+              >
                 <Image
-                  src="/hero-logo.png"
-                  alt="DWS"
-                  width={320}
-                  height={120}
-                  className="w-4/5 object-contain"
-                  unoptimized
+                  src="/dallas-downtown.png"
+                  alt="Digital Wealth Partner"
+                  fill
+                  className="object-cover"
+                  priority
                 />
+                {/* Dark overlay to blend image like the original */}
+                <div
+                  className="absolute inset-0"
+                  style={{ backgroundColor: 'rgba(44,51,66,0.18)' }}
+                />
+                {/* DWP logo on top of image */}
+                <div className="absolute inset-0 flex items-end justify-center pb-10">
+                  <Image
+                    src="/hero-logo.png"
+                    alt="DWS"
+                    width={320}
+                    height={120}
+                    className="w-4/5 object-contain"
+                    unoptimized
+                  />
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </FadeIn>
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════ */}
@@ -135,12 +138,14 @@ export default function LandingPage() {
       {/* ═══════════════════════════════════════════════════════════════ */}
       <section className="bg-white py-24">
         <div className="max-w-6xl mx-auto px-6">
-          <h2
-            className="font-bold text-center mb-16"
-            style={{ color: '#1e266d', fontSize: '36px' }}
-          >
-            Your Portfolio with One Coordinated Plan
-          </h2>
+          <FadeIn direction="up">
+            <h2
+              className="font-bold text-center mb-16"
+              style={{ color: '#1e266d', fontSize: '36px' }}
+            >
+              Your Portfolio with One Coordinated Plan
+            </h2>
+          </FadeIn>
 
           <div className="space-y-6">
             {[
@@ -148,7 +153,7 @@ export default function LandingPage() {
                 title: (
                   <Link
                     href="/what-we-do/what-we-do-investment-services/wealth-portfolio-management/full-service-crypto-wealth-management/"
-                    className="hover:underline decoration-[#5e17eb] decoration-2 underline-offset-4"
+                    className="hover:underline decoration-[#A87A49] decoration-2 underline-offset-4"
                   >
                     Crypto Wealth Management
                   </Link>
@@ -184,33 +189,34 @@ export default function LandingPage() {
                   </svg>
                 ),
               },
-            ].map(({ icon, title, desc }) => (
-              <div
-                key={title}
-                className="flex gap-7 bg-white rounded-lg p-8"
-                style={{ boxShadow: '0 4px 24px rgba(44,51,66,0.10)' }}
-              >
+            ].map(({ icon, title, desc }, idx) => (
+              <FadeIn key={idx} direction="up" delay={idx * 0.1}>
                 <div
-                  className="shrink-0 mt-1"
-                  style={{ color: '#5e17eb' }}
+                  className="flex gap-7 bg-white rounded-lg p-8"
+                  style={{ boxShadow: '0 4px 24px rgba(44,51,66,0.10)' }}
                 >
-                  {icon}
-                </div>
-                <div>
-                  <h3
-                    className="font-bold mb-3"
-                    style={{ color: '#1e266d', fontSize: '20px' }}
+                  <div
+                    className="shrink-0 mt-1"
+                    style={{ color: '#A87A49' }}
                   >
-                    {title}
-                  </h3>
-                  <p
-                    className="leading-relaxed"
-                    style={{ color: '#4a5568', fontSize: '16px' }}
-                  >
-                    {desc}
-                  </p>
+                    {icon}
+                  </div>
+                  <div>
+                    <h3
+                      className="font-bold mb-3"
+                      style={{ color: '#1e266d', fontSize: '20px' }}
+                    >
+                      {title}
+                    </h3>
+                    <p
+                      className="leading-relaxed"
+                      style={{ color: '#4a5568', fontSize: '16px' }}
+                    >
+                      {desc}
+                    </p>
+                  </div>
                 </div>
-              </div>
+              </FadeIn>
             ))}
           </div>
         </div>
@@ -224,32 +230,34 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-12 gap-12 items-start">
 
             {/* Left */}
-            <div className="md:col-span-4">
-              <h2
-                className="font-bold leading-snug mb-6"
-                style={{ color: '#1e266d', fontSize: '30px' }}
-              >
-                Our Mission: Help clients protect and build wealth with digital assets
-              </h2>
-              <p
-                className="mb-8 leading-relaxed"
-                style={{ color: '#4a5568', fontSize: '16px' }}
-              >
-                We know digital assets and alternative investments well enough to build strategies
-                that fit what each client actually needs, whether that&apos;s aggressive growth or
-                something more conservative.
-              </p>
-              <Link
-                href="/register"
-                className="inline-flex items-center gap-2 text-white font-semibold px-6 py-3 rounded transition-opacity hover:opacity-90"
-                style={{ backgroundColor: '#2C3342', fontSize: '15px' }}
-              >
-                Our Services
-                <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-                  <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
-              </Link>
-            </div>
+            <FadeIn direction="left" className="md:col-span-4">
+              <div>
+                <h2
+                  className="font-bold leading-snug mb-6"
+                  style={{ color: '#1e266d', fontSize: '30px' }}
+                >
+                  Our Mission: Help clients protect and build wealth with digital assets
+                </h2>
+                <p
+                  className="mb-8 leading-relaxed"
+                  style={{ color: '#4a5568', fontSize: '16px' }}
+                >
+                  We know digital assets and alternative investments well enough to build strategies
+                  that fit what each client actually needs, whether that&apos;s aggressive growth or
+                  something more conservative.
+                </p>
+                <Link
+                  href="/register"
+                  className="inline-flex items-center gap-2 text-white font-semibold px-6 py-3 rounded transition-opacity hover:opacity-90"
+                  style={{ backgroundColor: '#2C3342', fontSize: '15px' }}
+                >
+                  Our Services
+                  <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                    <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                </Link>
+              </div>
+            </FadeIn>
 
             {/* Dot grid accent */}
             <div className="hidden md:block md:col-span-1 pt-6">
@@ -305,39 +313,40 @@ export default function LandingPage() {
                     </svg>
                   ),
                 },
-              ].map(({ title, desc, icon }) => (
-                <div
-                  key={title}
-                  className="bg-white rounded-lg p-7"
-                  style={{ boxShadow: '0 4px 24px rgba(44,51,66,0.09)' }}
-                >
-                  {/* Tan icon square */}
+              ].map(({ title, desc, icon }, idx) => (
+                <FadeIn key={title} direction="up" delay={idx * 0.1}>
                   <div
-                    className="flex items-center justify-center rounded-lg mb-5"
-                    style={{ width: '56px', height: '56px', backgroundColor: '#E3C5A4', color: '#5e17eb' }}
+                    className="bg-white rounded-lg p-7 h-full"
+                    style={{ boxShadow: '0 4px 24px rgba(44,51,66,0.09)' }}
                   >
-                    {icon}
+                    {/* Tan icon square */}
+                    <div
+                      className="flex items-center justify-center rounded-lg mb-5"
+                      style={{ width: '56px', height: '56px', backgroundColor: '#E3C5A4', color: '#A87A49' }}
+                    >
+                      {icon}
+                    </div>
+                    <h4
+                      className="font-bold mb-3"
+                      style={{ color: '#1e266d', fontSize: '17px' }}
+                    >
+                      {title}
+                    </h4>
+                    <p
+                      className="mb-4 leading-relaxed"
+                      style={{ color: '#4a5568', fontSize: '14px' }}
+                    >
+                      {desc}
+                    </p>
+                    <Link
+                      href="/register"
+                      className="text-sm font-semibold transition-opacity hover:opacity-70"
+                      style={{ color: '#AD7F4E' }}
+                    >
+                      Learn More
+                    </Link>
                   </div>
-                  <h4
-                    className="font-bold mb-3"
-                    style={{ color: '#1e266d', fontSize: '17px' }}
-                  >
-                    {title}
-                  </h4>
-                  <p
-                    className="mb-4 leading-relaxed"
-                    style={{ color: '#4a5568', fontSize: '14px' }}
-                  >
-                    {desc}
-                  </p>
-                  <Link
-                    href="/register"
-                    className="text-sm font-semibold transition-opacity hover:opacity-70"
-                    style={{ color: '#AD7F4E' }}
-                  >
-                    Learn More
-                  </Link>
-                </div>
+                </FadeIn>
               ))}
             </div>
           </div>
@@ -354,6 +363,7 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
+
       </section>
 
       {/* Extra paragraph from original DWP */}
@@ -412,30 +422,32 @@ export default function LandingPage() {
           </div>
 
           {/* Text content */}
-          <div className="relative z-10 px-12 py-20 max-w-xl">
-            <p
-              className="text-white leading-relaxed mb-6"
-              style={{ fontSize: '15px', opacity: 0.82 }}
-            >
-              DWS manages investments in crypto, blockchain-based assets, and other digital assets
-              that most traditional firms won&apos;t touch. We build portfolios around each client&apos;s
-              risk comfort and goals, with a focus on generating outsized returns in a space where
-              most people are guessing.
-            </p>
-            <h2
-              className="font-bold text-white mb-10 leading-tight"
-              style={{ fontSize: '42px' }}
-            >
-              Your Gateway to<br />Digital Investments
-            </h2>
-            <Link
-              href="/register"
-              className="inline-block font-semibold px-8 py-3.5 rounded text-white transition-opacity hover:opacity-90"
-              style={{ backgroundColor: '#2C3342', border: '2px solid rgba(255,255,255,0.35)', fontSize: '15px' }}
-            >
-              Get Started
-            </Link>
-          </div>
+          <FadeIn direction="right" className="relative z-10 px-12 py-20 max-w-xl">
+            <div>
+              <p
+                className="text-white leading-relaxed mb-6"
+                style={{ fontSize: '15px', opacity: 0.82 }}
+              >
+                DWS manages investments in crypto, blockchain-based assets, and other digital assets
+                that most traditional firms won&apos;t touch. We build portfolios around each client&apos;s
+                risk comfort and goals, with a focus on generating outsized returns in a space where
+                most people are guessing.
+              </p>
+              <h2
+                className="font-bold text-white mb-10 leading-tight"
+                style={{ fontSize: '42px' }}
+              >
+                Your Gateway to<br />Digital Investments
+              </h2>
+              <Link
+                href="/register"
+                className="inline-block font-semibold px-8 py-3.5 rounded text-white transition-opacity hover:opacity-90"
+                style={{ backgroundColor: '#2C3342', border: '2px solid rgba(255,255,255,0.35)', fontSize: '15px' }}
+              >
+                Get Started
+              </Link>
+            </div>
+          </FadeIn>
         </div>
       </section>
 

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { Mail, ArrowLeft } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
 import SiteFooter from '@/components/layout/SiteFooter';
 
@@ -263,9 +264,7 @@ export default function CryptoWealthManagementPage() {
             style={{ backgroundColor: '#AD7F4E', fontSize: '16px' }}
           >
             Contact Us
-            <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-              <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
+            <Mail className="w-4 h-4" />
           </Link>
           
           <div>
@@ -273,14 +272,15 @@ export default function CryptoWealthManagementPage() {
               href="/services"
               className="text-white text-sm font-semibold opacity-70 hover:opacity-100 transition-opacity inline-flex items-center gap-2"
             >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
-                <path d="M19 12H5M12 19l-7-7 7-7" />
-              </svg>
+              <ArrowLeft className="w-4 h-4" />
               Back to Services
             </Link>
           </div>
         </div>
       </section>
+
+      {/* White gap between banner and footer */}
+      <div className="h-20 bg-white w-full"></div>
 
       <SiteFooter />
     </div>

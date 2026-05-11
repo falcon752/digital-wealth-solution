@@ -9,7 +9,7 @@ const NAV_LINKS = [
   { label: 'Services', href: '/services' },
   { label: 'Digital Asset Custody', href: '/digital-asset-custody' },
   { label: 'About Digital Wealth Partners', href: '/about' },
-  { label: 'Blog', href: '#' },
+  { label: 'Blog', href: '/blog/' },
 ];
 
 interface NavbarProps {
