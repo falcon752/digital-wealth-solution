@@ -16,7 +16,10 @@ const QUICK_LINKS = [
 
 const KEY_SERVICES = [
   { label: 'Crypto Custody', href: '#' },
-  { label: 'Crypto Wealth Management', href: '#' },
+  { 
+    label: 'Crypto Wealth Management', 
+    href: '/what-we-do/what-we-do-investment-services/wealth-portfolio-management/full-service-crypto-wealth-management/' 
+  },
   { label: 'Crypto Lending', href: '#' },
 ];
 

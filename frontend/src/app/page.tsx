@@ -146,9 +146,9 @@ export default function LandingPage() {
             {[
               {
                 title: (
-                  <Link 
+                  <Link
                     href="/what-we-do/what-we-do-investment-services/wealth-portfolio-management/full-service-crypto-wealth-management/"
-                    className="hover:underline decoration-[#A87A49] decoration-2 underline-offset-4"
+                    className="hover:underline decoration-[#5e17eb] decoration-2 underline-offset-4"
                   >
                     Crypto Wealth Management
                   </Link>
@@ -192,7 +192,7 @@ export default function LandingPage() {
               >
                 <div
                   className="shrink-0 mt-1"
-                  style={{ color: '#A87A49' }}
+                  style={{ color: '#5e17eb' }}
                 >
                   {icon}
                 </div>
@@ -314,7 +314,7 @@ export default function LandingPage() {
                   {/* Tan icon square */}
                   <div
                     className="flex items-center justify-center rounded-lg mb-5"
-                    style={{ width: '56px', height: '56px', backgroundColor: '#E3C5A4', color: '#A87A49' }}
+                    style={{ width: '56px', height: '56px', backgroundColor: '#E3C5A4', color: '#5e17eb' }}
                   >
                     {icon}
                   </div>

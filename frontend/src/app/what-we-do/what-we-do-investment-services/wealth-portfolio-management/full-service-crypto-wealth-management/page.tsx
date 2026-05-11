@@ -15,7 +15,7 @@ export default function CryptoWealthManagementPage() {
           <h1 className="text-white font-bold mb-8 leading-tight" style={{ fontSize: '48px' }}>
             Full Service <span style={{ color: '#AD7F4E' }}>Crypto Wealth Management</span>
           </h1>
-          <div className="w-16 h-0.5 mx-auto mb-10" style={{ backgroundColor: '#AD7F4E opacity: 0.5' }}></div>
+          <div className="w-16 h-0.5 mx-auto mb-10" style={{ backgroundColor: '#AD7F4E', opacity: 0.5 }}></div>
           <p className="text-white text-lg leading-relaxed max-w-3xl mx-auto" style={{ opacity: 0.9 }}>
             You want digital assets in your portfolio. You don't want to spend your evenings managing wallets, tracking private keys, and
             researching which exchange might fail next. Digital Wealth Partners handles custody, compliance, and portfolio strategy so you get
@@ -251,7 +251,7 @@ export default function CryptoWealthManagementPage() {
           <h2 className="text-white font-bold mb-8" style={{ fontSize: '36px' }}>
             Start the <span style={{ color: '#AD7F4E' }}>Conversation</span>
           </h2>
-          <div className="w-12 h-0.5 mx-auto mb-10" style={{ backgroundColor: '#AD7F4E opacity: 0.5' }}></div>
+          <div className="w-12 h-0.5 mx-auto mb-10" style={{ backgroundColor: '#AD7F4E', opacity: 0.5 }}></div>
           <p className="text-white text-lg leading-relaxed max-w-3xl mx-auto mb-12" style={{ opacity: 0.9 }}>
             If you're holding crypto on your own, thinking about retirement account rollovers, or just want a more structured approach, a quick call can help you
             figure out next steps. DWP reviews your situation, walks you through the process, and helps you decide if this is the right fit.
