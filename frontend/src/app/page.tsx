@@ -265,7 +265,7 @@ export default function LandingPage() {
                   something more conservative.
                 </p>
                 <Link
-                  href="/register"
+                  href="/services"
                   className="inline-flex items-center gap-3 text-white font-bold px-7 py-3.5 rounded-md transition-all hover:translate-y-[-2px] hover:shadow-xl active:scale-95"
                   style={{
                     backgroundColor: '#2C3342',
@@ -354,7 +354,7 @@ export default function LandingPage() {
                           {desc}
                         </p>
                         <Link
-                          href="/register"
+                          href="/contact"
                           className="text-[14px] font-bold transition-opacity hover:opacity-70"
                           style={{ color: '#AD7F4E' }}
                         >
@@ -414,7 +414,7 @@ export default function LandingPage() {
                           {desc}
                         </p>
                         <Link
-                          href="/register"
+                          href="/contact"
                           className="text-[14px] font-bold transition-opacity hover:opacity-70"
                           style={{ color: '#AD7F4E' }}
                         >
