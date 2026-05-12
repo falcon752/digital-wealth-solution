@@ -51,7 +51,7 @@ export default function LandingPage() {
                 {/* Buttons */}
                 <div className="flex flex-col sm:flex-row gap-5 items-start sm:items-center mb-16">
                   <Link
-                    href="/register"
+                    href="/contact"
                     className="inline-flex items-center justify-center text-white font-bold px-10 py-4 rounded transition-all hover:opacity-90 active:scale-95"
                     style={{
                       backgroundColor: '#2C3342',
@@ -63,7 +63,7 @@ export default function LandingPage() {
                   </Link>
 
                   <Link
-                    href="/dashboard"
+                    href="/services"
                     className="inline-flex items-center justify-center font-semibold px-10 py-4 rounded border transition-all hover:bg-[#2C3342] hover:text-white active:scale-95"
                     style={{
                       borderColor: '#2C3342',
@@ -488,7 +488,7 @@ export default function LandingPage() {
                 {/* Buttons */}
                 <div className="flex flex-col sm:flex-row gap-5 items-start sm:items-center mb-10">
                   <Link
-                    href="/register"
+                    href="/contact"
                     className="inline-flex items-center justify-center text-white font-bold px-10 py-4 rounded transition-all hover:bg-opacity-90 active:scale-95"
                     style={{
                       backgroundColor: '#2C3342',

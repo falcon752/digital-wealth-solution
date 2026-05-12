@@ -6,7 +6,7 @@ const FOOTER_LINKS = [
   { label: 'About Digital Wealth Partners', href: '/#mission' },
   { label: 'Reviews', href: '#' },
   { label: 'Careers', href: '/careers/' },
-  { label: 'Contact us', href: '#' },
+  { label: 'Contact us', href: '/contact' },
 ];
 
 const QUICK_LINKS = [
