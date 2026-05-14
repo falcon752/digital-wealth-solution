@@ -113,15 +113,23 @@ export default function LoginPage() {
             />
           )}
 
-          <div className="flex items-center gap-2 pt-1">
-            <input
-              id="remember-me"
-              type="checkbox"
-              className="w-4 h-4 rounded border-(--border-color) accent-blue-600 cursor-pointer"
-            />
-            <label htmlFor="remember-me" className="text-sm text-(--text-muted) cursor-pointer select-none">
-              Remember me
-            </label>
+          <div className="flex items-center justify-between pt-1">
+            <div className="flex items-center gap-2">
+              <input
+                id="remember-me"
+                type="checkbox"
+                className="w-4 h-4 rounded border-(--border-color) accent-blue-600 cursor-pointer"
+              />
+              <label htmlFor="remember-me" className="text-sm text-(--text-muted) cursor-pointer select-none">
+                Remember me
+              </label>
+            </div>
+            <Link
+              href="/forgot-password"
+              className="text-sm text-blue-600 hover:text-blue-500 font-medium transition-colors"
+            >
+              Forgot password?
+            </Link>
           </div>
 
           <Button type="submit" className="w-full mt-2 bg-blue-600! hover:bg-blue-700! shadow-blue-600/30!" size="lg" loading={isLoading}>

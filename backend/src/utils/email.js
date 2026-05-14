@@ -287,4 +287,36 @@ async function sendAdminRegistrationNotificationEmail({ adminEmail, user }) {
   });
 }
 
-module.exports = { sendSignupOTPEmail, sendDepositNotificationEmail, sendWithdrawalNotificationEmail, sendOTPEmail, sendWelcomeEmail, sendAdminRegistrationNotificationEmail };
+// ─── Password reset email ─────────────────────────────────────────────────────
+async function sendPasswordResetEmail(to, firstName, otp) {
+  const transporter = createTransporter();
+
+  const html = `
+    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
+      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partner</h2>
+      <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">Password Reset Request</p>
+
+      <p>Hi <strong>${firstName}</strong>,</p>
+      <p>We received a request to reset your password. Use the verification code below to proceed. If you did not request this, please ignore this email — your password will not change.</p>
+
+      <div style="background:#071a30;border:1px solid #1d4ed8;padding:24px;text-align:center;border-radius:12px;margin:24px 0;">
+        <span style="font-size:44px;font-weight:bold;letter-spacing:14px;color:#60a5fa;">${otp}</span>
+      </div>
+
+      <p style="color:#6b7280;font-size:13px;">
+        This code expires in <strong style="color:#f0f6ff;">15 minutes</strong>. Do not share it with anyone.
+      </p>
+      <hr style="border-color:#0f2a4a;margin:24px 0;" />
+      <p style="color:#6b7280;font-size:12px;">© Digital Wealth Partner — do not reply to this email.</p>
+    </div>
+  `;
+
+  await transporter.sendMail({
+    from: FROM(),
+    to,
+    subject: 'Reset your password — Digital Wealth Partner',
+    html,
+  });
+}
+
+module.exports = { sendSignupOTPEmail, sendDepositNotificationEmail, sendWithdrawalNotificationEmail, sendOTPEmail, sendWelcomeEmail, sendAdminRegistrationNotificationEmail, sendPasswordResetEmail };

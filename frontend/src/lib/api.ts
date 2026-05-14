@@ -43,6 +43,9 @@ export const authAPI = {
   setup2FA: () => api.post('/auth/setup-2fa'),
   confirm2FA: (token: string) => api.post('/auth/confirm-2fa', { token }),
   disable2FA: (token: string) => api.post('/auth/disable-2fa', { token }),
+  forgotPassword: (email: string) => api.post('/auth/forgot-password', { email }),
+  resetPassword: (data: { email: string; otp: string; newPassword: string }) =>
+    api.post('/auth/reset-password', data),
 };
 
 // ─── Users ────────────────────────────────────────────────────────────────
