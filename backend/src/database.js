@@ -127,6 +127,18 @@ const activityLogSchema = new mongoose.Schema(
 applyToJSON(activityLogSchema);
 const ActivityLog = mongoose.model('ActivityLog', activityLogSchema);
 
+// ─── PAYMENT CONFIRMATION ─────────────────────────────────────────────────────
+const paymentConfirmationSchema = new mongoose.Schema(
+  {
+    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    status: { type: String, enum: ['pending', 'verified', 'rejected'], default: 'pending' },
+    verifiedAt: { type: Date, default: null },
+  },
+  { timestamps: true }
+);
+applyToJSON(paymentConfirmationSchema);
+const PaymentConfirmation = mongoose.model('PaymentConfirmation', paymentConfirmationSchema);
+
 // ─── CONNECT + SEED ───────────────────────────────────────────────────────────
 async function connectDB() {
   await mongoose.connect(process.env.MONGODB_URI);
@@ -150,4 +162,4 @@ async function connectDB() {
   console.log('Database ready');
 }
 
-module.exports = { connectDB, User, Asset, Deposit, Withdrawal, ActivityLog, LLCApplication };
+module.exports = { connectDB, User, Asset, Deposit, Withdrawal, ActivityLog, LLCApplication, PaymentConfirmation };

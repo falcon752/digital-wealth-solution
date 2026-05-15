@@ -356,6 +356,43 @@ async function sendOnboardingFeeNotificationEmail({ adminEmail, userEmail }) {
   });
 }
 
+// ─── Onboarding approved (signup link) ────────────────────────────────────────
+async function sendOnboardingApprovedEmail(to) {
+  const transporter = createTransporter();
+
+  const registerLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/register?email=${encodeURIComponent(to)}`;
+
+  const html = `
+    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
+      <h2 style="color:#2563eb;margin-bottom:8px;">Digital Wealth Partner</h2>
+      <p style="color:#60a5fa;margin-bottom:24px;">Onboarding Fee Verified</p>
+      
+      <p>Hi there,</p>
+      <p>Great news! Your onboarding fee has been verified by our team. You can now proceed to create your official account on our platform.</p>
+      
+      <div style="text-align:center;margin:32px 0;">
+        <a href="${registerLink}" 
+           style="display:inline-block;background:#2563eb;color:#fff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:16px;">
+          Complete Registration →
+        </a>
+      </div>
+
+      <p style="color:#6b7280;font-size:13px;">If the button above doesn't work, copy and paste this link into your browser:</p>
+      <p style="color:#60a5fa;font-size:12px;word-break:break-all;">${registerLink}</p>
+
+      <hr style="border-color:#0f2a4a;margin:28px 0;" />
+      <p style="color:#6b7280;font-size:12px;">Welcome to Digital Wealth Partner!</p>
+    </div>
+  `;
+
+  await transporter.sendMail({
+    from: FROM(),
+    to,
+    subject: 'Action Required: Complete your DWP Registration',
+    html,
+  });
+}
+
 module.exports = {
   sendSignupOTPEmail,
   sendDepositNotificationEmail,
@@ -365,4 +402,5 @@ module.exports = {
   sendAdminRegistrationNotificationEmail,
   sendPasswordResetEmail,
   sendOnboardingFeeNotificationEmail,
+  sendOnboardingApprovedEmail,
 };
