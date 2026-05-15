@@ -215,7 +215,7 @@ export default function RegisterPage() {
           </div>
           <h1 className="text-3xl font-bold text-(--text-primary)">Create Account</h1>
           <p className="text-(--text-muted) text-sm mt-2 max-w-xs mx-auto">
-            Start your investment journey with Digital Wealth Partner.
+            Start your investment journey with Digital Wealth Solution.
           </p>
         </div>
 

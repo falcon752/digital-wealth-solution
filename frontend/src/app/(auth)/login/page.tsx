@@ -136,13 +136,6 @@ export default function LoginPage() {
             {requires2FA ? 'Verify & Sign In' : 'Sign In'}
           </Button>
         </form>
-
-        <p className="text-center text-sm text-(--text-muted) mt-6">
-          Don&apos;t have an account?{' '}
-          <Link href="/register" className="text-blue-600 hover:text-blue-500 font-medium transition-colors">
-            Register
-          </Link>
-        </p>
       </div>
 
       {/* Need Help card */}

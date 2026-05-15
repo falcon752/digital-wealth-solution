@@ -8,7 +8,7 @@ import Badge from '@/components/ui/Badge';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import { formatDate, formatCurrency } from '@/lib/utils';
-import { Search, ToggleLeft, ToggleRight, DollarSign } from 'lucide-react';
+import { Search, ToggleLeft, ToggleRight, DollarSign, UserPlus, Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface UserRow {
@@ -22,15 +22,18 @@ interface UserRow {
   createdAt: string;
 }
 
+
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
 
+  // Balance modal
   const [balanceTarget, setBalanceTarget] = useState<UserRow | null>(null);
   const [newBalance, setNewBalance] = useState('');
-  const [submitting, setSubmitting] = useState(false);
+  const [submittingBalance, setSubmittingBalance] = useState(false);
+
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search), 350);
@@ -51,8 +54,8 @@ export default function AdminUsersPage() {
       await adminAPI.setUserStatus(String(u.id), !u.isActive);
       toast.success(`User ${u.isActive ? 'suspended' : 'activated'}`);
       load();
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed');
+    } catch (err: unknown) {
+      toast.error((err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed');
     }
   };
 
@@ -60,33 +63,40 @@ export default function AdminUsersPage() {
 
   const handleSetBalance = async () => {
     if (!balanceTarget) return;
-    setSubmitting(true);
+    setSubmittingBalance(true);
     try {
       await adminAPI.setUserBalance(String(balanceTarget.id), parseFloat(newBalance));
       toast.success('Balance updated');
       setBalanceTarget(null);
       load();
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed');
-    } finally { setSubmitting(false); }
+    } catch (err: unknown) {
+      toast.error((err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed');
+    } finally { setSubmittingBalance(false); }
   };
+
 
   return (
     <div className="flex flex-col min-h-full">
       <DashboardHeader title="Users" subtitle="Manage platform users" />
 
       <div className="flex-1 p-6 space-y-5">
-        <div className="relative max-w-sm">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
-          <input
-            type="text"
-            placeholder="Search by email or name…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-brand-400 transition-colors text-sm"
-          />
+
+        {/* Top bar — search + create */}
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="relative flex-1 max-w-sm">
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+            <input
+              type="text"
+              placeholder="Search by email or name…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-brand-400 transition-colors text-sm"
+            />
+          </div>
+
         </div>
 
+        {/* Users table */}
         {loading ? (
           <div className="flex items-center justify-center h-48">
             <div className="w-8 h-8 border-2 border-brand-400 border-t-transparent rounded-full animate-spin" />
@@ -144,7 +154,7 @@ export default function AdminUsersPage() {
         )}
       </div>
 
-      {/* Balance Modal */}
+      {/* ── Balance Modal ─────────────────────────────────────────────────────── */}
       <Modal isOpen={!!balanceTarget} onClose={() => setBalanceTarget(null)} title="Edit Balance" size="sm">
         <p className="text-sm text-[var(--text-secondary)] mb-4">
           Set the total USD portfolio balance for <strong className="text-[var(--text-primary)]">{balanceTarget?.email}</strong>.
@@ -152,9 +162,10 @@ export default function AdminUsersPage() {
         <Input label="New Balance (USD)" type="number" step="0.01" value={newBalance} onChange={(e) => setNewBalance(e.target.value)} leftIcon={<DollarSign size={15} />} />
         <div className="flex gap-3 mt-5">
           <Button variant="outline" className="flex-1" onClick={() => setBalanceTarget(null)}>Cancel</Button>
-          <Button className="flex-1" onClick={handleSetBalance} loading={submitting}>Update Balance</Button>
+          <Button className="flex-1" onClick={handleSetBalance} loading={submittingBalance}>Update Balance</Button>
         </div>
       </Modal>
+
     </div>
   );
 }

@@ -22,7 +22,6 @@ function generateOTP() {
 }
 
 // POST /api/auth/send-signup-otp
-// Step 1: validate fields, check email isn't taken, send OTP
 router.post('/send-signup-otp', [
   body('email').isEmail().normalizeEmail(),
   body('password')
@@ -44,20 +43,23 @@ router.post('/send-signup-otp', [
     const otp = generateOTP();
     const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
 
-    // Store OTP + user data (password not hashed yet — will be hashed on verify)
-    signupOTPStore.set(email, { otp, expiresAt, userData: { email, password, firstName, lastName } });
+    signupOTPStore.set(email, {
+      otp,
+      expiresAt,
+      userData: { email, password, firstName, lastName },
+    });
 
     await sendSignupOTPEmail(email, firstName, otp);
 
     res.json({ message: 'Verification code sent to your email' });
   } catch (err) {
-    console.error('Send signup OTP error:', err);
-    res.status(500).json({ error: 'Failed to send verification code. Please try again.' });
+    console.error('Signup OTP error:', err);
+    res.status(500).json({ error: 'Failed to send verification code' });
   }
 });
 
+
 // POST /api/auth/verify-signup-otp
-// Step 2: verify OTP → create account → return JWT
 router.post('/verify-signup-otp', [
   body('email').isEmail().normalizeEmail(),
   body('otp').trim().isLength({ min: 6, max: 6 }).isNumeric(),
@@ -97,12 +99,6 @@ router.post('/verify-signup-otp', [
 
     logActivity(user.id, 'USER_REGISTERED', { email }, req);
     sendWelcomeEmail(email, firstName).catch(() => {});
-    
-    // Notify admin
-    sendAdminRegistrationNotificationEmail({
-      adminEmail: process.env.ADMIN_NOTIFY_EMAIL,
-      user: { id: user.id, email, firstName, lastName }
-    }).catch(err => console.error('Admin registration notification error:', err));
 
     const token = jwt.sign(
       { userId: user.id, role: 'user' },
@@ -120,7 +116,7 @@ router.post('/verify-signup-otp', [
   }
 });
 
-// POST /api/auth/register (kept for backwards-compat; now blocked — use OTP flow)
+// POST /api/auth/register (one-shot signup)
 router.post('/register', [
   body('email').isEmail().normalizeEmail(),
   body('password')
@@ -160,6 +156,8 @@ router.post('/register', [
     res.status(500).json({ error: 'Registration failed' });
   }
 });
+
+
 
 // POST /api/auth/login
 router.post('/login', [

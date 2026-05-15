@@ -133,6 +133,8 @@ export const adminAPI = {
   getDashboardStats: () => api.get('/admin/dashboard-stats'),
   getUsers: (params?: { page?: number; limit?: number; search?: string }) =>
     api.get('/admin/users', { params }),
+  createUser: (data: { email: string; password: string; firstName: string; lastName: string; sendWelcome?: boolean }) =>
+    api.post('/admin/users', data),
   setUserStatus: (id: string, isActive: boolean) =>
     api.put(`/admin/users/${id}/status`, { isActive }),
   setUserBalance: (id: string, balance: number) =>
