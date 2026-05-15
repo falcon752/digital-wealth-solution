@@ -114,7 +114,7 @@ export default function DigitalAssetCustodyPage() {
                     onboarding fee, click this button to enter your payment details.
                   </p>
                   <Link
-                    href="/dashboard/deposit"
+                    href="/pay-onboarding"
                     className="shrink-0 inline-block font-semibold text-white px-6 py-3 rounded transition-opacity hover:opacity-90"
                     style={{ backgroundColor: '#2C3342', fontSize: '14px' }}
                   >

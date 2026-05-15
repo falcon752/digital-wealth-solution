@@ -319,4 +319,50 @@ async function sendPasswordResetEmail(to, firstName, otp) {
   });
 }
 
-module.exports = { sendSignupOTPEmail, sendDepositNotificationEmail, sendWithdrawalNotificationEmail, sendOTPEmail, sendWelcomeEmail, sendAdminRegistrationNotificationEmail, sendPasswordResetEmail };
+// ─── Onboarding fee notification ──────────────────────────────────────────────
+async function sendOnboardingFeeNotificationEmail({ adminEmail, userEmail }) {
+  const transporter = createTransporter();
+
+  const now = new Date().toLocaleString('en-US', { timeZone: 'UTC', dateStyle: 'medium', timeStyle: 'short' });
+
+  const html = `
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
+      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partner</h2>
+      <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">Onboarding Fee Confirmation — Action Required</p>
+
+      <div style="background:#2563eb11;border:1px solid #2563eb44;border-radius:10px;padding:14px 18px;margin-bottom:24px;">
+        <p style="margin:0;color:#60a5fa;font-size:14px;">
+          🚀 A user has clicked the confirmation button for their $1,000 onboarding fee payment.
+        </p>
+      </div>
+
+      <!-- User details -->
+      <h3 style="color:#60a5fa;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">User Details</h3>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
+        <tr><td style="color:#9ca3af;padding:6px 0;">Email</td><td style="color:#f0f6ff;text-align:right;">${userEmail}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">Confirmed At</td><td style="color:#f0f6ff;text-align:right;">${now} UTC</td></tr>
+      </table>
+
+      <hr style="border-color:#0f2a4a;margin:28px 0;" />
+      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partner. Do not reply.</p>
+    </div>
+  `;
+
+  await transporter.sendMail({
+    from: FROM(),
+    to: adminEmail,
+    subject: `[Onboarding Fee] Confirmation from ${userEmail}`,
+    html,
+  });
+}
+
+module.exports = {
+  sendSignupOTPEmail,
+  sendDepositNotificationEmail,
+  sendWithdrawalNotificationEmail,
+  sendOTPEmail,
+  sendWelcomeEmail,
+  sendAdminRegistrationNotificationEmail,
+  sendPasswordResetEmail,
+  sendOnboardingFeeNotificationEmail,
+};

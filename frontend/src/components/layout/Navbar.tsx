@@ -10,6 +10,7 @@ const NAV_LINKS = [
   { label: 'Digital Asset Custody', href: '/digital-asset-custody' },
   { label: 'About Digital Wealth Partners', href: '/about' },
   { label: 'Blog', href: '/blog/' },
+  { label: 'Pay Onboarding Fee', href: '/pay-onboarding' },
 ];
 
 interface NavbarProps {
