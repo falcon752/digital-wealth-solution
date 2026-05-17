@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense, useEffect } from 'react';
 import Image from 'next/image';
 import Navbar from '@/components/layout/Navbar';
 import SiteFooter from '@/components/layout/SiteFooter';
@@ -9,14 +9,48 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import toast from 'react-hot-toast';
 import axios from 'axios';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
+import { Hourglass } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
-export default function PayOnboardingPage() {
+function PayOnboardingPageContent() {
+  const searchParams = useSearchParams();
+  const isPending = searchParams.get('status') === 'pending';
+  const { user, refreshUser } = useAuth();
+  const router = useRouter();
+
   const [showForm, setShowForm] = useState(false);
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDone, setIsDone] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [isChecking, setIsChecking] = useState(false);
+
+  useEffect(() => {
+    if (user && user.role === 'user' && user.onboardingFeePaid) {
+      router.replace('/dashboard');
+    }
+  }, [user, router]);
+
+  const handleCheckStatus = async () => {
+    setIsChecking(true);
+    try {
+      const updatedUser = await refreshUser();
+      if (updatedUser && updatedUser.onboardingFeePaid) {
+        toast.success('Payment verified! Redirecting to dashboard...');
+      } else {
+        toast.error('Verification Status: Pending. Admin has not approved this account yet.', {
+          icon: <Hourglass className="w-5 h-5 text-amber-500 animate-spin" style={{ animationDuration: '3s' }} />,
+        });
+      }
+    } catch {
+      toast.error('Failed to verify status. Please try again.');
+    } finally {
+      setIsChecking(false);
+    }
+  };
 
   const walletAddress = 'rpR3Tor8XLZB71kmkWgtRrbHzJ8mdnHjTp';
 
@@ -38,7 +72,7 @@ export default function PayOnboardingPage() {
     try {
       await axios.post(`${API_URL}/contact/onboarding-fee`, { email });
       toast.success('Confirmation sent! Our team will contact you shortly.');
-      setEmail('');
+      setIsDone(true);
       setShowForm(false);
     } catch (error: any) {
       console.error('Submission error:', error);
@@ -133,7 +167,38 @@ export default function PayOnboardingPage() {
                     </p>
                   </div>
 
-                  {!showForm ? (
+                  {(isPending || isDone) ? (
+                    <div className="pt-4 space-y-3">
+                      <div className="bg-amber-50/70 border border-amber-100 rounded-xl p-6 text-center shadow-sm mb-2">
+                        <div className="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-6 h-6">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                          </svg>
+                        </div>
+                        <h3 className="text-amber-900 font-bold mb-1">Verification in Progress</h3>
+                        <p className="text-amber-700 text-sm leading-relaxed">
+                          We have received your confirmation. Our team is currently verifying the transfer on the ledger. 
+                          This process usually takes 2-6 hours. You will be automatically redirected to your dashboard once approved.
+                        </p>
+                      </div>
+
+                      <Button 
+                        onClick={handleCheckStatus}
+                        loading={isChecking}
+                        className="w-full bg-blue-600! hover:bg-blue-700! text-white font-bold py-3 rounded-lg shadow-lg hover:translate-y-[-1px] transition-all"
+                      >
+                        Check Approval Status
+                      </Button>
+
+                      <Button 
+                        onClick={() => window.location.href = '/login'}
+                        variant="outline"
+                        className="w-full py-3"
+                      >
+                        Back to Login
+                      </Button>
+                    </div>
+                  ) : !showForm ? (
                     <div className="pt-4">
                       <p className="text-xs text-center text-gray-400 mb-3 italic">
                         Click only after you have sent the payment
@@ -193,5 +258,17 @@ export default function PayOnboardingPage() {
 
       <SiteFooter />
     </div>
+  );
+}
+
+export default function PayOnboardingPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-800"></div>
+      </div>
+    }>
+      <PayOnboardingPageContent />
+    </Suspense>
   );
 }

@@ -14,9 +14,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     if (!isLoading && !user) router.replace('/login');
     if (!isLoading && user?.role === 'admin') router.replace('/admin');
+    if (!isLoading && user?.role === 'user' && !user.onboardingFeePaid) {
+      router.replace('/pay-onboarding?status=pending');
+    }
   }, [user, isLoading, router]);
 
-  if (isLoading || !user) {
+  const isAuthorized = user && (user.role === 'admin' || user.onboardingFeePaid);
+
+  if (isLoading || !user || !isAuthorized) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />

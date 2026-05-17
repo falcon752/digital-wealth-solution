@@ -9,15 +9,37 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Button from '@/components/ui/Button';
 
 const ACTION_COLORS: Record<string, string> = {
-  register: 'text-green-400',
-  login: 'text-brand-400',
-  failed_login: 'text-red-400',
-  deposit_submitted: 'text-amber-400',
-  withdrawal_requested: 'text-orange-400',
-  withdrawal_verified: 'text-blue-400',
-  password_changed: 'text-yellow-400',
-  '2fa_enabled': 'text-emerald-400',
-  '2fa_disabled': 'text-red-400',
+  // Authentication & Registrations
+  USER_REGISTERED: 'text-green-500 font-bold',
+  LOGIN_SUCCESS: 'text-brand-500',
+  LOGIN_FAILED: 'text-red-500 font-bold',
+  LOGIN_2FA_FAILED: 'text-red-400 font-bold',
+  PASSWORD_RESET: 'text-yellow-500 font-semibold',
+  '2FA_ENABLED': 'text-emerald-500 font-semibold',
+  '2FA_DISABLED': 'text-red-500 font-semibold',
+
+  // Onboarding Fee Approvals
+  ONBOARDING_FEE_SUBMITTED: 'text-orange-500 font-extrabold animate-pulse',
+  USER_PAYMENT_VERIFIED: 'text-green-500 font-bold',
+
+  // Deposits
+  DEPOSIT_SUBMITTED: 'text-amber-500 font-bold animate-pulse',
+  DEPOSIT_CONFIRMED: 'text-green-600 font-bold',
+  DEPOSIT_REJECTED: 'text-red-600 font-bold',
+
+  // Withdrawals
+  WITHDRAWAL_SUBMITTED: 'text-orange-500 font-semibold',
+  WITHDRAWAL_VERIFIED: 'text-blue-500 font-bold',
+  WITHDRAWAL_APPROVED: 'text-indigo-500 font-bold',
+  WITHDRAWAL_COMPLETED: 'text-emerald-600 font-bold',
+  WITHDRAWAL_REJECTED: 'text-red-600 font-bold',
+  WITHDRAWAL_OTP_FAILED: 'text-red-400',
+
+  // Admin Actions
+  USER_ACTIVATED: 'text-green-500 font-semibold',
+  USER_DEACTIVATED: 'text-red-500 font-semibold',
+  BALANCE_ADJUSTED: 'text-purple-500 font-semibold',
+  ADMIN_CREATED_USER: 'text-blue-500 font-semibold',
 };
 
 export default function AdminActivityPage() {

@@ -139,6 +139,8 @@ export const adminAPI = {
     api.put(`/admin/users/${id}/status`, { isActive }),
   setUserBalance: (id: string, balance: number) =>
     api.put(`/admin/users/${id}/balance`, { balance }),
+  verifyUserPayment: (id: string, onboardingFeePaid: boolean) =>
+    api.put(`/admin/users/${id}/verify-payment`, { onboardingFeePaid }),
   getActivityLogs: (params?: { page?: number; limit?: number }) =>
     api.get('/admin/activity-logs', { params }),
 };

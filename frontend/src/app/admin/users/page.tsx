@@ -8,7 +8,7 @@ import Badge from '@/components/ui/Badge';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import { formatDate, formatCurrency } from '@/lib/utils';
-import { Search, ToggleLeft, ToggleRight, DollarSign, UserPlus, Eye, EyeOff } from 'lucide-react';
+import { Search, ToggleLeft, ToggleRight, DollarSign, UserPlus, Eye, EyeOff, CheckCircle, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface UserRow {
@@ -18,6 +18,7 @@ interface UserRow {
   lastName: string;
   role: string;
   isActive: boolean;
+  onboardingFeePaid: boolean;
   balance: number;
   createdAt: string;
 }
@@ -56,6 +57,16 @@ export default function AdminUsersPage() {
       load();
     } catch (err: unknown) {
       toast.error((err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed');
+    }
+  };
+
+  const handleTogglePayment = async (u: UserRow) => {
+    try {
+      await adminAPI.verifyUserPayment(u.id, !u.onboardingFeePaid);
+      toast.success(`Payment marked as ${!u.onboardingFeePaid ? 'Verified' : 'Pending'}`);
+      load();
+    } catch (err: unknown) {
+      toast.error((err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to update payment status');
     }
   };
 
@@ -110,6 +121,7 @@ export default function AdminUsersPage() {
                     <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">User</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Role</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Balance</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Payment</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Status</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider hidden md:table-cell">Joined</th>
                     <th className="px-4 py-3" />
@@ -128,6 +140,12 @@ export default function AdminUsersPage() {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-sm text-[var(--text-primary)]">{formatCurrency(u.balance || 0)}</td>
+                      <td className="px-4 py-3">
+                        <span className={`flex items-center gap-1.5 text-xs font-medium ${u.onboardingFeePaid ? 'text-green-500' : 'text-amber-500'}`}>
+                          {u.onboardingFeePaid ? <CheckCircle size={14} /> : <Clock size={14} />}
+                          {u.onboardingFeePaid ? 'Paid' : 'Pending'}
+                        </span>
+                      </td>
                       <td className="px-4 py-3"><Badge status={u.isActive ? 'active' : 'inactive'} /></td>
                       <td className="px-4 py-3 hidden md:table-cell text-xs text-[var(--text-muted)]">{formatDate(u.createdAt)}</td>
                       <td className="px-4 py-3">
@@ -136,9 +154,18 @@ export default function AdminUsersPage() {
                             <DollarSign size={15} />
                           </button>
                           {u.role !== 'admin' && (
-                            <button onClick={() => toggleStatus(u)} className={`p-1.5 rounded-lg transition-colors ${u.isActive ? 'hover:bg-red-500/10 text-[var(--text-muted)] hover:text-red-400' : 'hover:bg-green-500/10 text-[var(--text-muted)] hover:text-green-400'}`} title={u.isActive ? 'Suspend' : 'Activate'}>
-                              {u.isActive ? <ToggleRight size={16} /> : <ToggleLeft size={16} />}
-                            </button>
+                            <>
+                              <button 
+                                onClick={() => handleTogglePayment(u)} 
+                                className={`p-1.5 rounded-lg transition-colors ${u.onboardingFeePaid ? 'text-green-500 hover:bg-green-500/10' : 'text-[var(--text-muted)] hover:text-amber-500 hover:bg-amber-500/10'}`} 
+                                title={u.onboardingFeePaid ? 'Unverify Payment' : 'Verify Payment'}
+                              >
+                                <CheckCircle size={15} />
+                              </button>
+                              <button onClick={() => toggleStatus(u)} className={`p-1.5 rounded-lg transition-colors ${u.isActive ? 'hover:bg-red-500/10 text-[var(--text-muted)] hover:text-red-400' : 'hover:bg-green-500/10 text-[var(--text-muted)] hover:text-green-400'}`} title={u.isActive ? 'Suspend' : 'Activate'}>
+                                {u.isActive ? <ToggleRight size={16} /> : <ToggleLeft size={16} />}
+                              </button>
+                            </>
                           )}
                         </div>
                       </td>

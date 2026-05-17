@@ -10,6 +10,7 @@ import { X, LogOut } from 'lucide-react';
 import {
   BarChart2, Building2, CircleDollarSign,
   LayoutDashboard, ArrowDownToLine, ArrowUpFromLine, Users, Package, Activity,
+  CheckCircle,
 } from 'lucide-react';
 
 const userNav = [
@@ -23,6 +24,7 @@ const adminNav = [
   { href: '/admin/assets', icon: Package, label: 'Assets' },
   { href: '/admin/deposits', icon: ArrowDownToLine, label: 'Deposits' },
   { href: '/admin/withdrawals', icon: ArrowUpFromLine, label: 'Withdrawals' },
+  { href: '/admin/onboarding-payments', icon: CheckCircle, label: 'Onboarding Fee' },
   { href: '/admin/users', icon: Users, label: 'Users' },
   { href: '/admin/activity', icon: Activity, label: 'Activity Log' },
 ];

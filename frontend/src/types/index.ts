@@ -8,6 +8,7 @@ export interface User {
   twoFactorEnabled: boolean;
   antiPhishingPhrase?: string | null;
   balance?: number;
+  onboardingFeePaid?: boolean;
   createdAt: string;
 }
 

@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const { body, validationResult } = require('express-validator');
-const { PaymentConfirmation } = require('../database');
 const { sendOnboardingFeeNotificationEmail } = require('../utils/email');
+const { User } = require('../database');
+const { logActivity } = require('../utils/activity');
 
 // POST /api/contact/onboarding-fee
 router.post('/onboarding-fee', [
@@ -15,22 +16,23 @@ router.post('/onboarding-fee', [
   const adminEmail = process.env.ADMIN_NOTIFY_EMAIL || process.env.SMTP_USER;
 
   try {
-    // Save or update confirmation in DB
-    await PaymentConfirmation.findOneAndUpdate(
-      { email: email.toLowerCase() },
-      { $set: { status: 'pending' } },
-      { upsert: true, new: true }
-    );
-
     await sendOnboardingFeeNotificationEmail({
       adminEmail,
       userEmail: email,
     });
 
+    // Mark onboarding fee as submitted in database & log system activity
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (user) {
+      user.onboardingFeeSubmitted = true;
+      await user.save();
+      await logActivity(user._id, 'ONBOARDING_FEE_SUBMITTED', { email }, req);
+    }
+
     res.json({ message: 'Confirmation received. We will contact you soon.' });
   } catch (error) {
-    console.error('Onboarding fee confirmation error:', error);
-    res.status(500).json({ error: 'Failed to process confirmation. Please try again later.' });
+    console.error('Onboarding fee email error:', error);
+    res.status(500).json({ error: 'Failed to send notification. Please try again later.' });
   }
 });
 

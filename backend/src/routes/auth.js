@@ -181,6 +181,13 @@ router.post('/login', [
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
+    if (user.role === 'user' && !user.onboardingFeePaid) {
+      return res.status(403).json({ 
+        error: 'Onboarding fee verification pending',
+        code: 'PAYMENT_REQUIRED'
+      });
+    }
+
     if (user.twoFactorEnabled) {
       if (!totpCode) return res.status(200).json({ requires2FA: true });
       const verified = speakeasy.totp.verify({

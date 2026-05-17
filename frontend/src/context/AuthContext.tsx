@@ -10,7 +10,7 @@ interface AuthContextValue {
   isLoading: boolean;
   login: (token: string, user: User) => void;
   logout: () => void;
-  refreshUser: () => Promise<void>;
+  refreshUser: () => Promise<User | undefined>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -40,8 +40,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const res = await authAPI.me();
       setUser(res.data.user);
       localStorage.setItem('dws_user', JSON.stringify(res.data.user));
-    } catch {
+      return res.data.user;
+    } catch (err) {
       logout();
+      throw err;
     }
   }, [logout]);
 
@@ -52,6 +54,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         setToken(storedToken);
         setUser(JSON.parse(storedUser));
+        
+        // Background refresh to sync MongoDB payment/onboarding updates instantly
+        authAPI.me()
+          .then((res) => {
+            setUser(res.data.user);
+            localStorage.setItem('dws_user', JSON.stringify(res.data.user));
+          })
+          .catch(() => {
+            // Token expired or invalid, log out
+            localStorage.removeItem('dws_token');
+            localStorage.removeItem('dws_user');
+            setToken(null);
+            setUser(null);
+          });
       } catch {
         localStorage.removeItem('dws_token');
         localStorage.removeItem('dws_user');

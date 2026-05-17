@@ -50,8 +50,13 @@ export default function LoginPage() {
       login(res.data.token, res.data.user);
       toast.success(`Welcome back, ${res.data.user.firstName}!`);
       router.push(res.data.user.role === 'admin' ? '/admin' : '/dashboard');
-    } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Login failed';
+    } catch (err: any) {
+      const data = err.response?.data;
+      if (data?.code === 'PAYMENT_REQUIRED') {
+        router.push('/pay-onboarding?status=pending');
+        return;
+      }
+      const msg = data?.error || 'Login failed';
       toast.error(msg);
     } finally {
       setIsLoading(false);
@@ -135,6 +140,13 @@ export default function LoginPage() {
           <Button type="submit" className="w-full mt-2 bg-blue-600! hover:bg-blue-700! shadow-blue-600/30!" size="lg" loading={isLoading}>
             {requires2FA ? 'Verify & Sign In' : 'Sign In'}
           </Button>
+
+          <div className="text-center text-sm text-(--text-muted) pt-4 border-t border-gray-100 dark:border-gray-700/50 mt-4">
+            Don&apos;t have an account?{' '}
+            <Link href="/register" className="text-blue-600 hover:text-blue-500 font-semibold transition-colors">
+              Sign Up
+            </Link>
+          </div>
         </form>
       </div>
 
