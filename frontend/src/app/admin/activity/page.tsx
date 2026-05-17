@@ -21,6 +21,7 @@ const ACTION_COLORS: Record<string, string> = {
   // Onboarding Fee Approvals
   ONBOARDING_FEE_SUBMITTED: 'text-orange-500 font-extrabold animate-pulse',
   USER_PAYMENT_VERIFIED: 'text-green-500 font-bold',
+  INQUIRY_SUBMITTED: 'text-teal-500 font-bold animate-pulse',
 
   // Deposits
   DEPOSIT_SUBMITTED: 'text-amber-500 font-bold animate-pulse',

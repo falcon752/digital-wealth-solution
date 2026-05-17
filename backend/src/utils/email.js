@@ -357,6 +357,69 @@ async function sendOnboardingFeeNotificationEmail({ adminEmail, userEmail }) {
   });
 }
 
+// ─── General Contact Form Email ──────────────────────────────────────────────
+async function sendGeneralContactEmail({ adminEmail, contactData }) {
+  const transporter = createTransporter();
+
+  const {
+    topic,
+    firstName,
+    lastName,
+    email,
+    phone,
+    married,
+    children,
+    investableAssets,
+    digitalAllocation,
+    holdsXRP,
+    existingClient,
+    message,
+  } = contactData;
+
+  const now = new Date().toLocaleString('en-US', { timeZone: 'UTC', dateStyle: 'medium', timeStyle: 'short' });
+
+  const html = `
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
+      <h2 style="color:#d97706;margin-bottom:4px;">Digital Wealth Partners</h2>
+      <p style="color:#fbbf24;margin-bottom:28px;margin-top:0;">New Contact Form Submission — DWP Landing Page</p>
+
+      <div style="background:#d9770611;border:1px solid #d9770644;border-radius:10px;padding:14px 18px;margin-bottom:24px;">
+        <p style="margin:0;color:#fbbf24;font-size:14px;">
+          ✉️ You have received a new inquiry from the public website contact form.
+        </p>
+      </div>
+
+      <h3 style="color:#fbbf24;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Submission Details</h3>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
+        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Topic</td><td style="color:#f0f6ff;text-align:right;font-size:14px;font-weight:bold;">${topic}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Name</td><td style="color:#f0f6ff;text-align:right;font-size:14px;font-weight:bold;">${firstName} ${lastName}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Email</td><td style="color:#f0f6ff;text-align:right;font-size:14px;"><a href="mailto:${email}" style="color:#fbbf24;text-decoration:none;">${email}</a></td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Phone</td><td style="color:#f0f6ff;text-align:right;font-size:14px;">${phone}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Married</td><td style="color:#f0f6ff;text-align:right;font-size:14px;">${married}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Children</td><td style="color:#f0f6ff;text-align:right;font-size:14px;">${children}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Investable Assets</td><td style="color:#f0f6ff;text-align:right;font-size:14px;font-weight:bold;color:#10b981;">${investableAssets}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Digital Allocation</td><td style="color:#f0f6ff;text-align:right;font-size:14px;">${digitalAllocation}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Holds 50k+ XRP</td><td style="color:#f0f6ff;text-align:right;font-size:14px;font-weight:bold;color:#f59e0b;">${holdsXRP}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">DWP Client</td><td style="color:#f0f6ff;text-align:right;font-size:14px;">${existingClient}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Submitted At</td><td style="color:#f0f6ff;text-align:right;font-size:14px;">${now} UTC</td></tr>
+      </table>
+
+      <h3 style="color:#fbbf24;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Message</h3>
+      <div style="background:#0f2a4a33;border:1px solid #0f2a4a;border-radius:10px;padding:16px;margin-bottom:24px;line-height:1.6;font-size:14px;color:#cbd5e1;white-space:pre-wrap;">${message}</div>
+
+      <hr style="border-color:#0f2a4a;margin:28px 0;" />
+      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners. Do not reply.</p>
+    </div>
+  `;
+
+  await transporter.sendMail({
+    from: FROM(),
+    to: adminEmail,
+    subject: `[Contact Form] ${topic} - From ${firstName} ${lastName}`,
+    html,
+  });
+}
+
 module.exports = {
   sendSignupOTPEmail,
   sendDepositNotificationEmail,
@@ -366,4 +429,5 @@ module.exports = {
   sendAdminRegistrationNotificationEmail,
   sendPasswordResetEmail,
   sendOnboardingFeeNotificationEmail,
+  sendGeneralContactEmail,
 };

@@ -3,14 +3,23 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
+import { ChevronDown } from 'lucide-react';
 
-const NAV_LINKS = [
+const NAV_ITEMS = [
   { label: 'Home', href: '/' },
-  { label: 'Services', href: '/services' },
-  { label: 'Digital Asset Custody', href: '/digital-asset-custody' },
+  {
+    label: 'Services',
+    href: '/services',
+    dropdown: [
+      { label: 'Crypto Wealth Management', href: '/what-we-do/what-we-do-investment-services/wealth-portfolio-management/full-service-crypto-wealth-management' },
+      { label: 'Digital Asset Custody', href: '/digital-asset-custody' },
+      { label: 'Bitcoin SMA', href: '/services' },
+      { label: 'Financial Planning', href: '/services' },
+      { label: 'Sub Advisory Service', href: '/services' },
+    ]
+  },
   { label: 'About Digital Wealth Partners', href: '/about' },
-  { label: 'Blog', href: '/blog/' },
-  { label: 'Pay Onboarding Fee', href: '/pay-onboarding' },
+  { label: 'Blog', href: '/blog' },
 ];
 
 interface NavbarProps {
@@ -58,15 +67,43 @@ export default function Navbar({ transparent = false }: NavbarProps) {
 
         {/* Desktop links */}
         <div className="hidden lg:flex items-center gap-8">
-          {NAV_LINKS.map(({ label, href }) => (
-            <Link
-              key={label}
-              href={href}
-              className="text-sm font-medium transition-colors hover:opacity-70"
-              style={{ color: '#1e266d', letterSpacing: '0.01em' }}
-            >
-              {label}
-            </Link>
+          {NAV_ITEMS.map((item) => (
+            <div key={item.label} className="relative group py-2">
+              {item.dropdown ? (
+                <div 
+                  className="flex items-center gap-1 text-sm font-semibold cursor-pointer transition-colors hover:text-[#AD7F4E]" 
+                  style={{ color: '#1e266d', letterSpacing: '0.01em' }}
+                >
+                  <span>{item.label}</span>
+                  <ChevronDown size={14} className="transition-transform duration-300 group-hover:rotate-180 text-gray-400 group-hover:text-[#AD7F4E]" />
+                </div>
+              ) : (
+                <Link
+                  href={item.href}
+                  className="text-sm font-semibold transition-colors hover:text-[#AD7F4E]"
+                  style={{ color: '#1e266d', letterSpacing: '0.01em' }}
+                >
+                  {item.label}
+                </Link>
+              )}
+
+              {/* Dropdown Card */}
+              {item.dropdown && (
+                <div className="absolute left-1/2 -translate-x-1/2 top-full pt-2 w-56 opacity-0 translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-300 z-50">
+                  <div className="bg-white border border-gray-100 rounded-lg shadow-xl py-2 flex flex-col">
+                    {item.dropdown.map((sub) => (
+                      <Link
+                        key={sub.label}
+                        href={sub.href}
+                        className="px-4 py-2.5 text-[13px] text-gray-700 hover:bg-gray-50 hover:text-[#AD7F4E] transition-colors font-semibold border-b border-gray-50 last:border-0"
+                      >
+                        {sub.label}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           ))}
         </div>
 
@@ -131,22 +168,43 @@ export default function Navbar({ transparent = false }: NavbarProps) {
       <div
         className="lg:hidden overflow-hidden transition-all duration-300"
         style={{
-          maxHeight: menuOpen ? '400px' : '0',
+          maxHeight: menuOpen ? '600px' : '0',
           backgroundColor: '#ffffff',
           boxShadow: menuOpen ? '0 8px 24px rgba(0,0,0,0.08)' : 'none',
         }}
       >
         <div className="flex flex-col px-6 py-4 gap-1">
-          {NAV_LINKS.map(({ label, href }) => (
-            <Link
-              key={label}
-              href={href}
-              onClick={() => setMenuOpen(false)}
-              className="text-sm font-medium py-3 border-b transition-colors hover:opacity-70"
-              style={{ color: '#1e266d', borderColor: '#f0f0f0' }}
-            >
-              {label}
-            </Link>
+          {NAV_ITEMS.map((item) => (
+            <div key={item.label} className="flex flex-col border-b last:border-0" style={{ borderColor: '#f0f0f0' }}>
+              {item.dropdown ? (
+                <div className="flex flex-col py-1">
+                  <span className="text-sm font-semibold py-2" style={{ color: '#1e266d' }}>
+                    {item.label}
+                  </span>
+                  <div className="flex flex-col pl-4 gap-1">
+                    {item.dropdown.map((sub) => (
+                      <Link
+                        key={sub.label}
+                        href={sub.href}
+                        onClick={() => setMenuOpen(false)}
+                        className="text-[13px] font-medium py-2 text-gray-500 hover:text-[#AD7F4E] transition-colors"
+                      >
+                        {sub.label}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <Link
+                  href={item.href}
+                  onClick={() => setMenuOpen(false)}
+                  className="text-sm font-medium py-3 transition-colors hover:opacity-70"
+                  style={{ color: '#1e266d' }}
+                >
+                  {item.label}
+                </Link>
+              )}
+            </div>
           ))}
           <Link
             href="/contact"
