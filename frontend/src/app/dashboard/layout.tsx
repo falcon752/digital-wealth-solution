@@ -31,9 +31,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <SidebarProvider>
-      <div className="flex h-screen overflow-hidden bg-gray-100 dark:bg-gray-800">
+      <div className="flex h-screen overflow-hidden bg-gray-100 dark:bg-gray-900">
         <DashboardSidebar />
-        <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
+        <main className="flex-1 overflow-y-auto pb-16 md:pb-0 scrollbar-hide bg-white dark:bg-gray-900">
           {children}
         </main>
         <MobileBottomNav />

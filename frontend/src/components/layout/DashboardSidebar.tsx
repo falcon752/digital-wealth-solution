@@ -8,15 +8,18 @@ import { useSidebar } from '@/context/SidebarContext';
 import { cn } from '@/lib/utils';
 import { X, LogOut } from 'lucide-react';
 import {
+  Home, Database, ArrowLeftRight, Monitor, Settings,
   BarChart2, Building2, CircleDollarSign,
   LayoutDashboard, ArrowDownToLine, ArrowUpFromLine, Users, Package, Activity,
   CheckCircle,
 } from 'lucide-react';
 
 const userNav = [
-  { href: '/dashboard', icon: BarChart2, label: 'Overview' },
-  { href: '/dashboard/llc', icon: Building2, label: 'LLC Management' },
-  { href: '/dashboard/crypto', icon: CircleDollarSign, label: 'Manage Crypto Assets' },
+  { href: '/dashboard', icon: Home, label: 'Home' },
+  { href: '/dashboard/assets', icon: Database, label: 'Assets' },
+  { href: '/dashboard/swap', icon: ArrowLeftRight, label: 'Swap' },
+  { href: '/dashboard/link', icon: Monitor, label: 'Link Wallet' },
+  { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
 ];
 
 const adminNav = [
