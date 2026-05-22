@@ -32,7 +32,7 @@ export default function AdminDashboard() {
         ) : (
           <>
             {/* Stats */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <StatCard label="Total Users" value={stats?.totalUsers || 0} icon={<Users size={20} />} />
               <StatCard label="Active Users" value={stats?.activeUsers || 0} icon={<Users size={20} />} />
               <StatCard label="Active Assets" value={stats?.totalAssets || 0} icon={<Package size={20} />} />

@@ -132,7 +132,7 @@ export default function AdminDepositsPage() {
         )}
 
         {/* Tabs */}
-        <div className="flex gap-1 p-1 bg-[var(--bg-secondary)] rounded-xl w-fit">
+        <div className="flex flex-wrap gap-1 p-1 bg-[var(--bg-secondary)] rounded-xl w-fit">
           {TABS.map((t) => (
             <button
               key={t}
