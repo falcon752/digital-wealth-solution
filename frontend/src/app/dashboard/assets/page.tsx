@@ -2,21 +2,27 @@
 
 import { ArrowLeft, Search, Square } from 'lucide-react';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { assetsAPI } from '@/lib/api';
 
-const ASSETS = [
-  { symbol: 'BTC', name: 'Bitcoin', color: '#F7931A' },
-  { symbol: 'ETH', name: 'Ethereum', color: '#627EEA' },
-  { symbol: 'DOGE', name: 'Dogecoin', color: '#C2A633' },
-  { symbol: 'LTC', name: 'Litecoin', color: '#BFBBBB' },
-  { symbol: 'XRP', name: 'Ripple', color: '#23292F' },
-  { symbol: 'XLM', name: 'Stellar', color: '#08B5E5' },
-];
+function getAssetColor(symbol: string) {
+  const colors: Record<string, string> = {
+    BTC: '#F7931A', ETH: '#627EEA', DOGE: '#C2A633', LTC: '#BFBBBB',
+    XRP: '#23292F', XLM: '#08B5E5', USDT: '#26A17B', USDC: '#2775CA',
+    BNB: '#F3BA2F', SOL: '#14F195', ADA: '#0033AD'
+  };
+  return colors[symbol.toUpperCase()] || '#3b82f6';
+}
 
 export default function CryptoAssetsPage() {
   const [search, setSearch] = useState('');
+  const [dbAssets, setDbAssets] = useState<any[]>([]);
 
-  const filteredAssets = ASSETS.filter(a => 
+  useEffect(() => {
+    assetsAPI.list().then(res => setDbAssets(res.data.assets || [])).catch(console.error);
+  }, []);
+
+  const filteredAssets = dbAssets.filter(a => 
     a.name.toLowerCase().includes(search.toLowerCase()) || 
     a.symbol.toLowerCase().includes(search.toLowerCase())
   );
@@ -57,9 +63,15 @@ export default function CryptoAssetsPage() {
             <div key={asset.symbol} className="flex items-center justify-between px-4 py-4 border-b border-gray-50 dark:border-gray-800/50 hover:bg-gray-50 dark:hover:bg-gray-800/20 transition cursor-pointer">
               
               <div className="flex items-center gap-4">
-                <div className="w-[42px] h-[42px] rounded-full flex items-center justify-center text-white font-bold text-[19px] shadow-sm" style={{ backgroundColor: asset.color }}>
-                  {asset.symbol[0]}
-                </div>
+                <img 
+                  src={`https://assets.coincap.io/assets/icons/${asset.symbol.toLowerCase()}@2x.png`} 
+                  alt={asset.symbol} 
+                  className="w-[42px] h-[42px] rounded-full object-cover shadow-sm shrink-0 bg-white dark:bg-gray-800" 
+                  onError={(e) => {
+                    e.currentTarget.onerror = null; 
+                    e.currentTarget.src = `https://ui-avatars.com/api/?name=${asset.symbol[0]}&background=${getAssetColor(asset.symbol).replace('#','')}&color=fff&rounded=true&bold=true`;
+                  }}
+                />
                 <div className="flex flex-col">
                   <span className="font-bold text-gray-900 dark:text-white text-[16px] tracking-wide">
                     {asset.name} ({asset.symbol})
