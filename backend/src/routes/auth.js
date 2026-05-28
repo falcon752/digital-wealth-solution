@@ -108,7 +108,7 @@ router.post('/verify-signup-otp', [
 
     res.status(201).json({
       token,
-      user: { id: user.id, email, firstName, lastName, role: 'user' },
+      user: { id: user.id, email, firstName, lastName, role: 'user', onboardingFeePaid: user.onboardingFeePaid },
     });
   } catch (err) {
     console.error('Verify signup OTP error:', err);
@@ -149,7 +149,7 @@ router.post('/register', [
 
     res.status(201).json({
       token,
-      user: { id: user.id, email, firstName, lastName, role: 'user' },
+      user: { id: user.id, email, firstName, lastName, role: 'user', onboardingFeePaid: user.onboardingFeePaid },
     });
   } catch (err) {
     console.error('Register error:', err);
@@ -220,6 +220,7 @@ router.post('/login', [
         role: user.role,
         twoFactorEnabled: user.twoFactorEnabled,
         antiPhishingPhrase: user.antiPhishingPhrase,
+        onboardingFeePaid: user.onboardingFeePaid,
       },
     });
   } catch (err) {
