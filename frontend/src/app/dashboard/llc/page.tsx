@@ -10,10 +10,7 @@ import { formatDate } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
 import { CheckCircle2, Clock, AlertTriangle, X } from 'lucide-react';
 
-const TABS = [
-  { label: 'Dashboard', href: '/dashboard' },
-  { label: 'LLC Management', href: '/dashboard/llc' },
-];
+
 
 export default function LLCManagementPage() {
   const { user } = useAuth();
@@ -37,30 +34,14 @@ export default function LLCManagementPage() {
   useEffect(() => { load(); }, []);
 
   return (
-    <div className="flex flex-col min-h-full">
-      <DashboardHeader title="Business Dashboard" tabs={TABS} />
+    <div className="flex flex-col min-h-full pb-20">
+      <DashboardHeader title="Business Dashboard" />
 
-      {/* Welcome banner */}
-      {bannerVisible && (
-        <div className="bg-linear-to-r from-blue-500 to-blue-700 px-6 py-3 flex items-center justify-between shrink-0">
-          <p className="text-sm text-white">
-            👋 <strong>Welcome back, {user?.firstName}!</strong>{' '}
-            Manage your LLC applications and track your business formation progress.
-          </p>
-          <button
-            onClick={() => setBannerVisible(false)}
-            className="text-white/70 hover:text-white transition-colors ml-4 shrink-0"
-          >
-            <X size={16} />
-          </button>
-        </div>
-      )}
-
-      <div className="flex-1 p-6 space-y-6">
+      <div className="flex-1 p-5 space-y-6">
         {/* Page heading */}
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">LLC Management</h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+        <div className="pt-2">
+          <h2 className="text-[22px] font-extrabold text-gray-900 dark:text-white">LLC Management</h2>
+          <p className="text-[14px] font-medium text-gray-600 dark:text-gray-400 mt-1 leading-relaxed">
             Manage and track all your Limited Liability Companies.
           </p>
         </div>
@@ -72,59 +53,59 @@ export default function LLCManagementPage() {
         ) : (
           <>
             {/* Stat Cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               {/* Approved */}
-              <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5 flex items-center gap-4 shadow-sm">
-                <div className="w-10 h-10 rounded-lg bg-green-50 dark:bg-green-900/20 flex items-center justify-center shrink-0">
-                  <CheckCircle2 size={20} className="text-green-500" />
+              <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700/50 p-6 flex flex-col items-center justify-center gap-3 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
+                <div className="w-10 h-10 rounded-[12px] bg-green-50 dark:bg-green-900/30 flex items-center justify-center shrink-0">
+                  <CheckCircle2 size={18} className="text-green-500" />
                 </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.approved}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Approved</p>
-                </div>
-              </div>
-
-              {/* Pending */}
-              <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5 flex items-center gap-4 shadow-sm">
-                <div className="w-10 h-10 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 flex items-center justify-center shrink-0">
-                  <Clock size={20} className="text-yellow-500" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.pending}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Pending</p>
+                <div className="text-center">
+                  <p className="text-[20px] font-extrabold text-gray-900 dark:text-white leading-none mb-1.5">{stats.approved}</p>
+                  <p className="text-[13px] font-medium text-gray-500 dark:text-gray-400">Approved</p>
                 </div>
               </div>
 
               {/* Processing */}
-              <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5 flex items-center gap-4 shadow-sm">
-                <div className="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center shrink-0">
-                  <Clock size={20} className="text-blue-500" />
+              <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700/50 p-6 flex flex-col items-center justify-center gap-3 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
+                <div className="w-10 h-10 rounded-[12px] bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center shrink-0">
+                  <Clock size={18} className="text-[#2d68d8]" />
                 </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.processing}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Processing</p>
+                <div className="text-center">
+                  <p className="text-[20px] font-extrabold text-gray-900 dark:text-white leading-none mb-1.5">{stats.processing}</p>
+                  <p className="text-[13px] font-medium text-gray-500 dark:text-gray-400">Processing</p>
+                </div>
+              </div>
+
+              {/* Pending */}
+              <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700/50 p-6 flex flex-col items-center justify-center gap-3 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
+                <div className="w-10 h-10 rounded-[12px] bg-yellow-50 dark:bg-yellow-900/30 flex items-center justify-center shrink-0">
+                  <Clock size={18} className="text-yellow-500" />
+                </div>
+                <div className="text-center">
+                  <p className="text-[20px] font-extrabold text-gray-900 dark:text-white leading-none mb-1.5">{stats.pending}</p>
+                  <p className="text-[13px] font-medium text-gray-500 dark:text-gray-400">Pending</p>
                 </div>
               </div>
 
               {/* Rejected */}
-              <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5 flex items-center gap-4 shadow-sm">
-                <div className="w-10 h-10 rounded-lg bg-red-50 dark:bg-red-900/20 flex items-center justify-center shrink-0">
-                  <AlertTriangle size={20} className="text-red-500" />
+              <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700/50 p-6 flex flex-col items-center justify-center gap-3 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
+                <div className="w-10 h-10 rounded-[12px] bg-red-50 dark:bg-red-900/30 flex items-center justify-center shrink-0">
+                  <AlertTriangle size={18} className="text-red-500" />
                 </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.rejected}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Rejected</p>
+                <div className="text-center">
+                  <p className="text-[20px] font-extrabold text-gray-900 dark:text-white leading-none mb-1.5">{stats.rejected}</p>
+                  <p className="text-[13px] font-medium text-gray-500 dark:text-gray-400">Rejected</p>
                 </div>
               </div>
             </div>
 
             {/* Applications Table */}
-            <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">All Your LLCs</h3>
+            <div className="bg-white dark:bg-gray-900 rounded-xl border-none md:border md:border-gray-200 dark:border-gray-700 md:p-6 shadow-none md:shadow-sm">
+              <div className="flex flex-col mb-4">
+                <h3 className="text-[18px] font-bold text-gray-900 dark:text-white mb-3">All Your LLCs</h3>
                 <button
                   onClick={() => router.push('/dashboard/llc/start')}
-                  className="px-4 py-2 bg-[#1e3a5f] text-white text-sm font-semibold rounded-lg shadow hover:opacity-90 transition-opacity"
+                  className="w-full py-3.5 bg-[#1e3a8a] dark:bg-blue-600 text-white text-[15px] font-bold rounded-xl shadow hover:opacity-90 transition-opacity"
                 >
                   Form New LLC
                 </button>
