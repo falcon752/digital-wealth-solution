@@ -27,7 +27,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
+      <head suppressHydrationWarning>
         <link rel="icon" href="/hero-logo.png" type="image/png" />
         <link rel="apple-touch-icon" href="/hero-logo.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -36,6 +36,7 @@ export default function RootLayout({
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        suppressHydrationWarning
       >
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
           <AuthProvider>
