@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { usersAPI, assetsAPI } from '@/lib/api';
 import { formatCurrency } from '@/lib/utils';
-import { ArrowDown, QrCode, Zap, ArrowLeftRight, Layers, Bell, ChevronDown, List } from 'lucide-react';
+import { ArrowUp, ArrowDown, QrCode, Zap, ArrowLeftRight, Layers, Bell, ChevronDown, List } from 'lucide-react';
 import Link from 'next/link';
 
 // Helper to assign colors to crypto icons
