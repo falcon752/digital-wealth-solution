@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { useSidebar } from '@/context/SidebarContext';
 import { usersAPI, assetsAPI } from '@/lib/api';
 import { formatCurrency } from '@/lib/utils';
-import { ArrowUp, ArrowDown, QrCode, Zap, ArrowLeftRight, Layers, Bell, ChevronDown, List } from 'lucide-react';
+import { ArrowUp, ArrowDown, QrCode, Zap, ArrowLeftRight, Layers, Bell, ChevronDown, List, Menu } from 'lucide-react';
 import Link from 'next/link';
 
 // Helper to assign colors to crypto icons
@@ -19,6 +20,7 @@ function getAssetColor(symbol: string) {
 
 export default function UserDashboard() {
   const { user } = useAuth();
+  const { openSidebar } = useSidebar();
   const [stats, setStats] = useState<any>(null);
   const [dbAssets, setDbAssets] = useState<any[]>([]);
   const [prices, setPrices] = useState<Record<string, number>>({});
@@ -52,8 +54,8 @@ export default function UserDashboard() {
       
       {/* Header */}
       <header className="flex justify-between items-center px-4 py-4 bg-white dark:bg-gray-900 sticky top-0 z-10">
-        <button className="text-blue-600 dark:text-blue-500">
-          <Layers size={22} />
+        <button onClick={openSidebar} className="text-gray-900 dark:text-white hover:opacity-80 transition p-1 -ml-1">
+          <Menu size={24} />
         </button>
         <Link href="/dashboard/settings" className="flex items-center gap-1 font-semibold text-gray-900 dark:text-white text-base hover:opacity-80 transition cursor-pointer">
           Main Wallet 1 <ChevronDown size={18} className="text-gray-500" />
