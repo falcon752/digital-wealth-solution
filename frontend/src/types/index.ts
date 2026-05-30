@@ -19,6 +19,7 @@ export interface Asset {
   walletAddress: string;
   qrCodeImage?: string | null;
   qrCodeUrl?: string | null;
+  logoUrl?: string | null;
   network?: string;
   minDeposit?: number;
   isActive?: boolean;
