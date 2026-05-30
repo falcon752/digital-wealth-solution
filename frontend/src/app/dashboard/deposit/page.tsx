@@ -5,15 +5,15 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import toast from 'react-hot-toast';
-import { Copy, Check, Info } from 'lucide-react';
+import { Copy, Check, ChevronRight, X } from 'lucide-react';
 import { assetsAPI, depositsAPI } from '@/lib/api';
 import { Asset } from '@/types';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import Image from 'next/image';
 
 const schema = z.object({
-  assetId: z.string().min(1, 'Select an asset'),
   amount: z.string().min(1, 'Enter amount').refine((v) => !isNaN(Number(v)) && Number(v) > 0, 'Must be > 0'),
   txHash: z.string().optional(),
   usdValue: z.string().optional(),
@@ -28,22 +28,13 @@ export default function DepositPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  const { register, handleSubmit, watch, formState: { errors } } = useForm<DepositForm>({
+  const { register, handleSubmit, formState: { errors }, reset } = useForm<DepositForm>({
     resolver: zodResolver(schema),
   });
-
-  const assetId = watch('assetId');
 
   useEffect(() => {
     assetsAPI.list().then((res) => setAssets(res.data.assets)).catch(console.error);
   }, []);
-
-  useEffect(() => {
-    if (assetId) {
-      const found = assets.find((a) => a.id === assetId) || null;
-      setSelectedAsset(found);
-    }
-  }, [assetId, assets]);
 
   const copyAddress = async () => {
     if (!selectedAsset) return;
@@ -54,10 +45,11 @@ export default function DepositPage() {
   };
 
   const onSubmit = async (data: DepositForm) => {
+    if (!selectedAsset) return;
     setIsSubmitting(true);
     try {
       await depositsAPI.create({
-        assetId: data.assetId,
+        assetId: selectedAsset.id,
         amount: Number(data.amount),
         txHash: data.txHash,
         usdValue: data.usdValue ? Number(data.usdValue) : undefined,
@@ -65,17 +57,23 @@ export default function DepositPage() {
       toast.success('Deposit submitted! Awaiting admin confirmation.');
       setSubmitted(true);
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Failed to submit deposit';
+      const msg = (err as any)?.response?.data?.error || 'Failed to submit deposit';
       toast.error(msg);
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const resetFlow = () => {
+    setSubmitted(false);
+    setSelectedAsset(null);
+    reset();
+  };
+
   if (submitted) {
     return (
       <div className="flex flex-col min-h-full">
-        <DashboardHeader title="Deposit" />
+        <DashboardHeader title="Receive Crypto" />
         <div className="flex-1 flex items-center justify-center p-6">
           <div className="glass rounded-2xl p-10 text-center max-w-md">
             <div className="w-16 h-16 rounded-2xl bg-emerald-500/15 flex items-center justify-center mx-auto mb-4">
@@ -85,7 +83,7 @@ export default function DepositPage() {
             <p className="text-[var(--text-muted)] text-sm mb-6">
               Your deposit request has been submitted. The admin will verify and confirm your balance shortly.
             </p>
-            <Button onClick={() => setSubmitted(false)}>Make Another Deposit</Button>
+            <Button onClick={resetFlow}>Make Another Deposit</Button>
           </div>
         </div>
       </div>
@@ -93,121 +91,140 @@ export default function DepositPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-full">
-      <DashboardHeader title="Deposit" subtitle="Send crypto and notify us" />
-
-      <div className="flex-1 p-6">
-        <div className="max-w-2xl mx-auto space-y-6">
-          {/* Instructions */}
-          <div className="glass rounded-2xl p-5 flex gap-3">
-            <Info size={18} className="text-brand-400 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-[var(--text-muted)] space-y-1">
-              <p className="font-medium text-[var(--text-secondary)]">How to deposit:</p>
-              <ol className="list-decimal list-inside space-y-1">
-                <li>Select the crypto asset you want to deposit</li>
-                <li>Copy the wallet address shown below</li>
-                <li>Send the funds from your external wallet</li>
-                <li>Enter the transaction hash and submit this form</li>
-                <li>Wait for admin confirmation (usually within 24 hours)</li>
-              </ol>
+    <div className="flex flex-col min-h-full pb-20">
+      {!selectedAsset ? (
+        <>
+          <DashboardHeader title="Receive Crypto" subtitle="Select an asset to receive" />
+          <div className="flex-1 p-5">
+            <h2 className="text-[18px] font-bold text-gray-900 dark:text-white mb-4 px-1">Available Assets</h2>
+            <div className="space-y-3">
+              {assets.map((a) => (
+                <div
+                  key={a.id}
+                  onClick={() => setSelectedAsset(a)}
+                  className="flex items-center p-4 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700/50 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                >
+                  <div className="w-11 h-11 rounded-full overflow-hidden shrink-0 bg-gray-50 dark:bg-gray-700 flex items-center justify-center border border-gray-100 dark:border-gray-600">
+                    <Image 
+                      src={a.logoUrl || `https://ui-avatars.com/api/?name=${a.symbol}&background=random`} 
+                      alt={a.name} 
+                      width={44} height={44} 
+                      className="w-full h-full object-cover" 
+                      unoptimized
+                    />
+                  </div>
+                  <div className="ml-4 flex-1">
+                    <p className="font-bold text-[16px] text-gray-900 dark:text-white">{a.name}</p>
+                    <p className="text-[13px] font-medium text-gray-500 dark:text-gray-400 mt-0.5">{a.network || a.symbol}</p>
+                  </div>
+                  <ChevronRight size={20} className="text-gray-400" />
+                </div>
+              ))}
             </div>
           </div>
+        </>
+      ) : (
+        <div className="flex-1 bg-gray-50 dark:bg-gray-900 flex flex-col">
+          {/* Custom Header for Step 2 */}
+          <div className="flex items-center justify-between px-5 h-16 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 sticky top-0 z-10">
+            <button onClick={() => setSelectedAsset(null)} className="p-2 -ml-2 text-[#2d68d8] hover:text-blue-700 transition-colors">
+              <X size={20} strokeWidth={2.5} />
+            </button>
+            <h1 className="text-[17px] font-bold text-gray-900 dark:text-white">Receive {selectedAsset.name}</h1>
+            <div className="w-10"></div> {/* Spacer for exact centering */}
+          </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-            {/* Asset selector */}
-            <div>
-              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">
-                Select Asset
-              </label>
-              <select
-                {...register('assetId')}
-                className="w-full rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] bg-[var(--bg-input)] border border-[var(--border-color)] focus:outline-none focus:ring-2 focus:ring-brand-500/50"
-              >
-                <option value="">Select a cryptocurrency...</option>
-                {assets.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.name} ({a.symbol}) {a.network ? `· ${a.network}` : ''}
-                  </option>
-                ))}
-              </select>
-              {errors.assetId && <p className="mt-1.5 text-xs text-red-400">{errors.assetId.message}</p>}
+          <div className="flex-1 p-5 max-w-md mx-auto w-full space-y-6">
+            
+            {/* Screenshot Card UI */}
+            <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none dark:border dark:border-gray-700/50 flex flex-col items-center border border-gray-50">
+              
+              <div className="flex items-center justify-center gap-3 mb-2">
+                <div className="w-9 h-9 rounded-full bg-[#fef4ed] dark:bg-orange-900/20 flex items-center justify-center overflow-hidden shrink-0">
+                  <Image 
+                    src={selectedAsset.logoUrl || `https://ui-avatars.com/api/?name=${selectedAsset.symbol}&background=random`} 
+                    alt={selectedAsset.name} 
+                    width={24} height={24} 
+                    className="w-6 h-6 object-cover" 
+                    unoptimized
+                  />
+                </div>
+                <div>
+                  <h3 className="font-bold text-[16px] text-gray-900 dark:text-white">{selectedAsset.network || selectedAsset.name} Network</h3>
+                </div>
+              </div>
+              
+              <p className="text-[14px] font-medium text-[#8f9bb3] dark:text-gray-400 mb-8 text-center">Scan QR code to receive</p>
+              
+              {selectedAsset.qrCodeImage ? (
+                <div className="bg-white p-2 rounded-2xl mb-8">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={`http://localhost:5000${selectedAsset.qrCodeImage}`}
+                    alt="Wallet QR Code"
+                    className="w-48 h-48 object-contain"
+                  />
+                </div>
+              ) : (
+                <div className="w-48 h-48 bg-gray-50 dark:bg-gray-700 rounded-2xl mb-8 flex items-center justify-center text-gray-400 text-sm font-medium">
+                  No QR Code
+                </div>
+              )}
+
+              <div className="w-full bg-[#f4f6fa] dark:bg-gray-900/50 rounded-[14px] p-2 flex items-center justify-between gap-3">
+                <div className="flex-1 overflow-hidden">
+                  <p className="text-[13px] font-medium text-gray-600 dark:text-gray-300 truncate w-full pl-3">
+                    {selectedAsset.walletAddress}
+                  </p>
+                </div>
+                <button
+                  onClick={copyAddress}
+                  className="bg-[#2d68d8] text-white px-5 py-2.5 rounded-[10px] text-[14px] font-bold flex items-center gap-2 hover:bg-blue-700 transition-colors shrink-0"
+                >
+                  {copied ? <Check size={16} strokeWidth={2.5} /> : <Copy size={16} strokeWidth={2.5} />}
+                  Copy
+                </button>
+              </div>
             </div>
 
-            {/* Wallet Address Display */}
-            {selectedAsset && (
-              <div className="glass rounded-2xl p-5 space-y-4 border border-brand-500/20">
-                <p className="text-sm font-semibold text-[var(--text-secondary)]">
-                  Send to this address:
-                </p>
+            {/* Submission Form below */}
+            <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-700/50">
+              <h3 className="text-[16px] font-bold text-gray-900 dark:text-white mb-5">Confirm Deposit</h3>
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                <Input
+                  label="Amount sent"
+                  type="number"
+                  step="any"
+                  placeholder="0.00"
+                  error={errors.amount?.message}
+                  {...register('amount')}
+                />
+                
+                <Input
+                  label="USD Value (optional)"
+                  type="number"
+                  step="any"
+                  placeholder="Estimated USD value"
+                  error={errors.usdValue?.message}
+                  {...register('usdValue')}
+                />
+                
+                <Input
+                  label="Transaction Hash (optional)"
+                  placeholder="0x..."
+                  error={errors.txHash?.message}
+                  {...register('txHash')}
+                />
 
-                {/* QR Code */}
-                {selectedAsset.qrCodeImage && (
-                  <div className="flex justify-center">
-                    <div className="p-4 bg-white rounded-xl inline-block">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={`http://localhost:5000${selectedAsset.qrCodeImage}`}
-                        alt="Wallet QR Code"
-                        className="w-40 h-40 object-contain"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* Address */}
-                <div className="flex items-center gap-2 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-xl px-4 py-3">
-                  <code className="flex-1 text-xs text-brand-300 break-all font-mono">
-                    {selectedAsset.walletAddress}
-                  </code>
-                  <button
-                    type="button"
-                    onClick={copyAddress}
-                    className="flex-shrink-0 p-1.5 rounded-lg hover:bg-brand-500/15 text-[var(--text-muted)] hover:text-brand-400 transition-colors"
-                  >
-                    {copied ? <Check size={16} className="text-emerald-400" /> : <Copy size={16} />}
-                  </button>
-                </div>
-
-                {selectedAsset.network && (
-                  <p className="text-xs text-amber-400 flex items-center gap-1.5">
-                    <Info size={12} />
-                    Only send on the <strong>{selectedAsset.network}</strong> network
-                  </p>
-                )}
-              </div>
-            )}
-
-            <Input
-              label="Amount sent"
-              type="number"
-              step="any"
-              placeholder="0.00"
-              error={errors.amount?.message}
-              {...register('amount')}
-            />
-
-            <Input
-              label="USD Value (optional)"
-              type="number"
-              step="any"
-              placeholder="Estimated USD value"
-              error={errors.usdValue?.message}
-              {...register('usdValue')}
-            />
-
-            <Input
-              label="Transaction Hash (optional but recommended)"
-              placeholder="0x..."
-              error={errors.txHash?.message}
-              {...register('txHash')}
-            />
-
-            <Button type="submit" className="w-full" size="lg" loading={isSubmitting}>
-              Submit Deposit for Verification
-            </Button>
-          </form>
+                <Button type="submit" className="w-full bg-[#1e3a8a] text-white mt-2" size="lg" loading={isSubmitting}>
+                  Submit Details
+                </Button>
+              </form>
+            </div>
+            
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
