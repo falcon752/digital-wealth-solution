@@ -7,6 +7,7 @@ import { usersAPI, assetsAPI } from '@/lib/api';
 import { formatCurrency } from '@/lib/utils';
 import { ArrowUp, ArrowDown, QrCode, Zap, ArrowLeftRight, Layers, Bell, ChevronDown, List, Menu } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 // Helper to assign colors to crypto icons
 function getAssetColor(symbol: string) {
@@ -57,9 +58,10 @@ export default function UserDashboard() {
         <button onClick={openSidebar} className="text-gray-900 dark:text-white hover:opacity-80 transition p-1 -ml-1">
           <Menu size={24} />
         </button>
-        <Link href="/dashboard/settings" className="flex items-center gap-1 font-semibold text-gray-900 dark:text-white text-base hover:opacity-80 transition cursor-pointer">
-          Main Wallet 1 <ChevronDown size={18} className="text-gray-500" />
-        </Link>
+        <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center">
+          <Image src="/wyoming-light.png" alt="Logo" width={110} height={30} className="h-7 w-auto dark:hidden" priority />
+          <Image src="/wyoming-dark.png" alt="Logo" width={110} height={30} className="h-7 w-auto hidden dark:block" priority />
+        </div>
         <Link href="/dashboard/notifications" className="text-gray-900 dark:text-white relative hover:opacity-80 transition">
           <Bell size={22} />
           <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
