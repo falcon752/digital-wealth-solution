@@ -16,9 +16,8 @@ import {
 
 const userNav = [
   { href: '/dashboard', icon: BarChart2, label: 'Overview' },
-  { href: '/dashboard/wallet', icon: Database, label: 'Crypto Wallet' },
   { href: '/dashboard/llc', icon: Building2, label: 'LLC Management' },
-  { href: '/dashboard/assets', icon: CircleDollarSign, label: 'Manage Crypto Assets' },
+  { href: '/dashboard/wallet', icon: CircleDollarSign, label: 'Manage Crypto Assets' },
 ];
 
 const adminNav = [
