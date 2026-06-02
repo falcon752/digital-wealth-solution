@@ -17,6 +17,7 @@ function getAssetColor(symbol: string) {
 export default function CryptoAssetsPage() {
   const [search, setSearch] = useState('');
   const [dbAssets, setDbAssets] = useState<any[]>([]);
+  const [toggledAssets, setToggledAssets] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     assetsAPI.list().then(res => setDbAssets(res.data.assets || [])).catch(console.error);
@@ -26,6 +27,15 @@ export default function CryptoAssetsPage() {
     a.name.toLowerCase().includes(search.toLowerCase()) || 
     a.symbol.toLowerCase().includes(search.toLowerCase())
   );
+
+  const toggleAsset = (symbol: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setToggledAssets(prev => ({
+      ...prev,
+      [symbol]: !prev[symbol]
+    }));
+  };
 
   return (
     <div className="min-h-full flex flex-col bg-white dark:bg-gray-900 pb-10">
@@ -59,36 +69,44 @@ export default function CryptoAssetsPage() {
 
         {/* Asset List */}
         <div className="flex flex-col">
-          {filteredAssets.map((asset) => (
-            <div key={asset.symbol} className="flex items-center justify-between px-4 py-4 border-b border-gray-50 dark:border-gray-800/50 hover:bg-gray-50 dark:hover:bg-gray-800/20 transition cursor-pointer">
-              
-              <div className="flex items-center gap-4">
-                <img 
-                  src={`https://assets.coincap.io/assets/icons/${asset.symbol.toLowerCase()}@2x.png`} 
-                  alt={asset.symbol} 
-                  className="w-[42px] h-[42px] rounded-full object-cover shadow-sm shrink-0 bg-white dark:bg-gray-800" 
-                  onError={(e) => {
-                    e.currentTarget.onerror = null; 
-                    e.currentTarget.src = `https://ui-avatars.com/api/?name=${asset.symbol[0]}&background=${getAssetColor(asset.symbol).replace('#','')}&color=fff&rounded=true&bold=true`;
-                  }}
-                />
-                <div className="flex flex-col">
-                  <span className="font-bold text-gray-900 dark:text-white text-[16px] tracking-wide">
-                    {asset.name} ({asset.symbol})
-                  </span>
-                  <span className="text-[13px] text-[#a0a8b9] font-medium mt-0.5">
-                    0.00000000 {asset.symbol}
-                  </span>
+          {filteredAssets.map((asset) => {
+            const isToggled = toggledAssets[asset.symbol] || false;
+            return (
+              <div key={asset.symbol} className="flex items-center justify-between px-4 py-4 border-b border-gray-50 dark:border-gray-800/50 hover:bg-gray-50 dark:hover:bg-gray-800/20 transition">
+                
+                <Link href={`/dashboard/wallet/${asset.symbol.toLowerCase()}`} className="flex items-center gap-4 flex-1">
+                  <img 
+                    src={`https://assets.coincap.io/assets/icons/${asset.symbol.toLowerCase()}@2x.png`} 
+                    alt={asset.symbol} 
+                    className="w-[42px] h-[42px] rounded-full object-cover shadow-sm shrink-0 bg-white dark:bg-gray-800" 
+                    onError={(e) => {
+                      e.currentTarget.onerror = null; 
+                      e.currentTarget.src = `https://ui-avatars.com/api/?name=${asset.symbol[0]}&background=${getAssetColor(asset.symbol).replace('#','')}&color=fff&rounded=true&bold=true`;
+                    }}
+                  />
+                  <div className="flex flex-col">
+                    <span className="font-bold text-gray-900 dark:text-white text-[16px] tracking-wide">
+                      {asset.name} ({asset.symbol})
+                    </span>
+                    <span className="text-[13px] text-[#a0a8b9] font-medium mt-0.5">
+                      0.00000000 {asset.symbol}
+                    </span>
+                  </div>
+                </Link>
+                
+                {/* Toggle Switch */}
+                <div 
+                  onClick={(e) => toggleAsset(asset.symbol, e)}
+                  className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ease-in-out ${isToggled ? 'bg-[#2d68d8]' : 'bg-gray-200 dark:bg-gray-700'}`}
+                >
+                  <span
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${isToggled ? 'translate-x-[22px]' : 'translate-x-1'}`}
+                  />
                 </div>
+                
               </div>
-              
-              {/* Checkbox placeholder */}
-              <div className="text-gray-300 dark:text-gray-600">
-                <Square size={22} strokeWidth={1.5} />
-              </div>
-              
-            </div>
-          ))}
+            );
+          })}
 
           {filteredAssets.length === 0 && (
             <div className="py-10 text-center text-gray-400 font-medium">
