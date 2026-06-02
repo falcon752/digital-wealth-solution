@@ -15,8 +15,8 @@ import {
 } from 'lucide-react';
 
 const userNav = [
-  { href: '/dashboard', icon: BarChart2, label: 'Overview' },
-  { href: '/dashboard/llc', icon: Building2, label: 'LLC Management' },
+  { href: '/dashboard', icon: Building2, label: 'LLC Overview' },
+  { href: '/dashboard/wallet', icon: Database, label: 'Crypto Wallet' },
   { href: '/dashboard/assets', icon: CircleDollarSign, label: 'Manage Crypto Assets' },
   { href: '/dashboard/swap', icon: ArrowLeftRight, label: 'Swap' },
   { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
