@@ -131,16 +131,17 @@ export default function LLCManagementPage() {
                   
                   <div className="space-y-4">
                     {applications.map((app) => (
-                      <div key={app.id} className="flex justify-between items-center px-1 group cursor-pointer" onClick={() => router.push(`/dashboard/llc/${app.id}`)}>
+                      <div key={app.id} className="flex justify-between items-start px-1 group cursor-pointer border-b border-gray-50 dark:border-gray-800/50 pb-3 last:border-0 last:pb-0" onClick={() => router.push(`/dashboard/llc/${app.id}`)}>
                         <div className="flex flex-col flex-1 min-w-0 pr-4">
                           <span className="font-bold text-[15px] text-gray-900 dark:text-white truncate group-hover:text-[#2d68d8] transition-colors">{app.companyName}</span>
-                          <span className="text-[12px] font-medium text-gray-400 dark:text-gray-500">{formatDate(app.createdAt)}</span>
+                          <span className="text-[13px] font-medium text-[#6b7280] dark:text-gray-500 mt-0.5">{app.companyName} • {app.state}</span>
                         </div>
-                        <div className="w-[100px] text-right flex justify-end">
+                        <div className="flex flex-col items-end w-[130px] shrink-0">
                           <Badge 
                             status={app.status}
-                            className="w-fit"
+                            className="w-fit mb-1"
                           />
+                          <span className="text-[12px] font-medium text-[#6b7280] dark:text-gray-500">{app.createdAt.replace('T', ' ').substring(0, 19)}</span>
                         </div>
                       </div>
                     ))}
