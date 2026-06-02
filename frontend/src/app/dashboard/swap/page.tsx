@@ -1,11 +1,11 @@
 'use client';
 
-import { ArrowLeft, ArrowDownUp, ChevronDown } from 'lucide-react';
+import { ArrowLeft, ArrowDownUp, ChevronDown, ArrowRightLeft } from 'lucide-react';
 import Link from 'next/link';
 
 export default function SwapCryptoPage() {
   return (
-    <div className="min-h-full flex flex-col bg-[#f4f5f8] dark:bg-gray-900">
+    <div className="h-full min-h-[calc(100vh-64px)] flex flex-col bg-[#f4f5f8] dark:bg-gray-900">
       
       {/* Header */}
       <header className="flex items-center px-4 py-4 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 sticky top-0 z-10">
@@ -27,7 +27,7 @@ export default function SwapCryptoPage() {
             <span className="text-[13px] font-medium text-[#8e98bc]">Balance: <span className="text-[#8e98bc]">0.00000000</span> <span className="text-[#2d68d8] dark:text-blue-400">$0.00</span></span>
           </div>
           
-          <div className="bg-[#f4f5f8] dark:bg-gray-900/50 rounded-xl p-4 flex flex-col gap-4 border border-gray-50/50">
+          <div className="bg-[#f4f5f8] dark:bg-gray-900/50 rounded-xl p-4 flex flex-col gap-4 border border-gray-50/50 mb-8">
             <div className="flex justify-between items-center">
               <button className="flex items-center gap-1 font-bold text-gray-900 dark:text-white text-[15px]">
                 Bitcoin - 0.000000 <ChevronDown size={18} className="text-[#8e98bc]" />
@@ -51,9 +51,9 @@ export default function SwapCryptoPage() {
             </div>
           </div>
 
-          {/* SWAP ICON (ABSOLUTE CENTER) */}
-          <div className="absolute left-1/2 top-[166px] -translate-x-1/2 -translate-y-1/2 w-[42px] h-[42px] bg-[#2d68d8] rounded-full border-4 border-white dark:border-gray-800 flex items-center justify-center text-white z-10 shadow-sm cursor-pointer hover:bg-[#255bc2] transition">
-            <ArrowDownUp size={18} strokeWidth={2.5} />
+          {/* SWAP ICON */}
+          <div className="absolute left-1/2 top-[190px] -translate-x-1/2 -translate-y-1/2 w-[44px] h-[44px] bg-[#2d68d8] rounded-full border-4 border-white dark:border-gray-800 flex items-center justify-center text-white z-10 shadow-[0_2px_8px_rgba(0,0,0,0.12)] cursor-pointer hover:bg-[#255bc2] transition">
+            <ArrowRightLeft size={16} strokeWidth={3} className="-rotate-45" />
           </div>
 
           {/* TO SECTION */}
