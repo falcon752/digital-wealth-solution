@@ -18,8 +18,6 @@ const userNav = [
   { href: '/dashboard', icon: BarChart2, label: 'Overview' },
   { href: '/dashboard/llc', icon: Building2, label: 'LLC Management' },
   { href: '/dashboard/assets', icon: CircleDollarSign, label: 'Manage Crypto Assets' },
-  { href: '/dashboard/swap', icon: ArrowLeftRight, label: 'Swap' },
-  { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
 ];
 
 const adminNav = [
