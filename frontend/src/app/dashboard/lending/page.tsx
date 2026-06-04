@@ -189,7 +189,7 @@ export default function LendingPage() {
             </div>
 
             <Button 
-              className="w-full py-4 text-lg rounded-2xl bg-gray-900 hover:bg-black dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100"
+              className="w-full mt-2 py-4 text-lg rounded-2xl bg-blue-600! hover:bg-blue-700! text-white! shadow-lg shadow-blue-600/30!"
               onClick={() => {
                 if (Number(collateralAmount) > 0) setStep(2);
                 else toast.error('Please enter a collateral amount');
@@ -305,9 +305,9 @@ export default function LendingPage() {
             </div>
 
             <Button 
-              className="w-full py-4 text-lg rounded-2xl bg-gray-900 hover:bg-black dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100"
+              className="w-full mt-2 py-4 text-lg rounded-2xl bg-blue-600! hover:bg-blue-700! text-white! shadow-lg shadow-blue-600/30!"
               onClick={handleConfirm}
-              isLoading={isSubmitting}
+              loading={isSubmitting}
             >
               Confirm
             </Button>
