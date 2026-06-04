@@ -2,6 +2,7 @@
 
 import { ArrowLeft, ArrowDownUp, ChevronDown, ArrowRightLeft } from 'lucide-react';
 import Link from 'next/link';
+import ThemeToggle from '@/components/layout/ThemeToggle';
 
 export default function SwapCryptoPage() {
   return (
@@ -15,6 +16,9 @@ export default function SwapCryptoPage() {
         <h1 className="flex-1 text-center font-bold text-gray-900 dark:text-white text-[17px]">
           Swap Crypto
         </h1>
+        <div className="absolute right-4">
+          <ThemeToggle />
+        </div>
       </header>
 
       {/* Main Content */}

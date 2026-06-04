@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { ArrowLeft, Bell, Eye, Trash2 } from 'lucide-react';
+import ThemeToggle from '@/components/layout/ThemeToggle';
 
 export default function NotificationsPage() {
   
@@ -26,9 +27,12 @@ export default function NotificationsPage() {
         <h1 className="text-[17px] font-bold text-gray-900 dark:text-white">
           Notifications
         </h1>
-        <button className="text-[14px] font-bold text-[#2d68d8] dark:text-blue-500">
-          Mark All Read
-        </button>
+        <div className="flex items-center gap-3">
+          <ThemeToggle />
+          <button className="text-[14px] font-bold text-[#2d68d8] dark:text-blue-500">
+            Mark All Read
+          </button>
+        </div>
       </header>
 
       <div className="flex-1 px-4 mt-6">

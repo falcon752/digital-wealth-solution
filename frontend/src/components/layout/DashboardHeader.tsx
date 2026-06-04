@@ -92,7 +92,7 @@ export default function DashboardHeader({ title, subtitle, tabs }: DashboardHead
 
         {/* Right: theme toggle + avatar */}
         <div className="flex items-center gap-2 shrink-0">
-          <div className="hidden md:block">
+          <div>
             <ThemeToggle />
           </div>
           <div className="relative" ref={dropdownRef}>

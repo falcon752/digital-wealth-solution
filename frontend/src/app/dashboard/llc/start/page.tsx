@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { X, ArrowRight, Building2, RefreshCw, Shield, BarChart3, Layers, FileText } from 'lucide-react';
+import ThemeToggle from '@/components/layout/ThemeToggle';
 
 const STRUCTURES = [
   {
@@ -62,6 +63,7 @@ export default function LLCStartPage() {
           />
         </div>
         <div className="flex items-center gap-6">
+          <ThemeToggle />
           <button className="flex items-center gap-2 text-[15px] font-medium text-gray-700 hover:text-black">
             <FeedbackIcon className="text-gray-500" />
             Feedback

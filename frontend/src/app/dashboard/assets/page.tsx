@@ -4,6 +4,7 @@ import { ArrowLeft, Search, Square } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { assetsAPI } from '@/lib/api';
+import ThemeToggle from '@/components/layout/ThemeToggle';
 
 function getAssetColor(symbol: string) {
   const colors: Record<string, string> = {
@@ -48,6 +49,9 @@ export default function CryptoAssetsPage() {
         <h1 className="flex-1 text-center font-bold text-gray-900 dark:text-white text-[17px]">
           Crypto Assets
         </h1>
+        <div className="absolute right-4">
+          <ThemeToggle />
+        </div>
       </header>
 
       {/* Main Content */}

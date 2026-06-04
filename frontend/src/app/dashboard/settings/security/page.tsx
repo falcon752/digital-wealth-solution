@@ -6,6 +6,7 @@ import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { usersAPI } from '@/lib/api';
+import ThemeToggle from '@/components/layout/ThemeToggle';
 
 export default function SecuritySettingsPage() {
   const [loading, setLoading] = useState(false);
@@ -46,6 +47,9 @@ export default function SecuritySettingsPage() {
         <h1 className="flex-1 text-center font-bold text-gray-900 dark:text-white text-[17px]">
           Security Settings
         </h1>
+        <div className="absolute right-4">
+          <ThemeToggle />
+        </div>
       </header>
 
       <div className="flex-1 px-5 mt-4">

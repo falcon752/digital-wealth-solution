@@ -6,6 +6,7 @@ import { X, Lock } from 'lucide-react';
 import { llcAPI } from '@/lib/api';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
+import ThemeToggle from '@/components/layout/ThemeToggle';
 
 // --- Custom Icons matching the screenshots ---
 
@@ -155,6 +156,7 @@ function NewLLCForm() {
           />
         </div>
         <div className="flex items-center gap-6">
+          <ThemeToggle />
           <button className="flex items-center gap-2 text-[15px] font-medium text-gray-700 hover:text-black">
             <FeedbackIcon className="text-gray-500" />
             Feedback

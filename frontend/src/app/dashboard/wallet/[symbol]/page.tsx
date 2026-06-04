@@ -8,6 +8,7 @@ import { ArrowLeft, ArrowUpRight, ArrowDownLeft, Zap } from 'lucide-react';
 import { ArrowRightLeft } from 'lucide-react';
 import Link from 'next/link';
 import { ResponsiveContainer, LineChart, Line } from 'recharts';
+import ThemeToggle from '@/components/layout/ThemeToggle';
 
 // Mock chart data
 const generateMockData = (isPositive: boolean) => {
@@ -89,11 +90,14 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
           <span className="text-[10px] font-medium text-[#8f9bb3] tracking-widest mt-0.5 uppercase">COIN | {symbol}</span>
         </div>
 
-        <button className="text-[#8f9bb3] p-1 -mr-1">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 4l8 12H4z" />
-          </svg>
-        </button>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <button className="text-[#8f9bb3] p-1 -mr-1">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 4l8 12H4z" />
+            </svg>
+          </button>
+        </div>
       </header>
 
       {/* Price Section */}

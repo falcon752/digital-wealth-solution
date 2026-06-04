@@ -8,6 +8,7 @@ import {
   UserCheck, Key, Lock, LogOut, ChevronRight, Eye 
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import ThemeToggle from '@/components/layout/ThemeToggle';
 
 export default function SettingsPage() {
   const { logout } = useAuth();
@@ -29,7 +30,7 @@ export default function SettingsPage() {
         <h1 className="text-[17px] font-bold text-gray-900 dark:text-white">
           Settings
         </h1>
-        <div className="w-[30px]" /> {/* Spacer for centering */}
+        <ThemeToggle />
       </header>
 
       <div className="flex-1 flex flex-col px-4 mt-2">

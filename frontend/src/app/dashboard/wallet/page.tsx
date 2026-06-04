@@ -8,6 +8,7 @@ import { formatCurrency } from '@/lib/utils';
 import { ArrowUp, ArrowDown, QrCode, Zap, ArrowLeftRight, Layers, Bell, ChevronDown, List, Menu } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import ThemeToggle from '@/components/layout/ThemeToggle';
 
 // Helper to assign colors to crypto icons
 function getAssetColor(symbol: string) {
@@ -55,17 +56,22 @@ export default function UserDashboard() {
       
       {/* Header */}
       <header className="flex justify-between items-center px-4 py-4 bg-white dark:bg-gray-900 sticky top-0 z-10">
-        <button onClick={openSidebar} className="text-gray-900 dark:text-white hover:opacity-80 transition p-1 -ml-1">
-          <Menu size={24} />
-        </button>
-        <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center">
-          <Image src="/wyoming-light.png" alt="Logo" width={110} height={30} className="h-7 w-auto dark:hidden" priority />
-          <Image src="/wyoming-dark.png" alt="Logo" width={110} height={30} className="h-7 w-auto hidden dark:block" priority />
+        <div className="flex items-center gap-3">
+          <button onClick={openSidebar} className="text-gray-900 dark:text-white hover:opacity-80 transition p-1 -ml-1 shrink-0">
+            <Menu size={24} />
+          </button>
+          <div className="flex items-center">
+            <Image src="/wyoming-light.png" alt="Logo" width={110} height={30} className="h-7 w-auto dark:hidden" priority />
+            <Image src="/wyoming-dark.png" alt="Logo" width={110} height={30} className="h-7 w-auto hidden dark:block" priority />
+          </div>
         </div>
-        <Link href="/dashboard/notifications" className="text-gray-900 dark:text-white relative hover:opacity-80 transition">
-          <Bell size={22} />
-          <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
-        </Link>
+        <div className="flex items-center gap-3">
+          <ThemeToggle />
+          <Link href="/dashboard/notifications" className="text-gray-900 dark:text-white relative hover:opacity-80 transition">
+            <Bell size={22} />
+            <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+          </Link>
+        </div>
       </header>
 
       {/* Balance */}

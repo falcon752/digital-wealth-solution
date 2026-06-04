@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 
 const userNav = [
-  { href: '/dashboard', icon: Home, label: 'Home' },
+  { href: '/dashboard/wallet', icon: Home, label: 'Home' },
   { href: '/dashboard/assets', icon: Database, label: 'Assets' },
   { href: '/dashboard/link', icon: Monitor, label: 'Link Wallet' },
   { href: '/dashboard/settings', icon: Settings, label: 'Me' },
