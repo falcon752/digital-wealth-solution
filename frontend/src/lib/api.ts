@@ -144,3 +144,22 @@ export const adminAPI = {
   getActivityLogs: (params?: { page?: number; limit?: number }) =>
     api.get('/admin/activity-logs', { params }),
 };
+
+// ─── Loans ─────────────────────────────────────────────────────────────────
+export const loansAPI = {
+  create: (data: {
+    collateralAsset: string;
+    collateralAmount: number;
+    loanAsset: string;
+    loanAmount: number;
+    ltv: number;
+    apr: number;
+    monthlyInterest: number;
+    originationFee: number;
+    payoutAddress: string;
+  }) => api.post('/loans', data),
+  list: () => api.get('/loans'),
+  // admin
+  updateStatus: (id: string, data: { status: 'pending' | 'approved' | 'rejected'; adminNote?: string }) =>
+    api.put(`/loans/${id}/status`, data),
+};

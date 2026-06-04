@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { assetsAPI } from '@/lib/api';
+import { assetsAPI, loansAPI } from '@/lib/api';
 import { formatCurrency } from '@/lib/utils';
 import { Asset } from '@/types';
 import DashboardHeader from '@/components/layout/DashboardHeader';
@@ -82,13 +82,29 @@ export default function LendingPage() {
   const handleConfirm = async () => {
     if (!payoutAddress) return toast.error('Please enter a payout address');
     if (!termsAccepted) return toast.error('Please accept the terms');
+    if (!collateralAsset || !loanAsset) return toast.error('Please select assets');
     
     setIsSubmitting(true);
-    // Simulate API call
-    setTimeout(() => {
+    
+    try {
+      await loansAPI.create({
+        collateralAsset: collateralAsset.symbol,
+        collateralAmount: Number(collateralAmount),
+        loanAsset: loanAsset.symbol,
+        loanAmount,
+        ltv,
+        apr,
+        monthlyInterest,
+        originationFee,
+        payoutAddress
+      });
+      
       toast.success('Loan request submitted successfully!');
       router.push('/dashboard');
-    }, 1500);
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || 'Failed to submit loan request');
+      setIsSubmitting(false);
+    }
   };
 
   const filteredAssets = assets.filter(a => 

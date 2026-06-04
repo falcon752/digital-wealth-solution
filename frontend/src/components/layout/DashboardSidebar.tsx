@@ -26,6 +26,7 @@ const adminNav = [
   { href: '/admin/assets', icon: Package, label: 'Assets' },
   { href: '/admin/deposits', icon: ArrowDownToLine, label: 'Deposits' },
   { href: '/admin/withdrawals', icon: ArrowUpFromLine, label: 'Withdrawals' },
+  { href: '/admin/loans', icon: Coins, label: 'Loans' },
   { href: '/admin/onboarding-payments', icon: CheckCircle, label: 'Onboarding Fee' },
   { href: '/admin/users', icon: Users, label: 'Users' },
   { href: '/admin/activity', icon: Activity, label: 'Activity Log' },
