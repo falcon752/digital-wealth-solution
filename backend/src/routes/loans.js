@@ -1,12 +1,12 @@
 const express = require('express');
-const { requireAuth, requireAdmin } = require('../middleware/auth');
+const { authenticate, requireAdmin } = require('../middleware/auth');
 const { Loan, User } = require('../database');
 const { sendLoanNotificationEmail } = require('../utils/email');
 
 const router = express.Router();
 
 // Get loans (admin gets all, user gets their own)
-router.get('/', requireAuth, async (req, res) => {
+router.get('/', authenticate, async (req, res) => {
   try {
     const filter = req.user.role === 'admin' ? {} : { userId: req.user.id };
     const loans = await Loan.find(filter).populate('userId', 'firstName lastName email').sort({ createdAt: -1 });
@@ -18,7 +18,7 @@ router.get('/', requireAuth, async (req, res) => {
 });
 
 // Create a new loan request
-router.post('/', requireAuth, async (req, res) => {
+router.post('/', authenticate, async (req, res) => {
   try {
     const { collateralAsset, collateralAmount, loanAsset, loanAmount, ltv, apr, monthlyInterest, originationFee, payoutAddress } = req.body;
 
@@ -58,7 +58,7 @@ router.post('/', requireAuth, async (req, res) => {
 });
 
 // Admin update loan status
-router.put('/:id/status', requireAuth, requireAdmin, async (req, res) => {
+router.put('/:id/status', authenticate, requireAdmin, async (req, res) => {
   try {
     const { status, adminNote } = req.body;
     if (!['pending', 'approved', 'rejected'].includes(status)) {
