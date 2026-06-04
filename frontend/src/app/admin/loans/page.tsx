@@ -184,11 +184,7 @@ export default function AdminLoansPage() {
                         <div className="text-sm text-[var(--text-primary)]">APR: {(l.apr * 100).toFixed(0)}%</div>
                       </td>
                       <td className="p-4">
-                        <Badge
-                          variant={l.status === 'approved' ? 'success' : l.status === 'rejected' ? 'danger' : 'warning'}
-                        >
-                          {l.status}
-                        </Badge>
+                        <Badge status={l.status} />
                       </td>
                       <td className="p-4 text-sm text-[var(--text-muted)]">
                         {formatDate(l.createdAt)}
