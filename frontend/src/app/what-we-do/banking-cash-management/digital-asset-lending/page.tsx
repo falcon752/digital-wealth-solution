@@ -82,7 +82,7 @@ export default function DigitalAssetLendingPage() {
               },
               {
                 title: 'Loan-to-Value (LTV) Analysis',
-                desc: 'While many platforms offer up to 50% LTV, using maximum leverage may increase liquidation risk. We model various market scenarios using historical crypto price volatility, correlation with your other liquid assets, collateral transfer timelines, and differences between BTC, ETH, and alternative coins. This helps establish a target LTV designed to reduce forced liquidations during market drawdowns.',
+                desc: 'While many platforms offer up to 30% LTV, using maximum leverage may increase liquidation risk. We model various market scenarios using historical crypto price volatility, correlation with your other liquid assets, collateral transfer timelines, and differences between BTC, ETH, and alternative coins. This helps establish a target LTV designed to reduce forced liquidations during market drawdowns.',
               },
               {
                 title: 'Tax Coordination',
