@@ -47,16 +47,18 @@ export default function LendingPage() {
   const [loanAsset, setLoanAsset] = useState<Asset | null>(null);
   const [collateralAmount, setCollateralAmount] = useState('1');
   
+  // New LTV & APR states
+  const [ltv, setLtv] = useState(0.5); // Default 50%
+  const [aprOption, setAprOption] = useState({ apr: 0.1195, label: '11.95%', liqLtv: '80% Liq. LTV', term: 'Unlimited' });
+  const apr = aprOption.apr;
+  
   // Earn state
   const [earnAsset, setEarnAsset] = useState<Asset | null>(null);
   const [earnAmount, setEarnAmount] = useState('9800');
 
-  const ltv = 0.3; // 30%
-  const apr = 0.15; // 15% fixed
-  
   const earnApy = 0.05; // 5%
   
-  const [modalType, setModalType] = useState<'collateral' | 'loan' | 'earn' | null>(null);
+  const [modalType, setModalType] = useState<'collateral' | 'loan' | 'earn' | 'ltv' | 'apr' | null>(null);
   const [search, setSearch] = useState('');
   const [payoutAddress, setPayoutAddress] = useState('');
   const [email, setEmail] = useState('');
@@ -222,20 +224,26 @@ export default function LendingPage() {
 
                 {/* Stats */}
                 <div className="flex gap-2 mb-4">
-                  <div className="flex-1 bg-gray-50 dark:bg-gray-900/50 rounded-xl p-3 flex justify-between items-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                  <div 
+                    onClick={() => setModalType('ltv')}
+                    className="flex-1 bg-gray-50 dark:bg-gray-900/50 rounded-xl p-3 flex justify-between items-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  >
                     <div className="flex items-center gap-1 text-sm font-medium text-gray-500">
                       LTV <Info size={14} />
                     </div>
                     <div className="flex items-center gap-1 text-sm font-bold text-gray-900 dark:text-white">
-                      30% <ChevronDown size={14} />
+                      {ltv * 100}% <ChevronDown size={14} />
                     </div>
                   </div>
-                  <div className="flex-1 bg-gray-50 dark:bg-gray-900/50 rounded-xl p-3 flex justify-between items-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                  <div 
+                    onClick={() => setModalType('apr')}
+                    className="flex-1 bg-gray-50 dark:bg-gray-900/50 rounded-xl p-3 flex justify-between items-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  >
                     <div className="flex items-center gap-1 text-sm font-medium text-gray-500">
                       APR <Info size={14} />
                     </div>
                     <div className="flex items-center gap-1 text-sm font-bold text-gray-900 dark:text-white">
-                      15% <ChevronDown size={14} />
+                      {aprOption.label} <ChevronDown size={14} />
                     </div>
                   </div>
                 </div>
@@ -298,7 +306,7 @@ export default function LendingPage() {
                 </div>
 
                 <Button 
-                  className="w-full mt-2 py-4 text-lg rounded-2xl bg-gray-900! dark:bg-white! text-white! dark:text-gray-900! hover:bg-black! dark:hover:bg-gray-100! shadow-lg"
+                  className="w-full mt-2 py-4 text-lg rounded-2xl bg-blue-600! hover:bg-blue-700! text-white! shadow-lg shadow-blue-600/30!"
                   onClick={() => {
                     if (Number(earnAmount) > 0) setStep(2);
                     else toast.error('Please enter a deposit amount');
@@ -351,15 +359,15 @@ export default function LendingPage() {
               <div className="space-y-4 py-4 border-y border-gray-100 dark:border-gray-800">
                 <div className="flex justify-between items-center text-sm">
                   <span className="flex items-center gap-1 text-gray-500">Loan-to-Value <Info size={14} /></span>
-                  <span className="font-bold text-gray-900 dark:text-white">30%</span>
+                  <span className="font-bold text-gray-900 dark:text-white">{ltv * 100}%</span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="flex items-center gap-1 text-gray-500">APR <Info size={14} /></span>
-                  <span className="font-bold text-gray-900 dark:text-white">Fixed 15%</span>
+                  <span className="font-bold text-gray-900 dark:text-white">{aprOption.label}</span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="flex items-center gap-1 text-gray-500">Duration <Info size={14} /></span>
-                  <span className="font-bold text-gray-900 dark:text-white">Unlimited</span>
+                  <span className="font-bold text-gray-900 dark:text-white">{aprOption.term}</span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="flex items-center gap-1 text-gray-500">Monthly interest <Info size={14} /></span>
@@ -523,7 +531,7 @@ export default function LendingPage() {
       )}
 
       {/* Asset Selector Modal */}
-      {modalType && (
+      {(modalType === 'collateral' || modalType === 'loan' || modalType === 'earn') && (
         <div className="fixed inset-0 z-[100] flex flex-col bg-gray-100 dark:bg-gray-900 animate-in slide-in-from-bottom-full duration-300">
           <div className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0">
             <h2 className="text-lg font-bold text-gray-900 dark:text-white">Choose asset</h2>
@@ -575,6 +583,61 @@ export default function LendingPage() {
                 </div>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {/* LTV & APR Modals */}
+      {(modalType === 'ltv' || modalType === 'apr') && (
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/40 animate-in fade-in duration-200" onClick={() => setModalType(null)}>
+          <div 
+            className="w-full sm:max-w-md bg-white dark:bg-gray-800 rounded-t-[32px] sm:rounded-2xl flex flex-col animate-in slide-in-from-bottom-full duration-300 pb-safe"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex justify-between items-center p-6 mb-2">
+              <h2 className="text-[20px] font-medium text-gray-900 dark:text-white">
+                {modalType === 'ltv' ? 'Choose LTV' : 'Choose APR'}
+              </h2>
+              <button onClick={() => setModalType(null)} className="text-gray-400 hover:text-gray-600">
+                <X size={24} />
+              </button>
+            </div>
+            
+            {/* List */}
+            <div className="flex flex-col pb-8 px-2">
+              {modalType === 'ltv' && [0.5, 0.65, 0.8, 0.9].map((val) => (
+                <div 
+                  key={val}
+                  onClick={() => { setLtv(val); setModalType(null); }}
+                  className="flex items-center justify-between px-6 py-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                >
+                  <span className="text-[17px] text-gray-900 dark:text-white">{val * 100}%</span>
+                  {ltv === val && <Check size={20} className="text-blue-600" />}
+                </div>
+              ))}
+
+              {modalType === 'apr' && [
+                { apr: 0.1195, label: '11.95%', liqLtv: '80% Liq. LTV', term: 'Unlimited' },
+                { apr: 0.15, label: '15%', liqLtv: '95% Liq. LTV', term: 'Unlimited' },
+                { apr: 0.14, label: '14%', liqLtv: '95% Liq. LTV', term: '30 days' },
+              ].map((opt, idx) => (
+                <div 
+                  key={idx}
+                  onClick={() => { setAprOption(opt); setModalType(null); }}
+                  className="flex items-center justify-between px-6 py-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                >
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[17px] text-gray-900 dark:text-white">{opt.label}</span>
+                    <span className="text-[15px] text-gray-400">{opt.liqLtv}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-[17px] text-gray-900 dark:text-white">{opt.term}</span>
+                    {aprOption.apr === opt.apr && <Check size={20} className="text-blue-600" />}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}

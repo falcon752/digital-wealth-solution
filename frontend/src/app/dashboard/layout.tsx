@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { SidebarProvider } from '@/context/SidebarContext';
 import DashboardSidebar from '@/components/layout/DashboardSidebar';
@@ -19,12 +19,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   }, [user, isLoading, router]);
 
+  const pathname = usePathname();
   const isAuthorized = user && (user.role === 'admin' || user.onboardingFeePaid);
 
   if (isLoading || !user || !isAuthorized) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  const isLLCIntakePage = pathname?.includes('/dashboard/llc/new') || pathname?.includes('/dashboard/llc/start');
+
+  if (isLLCIntakePage) {
+    return (
+      <div className="flex flex-col min-h-screen bg-white">
+        {children}
       </div>
     );
   }
