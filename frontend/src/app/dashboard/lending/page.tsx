@@ -112,7 +112,6 @@ export default function LendingPage() {
             <div className="flex bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-1 mb-4">
               <button className="flex-1 py-2.5 rounded-xl bg-white dark:bg-gray-800 shadow-sm text-sm font-bold text-gray-900 dark:text-white">Borrow</button>
               <button className="flex-1 py-2.5 rounded-xl text-sm font-medium text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors">Earn</button>
-              <button className="flex-1 py-2.5 rounded-xl text-sm font-medium text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors">Trade</button>
             </div>
 
             {/* Collateral Input */}
@@ -267,13 +266,13 @@ export default function LendingPage() {
                 <label className="flex justify-between items-center text-sm font-medium text-gray-500 mb-2">
                   <span className="flex items-center gap-1">Your {loanAsset?.symbol} payout address <Info size={14} /></span>
                 </label>
-                <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-3 border border-gray-100 dark:border-gray-700 flex items-center gap-2 mb-2">
-                  <AssetIcon symbol={loanAsset?.symbol || ''} />
-                  <span className="font-bold text-gray-900 dark:text-white text-sm">My Wallet</span>
-                </div>
-                <button className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors">
-                  Switch to external wallet
-                </button>
+                <Input 
+                  type="text" 
+                  placeholder={`Enter your ${loanAsset?.symbol || 'wallet'} address`} 
+                  value={payoutAddress}
+                  onChange={(e) => setPayoutAddress(e.target.value)}
+                  className="rounded-xl"
+                />
               </div>
 
               <div>
