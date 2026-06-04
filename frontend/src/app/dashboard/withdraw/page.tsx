@@ -33,14 +33,28 @@ export default function WithdrawPage() {
   const [totpCode, setTotpCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const { register, handleSubmit, formState: { errors } } = useForm<WithdrawForm>({
+  const { register, handleSubmit, formState: { errors }, setValue } = useForm<WithdrawForm>({
     resolver: zodResolver(withdrawSchema),
   });
 
   useEffect(() => {
-    assetsAPI.list().then((r) => setAssets(r.data.assets));
+    assetsAPI.list().then((r) => {
+      const fetchedAssets = r.data.assets || [];
+      setAssets(fetchedAssets);
+
+      if (typeof window !== 'undefined') {
+        const searchParams = new URLSearchParams(window.location.search);
+        const preselectedSymbol = searchParams.get('asset');
+        if (preselectedSymbol) {
+          const match = fetchedAssets.find((a: Asset) => a.symbol.toUpperCase() === preselectedSymbol.toUpperCase());
+          if (match) {
+            setValue('assetId', match.id);
+          }
+        }
+      }
+    });
     usersAPI.getBalance().then((r) => setBalance(r.data.balance));
-  }, []);
+  }, [setValue]);
 
   const onSubmit = async (data: WithdrawForm) => {
     setIsLoading(true);

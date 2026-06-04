@@ -33,7 +33,19 @@ export default function DepositPage() {
   });
 
   useEffect(() => {
-    assetsAPI.list().then((res) => setAssets(res.data.assets)).catch(console.error);
+    assetsAPI.list().then((res) => {
+      const fetchedAssets = res.data.assets || [];
+      setAssets(fetchedAssets);
+      
+      if (typeof window !== 'undefined') {
+        const searchParams = new URLSearchParams(window.location.search);
+        const preselectedSymbol = searchParams.get('asset');
+        if (preselectedSymbol) {
+          const match = fetchedAssets.find((a: Asset) => a.symbol.toUpperCase() === preselectedSymbol.toUpperCase());
+          if (match) setSelectedAsset(match);
+        }
+      }
+    }).catch(console.error);
   }, []);
 
   const copyAddress = async () => {
