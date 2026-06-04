@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { assetsAPI } from '@/lib/api';
+import { assetsAPI, usersAPI } from '@/lib/api';
 import { formatCurrency } from '@/lib/utils';
-import { ArrowLeft, ArrowUpRight, ArrowDownLeft, Zap, Home as HomeIcon } from 'lucide-react';
+import { ArrowLeft, ArrowUpRight, ArrowDownLeft, Zap } from 'lucide-react';
 import { ArrowRightLeft } from 'lucide-react';
 import Link from 'next/link';
 import { ResponsiveContainer, LineChart, Line } from 'recharts';
@@ -36,10 +36,17 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
   const [chartData, setChartData] = useState<any[]>([]);
   const [timeframe, setTimeframe] = useState('1H');
   const [activeTab, setActiveTab] = useState('Holdings');
-  
-  // Mock balances
-  const balanceCrypto = 0.00000;
-  const balanceUsd = 0.00;
+  const [balanceUsd, setBalanceUsd] = useState<number>(0);
+
+  // Sync with backend USD balance
+  useEffect(() => {
+    usersAPI.getDashboardStats().then((res) => {
+      setBalanceUsd(res.data.balance || 0);
+    }).catch(console.error);
+  }, []);
+
+  // Calculate crypto equivalent
+  const balanceCrypto = price > 0 ? balanceUsd / price : 0;
 
   // Mock price change (matches screenshot if XRP)
   const priceChangePercent = symbol === 'XRP' ? -0.41 : 2.4;
@@ -69,7 +76,7 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
   const tabs = ['Holdings', 'History', 'About'];
 
   return (
-    <div className="min-h-full flex flex-col bg-white pb-20">
+    <div className="min-h-full flex flex-col bg-white">
       
       {/* Header */}
       <header className="flex items-center justify-between px-4 py-3 bg-white sticky top-0 z-10 border-b border-gray-100">
@@ -142,6 +149,34 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
         })}
       </div>
 
+      {/* Action Buttons (Restored above tabs to replace the custom bottom nav) */}
+      <div className="px-4 mb-6 mt-2 flex items-center justify-around">
+        <Link href={`/dashboard/withdraw?asset=${symbol}`} className="flex flex-col items-center justify-center gap-2">
+          <div className="w-12 h-12 rounded-full bg-[#f4f5f8] text-[#2d68d8] flex items-center justify-center transition-colors hover:bg-gray-200">
+            <ArrowUpRight size={22} strokeWidth={2.5} />
+          </div>
+          <span className="text-[12px] font-bold text-[#1e2335]">Send</span>
+        </Link>
+        <Link href={`/dashboard/deposit?asset=${symbol}`} className="flex flex-col items-center justify-center gap-2">
+          <div className="w-12 h-12 rounded-full bg-[#f4f5f8] text-[#2d68d8] flex items-center justify-center transition-colors hover:bg-gray-200">
+            <ArrowDownLeft size={22} strokeWidth={2.5} />
+          </div>
+          <span className="text-[12px] font-bold text-[#1e2335]">Receive</span>
+        </Link>
+        <button className="flex flex-col items-center justify-center gap-2">
+          <div className="w-12 h-12 rounded-full bg-[#2d68d8] text-white flex items-center justify-center shadow-[0_4px_12px_rgba(45,104,216,0.3)] transition-colors hover:bg-blue-700">
+            <Zap size={22} strokeWidth={2.5} className="fill-current" />
+          </div>
+          <span className="text-[12px] font-bold text-[#1e2335]">Buy</span>
+        </button>
+        <Link href="/dashboard/swap" className="flex flex-col items-center justify-center gap-2">
+          <div className="w-12 h-12 rounded-full bg-[#f4f5f8] text-[#2d68d8] flex items-center justify-center transition-colors hover:bg-gray-200">
+            <ArrowRightLeft size={22} strokeWidth={2.5} />
+          </div>
+          <span className="text-[12px] font-bold text-[#1e2335]">Swap</span>
+        </Link>
+      </div>
+
       <div className="w-full h-[1px] bg-gray-100"></div>
 
       {/* Tabs */}
@@ -196,36 +231,6 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
           </div>
         </div>
       )}
-
-      {/* Custom Fixed Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-[50] bg-white border-t border-gray-100 safe-area-pb shadow-[0_-4px_20px_rgba(0,0,0,0.03)] pb-2">
-        <div className="flex items-center justify-between px-6 h-[68px]">
-          <Link href={`/dashboard/withdraw?asset=${symbol}`} className="flex flex-col items-center justify-center gap-1.5 min-w-[60px] text-[#8f9bb3]">
-            <ArrowUpRight size={22} strokeWidth={2} />
-            <span className="text-[11px] font-semibold">Send</span>
-          </Link>
-          
-          <Link href={`/dashboard/deposit?asset=${symbol}`} className="flex flex-col items-center justify-center gap-1.5 min-w-[60px] text-[#8f9bb3]">
-            <ArrowDownLeft size={22} strokeWidth={2} />
-            <span className="text-[11px] font-semibold">Receive</span>
-          </Link>
-          
-          <Link href="/dashboard/swap" className="flex flex-col items-center justify-center gap-1.5 min-w-[60px] text-[#8f9bb3]">
-            <ArrowRightLeft size={22} strokeWidth={2} className="-rotate-45" />
-            <span className="text-[11px] font-semibold">Swap</span>
-          </Link>
-          
-          <button className="flex flex-col items-center justify-center gap-1.5 min-w-[60px] text-[#2d68d8]">
-            <Zap size={22} strokeWidth={2.5} className="fill-current" />
-            <span className="text-[11px] font-bold">Buy</span>
-          </button>
-          
-          <Link href="/dashboard/wallet" className="flex flex-col items-center justify-center gap-1.5 min-w-[60px] text-[#8f9bb3]">
-            <HomeIcon size={22} strokeWidth={2} />
-            <span className="text-[11px] font-semibold">Home</span>
-          </Link>
-        </div>
-      </nav>
 
     </div>
   );
