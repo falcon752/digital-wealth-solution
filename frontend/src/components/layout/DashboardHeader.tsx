@@ -42,7 +42,7 @@ export default function DashboardHeader({ title, subtitle, tabs }: DashboardHead
     <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-10">
       <div className="flex items-center justify-between px-4 md:px-6 h-16 gap-3">
 
-        {/* Left: hamburger (mobile) */}
+        {/* Left: hamburger and title (or logo on mobile) */}
         <div className="flex items-center gap-2 min-w-0 md:min-w-[auto]">
           <button
             onClick={openSidebar}
@@ -52,6 +52,12 @@ export default function DashboardHeader({ title, subtitle, tabs }: DashboardHead
             <Menu size={24} />
           </button>
           
+          {/* Logo (Mobile only) */}
+          <div className="md:hidden flex items-center ml-1">
+            <Image src="/wyoming-light.png" alt="Logo" width={110} height={30} className="h-7 w-auto dark:hidden" priority />
+            <Image src="/wyoming-dark.png" alt="Logo" width={110} height={30} className="h-7 w-auto hidden dark:block" priority />
+          </div>
+
           {/* Title (Desktop only) */}
           <div className="hidden md:block min-w-0">
             <h1 className="text-base md:text-lg font-bold text-gray-900 dark:text-white truncate">{title}</h1>
@@ -59,12 +65,6 @@ export default function DashboardHeader({ title, subtitle, tabs }: DashboardHead
               <p className="text-xs text-gray-500 dark:text-gray-400 truncate hidden sm:block">{subtitle}</p>
             )}
           </div>
-        </div>
-
-        {/* Center: Logo (Mobile only) */}
-        <div className="md:hidden absolute left-1/2 -translate-x-1/2 flex items-center justify-center">
-          <Image src="/wyoming-light.png" alt="Logo" width={110} height={30} className="h-7 w-auto dark:hidden" priority />
-          <Image src="/wyoming-dark.png" alt="Logo" width={110} height={30} className="h-7 w-auto hidden dark:block" priority />
         </div>
 
         {/* Center tabs — desktop only */}
