@@ -149,33 +149,7 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
         })}
       </div>
 
-      {/* Action Buttons (Restored above tabs to replace the custom bottom nav) */}
-      <div className="px-4 mb-6 mt-2 flex items-center justify-around">
-        <Link href={`/dashboard/withdraw?asset=${symbol}`} className="flex flex-col items-center justify-center gap-2">
-          <div className="w-12 h-12 rounded-full bg-[#f4f5f8] text-[#2d68d8] flex items-center justify-center transition-colors hover:bg-gray-200">
-            <ArrowUpRight size={22} strokeWidth={2.5} />
-          </div>
-          <span className="text-[12px] font-bold text-[#1e2335]">Send</span>
-        </Link>
-        <Link href={`/dashboard/deposit?asset=${symbol}`} className="flex flex-col items-center justify-center gap-2">
-          <div className="w-12 h-12 rounded-full bg-[#f4f5f8] text-[#2d68d8] flex items-center justify-center transition-colors hover:bg-gray-200">
-            <ArrowDownLeft size={22} strokeWidth={2.5} />
-          </div>
-          <span className="text-[12px] font-bold text-[#1e2335]">Receive</span>
-        </Link>
-        <button className="flex flex-col items-center justify-center gap-2">
-          <div className="w-12 h-12 rounded-full bg-[#2d68d8] text-white flex items-center justify-center shadow-[0_4px_12px_rgba(45,104,216,0.3)] transition-colors hover:bg-blue-700">
-            <Zap size={22} strokeWidth={2.5} className="fill-current" />
-          </div>
-          <span className="text-[12px] font-bold text-[#1e2335]">Buy</span>
-        </button>
-        <Link href="/dashboard/swap" className="flex flex-col items-center justify-center gap-2">
-          <div className="w-12 h-12 rounded-full bg-[#f4f5f8] text-[#2d68d8] flex items-center justify-center transition-colors hover:bg-gray-200">
-            <ArrowRightLeft size={22} strokeWidth={2.5} />
-          </div>
-          <span className="text-[12px] font-bold text-[#1e2335]">Swap</span>
-        </Link>
-      </div>
+      {/* Action Buttons removed per user request */}
 
       <div className="w-full h-[1px] bg-gray-100"></div>
 
