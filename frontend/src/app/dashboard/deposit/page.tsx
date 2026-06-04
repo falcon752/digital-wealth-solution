@@ -13,6 +13,16 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Image from 'next/image';
 
+// Helper to assign colors to crypto icons
+function getAssetColor(symbol: string) {
+  const colors: Record<string, string> = {
+    BTC: '#F7931A', ETH: '#627EEA', DOGE: '#C2A633', LTC: '#BFBBBB',
+    XRP: '#23292F', XLM: '#08B5E5', USDT: '#26A17B', USDC: '#2775CA',
+    BNB: '#F3BA2F', SOL: '#14F195', ADA: '#0033AD'
+  };
+  return colors[symbol.toUpperCase()] || '#3b82f6';
+}
+
 const schema = z.object({
   amount: z.string().min(1, 'Enter amount').refine((v) => !isNaN(Number(v)) && Number(v) > 0, 'Must be > 0'),
   txHash: z.string().optional(),
@@ -117,12 +127,14 @@ export default function DepositPage() {
                   className="flex items-center p-4 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700/50 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
                 >
                   <div className="w-11 h-11 rounded-full overflow-hidden shrink-0 bg-gray-50 dark:bg-gray-700 flex items-center justify-center border border-gray-100 dark:border-gray-600">
-                    <Image 
-                      src={a.logoUrl || `https://ui-avatars.com/api/?name=${a.symbol}&background=random`} 
-                      alt={a.name} 
-                      width={44} height={44} 
+                    <img 
+                      src={`https://assets.coincap.io/assets/icons/${a.symbol.toLowerCase()}@2x.png`} 
+                      alt={a.symbol} 
                       className="w-full h-full object-cover" 
-                      unoptimized
+                      onError={(e) => {
+                        e.currentTarget.onerror = null; 
+                        e.currentTarget.src = `https://ui-avatars.com/api/?name=${a.symbol[0]}&background=${getAssetColor(a.symbol).replace('#','')}&color=fff&rounded=true&bold=true`;
+                      }}
                     />
                   </div>
                   <div className="ml-4 flex-1">
@@ -153,12 +165,14 @@ export default function DepositPage() {
               
               <div className="flex items-center justify-center gap-3 mb-2">
                 <div className="w-9 h-9 rounded-full bg-[#fef4ed] dark:bg-orange-900/20 flex items-center justify-center overflow-hidden shrink-0">
-                  <Image 
-                    src={selectedAsset.logoUrl || `https://ui-avatars.com/api/?name=${selectedAsset.symbol}&background=random`} 
-                    alt={selectedAsset.name} 
-                    width={24} height={24} 
+                  <img 
+                    src={`https://assets.coincap.io/assets/icons/${selectedAsset.symbol.toLowerCase()}@2x.png`} 
+                    alt={selectedAsset.symbol} 
                     className="w-6 h-6 object-cover" 
-                    unoptimized
+                    onError={(e) => {
+                      e.currentTarget.onerror = null; 
+                      e.currentTarget.src = `https://ui-avatars.com/api/?name=${selectedAsset.symbol[0]}&background=${getAssetColor(selectedAsset.symbol).replace('#','')}&color=fff&rounded=true&bold=true`;
+                    }}
                   />
                 </div>
                 <div>
