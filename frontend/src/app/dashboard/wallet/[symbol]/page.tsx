@@ -10,16 +10,10 @@ import Link from 'next/link';
 import { ResponsiveContainer, LineChart, Line } from 'recharts';
 import ThemeToggle from '@/components/layout/ThemeToggle';
 
-// Mock chart data
-const generateMockData = (isPositive: boolean) => {
-  const data = [];
-  let currentPrice = 100;
-  for (let i = 0; i < 30; i++) {
-    const change = (Math.random() - (isPositive ? 0.3 : 0.7)) * 5;
-    currentPrice += change;
-    data.push({ time: i, price: currentPrice });
-  }
-  return data;
+const symbolToId: Record<string, string> = {
+  BTC: 'bitcoin', ETH: 'ethereum', DOGE: 'dogecoin', LTC: 'litecoin',
+  XRP: 'xrp', XLM: 'stellar', USDT: 'tether', USDC: 'usd-coin',
+  BNB: 'binance-coin', SOL: 'solana', ADA: 'cardano'
 };
 
 export default function SingleAssetWalletPage({ params }: { params: Promise<{ symbol: string }> | { symbol: string } }) {
@@ -35,9 +29,14 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
   const [assetInfo, setAssetInfo] = useState<any>(null);
   const [price, setPrice] = useState<number>(0);
   const [chartData, setChartData] = useState<any[]>([]);
-  const [timeframe, setTimeframe] = useState('1H');
+  const [timeframe, setTimeframe] = useState('1D');
   const [activeTab, setActiveTab] = useState('Holdings');
   const [balanceUsd, setBalanceUsd] = useState<number>(0);
+
+  // Computed metrics
+  const [priceChangeAmount, setPriceChangeAmount] = useState<number>(0);
+  const [priceChangePercent, setPriceChangePercent] = useState<number>(0);
+  const isPositive = priceChangePercent >= 0;
 
   // Sync with backend USD balance
   useEffect(() => {
@@ -46,29 +45,99 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
     }).catch(console.error);
   }, []);
 
-  // Calculate crypto equivalent
   const balanceCrypto = price > 0 ? balanceUsd / price : 0;
-
-  // Mock price change (matches screenshot if XRP)
-  const priceChangePercent = symbol === 'XRP' ? -0.41 : 2.4;
-  const priceChangeAmount = symbol === 'XRP' ? 147337866001.00 : (price * (priceChangePercent / 100));
-  const isPositive = priceChangePercent >= 0;
 
   useEffect(() => {
     if (!symbol) return;
+    
+    // 1. Fetch asset info
     assetsAPI.list().then(res => {
       const assets = res.data.assets || [];
       const found = assets.find((a: any) => a.symbol.toUpperCase() === symbol);
       if (found) setAssetInfo(found);
     }).catch(console.error);
 
+    // 2. Fetch current price
     assetsAPI.prices().then(res => {
       const prices = res.data.prices || {};
-      setPrice(prices[symbol] || (symbol === 'XRP' ? 2.45 : 0));
+      setPrice(prices[symbol] || 0);
     }).catch(console.error);
     
-    setChartData(generateMockData(isPositive));
-  }, [symbol, isPositive]);
+  }, [symbol]);
+
+  // 3. Fetch Historical Data whenever timeframe changes
+  useEffect(() => {
+    if (!symbol) return;
+    
+    const fetchHistory = async () => {
+      const end = Date.now();
+      let start = end;
+      let interval = 'd1';
+
+      switch (timeframe) {
+        case '1H':
+          start = end - 60 * 60 * 1000;
+          interval = 'm1';
+          break;
+        case '1D':
+          start = end - 24 * 60 * 60 * 1000;
+          interval = 'm15';
+          break;
+        case '1W':
+          start = end - 7 * 24 * 60 * 60 * 1000;
+          interval = 'h2';
+          break;
+        case '1M':
+          start = end - 30 * 24 * 60 * 60 * 1000;
+          interval = 'h12';
+          break;
+        case '1Y':
+          start = end - 365 * 24 * 60 * 60 * 1000;
+          interval = 'd1';
+          break;
+        case 'All':
+          start = end - 5 * 365 * 24 * 60 * 60 * 1000;
+          interval = 'd1';
+          break;
+      }
+
+      try {
+        const id = symbolToId[symbol] || symbol.toLowerCase();
+        const res = await fetch(`https://api.coincap.io/v2/assets/${id}/history?interval=${interval}&start=${start}&end=${end}`);
+        const data = await res.json();
+        
+        if (data && data.data && data.data.length > 0) {
+          const mappedData = data.data.map((d: any) => ({
+            time: d.time,
+            price: parseFloat(d.priceUsd)
+          }));
+          
+          setChartData(mappedData);
+
+          // Calculate changes
+          const startPrice = mappedData[0].price;
+          const currentPrice = price > 0 ? price : mappedData[mappedData.length - 1].price;
+          
+          const changeAmt = currentPrice - startPrice;
+          const changePct = (changeAmt / startPrice) * 100;
+          
+          setPriceChangeAmount(changeAmt);
+          setPriceChangePercent(changePct);
+          
+          // Fallback if price API didn't load yet
+          if (price === 0) setPrice(currentPrice);
+        } else {
+          setChartData([]);
+          setPriceChangeAmount(0);
+          setPriceChangePercent(0);
+        }
+      } catch (err) {
+        console.error("Failed to fetch history:", err);
+      }
+    };
+
+    fetchHistory();
+  }, [symbol, timeframe, price]);
 
   if (!symbol) return null;
 
