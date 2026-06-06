@@ -466,7 +466,7 @@ router.get('/assets', authenticate, requireAdmin, async (req, res) => {
 });
 
 // GET /api/admin/referrals
-router.get('/referrals', authenticate, authorizeAdmin, async (req, res) => {
+router.get('/referrals', authenticate, requireAdmin, async (req, res) => {
   const { page = 1, limit = 20, search } = req.query;
   const offset = (parseInt(page) - 1) * parseInt(limit);
   
