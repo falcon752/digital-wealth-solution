@@ -1,20 +1,51 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Bell, Eye, Trash2 } from 'lucide-react';
+import { ArrowLeft, Bell, Eye, Trash2, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
 import ThemeToggle from '@/components/layout/ThemeToggle';
+import { usersAPI } from '@/lib/api';
 
 export default function NotificationsPage() {
-  
-  const notifications = [
-    {
-      id: 1,
-      title: 'Deposit Received',
-      message: 'Your account has been credited with 10,000.00000000 XRP',
-      time: '3 weeks ago',
-      isUnread: true
-    }
-  ];
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    usersAPI.getDashboardStats().then((res) => {
+      const txs = res.data?.recentTransactions || [];
+      const mapped = txs.map((tx: any) => {
+        const isDeposit = tx.type === 'deposit';
+        let title = '';
+        let message = '';
+
+        if (isDeposit) {
+          title = tx.status === 'confirmed' ? 'Deposit Confirmed' : 'Deposit Processing';
+          message = `Your deposit of ${tx.amount} ${tx.assetSymbol} has been ${tx.status}.`;
+        } else {
+          title = tx.status === 'completed' ? 'Withdrawal Completed' : 'Withdrawal Processing';
+          message = `Your withdrawal of ${tx.amount} ${tx.assetSymbol} is ${tx.status}.`;
+        }
+
+        // Generate relative time string
+        const diff = Math.floor((new Date().getTime() - new Date(tx.createdAt).getTime()) / 1000);
+        let timeStr = 'Just now';
+        if (diff > 86400) timeStr = `${Math.floor(diff / 86400)} days ago`;
+        else if (diff > 3600) timeStr = `${Math.floor(diff / 3600)} hours ago`;
+        else if (diff > 60) timeStr = `${Math.floor(diff / 60)} minutes ago`;
+
+        return {
+          id: tx.id,
+          title,
+          message,
+          time: timeStr,
+          isUnread: true,
+          type: tx.type,
+          status: tx.status
+        };
+      });
+      setNotifications(mapped);
+    }).catch(console.error).finally(() => setLoading(false));
+  }, []);
 
   return (
     <div className="min-h-full flex flex-col bg-white dark:bg-gray-900 pb-20">
@@ -29,25 +60,32 @@ export default function NotificationsPage() {
         </h1>
         <div className="flex items-center gap-3">
           <ThemeToggle />
-          <button className="text-[14px] font-bold text-[#2d68d8] dark:text-blue-500">
-            Mark All Read
+          <button className="text-[14px] font-bold text-[#2d68d8] dark:text-blue-500 hover:opacity-80">
+            Clear All
           </button>
         </div>
       </header>
 
       <div className="flex-1 px-4 mt-6">
         <div className="space-y-4">
-          {notifications.map((notif) => (
+          {loading && (
+            <div className="text-center py-10 text-gray-400 font-medium">Loading notifications...</div>
+          )}
+          
+          {!loading && notifications.map((notif) => (
             <div key={notif.id} className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/50 rounded-2xl p-4 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] relative overflow-hidden">
               
               <div className="flex items-start gap-4">
                 {/* Icon */}
-                <div className="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 mt-1">
-                  <Bell size={18} />
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 mt-1
+                  ${notif.type === 'deposit' 
+                    ? 'bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400' 
+                    : 'bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400'}`}>
+                  {notif.type === 'deposit' ? <ArrowDownLeft size={18} /> : <ArrowUpRight size={18} />}
                 </div>
                 
                 {/* Content */}
-                <div className="flex-1 pr-14">
+                <div className="flex-1 pr-4">
                   <h3 className="font-bold text-[16px] text-gray-900 dark:text-white mb-1">
                     {notif.title}
                   </h3>
@@ -60,22 +98,13 @@ export default function NotificationsPage() {
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="absolute top-4 right-4 flex items-center gap-2">
-                <button className="w-8 h-8 rounded-full bg-gray-50 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-gray-100 transition">
-                  <Eye size={16} />
-                </button>
-                <button className="w-8 h-8 rounded-full bg-gray-50 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-red-50 hover:text-red-500 transition">
-                  <Trash2 size={16} />
-                </button>
-              </div>
-
             </div>
           ))}
 
-          {notifications.length === 0 && (
-            <div className="text-center py-10 text-gray-400 font-medium">
-              No notifications
+          {!loading && notifications.length === 0 && (
+            <div className="text-center py-10 text-gray-400 font-medium flex flex-col items-center">
+              <Bell size={40} className="text-gray-200 dark:text-gray-700 mb-3" />
+              <p>No notifications yet</p>
             </div>
           )}
         </div>

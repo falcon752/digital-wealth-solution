@@ -102,7 +102,7 @@ router.get('/dashboard-stats', authenticate, async (req, res) => {
 
     const userObjectId = new mongoose.Types.ObjectId(userId);
 
-    const [user, depositedAgg, withdrawnAgg, pendingDeposits, pendingWithdrawals, recentDeposits, recentWithdrawals] =
+    const [user, depositedAgg, withdrawnAgg, pendingDeposits, pendingWithdrawals, recentDeposits, recentWithdrawals, assetDeposits, assetWithdrawals] =
       await Promise.all([
         User.findById(userId).select('balance'),
         Deposit.aggregate([
@@ -117,6 +117,14 @@ router.get('/dashboard-stats', authenticate, async (req, res) => {
         Withdrawal.countDocuments({ userId, status: { $in: ['pending', 'approved'] } }),
         Deposit.find({ userId }).sort({ createdAt: -1 }).limit(10).populate('assetId', 'name symbol').lean(),
         Withdrawal.find({ userId }).sort({ createdAt: -1 }).limit(10).populate('assetId', 'name symbol').lean(),
+        Deposit.aggregate([
+          { $match: { userId: userObjectId, status: 'confirmed' } },
+          { $group: { _id: '$assetId', total: { $sum: '$amount' } } },
+        ]),
+        Withdrawal.aggregate([
+          { $match: { userId: userObjectId, status: 'completed' } },
+          { $group: { _id: '$assetId', total: { $sum: '$amount' } } },
+        ]),
       ]);
 
     const recentTransactions = [
@@ -140,7 +148,17 @@ router.get('/dashboard-stats', authenticate, async (req, res) => {
         assetName: w.assetId?.name,
         assetSymbol: w.assetId?.symbol,
       })),
-    ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 10);
+    ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 10);
+
+    const assetBalances = {};
+    assetDeposits.forEach(d => {
+      if (d._id) assetBalances[d._id.toString()] = d.total;
+    });
+    assetWithdrawals.forEach(w => {
+      if (w._id) {
+        assetBalances[w._id.toString()] = (assetBalances[w._id.toString()] || 0) - w.total;
+      }
+    });
 
     res.json({
       balance: user?.balance || 0,
@@ -149,6 +167,7 @@ router.get('/dashboard-stats', authenticate, async (req, res) => {
       pendingDeposits,
       pendingWithdrawals,
       recentTransactions,
+      assetBalances,
     });
   } catch (err) {
     console.error('Dashboard stats error:', err);

@@ -38,8 +38,8 @@ export default function UserDashboard() {
   const activeAssets = dbAssets.map(a => {
     const symbol = a.symbol.toUpperCase();
     const price = prices[symbol] || 0;
-    const balanceCrypto = 0; // Note: Backend aggregates all balances into a single USD 'balance' field on the User model
-    const balanceUsd = 0;
+    const balanceCrypto = stats?.assetBalances?.[a.id] || 0;
+    const balanceUsd = balanceCrypto * price;
     
     return {
       symbol,
