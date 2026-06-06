@@ -66,6 +66,7 @@ export default function UserDashboard() {
     .map(a => {
       const symbol = a.symbol.toUpperCase();
       const price = prices[symbol] || 0;
+      const change24h = changes24h[symbol] || 0;
       const balanceCrypto = stats?.assetBalances?.[a.id] || 0;
       const balanceUsd = balanceCrypto * price;
       
@@ -73,6 +74,7 @@ export default function UserDashboard() {
         symbol,
         name: a.name,
         price,
+        change24h,
         balance: balanceCrypto,
         balanceUsd,
         color: getAssetColor(symbol)
@@ -178,9 +180,12 @@ export default function UserDashboard() {
                   ${asset.balanceUsd.toFixed(2)}
                 </span>
               </div>
-              <div className="mt-1.5 leading-tight">
+              <div className="mt-1.5 leading-tight flex items-center gap-2">
                 <span className="text-[13px] font-bold text-gray-900 dark:text-white">
                   ${asset.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                </span>
+                <span className={`text-[12px] font-medium ${asset.change24h >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                  {asset.change24h >= 0 ? '+' : ''}{asset.change24h.toFixed(2)}%
                 </span>
               </div>
             </div>
