@@ -129,6 +129,19 @@ export default function RegisterPage() {
     return () => clearTimeout(t);
   }, [countdown]);
 
+  // Extract referral from URL if present
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const ref = urlParams.get('ref');
+      if (ref) {
+        localStorage.setItem('referralCode', ref);
+        // Optional: clean up the URL without a reload
+        window.history.replaceState({}, '', '/register');
+      }
+    }
+  }, []);
+
   const {
     register,
     handleSubmit,
@@ -144,6 +157,7 @@ export default function RegisterPage() {
         lastName: data.lastName,
         email: data.email,
         password: data.password,
+        referralCode: typeof window !== 'undefined' ? localStorage.getItem('referralCode') || undefined : undefined,
       });
       setSavedFormData(data);
       setPendingEmail(data.email);
@@ -171,6 +185,9 @@ export default function RegisterPage() {
     setIsVerifying(true);
     try {
       const res = await authAPI.verifySignupOTP({ email: pendingEmail, otp });
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('referralCode');
+      }
       login(res.data.token, res.data.user);
       toast.success('Account created successfully! Welcome aboard 🎉');
       router.push('/dashboard');
@@ -192,6 +209,7 @@ export default function RegisterPage() {
         lastName: savedFormData.lastName,
         email: savedFormData.email,
         password: savedFormData.password,
+        referralCode: typeof window !== 'undefined' ? localStorage.getItem('referralCode') || undefined : undefined,
       });
       setOtpDigits(Array(6).fill(''));
       setCountdown(60);

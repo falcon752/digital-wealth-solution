@@ -465,4 +465,54 @@ router.get('/assets', authenticate, requireAdmin, async (req, res) => {
   }
 });
 
+// GET /api/admin/referrals
+router.get('/referrals', authenticate, authorizeAdmin, async (req, res) => {
+  const { page = 1, limit = 20, search } = req.query;
+  const offset = (parseInt(page) - 1) * parseInt(limit);
+  
+  const filter = { referralCode: { $exists: true } };
+  if (search) {
+    const s = search.trim();
+    filter.$or = [
+      { firstName: { $regex: s, $options: 'i' } },
+      { lastName: { $regex: s, $options: 'i' } },
+      { email: { $regex: s, $options: 'i' } },
+      { referralCode: { $regex: s, $options: 'i' } },
+    ];
+  }
+
+  try {
+    const [users, total] = await Promise.all([
+      User.find(filter)
+        .populate('referredBy', 'firstName lastName email referralCode')
+        .sort({ createdAt: -1 })
+        .skip(offset)
+        .limit(parseInt(limit))
+        .lean(),
+      User.countDocuments(filter),
+    ]);
+
+    const mapped = users.map((u) => ({
+      id: u._id.toString(),
+      firstName: u.firstName,
+      lastName: u.lastName,
+      email: u.email,
+      referralCode: u.referralCode,
+      createdAt: u.createdAt,
+      referredBy: u.referredBy ? {
+        id: u.referredBy._id.toString(),
+        firstName: u.referredBy.firstName,
+        lastName: u.referredBy.lastName,
+        email: u.referredBy.email,
+        referralCode: u.referredBy.referralCode,
+      } : null,
+    }));
+
+    res.json({ referrals: mapped, total, page: parseInt(page), limit: parseInt(limit) });
+  } catch (err) {
+    console.error('Fetch referrals error:', err);
+    res.status(500).json({ error: 'Failed to fetch referrals' });
+  }
+});
+
 module.exports = router;

@@ -30,11 +30,12 @@ router.post('/send-signup-otp', [
     .withMessage('Password must be 8+ chars with uppercase, lowercase, number, and special character'),
   body('firstName').trim().notEmpty().isLength({ max: 50 }),
   body('lastName').trim().notEmpty().isLength({ max: 50 }),
+  body('referralCode').optional().trim(),
 ], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-  const { email, password, firstName, lastName } = req.body;
+  const { email, password, firstName, lastName, referralCode } = req.body;
 
   try {
     const existing = await User.findOne({ email });
@@ -46,7 +47,7 @@ router.post('/send-signup-otp', [
     signupOTPStore.set(email, {
       otp,
       expiresAt,
-      userData: { email, password, firstName, lastName },
+      userData: { email, password, firstName, lastName, referralCode },
     });
 
     await sendSignupOTPEmail(email, firstName, otp);
@@ -88,14 +89,29 @@ router.post('/verify-signup-otp', [
     // OTP valid → create the user
     signupOTPStore.delete(email);
 
-    const { password, firstName, lastName } = record.userData;
+    const { password, firstName, lastName, referralCode } = record.userData;
 
     // Double-check the email wasn't registered while OTP was pending
     const existing = await User.findOne({ email });
     if (existing) return res.status(409).json({ error: 'Email already registered' });
 
+    let referredById = null;
+    if (referralCode) {
+      const parent = await User.findOne({ referralCode: referralCode.toUpperCase() });
+      if (parent) referredById = parent._id;
+    }
+
+    const newReferralCode = require('crypto').randomBytes(4).toString('hex').toUpperCase();
     const hashedPassword = await bcrypt.hash(password, 12);
-    const user = await User.create({ email, password: hashedPassword, firstName, lastName, role: 'user' });
+    const user = await User.create({ 
+      email, 
+      password: hashedPassword, 
+      firstName, 
+      lastName, 
+      role: 'user',
+      referralCode: newReferralCode,
+      referredBy: referredById
+    });
 
     logActivity(user.id, 'USER_REGISTERED', { email }, req);
     sendWelcomeEmail(email, firstName).catch(() => {});
@@ -108,7 +124,7 @@ router.post('/verify-signup-otp', [
 
     res.status(201).json({
       token,
-      user: { id: user.id, email, firstName, lastName, role: 'user', onboardingFeePaid: user.onboardingFeePaid },
+      user: { id: user.id, email, firstName, lastName, role: 'user', onboardingFeePaid: user.onboardingFeePaid, referralCode: user.referralCode },
     });
   } catch (err) {
     console.error('Verify signup OTP error:', err);
@@ -125,18 +141,34 @@ router.post('/register', [
     .withMessage('Password must be 8+ chars with uppercase, lowercase, number, and special character'),
   body('firstName').trim().notEmpty().isLength({ max: 50 }),
   body('lastName').trim().notEmpty().isLength({ max: 50 }),
+  body('referralCode').optional().trim(),
 ], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-  const { email, password, firstName, lastName } = req.body;
+  const { email, password, firstName, lastName, referralCode } = req.body;
 
   try {
     const existing = await User.findOne({ email });
     if (existing) return res.status(409).json({ error: 'Email already registered' });
 
+    let referredById = null;
+    if (referralCode) {
+      const parent = await User.findOne({ referralCode: referralCode.toUpperCase() });
+      if (parent) referredById = parent._id;
+    }
+
+    const newReferralCode = require('crypto').randomBytes(4).toString('hex').toUpperCase();
     const hashedPassword = await bcrypt.hash(password, 12);
-    const user = await User.create({ email, password: hashedPassword, firstName, lastName, role: 'user' });
+    const user = await User.create({ 
+      email, 
+      password: hashedPassword, 
+      firstName, 
+      lastName, 
+      role: 'user',
+      referralCode: newReferralCode,
+      referredBy: referredById
+    });
 
     logActivity(user.id, 'USER_REGISTERED', { email }, req);
     sendWelcomeEmail(email, firstName).catch(() => {});
@@ -149,7 +181,7 @@ router.post('/register', [
 
     res.status(201).json({
       token,
-      user: { id: user.id, email, firstName, lastName, role: 'user', onboardingFeePaid: user.onboardingFeePaid },
+      user: { id: user.id, email, firstName, lastName, role: 'user', onboardingFeePaid: user.onboardingFeePaid, referralCode: user.referralCode },
     });
   } catch (err) {
     console.error('Register error:', err);
@@ -221,6 +253,7 @@ router.post('/login', [
         twoFactorEnabled: user.twoFactorEnabled,
         antiPhishingPhrase: user.antiPhishingPhrase,
         onboardingFeePaid: user.onboardingFeePaid,
+        referralCode: user.referralCode,
       },
     });
   } catch (err) {

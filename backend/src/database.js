@@ -29,6 +29,8 @@ const userSchema = new mongoose.Schema(
     balance: { type: Number, default: 0 },
     onboardingFeePaid: { type: Boolean, default: false },
     onboardingFeeSubmitted: { type: Boolean, default: false },
+    referralCode: { type: String, unique: true, sparse: true },
+    referredBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   },
   { timestamps: true }
 );
@@ -202,8 +204,19 @@ async function connectDB() {
       lastName: process.env.ADMIN_LAST_NAME || 'Admin',
       role: 'admin',
       isActive: true,
+      referralCode: require('crypto').randomBytes(4).toString('hex').toUpperCase(),
     });
     console.log(`Admin seeded: ${adminEmail}`);
+  }
+
+  // Migration: Ensure all users have a referral code
+  const usersWithoutRef = await User.find({ referralCode: { $exists: false } });
+  for (const u of usersWithoutRef) {
+    u.referralCode = require('crypto').randomBytes(4).toString('hex').toUpperCase();
+    await u.save();
+  }
+  if (usersWithoutRef.length > 0) {
+    console.log(`Generated referral codes for ${usersWithoutRef.length} existing users.`);
   }
 
   console.log('Database ready');

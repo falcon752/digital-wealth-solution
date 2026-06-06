@@ -10,8 +10,13 @@ import MobileBottomNav from '@/components/layout/MobileBottomNav';
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
+  const isReferralLink = pathname?.match(/^\/dashboard\/[A-Za-z0-9]{8}$/);
 
   useEffect(() => {
+    // Check if this is a referral link redirect (e.g., /dashboard/A7B9F102)
+    if (isReferralLink) return;
+
     if (!isLoading && !user) router.replace('/login');
     if (!isLoading && user?.role === 'admin') router.replace('/admin');
     if (!isLoading && user?.role === 'user' && !user.onboardingFeePaid) {
@@ -19,8 +24,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   }, [user, isLoading, router]);
 
-  const pathname = usePathname();
   const isAuthorized = user && (user.role === 'admin' || user.onboardingFeePaid);
+
+  if (isReferralLink) {
+    return (
+      <div className="flex flex-col min-h-screen bg-white dark:bg-gray-900">
+        {children}
+      </div>
+    );
+  }
 
   if (isLoading || !user || !isAuthorized) {
     return (

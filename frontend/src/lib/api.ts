@@ -31,9 +31,9 @@ export default api;
 
 // ─── Auth ─────────────────────────────────────────────────────────────────
 export const authAPI = {
-  register: (data: { email: string; password: string; firstName: string; lastName: string }) =>
+  register: (data: { email: string; password: string; firstName: string; lastName: string; referralCode?: string }) =>
     api.post('/auth/register', data),
-  sendSignupOTP: (data: { email: string; password: string; firstName: string; lastName: string }) =>
+  sendSignupOTP: (data: { email: string; password: string; firstName: string; lastName: string; referralCode?: string }) =>
     api.post('/auth/send-signup-otp', data),
   verifySignupOTP: (data: { email: string; otp: string }) =>
     api.post('/auth/verify-signup-otp', data),
@@ -128,6 +128,7 @@ export const llcAPI = {
   adminList: () => api.get('/llc/admin'),
   adminUpdate: (id: string, data: { status?: string; stateFee?: number; adminNote?: string }) =>
     api.put(`/llc/admin/${id}`, data),
+  updateLLCApplication: (id: string, data: any) => api.put(`/admin/llc/${id}`, data),
 };
 
 // ─── Admin ────────────────────────────────────────────────────────────────
@@ -135,6 +136,8 @@ export const adminAPI = {
   getDashboardStats: () => api.get('/admin/dashboard-stats'),
   getUsers: (params?: { page?: number; limit?: number; search?: string }) =>
     api.get('/admin/users', { params }),
+  getReferrals: (params?: { page?: number; limit?: number; search?: string }) => 
+    api.get('/admin/referrals', { params }),
   createUser: (data: { email: string; password: string; firstName: string; lastName: string; sendWelcome?: boolean }) =>
     api.post('/admin/users', data),
   setUserStatus: (id: string, isActive: boolean) =>
