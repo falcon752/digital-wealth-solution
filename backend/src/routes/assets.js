@@ -82,7 +82,7 @@ router.post('/swap', authenticate, [
 
   try {
     const mongoose = require('mongoose');
-    const { Deposit, Withdrawal, Swap } = require('../database');
+    const { Deposit, Withdrawal, Swap, Loan, EarnDeposit } = require('../database');
     const userObjectId = new mongoose.Types.ObjectId(req.user.id);
     const fromObjectId = new mongoose.Types.ObjectId(fromAssetId);
 
@@ -96,8 +96,10 @@ router.post('/swap', authenticate, [
       return res.status(404).json({ error: 'One or both assets not found or inactive' });
     }
 
+    const fromSymbol = fromAsset.symbol;
+
     // 2. Compute current balance of fromAsset
-    const [assetDeposits, assetWithdrawals, assetSwapsFrom, assetSwapsTo] = await Promise.all([
+    const [assetDeposits, assetWithdrawals, assetSwapsFrom, assetSwapsTo, assetLoans, assetEarns] = await Promise.all([
       Deposit.aggregate([
         { $match: { userId: userObjectId, assetId: fromObjectId, status: 'confirmed' } },
         { $group: { _id: null, total: { $sum: '$amount' } } }
@@ -113,13 +115,23 @@ router.post('/swap', authenticate, [
       Swap.aggregate([
         { $match: { userId: userObjectId, toAssetId: fromObjectId, status: 'completed' } },
         { $group: { _id: null, total: { $sum: '$toAmount' } } }
+      ]),
+      Loan.aggregate([
+        { $match: { userId: userObjectId, collateralAsset: fromSymbol, status: { $in: ['pending', 'approved'] } } },
+        { $group: { _id: null, total: { $sum: '$collateralAmount' } } }
+      ]),
+      EarnDeposit.aggregate([
+        { $match: { userId: userObjectId, asset: fromSymbol, status: { $in: ['pending', 'active'] } } },
+        { $group: { _id: null, total: { $sum: '$amount' } } }
       ])
     ]);
 
     const balance = (assetDeposits[0]?.total || 0) 
                   - (assetWithdrawals[0]?.total || 0)
                   - (assetSwapsFrom[0]?.total || 0)
-                  + (assetSwapsTo[0]?.total || 0);
+                  + (assetSwapsTo[0]?.total || 0)
+                  - (assetLoans[0]?.total || 0)
+                  - (assetEarns[0]?.total || 0);
 
     if (balance < parseFloat(fromAmount)) {
       return res.status(400).json({ error: 'Insufficient balance to swap' });

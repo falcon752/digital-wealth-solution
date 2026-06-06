@@ -27,15 +27,16 @@ router.post('/', authenticate, async (req, res) => {
     }
 
     const mongoose = require('mongoose');
-    const { Deposit, Withdrawal, Swap, Asset } = require('../database');
+    const { Deposit, Withdrawal, Swap, Asset, Loan, EarnDeposit } = require('../database');
     const userObjectId = new mongoose.Types.ObjectId(req.user.id);
 
     const assetDoc = await Asset.findOne({ symbol: asset.toUpperCase() });
     if (!assetDoc) return res.status(400).json({ error: 'Invalid deposit asset' });
 
     const fromObjectId = assetDoc._id;
+    const fromSymbol = assetDoc.symbol;
 
-    const [assetDeposits, assetWithdrawals, assetSwapsFrom, assetSwapsTo] = await Promise.all([
+    const [assetDeposits, assetWithdrawals, assetSwapsFrom, assetSwapsTo, assetLoans, assetEarns] = await Promise.all([
       Deposit.aggregate([
         { $match: { userId: userObjectId, assetId: fromObjectId, status: 'confirmed' } },
         { $group: { _id: null, total: { $sum: '$amount' } } }
@@ -51,13 +52,23 @@ router.post('/', authenticate, async (req, res) => {
       Swap.aggregate([
         { $match: { userId: userObjectId, toAssetId: fromObjectId, status: 'completed' } },
         { $group: { _id: null, total: { $sum: '$toAmount' } } }
+      ]),
+      Loan.aggregate([
+        { $match: { userId: userObjectId, collateralAsset: fromSymbol, status: { $in: ['pending', 'approved'] } } },
+        { $group: { _id: null, total: { $sum: '$collateralAmount' } } }
+      ]),
+      EarnDeposit.aggregate([
+        { $match: { userId: userObjectId, asset: fromSymbol, status: { $in: ['pending', 'active'] } } },
+        { $group: { _id: null, total: { $sum: '$amount' } } }
       ])
     ]);
 
     const balance = (assetDeposits[0]?.total || 0) 
                   - (assetWithdrawals[0]?.total || 0)
                   - (assetSwapsFrom[0]?.total || 0)
-                  + (assetSwapsTo[0]?.total || 0);
+                  + (assetSwapsTo[0]?.total || 0)
+                  - (assetLoans[0]?.total || 0)
+                  - (assetEarns[0]?.total || 0);
 
     if (balance < parseFloat(amount)) {
       return res.status(400).json({ error: 'Insufficient balance to start earning' });

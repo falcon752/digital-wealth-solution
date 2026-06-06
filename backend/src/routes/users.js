@@ -2,7 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
 const { body, validationResult } = require('express-validator');
-const { User, Deposit, Withdrawal, Asset, Swap } = require('../database');
+const { User, Deposit, Withdrawal, Asset, Swap, Loan, EarnDeposit } = require('../database');
 const { authenticate } = require('../middleware/auth');
 const { logActivity } = require('../utils/activity');
 
@@ -105,7 +105,7 @@ router.get('/dashboard-stats', authenticate, async (req, res) => {
     const [
       user, depositedAgg, withdrawnAgg, pendingDeposits, pendingWithdrawals, 
       recentDeposits, recentWithdrawals, recentSwaps,
-      assetDeposits, assetWithdrawals, assetSwapsFrom, assetSwapsTo
+      assetDeposits, assetWithdrawals, assetSwapsFrom, assetSwapsTo, loanAgg, earnAgg
     ] = await Promise.all([
         User.findById(userId).select('balance'),
         Deposit.aggregate([
@@ -136,6 +136,14 @@ router.get('/dashboard-stats', authenticate, async (req, res) => {
         Swap.aggregate([
           { $match: { userId: userObjectId, status: 'completed' } },
           { $group: { _id: '$toAssetId', total: { $sum: '$toAmount' } } },
+        ]),
+        Loan.aggregate([
+          { $match: { userId: userObjectId, status: { $in: ['pending', 'approved'] } } },
+          { $group: { _id: '$collateralAsset', total: { $sum: '$collateralAmount' } } },
+        ]),
+        EarnDeposit.aggregate([
+          { $match: { userId: userObjectId, status: { $in: ['pending', 'active'] } } },
+          { $group: { _id: '$asset', total: { $sum: '$amount' } } },
         ]),
       ]);
 
@@ -192,6 +200,21 @@ router.get('/dashboard-stats', authenticate, async (req, res) => {
       if (s._id) {
         assetBalances[s._id.toString()] = (assetBalances[s._id.toString()] || 0) + s.total;
       }
+    });
+
+    // Subtract locked collateral from Loans and Earns
+    const allAssets = await Asset.find({ isActive: true }).select('_id symbol');
+    const symbolToId = {};
+    allAssets.forEach(a => symbolToId[a.symbol] = a._id.toString());
+
+    loanAgg.forEach(l => {
+      const id = symbolToId[l._id];
+      if (id) assetBalances[id] = (assetBalances[id] || 0) - l.total;
+    });
+
+    earnAgg.forEach(e => {
+      const id = symbolToId[e._id];
+      if (id) assetBalances[id] = (assetBalances[id] || 0) - e.total;
     });
 
     res.json({
