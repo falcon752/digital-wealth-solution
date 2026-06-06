@@ -10,6 +10,7 @@ export interface User {
   balance?: number;
   onboardingFeePaid?: boolean;
   referralCode?: string;
+  hiddenAssets?: string[];
   createdAt: string;
 }
 

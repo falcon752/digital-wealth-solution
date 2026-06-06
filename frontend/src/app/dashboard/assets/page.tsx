@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { assetsAPI, usersAPI } from '@/lib/api';
 import ThemeToggle from '@/components/layout/ThemeToggle';
+import { useAuth } from '@/context/AuthContext';
 
 function getAssetColor(symbol: string) {
   const colors: Record<string, string> = {
@@ -20,6 +21,8 @@ export default function CryptoAssetsPage() {
   const [dbAssets, setDbAssets] = useState<any[]>([]);
   const [assetBalances, setAssetBalances] = useState<Record<string, number>>({});
   const [toggledAssets, setToggledAssets] = useState<Record<string, boolean>>({});
+  const [loadingToggle, setLoadingToggle] = useState<Record<string, boolean>>({});
+  const { user, refreshUser } = useAuth();
 
   useEffect(() => {
     Promise.all([
@@ -31,18 +34,47 @@ export default function CryptoAssetsPage() {
     }).catch(console.error);
   }, []);
 
+  useEffect(() => {
+    if (user && dbAssets.length > 0) {
+      const initialToggled: Record<string, boolean> = {};
+      dbAssets.forEach(a => {
+        initialToggled[a.symbol] = !user.hiddenAssets?.includes(a.symbol.toUpperCase());
+      });
+      setToggledAssets(initialToggled);
+    }
+  }, [user, dbAssets]);
+
   const filteredAssets = dbAssets.filter(a => 
     a.name.toLowerCase().includes(search.toLowerCase()) || 
     a.symbol.toLowerCase().includes(search.toLowerCase())
   );
 
-  const toggleAsset = (symbol: string, e: React.MouseEvent) => {
+  const toggleAsset = async (symbol: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (loadingToggle[symbol]) return;
+
+    const currentlyToggled = toggledAssets[symbol] ?? true;
+    const newToggled = !currentlyToggled;
+
     setToggledAssets(prev => ({
       ...prev,
-      [symbol]: !prev[symbol]
+      [symbol]: newToggled
     }));
+
+    setLoadingToggle(prev => ({ ...prev, [symbol]: true }));
+    try {
+      await usersAPI.toggleAssetVisibility(symbol, !newToggled);
+      if (refreshUser) refreshUser();
+    } catch (err) {
+      console.error('Failed to toggle asset:', err);
+      setToggledAssets(prev => ({
+        ...prev,
+        [symbol]: currentlyToggled
+      }));
+    } finally {
+      setLoadingToggle(prev => ({ ...prev, [symbol]: false }));
+    }
   };
 
   return (
@@ -81,7 +113,7 @@ export default function CryptoAssetsPage() {
         {/* Asset List */}
         <div className="flex flex-col">
           {filteredAssets.map((asset) => {
-            const isToggled = toggledAssets[asset.symbol] || false;
+            const isToggled = toggledAssets[asset.symbol] ?? true;
             const balance = assetBalances[asset.id] || 0;
             return (
               <div key={asset.symbol} className="flex items-center justify-between px-4 py-4 border-b border-gray-50 dark:border-gray-800/50 hover:bg-gray-50 dark:hover:bg-gray-800/20 transition">
@@ -109,7 +141,9 @@ export default function CryptoAssetsPage() {
                 {/* Toggle Switch */}
                 <div 
                   onClick={(e) => toggleAsset(asset.symbol, e)}
-                  className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ease-in-out ${isToggled ? 'bg-[#2d68d8]' : 'bg-gray-200 dark:bg-gray-700'}`}
+                  className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ease-in-out ${
+                    loadingToggle[asset.symbol] ? 'opacity-50 cursor-not-allowed' : ''
+                  } ${isToggled ? 'bg-[#2d68d8]' : 'bg-gray-200 dark:bg-gray-700'}`}
                 >
                   <span
                     className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${isToggled ? 'translate-x-[22px]' : 'translate-x-1'}`}

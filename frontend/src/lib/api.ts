@@ -58,6 +58,7 @@ export const usersAPI = {
   updateAntiPhishing: (phrase: string) => api.put('/users/anti-phishing', { phrase }),
   getBalance: () => api.get('/users/balance'),
   getDashboardStats: () => api.get('/users/dashboard-stats'),
+  toggleAssetVisibility: (symbol: string, isHidden: boolean) => api.put('/users/assets/toggle', { symbol, isHidden }),
   getTransactions: (params?: { page?: number; limit?: number; type?: string }) =>
     api.get('/users/transactions', { params }),
 };

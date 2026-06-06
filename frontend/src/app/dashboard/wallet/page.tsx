@@ -35,21 +35,23 @@ export default function UserDashboard() {
 
   const totalBalance = stats?.balance || 0;
 
-  const activeAssets = dbAssets.map(a => {
-    const symbol = a.symbol.toUpperCase();
-    const price = prices[symbol] || 0;
-    const balanceCrypto = stats?.assetBalances?.[a.id] || 0;
-    const balanceUsd = balanceCrypto * price;
-    
-    return {
-      symbol,
-      name: a.name,
-      price,
-      balance: balanceCrypto,
-      balanceUsd,
-      color: getAssetColor(symbol)
-    };
-  });
+  const activeAssets = dbAssets
+    .filter(a => !user?.hiddenAssets?.includes(a.symbol.toUpperCase()))
+    .map(a => {
+      const symbol = a.symbol.toUpperCase();
+      const price = prices[symbol] || 0;
+      const balanceCrypto = stats?.assetBalances?.[a.id] || 0;
+      const balanceUsd = balanceCrypto * price;
+      
+      return {
+        symbol,
+        name: a.name,
+        price,
+        balance: balanceCrypto,
+        balanceUsd,
+        color: getAssetColor(symbol)
+      };
+    });
 
   return (
     <div className="min-h-full flex flex-col bg-white dark:bg-gray-900 pb-10">

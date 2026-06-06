@@ -19,6 +19,39 @@ router.get('/profile', authenticate, async (req, res) => {
   }
 });
 
+// PUT /api/users/assets/toggle
+router.put('/assets/toggle', authenticate, [
+  body('symbol').trim().notEmpty().isString(),
+  body('isHidden').isBoolean(),
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+  const { symbol, isHidden } = req.body;
+  const uppercaseSymbol = symbol.toUpperCase();
+
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const hiddenSet = new Set(user.hiddenAssets || []);
+    
+    if (isHidden) {
+      hiddenSet.add(uppercaseSymbol);
+    } else {
+      hiddenSet.delete(uppercaseSymbol);
+    }
+
+    user.hiddenAssets = Array.from(hiddenSet);
+    await user.save();
+
+    res.json({ message: 'Asset visibility updated', hiddenAssets: user.hiddenAssets });
+  } catch (err) {
+    console.error('Toggle asset error:', err);
+    res.status(500).json({ error: 'Failed to update asset visibility' });
+  }
+});
+
 // PUT /api/users/profile
 router.put('/profile', authenticate, [
   body('firstName').optional().trim().notEmpty().isLength({ max: 50 }),

@@ -31,6 +31,7 @@ const userSchema = new mongoose.Schema(
     onboardingFeeSubmitted: { type: Boolean, default: false },
     referralCode: { type: String, unique: true, sparse: true },
     referredBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    hiddenAssets: { type: [String], default: [] },
   },
   { timestamps: true }
 );
