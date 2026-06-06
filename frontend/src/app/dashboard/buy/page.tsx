@@ -47,7 +47,7 @@ export default function BuyCryptoPage() {
   return (
     <div className="flex flex-col min-h-full pb-20 bg-[#0f172a] dark:bg-[#0f172a]">
       {/* Keeping background dark natively based on the screenshot, but adapting to theme via text classes */}
-      <DashboardHeader title={`Buy ${selectedAsset}`} showBack />
+      <DashboardHeader title={`Buy ${selectedAsset}`} />
 
       <div className="flex-1 flex flex-col items-center justify-center p-6 mt-[10vh]">
         
