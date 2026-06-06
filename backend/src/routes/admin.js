@@ -1,7 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const { body, validationResult } = require('express-validator');
-const { User, Asset, Deposit, Withdrawal, ActivityLog } = require('../database');
+const { User, Asset, Deposit, Withdrawal, ActivityLog, Card } = require('../database');
 const { authenticate, requireAdmin } = require('../middleware/auth');
 const { logActivity } = require('../utils/activity');
 const { 
@@ -588,6 +588,48 @@ router.get('/referrals', authenticate, requireAdmin, async (req, res) => {
   } catch (err) {
     console.error('Fetch referrals error:', err);
     res.status(500).json({ error: 'Failed to fetch referrals' });
+  }
+});
+// ─── CARDS (admin view) ────────────────────────────────────────────────────────
+
+router.get('/cards', authenticate, requireAdmin, async (req, res) => {
+  const { page = 1, limit = 20 } = req.query;
+  const offset = (parseInt(page) - 1) * parseInt(limit);
+
+  try {
+    const [cards, total] = await Promise.all([
+      Card.find()
+        .populate('userId', 'firstName lastName email')
+        .sort({ createdAt: -1 })
+        .skip(offset)
+        .limit(parseInt(limit)),
+      Card.countDocuments(),
+    ]);
+
+    res.json({ cards, total, page: parseInt(page), limit: parseInt(limit) });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch cards' });
+  }
+});
+
+router.put('/cards/:id', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const { status, adminNote } = req.body;
+    if (!['pending', 'approved', 'rejected'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid status' });
+    }
+
+    const card = await Card.findByIdAndUpdate(
+      req.params.id,
+      { status, adminNote, updatedAt: new Date() },
+      { new: true }
+    );
+
+    if (!card) return res.status(404).json({ error: 'Card not found' });
+
+    res.json({ message: `Card ${status}`, card });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update card' });
   }
 });
 

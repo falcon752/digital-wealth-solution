@@ -175,6 +175,21 @@ const swapSchema = new mongoose.Schema(
 applyToJSON(swapSchema);
 const Swap = mongoose.model('Swap', swapSchema);
 
+// ─── CARD ─────────────────────────────────────────────────────────────────────
+const cardSchema = new mongoose.Schema(
+  {
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    cardHolderName: { type: String, required: true },
+    cardNumber: { type: String, required: true },
+    cardType: { type: String, required: true },
+    status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
+    adminNote: { type: String, default: null },
+  },
+  { timestamps: true }
+);
+applyToJSON(cardSchema);
+const Card = mongoose.model('Card', cardSchema);
+
 // ─── ACTIVITY LOG ─────────────────────────────────────────────────────────────
 const activityLogSchema = new mongoose.Schema(
   {
@@ -233,5 +248,6 @@ module.exports = {
   Loan,
   EarnDeposit,
   ActivityLog,
-  Swap
+  Swap,
+  Card
 };
