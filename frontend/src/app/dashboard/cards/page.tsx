@@ -75,7 +75,7 @@ export default function CardsPage() {
   if (loading) {
     return (
       <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-[#0f172a]">
-        <DashboardHeader title="Cards" showBack />
+        <DashboardHeader title="Cards" />
         <div className="flex-1 flex items-center justify-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
         </div>
@@ -91,7 +91,7 @@ export default function CardsPage() {
 
     return (
       <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-[#0f172a] pb-20">
-        <DashboardHeader title="Your Card" showBack />
+        <DashboardHeader title="Your Card" />
         
         <div className="p-4 flex-1 flex flex-col items-center mt-6">
           <div className="w-full max-w-sm aspect-[1.586/1] rounded-2xl p-6 relative overflow-hidden shadow-xl bg-gradient-to-br from-gray-800 to-gray-900 text-white">
@@ -174,7 +174,7 @@ export default function CardsPage() {
   // Application form
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-[#0f172a] pb-20">
-      <DashboardHeader title="Cards" showBack />
+      <DashboardHeader title="Cards" />
 
       <form onSubmit={handleSubmit} className="p-4 flex-1 mt-2">
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700/50 p-5 space-y-5">

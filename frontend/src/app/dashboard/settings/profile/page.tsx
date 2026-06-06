@@ -44,7 +44,7 @@ export default function EditProfilePage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-[#0f172a] pb-20">
-      <DashboardHeader title="Edit Profile" showBack />
+      <DashboardHeader title="Edit Profile" />
 
       <form onSubmit={handleSubmit} className="p-4 flex-1 mt-2">
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700/50 p-5 space-y-5">
