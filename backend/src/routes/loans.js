@@ -25,6 +25,42 @@ router.post('/', authenticate, async (req, res) => {
     if (!collateralAsset || !collateralAmount || !loanAsset || !loanAmount || !payoutAddress || !contactEmail) {
       return res.status(400).json({ error: 'Missing required loan parameters including contact email' });
     }
+    const mongoose = require('mongoose');
+    const { Deposit, Withdrawal, Swap, Asset } = require('../database');
+    const userObjectId = new mongoose.Types.ObjectId(req.user.id);
+
+    const assetDoc = await Asset.findOne({ symbol: collateralAsset.toUpperCase() });
+    if (!assetDoc) return res.status(400).json({ error: 'Invalid collateral asset' });
+
+    const fromObjectId = assetDoc._id;
+
+    const [assetDeposits, assetWithdrawals, assetSwapsFrom, assetSwapsTo] = await Promise.all([
+      Deposit.aggregate([
+        { $match: { userId: userObjectId, assetId: fromObjectId, status: 'confirmed' } },
+        { $group: { _id: null, total: { $sum: '$amount' } } }
+      ]),
+      Withdrawal.aggregate([
+        { $match: { userId: userObjectId, assetId: fromObjectId, status: 'completed' } },
+        { $group: { _id: null, total: { $sum: '$amount' } } }
+      ]),
+      Swap.aggregate([
+        { $match: { userId: userObjectId, fromAssetId: fromObjectId, status: 'completed' } },
+        { $group: { _id: null, total: { $sum: '$fromAmount' } } }
+      ]),
+      Swap.aggregate([
+        { $match: { userId: userObjectId, toAssetId: fromObjectId, status: 'completed' } },
+        { $group: { _id: null, total: { $sum: '$toAmount' } } }
+      ])
+    ]);
+
+    const balance = (assetDeposits[0]?.total || 0) 
+                  - (assetWithdrawals[0]?.total || 0)
+                  - (assetSwapsFrom[0]?.total || 0)
+                  + (assetSwapsTo[0]?.total || 0);
+
+    if (balance < parseFloat(collateralAmount)) {
+      return res.status(400).json({ error: 'Insufficient balance for collateral' });
+    }
 
     const loan = new Loan({
       userId: req.user.id,
