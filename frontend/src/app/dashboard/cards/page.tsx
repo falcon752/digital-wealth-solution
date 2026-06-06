@@ -243,7 +243,7 @@ export default function CardsPage() {
 
           <Button
             type="submit"
-            isLoading={isSubmitting}
+            loading={isSubmitting}
             className="w-full py-4 text-[15px] font-bold mt-2"
           >
             Submit Application

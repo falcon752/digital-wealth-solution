@@ -147,14 +147,14 @@ export default function AdminCardsPage() {
                 variant="outline" 
                 className="flex-1 text-red-500 border-red-200 hover:bg-red-50"
                 onClick={() => handleUpdate('rejected')}
-                isLoading={isUpdating}
+                loading={isUpdating}
               >
                 <X size={16} className="mr-1.5" /> Reject
               </Button>
               <Button 
                 className="flex-1 bg-green-500 hover:bg-green-600 text-white"
                 onClick={() => handleUpdate('approved')}
-                isLoading={isUpdating}
+                loading={isUpdating}
               >
                 <Check size={16} className="mr-1.5" /> Approve
               </Button>
