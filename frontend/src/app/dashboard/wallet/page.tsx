@@ -129,10 +129,10 @@ export default function UserDashboard() {
           <QrCode size={22} />
           <span className="text-xs font-bold">Receive</span>
         </Link>
-        <button className="flex flex-col items-center justify-center gap-1.5 bg-[#2d68d8] rounded-2xl text-white hover:bg-[#255bc2] transition shadow-md shadow-blue-500/20 py-3.5">
+        <Link href="/dashboard/buy" className="flex flex-col items-center justify-center gap-1.5 bg-[#2d68d8] rounded-2xl text-white hover:bg-[#255bc2] transition shadow-md shadow-blue-500/20 py-3.5">
           <Zap size={22} className="fill-current" />
           <span className="text-xs font-bold">Buy</span>
-        </button>
+        </Link>
         <Link href="/dashboard/swap" className="flex flex-col items-center justify-center gap-1.5 bg-[#f4f5f8] dark:bg-gray-800 rounded-2xl text-gray-900 dark:text-white hover:bg-gray-200 transition py-3.5">
           <ArrowLeftRight size={22} />
           <span className="text-xs font-bold">Swap</span>
