@@ -143,17 +143,17 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
   const tabs = ['Holdings', 'History', 'About'];
 
   return (
-    <div className="min-h-full flex flex-col bg-white">
+    <div className="min-h-full flex flex-col bg-white dark:bg-gray-900">
       
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3 bg-white sticky top-0 z-10 border-b border-gray-100">
-        <Link href="/dashboard/wallet" className="text-gray-900 p-1 -ml-1">
+      <header className="flex items-center justify-between px-4 py-3 bg-white dark:bg-gray-900 sticky top-0 z-10 border-b border-gray-100 dark:border-gray-800">
+        <Link href="/dashboard/wallet" className="text-gray-900 dark:text-white p-1 -ml-1">
           <ArrowLeft size={24} />
         </Link>
         
         <div className="flex flex-col items-center">
-          <span className="text-[17px] font-bold text-[#1e2335] leading-tight">{symbol}</span>
-          <span className="text-[10px] font-medium text-[#8f9bb3] tracking-widest mt-0.5 uppercase">COIN | {symbol}</span>
+          <span className="text-[17px] font-bold text-[#1e2335] dark:text-white leading-tight">{symbol}</span>
+          <span className="text-[10px] font-medium text-[#8f9bb3] dark:text-gray-400 tracking-widest mt-0.5 uppercase">COIN | {symbol}</span>
         </div>
 
         <div className="flex items-center gap-2">
@@ -168,7 +168,7 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
 
       {/* Price Section */}
       <div className="flex flex-col items-center mt-8 mb-10 px-4">
-        <h1 className="text-[42px] font-bold text-[#1e2335] tracking-tight leading-none">
+        <h1 className="text-[42px] font-bold text-[#1e2335] dark:text-white tracking-tight leading-none">
           {formatCurrency(price)}
         </h1>
         <div className={`flex items-center gap-1.5 mt-3 text-[14px] font-semibold ${isPositive ? 'text-[#00b15d]' : 'text-[#d5434d]'}`}>
@@ -209,8 +209,8 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
               onClick={() => setTimeframe(tf)}
               className={`px-[14px] py-2 rounded-xl text-[13px] font-bold transition-colors ${
                 isActive 
-                  ? 'bg-[#e6f0fa] text-[#2d68d8]' 
-                  : 'text-[#8f9bb3] bg-transparent'
+                  ? 'bg-[#e6f0fa] dark:bg-gray-800 text-[#2d68d8] dark:text-white' 
+                  : 'text-[#8f9bb3] dark:text-gray-400 bg-transparent'
               }`}
             >
               {tf}
@@ -221,10 +221,10 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
 
       {/* Action Buttons removed per user request */}
 
-      <div className="w-full h-[1px] bg-gray-100"></div>
+      <div className="w-full h-[1px] bg-gray-100 dark:bg-gray-800"></div>
 
       {/* Tabs */}
-      <div className="flex px-4 pt-4 border-b border-gray-100">
+      <div className="flex px-4 pt-4 border-b border-gray-100 dark:border-gray-800">
         {tabs.map((tab) => {
           const isActive = activeTab === tab;
           return (
@@ -233,8 +233,8 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
               onClick={() => setActiveTab(tab)}
               className={`mr-6 pb-3 text-[15px] transition-colors relative ${
                 isActive 
-                  ? 'text-[#2d68d8] font-semibold' 
-                  : 'text-[#8f9bb3] font-medium'
+                  ? 'text-[#2d68d8] dark:text-blue-400 font-semibold' 
+                  : 'text-[#8f9bb3] dark:text-gray-400 font-medium'
               }`}
             >
               {tab}
@@ -249,7 +249,7 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
       {/* Holdings Content */}
       {activeTab === 'Holdings' && (
         <div className="flex flex-col mt-6 px-4">
-          <h2 className="text-[14px] font-semibold text-[#8f9bb3] mb-4">My Balance</h2>
+          <h2 className="text-[14px] font-semibold text-[#8f9bb3] dark:text-gray-400 mb-4">My Balance</h2>
           
           <div className="flex items-center justify-between py-2">
             <div className="flex items-center gap-4">
@@ -263,14 +263,14 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
                 }}
               />
               <div className="flex flex-col">
-                <span className="font-bold text-[#1e2335] text-[16px]">{symbol}</span>
-                <span className="text-[13px] text-[#8f9bb3] font-medium mt-0.5">{balanceCrypto.toFixed(5)} {symbol}</span>
+                <span className="font-bold text-[#1e2335] dark:text-white text-[16px]">{symbol}</span>
+                <span className="text-[13px] text-[#8f9bb3] dark:text-gray-400 font-medium mt-0.5">{balanceCrypto.toFixed(5)} {symbol}</span>
               </div>
             </div>
             
             <div className="flex flex-col items-end">
-              <span className="font-bold text-[#1e2335] text-[15px]">USD{balanceUsd.toFixed(2)}</span>
-              <span className="text-[13px] text-[#8f9bb3] font-medium mt-0.5">-</span>
+              <span className="font-bold text-[#1e2335] dark:text-white text-[15px]">USD{balanceUsd.toFixed(2)}</span>
+              <span className="text-[13px] text-[#8f9bb3] dark:text-gray-400 font-medium mt-0.5">-</span>
             </div>
           </div>
         </div>
