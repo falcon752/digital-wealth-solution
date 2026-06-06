@@ -67,33 +67,40 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
   const [chartData, setChartData] = useState<any[]>([]);
   const [timeframe, setTimeframe] = useState('1D'); // Kept for UI buttons, but chart remains static shape
   const [activeTab, setActiveTab] = useState('Holdings');
-  const [balanceUsd, setBalanceUsd] = useState<number>(0);
+  const [balanceCrypto, setBalanceCrypto] = useState<number>(0);
+  const [transactions, setTransactions] = useState<any[]>([]);
 
   // Computed metrics
   const [priceChangeAmount, setPriceChangeAmount] = useState<number>(0);
   const [priceChangePercent, setPriceChangePercent] = useState<number>(0);
   const isPositive = priceChangePercent >= 0;
 
-  // Sync with backend USD balance
-  useEffect(() => {
-    usersAPI.getDashboardStats().then((res) => {
-      setBalanceUsd(res.data.balance || 0);
-    }).catch(console.error);
-  }, []);
-
-  const balanceCrypto = price > 0 ? balanceUsd / price : 0;
-
   useEffect(() => {
     if (!symbol) return;
     
-    // Fetch asset info
-    assetsAPI.list().then(res => {
-      const assets = res.data.assets || [];
+    Promise.all([
+      assetsAPI.list(),
+      usersAPI.getDashboardStats()
+    ]).then(([assetsRes, statsRes]) => {
+      const assets = assetsRes.data.assets || [];
       const found = assets.find((a: any) => a.symbol.toUpperCase() === symbol);
-      if (found) setAssetInfo(found);
+      if (found) {
+        setAssetInfo(found);
+        const balances = statsRes.data.assetBalances || {};
+        setBalanceCrypto(balances[found.id] || 0);
+      }
+      
+      const allTxs = statsRes.data.recentTransactions || [];
+      const assetTxs = allTxs.filter((tx: any) => 
+        (tx.assetSymbol && tx.assetSymbol.toUpperCase() === symbol) || 
+        (tx.toAssetSymbol && tx.toAssetSymbol.toUpperCase() === symbol)
+      );
+      setTransactions(assetTxs);
     }).catch(console.error);
     
   }, [symbol]);
+
+  const balanceUsd = balanceCrypto * price;
 
   // Fetch Real-time rate and generate wavy chart
   useEffect(() => {
@@ -176,7 +183,7 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
             <path d="M12 4l8 12H4z" />
           </svg>
           <span>
-            {formatCurrency(priceChangeAmount)} ({isPositive ? '' : '-'}{Math.abs(priceChangePercent)}%)
+            {formatCurrency(priceChangeAmount)} ({isPositive ? '' : '-'}{Math.abs(priceChangePercent).toFixed(2)}%)
           </span>
         </div>
       </div>
@@ -272,6 +279,54 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
               <span className="font-bold text-[#1e2335] dark:text-white text-[15px]">USD{balanceUsd.toFixed(2)}</span>
               <span className="text-[13px] text-[#8f9bb3] dark:text-gray-400 font-medium mt-0.5">-</span>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* History Content */}
+      {activeTab === 'History' && (
+        <div className="flex flex-col mt-6 px-4">
+          <h2 className="text-[14px] font-semibold text-[#8f9bb3] dark:text-gray-400 mb-4">Recent Transactions</h2>
+          {transactions.length === 0 ? (
+            <div className="text-center py-8 text-gray-400 dark:text-gray-500 text-[14px] font-medium">
+              No recent transactions
+            </div>
+          ) : (
+            <div className="space-y-4 pb-8">
+              {transactions.map((tx, idx) => (
+                <div key={idx} className="flex items-center justify-between pb-4 border-b border-gray-100 dark:border-gray-800 last:border-0">
+                  <div className="flex flex-col">
+                    <span className="font-bold text-[#1e2335] dark:text-white text-[15px] capitalize">
+                      {tx.type} {tx.assetSymbol || tx.fromAssetSymbol}
+                    </span>
+                    <span className="text-[13px] text-[#8f9bb3] dark:text-gray-400 font-medium mt-0.5">
+                      {new Date(tx.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <div className="flex flex-col items-end">
+                    <span className={`font-bold text-[15px] ${tx.type === 'deposit' || tx.type === 'earn' ? 'text-[#00b15d]' : 'text-[#1e2335] dark:text-white'}`}>
+                      {tx.type === 'deposit' ? '+' : tx.type === 'withdrawal' ? '-' : ''}{tx.amount} {tx.assetSymbol || tx.fromAssetSymbol}
+                    </span>
+                    <span className="text-[13px] text-[#8f9bb3] dark:text-gray-400 font-medium mt-0.5 capitalize">
+                      {tx.status}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* About Content */}
+      {activeTab === 'About' && (
+        <div className="flex flex-col mt-6 px-4 pb-8">
+          <h2 className="text-[14px] font-semibold text-[#8f9bb3] dark:text-gray-400 mb-4">About {symbol}</h2>
+          <div className="bg-[#f8f9fa] dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700">
+            <h3 className="font-bold text-[#1e2335] dark:text-white text-[17px] mb-2">{assetInfo?.name || symbol}</h3>
+            <p className="text-[14px] text-gray-600 dark:text-gray-300 leading-relaxed font-medium">
+              {assetInfo?.name || symbol} ({symbol}) is a digital asset available on the platform. It can be used for seamless borderless transactions, earning yields, and securing collateralized loans. The real-time pricing and historical charts are fetched via aggregations.
+            </p>
           </div>
         </div>
       )}
