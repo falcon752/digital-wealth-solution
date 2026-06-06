@@ -3,7 +3,7 @@
 import { ArrowLeft, Search, Square } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { assetsAPI } from '@/lib/api';
+import { assetsAPI, usersAPI } from '@/lib/api';
 import ThemeToggle from '@/components/layout/ThemeToggle';
 
 function getAssetColor(symbol: string) {
@@ -18,10 +18,17 @@ function getAssetColor(symbol: string) {
 export default function CryptoAssetsPage() {
   const [search, setSearch] = useState('');
   const [dbAssets, setDbAssets] = useState<any[]>([]);
+  const [assetBalances, setAssetBalances] = useState<Record<string, number>>({});
   const [toggledAssets, setToggledAssets] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    assetsAPI.list().then(res => setDbAssets(res.data.assets || [])).catch(console.error);
+    Promise.all([
+      assetsAPI.list(),
+      usersAPI.getDashboardStats()
+    ]).then(([assetsRes, statsRes]) => {
+      setDbAssets(assetsRes.data.assets || []);
+      setAssetBalances(statsRes.data?.assetBalances || {});
+    }).catch(console.error);
   }, []);
 
   const filteredAssets = dbAssets.filter(a => 
@@ -75,6 +82,7 @@ export default function CryptoAssetsPage() {
         <div className="flex flex-col">
           {filteredAssets.map((asset) => {
             const isToggled = toggledAssets[asset.symbol] || false;
+            const balance = assetBalances[asset.id] || 0;
             return (
               <div key={asset.symbol} className="flex items-center justify-between px-4 py-4 border-b border-gray-50 dark:border-gray-800/50 hover:bg-gray-50 dark:hover:bg-gray-800/20 transition">
                 
@@ -93,7 +101,7 @@ export default function CryptoAssetsPage() {
                       {asset.name} ({asset.symbol})
                     </span>
                     <span className="text-[13px] text-[#a0a8b9] font-medium mt-0.5">
-                      0.00000000 {asset.symbol}
+                      {balance.toFixed(8)} {asset.symbol}
                     </span>
                   </div>
                 </Link>
