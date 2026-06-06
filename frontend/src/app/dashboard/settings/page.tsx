@@ -48,7 +48,7 @@ export default function SettingsPage() {
             <ChevronRight size={18} className="text-gray-400" />
           </Link>
 
-          <Link href="#" className="flex items-center justify-between px-4 py-4 border-b border-gray-100 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
+          <Link href="/dashboard/settings/addresses" className="flex items-center justify-between px-4 py-4 border-b border-gray-100 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
                 <Asterisk size={18} />
