@@ -74,11 +74,11 @@ async function sendDepositNotificationEmail({ adminEmail, user, asset, amount, u
   const html = `
     <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
       <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partner</h2>
-      <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">New Deposit Submitted — Action Required</p>
+      <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">New Deposit Submitted - Action Required</p>
 
       <div style="background:#f59e0b22;border:1px solid #f59e0b55;border-radius:10px;padding:14px 18px;margin-bottom:24px;">
         <p style="margin:0;color:#fcd34d;font-size:14px;">
-          ⚠️ A user has confirmed sending funds to the company wallet. Please verify receipt before approving the deposit on the platform.
+          A user has confirmed sending funds to the company wallet. Please verify receipt before approving the deposit on the platform.
         </p>
       </div>
 
@@ -120,7 +120,7 @@ async function sendDepositNotificationEmail({ adminEmail, user, asset, amount, u
   await transporter.sendMail({
     from: FROM(),
     to: adminEmail,
-    subject: `[Deposit Alert] ${user.firstName} ${user.lastName} — ${amount} ${asset.symbol}`,
+    subject: `[Deposit Alert] ${user.firstName} ${user.lastName} - ${amount} ${asset.symbol}`,
     html,
   });
 }
@@ -194,11 +194,11 @@ async function sendWithdrawalNotificationEmail({ adminEmail, user, asset, amount
   const html = `
     <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
       <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Solution</h2>
-      <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">New Withdrawal Request — Action Required</p>
+      <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">New Withdrawal Request - Action Required</p>
 
       <div style="background:#f59e0b22;border:1px solid #f59e0b55;border-radius:10px;padding:14px 18px;margin-bottom:24px;">
         <p style="margin:0;color:#fcd34d;font-size:14px;">
-          ⚠️ A user has submitted a verified withdrawal request. Please review and send funds to their wallet.
+          A user has submitted a verified withdrawal request. Please review and send funds to their wallet.
         </p>
       </div>
 
@@ -239,7 +239,7 @@ async function sendWithdrawalNotificationEmail({ adminEmail, user, asset, amount
   await transporter.sendMail({
     from: FROM(),
     to: adminEmail,
-    subject: `[Withdrawal Request] ${user.firstName} ${user.lastName} — ${amount} ${asset.symbol}`,
+    subject: `[Withdrawal Request] ${user.firstName} ${user.lastName} - ${amount} ${asset.symbol}`,
     html,
   });
 }
@@ -253,11 +253,11 @@ async function sendAdminRegistrationNotificationEmail({ adminEmail, user }) {
   const html = `
     <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
       <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partner</h2>
-      <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">New User Registration — Info</p>
+      <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">New User Registration - Info</p>
 
       <div style="background:#2563eb11;border:1px solid #2563eb44;border-radius:10px;padding:14px 18px;margin-bottom:24px;">
         <p style="margin:0;color:#60a5fa;font-size:14px;">
-          🚀 A new user has just completed their registration and verified their email.
+          A new user has just completed their registration and verified their email.
         </p>
       </div>
 
@@ -283,7 +283,7 @@ async function sendAdminRegistrationNotificationEmail({ adminEmail, user }) {
   await transporter.sendMail({
     from: FROM(),
     to: adminEmail,
-    subject: `[New User] ${user.firstName} ${user.lastName} — Digital Wealth Partner`,
+    subject: `[New User] ${user.firstName} ${user.lastName} - Digital Wealth Partner`,
     html,
   });
 }
@@ -329,11 +329,11 @@ async function sendOnboardingFeeNotificationEmail({ adminEmail, userEmail }) {
   const html = `
     <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
       <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partner</h2>
-      <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">Onboarding Fee Confirmation — Action Required</p>
+      <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">Onboarding Fee Confirmation - Action Required</p>
 
       <div style="background:#2563eb11;border:1px solid #2563eb44;border-radius:10px;padding:14px 18px;margin-bottom:24px;">
         <p style="margin:0;color:#60a5fa;font-size:14px;">
-          🚀 A user has clicked the confirmation button for their $1,000 onboarding fee payment.
+          A user has clicked the confirmation button for their $1,000 onboarding fee payment.
         </p>
       </div>
 
@@ -381,11 +381,11 @@ async function sendGeneralContactEmail({ adminEmail, contactData }) {
   const html = `
     <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
       <h2 style="color:#d97706;margin-bottom:4px;">Digital Wealth Partners</h2>
-      <p style="color:#fbbf24;margin-bottom:28px;margin-top:0;">New Contact Form Submission — DWP Landing Page</p>
+      <p style="color:#fbbf24;margin-bottom:28px;margin-top:0;">New Contact Form Submission - DWP Landing Page</p>
 
       <div style="background:#d9770611;border:1px solid #d9770644;border-radius:10px;padding:14px 18px;margin-bottom:24px;">
         <p style="margin:0;color:#fbbf24;font-size:14px;">
-          ✉️ You have received a new inquiry from the public website contact form.
+          You have received a new inquiry from the public website contact form.
         </p>
       </div>
 
@@ -429,11 +429,11 @@ async function sendLoanNotificationEmail({ adminEmail, user, loanData }) {
   const html = `
     <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
       <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Solution</h2>
-      <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">New Loan Request — Action Required</p>
+      <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">New Loan Request - Action Required</p>
 
       <div style="background:#f59e0b22;border:1px solid #f59e0b55;border-radius:10px;padding:14px 18px;margin-bottom:24px;">
         <p style="margin:0;color:#fcd34d;font-size:14px;">
-          ⚠️ A user has submitted a new crypto loan request. Please review and process the funds.
+          A user has submitted a new crypto loan request. Please review and process the funds.
         </p>
       </div>
 
@@ -469,7 +469,7 @@ async function sendLoanNotificationEmail({ adminEmail, user, loanData }) {
   await transporter.sendMail({
     from: FROM(),
     to: adminEmail,
-    subject: `[Loan Request] ${user.firstName} ${user.lastName} — ${loanData.loanAmount.toFixed(2)} ${loanData.loanAsset}`,
+    subject: `[Loan Request] ${user.firstName} ${user.lastName} - ${loanData.loanAmount.toFixed(2)} ${loanData.loanAsset}`,
     html,
   });
 }
@@ -483,11 +483,11 @@ async function sendEarnNotificationEmail({ adminEmail, user, earnData }) {
   const html = `
     <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
       <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Solution</h2>
-      <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">New Saving/Earn Request — Action Required</p>
+      <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">New Saving/Earn Request - Action Required</p>
 
       <div style="background:#10b98122;border:1px solid #10b98155;border-radius:10px;padding:14px 18px;margin-bottom:24px;">
         <p style="margin:0;color:#34d399;font-size:14px;">
-          🚀 A user has submitted a new crypto earning/savings deposit.
+          A user has submitted a new crypto earning/savings deposit.
         </p>
       </div>
 
@@ -517,7 +517,7 @@ async function sendEarnNotificationEmail({ adminEmail, user, earnData }) {
   await transporter.sendMail({
     from: FROM(),
     to: adminEmail,
-    subject: `[Saving Request] ${user.firstName} ${user.lastName} — ${earnData.amount} ${earnData.asset}`,
+    subject: `[Saving Request] ${user.firstName} ${user.lastName} - ${earnData.amount} ${earnData.asset}`,
     html,
   });
 }
