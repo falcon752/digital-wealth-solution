@@ -10,35 +10,32 @@ import Link from 'next/link';
 import { ResponsiveContainer, LineChart, Line } from 'recharts';
 import ThemeToggle from '@/components/layout/ThemeToggle';
 
-const symbolToBinance: Record<string, string> = {
-  BTC: 'BTCUSDT', ETH: 'ETHUSDT', DOGE: 'DOGEUSDT', LTC: 'LTCUSDT',
-  XRP: 'XRPUSDT', XLM: 'XLMUSDT', BNB: 'BNBUSDT', SOL: 'SOLUSDT', 
-  ADA: 'ADAUSDT', HBAR: 'HBARUSDT', SHIB: 'SHIBUSDT', AVAX: 'AVAXUSDT',
-  DOT: 'DOTUSDT', MATIC: 'MATICUSDT', LINK: 'LINKUSDT', BCH: 'BCHUSDT',
-  TRX: 'TRXUSDT', ATOM: 'ATOMUSDT', UNI: 'UNIUSDT'
+const symbolToCoinGecko: Record<string, string> = {
+  BTC: 'bitcoin', ETH: 'ethereum', DOGE: 'dogecoin', LTC: 'litecoin',
+  XRP: 'ripple', XLM: 'stellar', USDT: 'tether', USDC: 'usd-coin',
+  BNB: 'binancecoin', SOL: 'solana', ADA: 'cardano', HBAR: 'hedera-hashgraph',
+  SHIB: 'shiba-inu', AVAX: 'avalanche-2', DOT: 'polkadot', MATIC: 'matic-network',
+  LINK: 'chainlink', BCH: 'bitcoin-cash', TRX: 'tron', ATOM: 'cosmos', UNI: 'uniswap'
 };
 
-// Fallback generator to ensure chart NEVER disappears
-const generateFallbackData = (currentPrice: number, changePercent: number) => {
+// Generates a smooth wavy chart line that perfectly anchors to start and end prices
+const generateWavyChartData = (currentPrice: number, changePercent: number) => {
   const data = [];
   const startPrice = currentPrice / (1 + (changePercent / 100));
-  let tempPrice = startPrice;
-  const points = 24;
+  const points = 40; // 40 points for a smooth line
   
   for (let i = 0; i < points; i++) {
-    // Add some random noise but trend towards currentPrice
-    const progress = i / (points - 1);
-    const targetPriceAtStep = startPrice + (currentPrice - startPrice) * progress;
-    const noise = (Math.random() - 0.5) * (currentPrice * 0.005);
+    const progress = i / (points - 1); // 0 to 1
+    // Linear interpolation from startPrice to currentPrice
+    const linearPrice = startPrice + (currentPrice - startPrice) * progress;
     
-    // Exact match for the last point
-    if (i === points - 1) {
-      tempPrice = currentPrice;
-    } else {
-      tempPrice = targetPriceAtStep + noise;
-    }
+    // Add a sine wave for "waviness"
+    const waveFrequency = 2.5; // Number of wave cycles
+    // Taper the wave off at the very end so it hits the exact currentPrice
+    const waveAmplitude = currentPrice * 0.005 * (1 - Math.pow(progress, 4)); 
+    const wave = Math.sin(progress * Math.PI * 2 * waveFrequency) * waveAmplitude;
     
-    data.push({ time: i, price: tempPrice });
+    data.push({ time: i, price: linearPrice + wave });
   }
   return data;
 };
@@ -56,7 +53,7 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
   const [assetInfo, setAssetInfo] = useState<any>(null);
   const [price, setPrice] = useState<number>(0);
   const [chartData, setChartData] = useState<any[]>([]);
-  const [timeframe, setTimeframe] = useState('1D');
+  const [timeframe, setTimeframe] = useState('1D'); // Kept for UI buttons, but chart remains static shape
   const [activeTab, setActiveTab] = useState('Holdings');
   const [balanceUsd, setBalanceUsd] = useState<number>(0);
 
@@ -77,84 +74,55 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
   useEffect(() => {
     if (!symbol) return;
     
-    // 1. Fetch asset info
+    // Fetch asset info
     assetsAPI.list().then(res => {
       const assets = res.data.assets || [];
       const found = assets.find((a: any) => a.symbol.toUpperCase() === symbol);
       if (found) setAssetInfo(found);
     }).catch(console.error);
-
-    // 2. Fetch current price
-    assetsAPI.prices().then(res => {
-      const prices = res.data.prices || {};
-      setPrice(prices[symbol] || 0);
-    }).catch(console.error);
     
   }, [symbol]);
 
-  // 3. Fetch Historical Data whenever timeframe changes
+  // Fetch Real-time rate and generate wavy chart
   useEffect(() => {
     if (!symbol) return;
     
-    const fetchHistory = async () => {
-      let interval = '1h';
-      let limit = 24;
-
-      switch (timeframe) {
-        case '1H': interval = '1m'; limit = 60; break;
-        case '1D': interval = '1h'; limit = 24; break;
-        case '1W': interval = '4h'; limit = 42; break;
-        case '1M': interval = '1d'; limit = 30; break;
-        case '1Y': interval = '1w'; limit = 52; break;
-        case 'All': interval = '1M'; limit = 60; break;
+    const fetchRealRate = async () => {
+      const cgId = symbolToCoinGecko[symbol];
+      if (!cgId) {
+        // Fallback for unmapped symbols
+        const mockP = 100;
+        const mockC = 2.4;
+        setPrice(mockP);
+        setPriceChangePercent(mockC);
+        setPriceChangeAmount(mockP - (mockP / (1 + mockC / 100)));
+        setChartData(generateWavyChartData(mockP, mockC));
+        return;
       }
-
-      const binanceSymbol = symbolToBinance[symbol];
       
       try {
-        if (!binanceSymbol) throw new Error("Symbol not mapped to Binance");
-        
-        const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${binanceSymbol}&interval=${interval}&limit=${limit}`);
-        if (!res.ok) throw new Error("Binance API error");
-        
+        const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${cgId}&vs_currencies=usd&include_24hr_change=true`);
         const data = await res.json();
         
-        if (data && data.length > 0) {
-          const mappedData = data.map((d: any) => ({
-            time: d[0],
-            price: parseFloat(d[4]) // Close price
-          }));
+        if (data && data[cgId]) {
+          const p = data[cgId].usd;
+          const pct = data[cgId].usd_24h_change || 0;
           
-          setChartData(mappedData);
-
-          const startPrice = mappedData[0].price;
-          const currentPrice = price > 0 ? price : mappedData[mappedData.length - 1].price;
-          
-          const changeAmt = currentPrice - startPrice;
-          const changePct = (changeAmt / startPrice) * 100;
-          
-          setPriceChangeAmount(changeAmt);
-          setPriceChangePercent(changePct);
-          
-          if (price === 0) setPrice(currentPrice);
-        } else {
-          throw new Error("No data returned");
+          setPrice(p);
+          setPriceChangePercent(pct);
+          setPriceChangeAmount(p - (p / (1 + pct / 100)));
+          setChartData(generateWavyChartData(p, pct));
         }
       } catch (err) {
-        console.error("Failed to fetch history, using fallback:", err);
-        // Fallback to ensure UI NEVER breaks
-        const currentP = price > 0 ? price : (symbol === 'XLM' ? 0.1 : 100); // Default if 0
-        const mockChangePct = symbol === 'XLM' ? -2.4 : 5.2; // Example fallback
-        
-        setChartData(generateFallbackData(currentP, mockChangePct));
-        setPriceChangePercent(mockChangePct);
-        setPriceChangeAmount(currentP - (currentP / (1 + (mockChangePct / 100))));
-        if (price === 0) setPrice(currentP);
+        console.error("CoinGecko API error:", err);
       }
     };
 
-    fetchHistory();
-  }, [symbol, timeframe, price]);
+    fetchRealRate();
+    // Poll every 60 seconds
+    const interval = setInterval(fetchRealRate, 60000);
+    return () => clearInterval(interval);
+  }, [symbol, timeframe]);
 
   if (!symbol) return null;
 
