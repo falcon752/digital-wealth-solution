@@ -33,7 +33,12 @@ export default function UserDashboard() {
     assetsAPI.prices().then(res => setPrices(res.data.prices || {})).catch(console.error);
   }, []);
 
-  const totalBalance = stats?.balance || 0;
+  const totalBalance = dbAssets.reduce((sum, a) => {
+    const symbol = a.symbol.toUpperCase();
+    const price = prices[symbol] || 0;
+    const balanceCrypto = stats?.assetBalances?.[a.id] || 0;
+    return sum + (balanceCrypto * price);
+  }, 0);
 
   const activeAssets = dbAssets
     .filter(a => !user?.hiddenAssets?.includes(a.symbol.toUpperCase()))
