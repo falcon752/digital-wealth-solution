@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import api from '@/lib/api';
+import { usersAPI } from '@/lib/api';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import Button from '@/components/ui/Button';
 import toast from 'react-hot-toast';
@@ -28,7 +28,7 @@ export default function EditProfilePage() {
     setIsSubmitting(true);
 
     try {
-      const res = await api.put('/api/users/profile', {
+      const res = await usersAPI.updateProfile({
         firstName,
         lastName
       });

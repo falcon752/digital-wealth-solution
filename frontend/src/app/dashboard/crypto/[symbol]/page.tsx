@@ -375,7 +375,7 @@ export default function CoinDetailPage() {
                       <Image
                         src={
                           asset.qrCodeUrl ??
-                          `${apiBase}/uploads/${asset.qrCodeImage}`
+                          `${apiBase}${asset.qrCodeImage}`
                         }
                         alt="QR Code"
                         width={160}
@@ -468,7 +468,7 @@ export default function CoinDetailPage() {
               {(asset.qrCodeImage || asset.qrCodeUrl) && (
                 <div className="flex justify-center">
                   <Image
-                    src={asset.qrCodeUrl ?? `${apiBase}/uploads/${asset.qrCodeImage}`}
+                    src={asset.qrCodeUrl ?? `${apiBase}${asset.qrCodeImage}`}
                     alt="QR Code"
                     width={160}
                     height={160}

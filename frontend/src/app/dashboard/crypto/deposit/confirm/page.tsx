@@ -98,7 +98,7 @@ export default function DepositConfirmPage() {
   const qrSrc = qrCodeImage
     ? qrCodeImage.startsWith('http')
       ? qrCodeImage
-      : `${apiBase}/uploads/${qrCodeImage}`
+      : `${apiBase}${qrCodeImage}`
     : null;
 
   return (

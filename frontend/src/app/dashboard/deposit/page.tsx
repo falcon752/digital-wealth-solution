@@ -199,7 +199,7 @@ export default function DepositPage() {
                 <div className="bg-white p-2 rounded-2xl mb-8">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={`http://localhost:5000${selectedAsset.qrCodeImage}`}
+                    src={`${(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api').replace('/api', '')}${selectedAsset.qrCodeImage}`}
                     alt="Wallet QR Code"
                     className="w-48 h-48 object-contain"
                   />
