@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { adminAPI } from '@/lib/api';
+import api from '@/lib/api';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import Button from '@/components/ui/Button';
 import toast from 'react-hot-toast';
@@ -18,7 +18,7 @@ export default function AdminCardsPage() {
 
   const fetchCards = () => {
     setLoading(true);
-    adminAPI.get('/api/admin/cards')
+    api.get('/admin/cards')
       .then(res => setCards(res.data.cards))
       .catch(() => toast.error('Failed to load cards'))
       .finally(() => setLoading(false));
@@ -32,7 +32,7 @@ export default function AdminCardsPage() {
     if (!selectedCard) return;
     setIsUpdating(true);
     try {
-      await adminAPI.put(`/api/admin/cards/${selectedCard._id}`, { status, adminNote });
+      await api.put(`/admin/cards/${selectedCard._id}`, { status, adminNote });
       toast.success(`Card ${status}`);
       setSelectedCard(null);
       setAdminNote('');
