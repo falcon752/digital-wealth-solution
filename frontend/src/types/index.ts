@@ -9,6 +9,7 @@ export interface User {
   antiPhishingPhrase?: string | null;
   balance?: number;
   onboardingFeePaid?: boolean;
+  referralCode?: string;
   createdAt: string;
 }
 
