@@ -189,16 +189,18 @@ export default function SwapCryptoPage() {
           
           <div className={`bg-[#f4f5f8] dark:bg-gray-900/50 rounded-xl p-4 flex flex-col gap-4 border border-gray-50/50 mb-8 relative ${fromDropdownOpen ? 'z-30' : 'z-10'}`}>
             <div className="flex justify-between items-center">
-              <button 
-                onClick={() => {
-                  setFromDropdownOpen(!fromDropdownOpen);
-                  setToDropdownOpen(false);
-                }}
-                className="flex items-center gap-1 font-bold text-gray-900 dark:text-white text-[15px] hover:opacity-80 transition"
-              >
-                {fromAsset?.name || 'Select'} - {fromBalance.toFixed(6)} <ChevronDown size={18} className="text-[#8e98bc]" />
-              </button>
-              {renderDropdown(fromDropdownOpen, setFromDropdownOpen, fromAsset, setFromAssetId)}
+              <div className="relative">
+                <button 
+                  onClick={() => {
+                    setFromDropdownOpen(!fromDropdownOpen);
+                    setToDropdownOpen(false);
+                  }}
+                  className="flex items-center gap-1 font-bold text-gray-900 dark:text-white text-[15px] hover:opacity-80 transition"
+                >
+                  {fromAsset?.name || 'Select'} - {fromBalance.toFixed(6)} <ChevronDown size={18} className="text-[#8e98bc]" />
+                </button>
+                {renderDropdown(fromDropdownOpen, setFromDropdownOpen, fromAsset, setFromAssetId)}
+              </div>
 
               <input 
                 type="number" 
@@ -244,16 +246,18 @@ export default function SwapCryptoPage() {
 
           <div className={`bg-[#f4f5f8] dark:bg-gray-900/50 rounded-xl p-4 flex flex-col gap-2 border border-gray-50/50 relative ${toDropdownOpen ? 'z-30' : 'z-10'}`}>
             <div className="flex justify-between items-center">
-              <button 
-                onClick={() => {
-                  setToDropdownOpen(!toDropdownOpen);
-                  setFromDropdownOpen(false);
-                }}
-                className="flex items-center gap-1 font-bold text-gray-900 dark:text-white text-[15px] hover:opacity-80 transition"
-              >
-                {toAsset?.name || 'Select'} <ChevronDown size={18} className="text-[#8e98bc]" />
-              </button>
-              {renderDropdown(toDropdownOpen, setToDropdownOpen, toAsset, setToAssetId)}
+              <div className="relative">
+                <button 
+                  onClick={() => {
+                    setToDropdownOpen(!toDropdownOpen);
+                    setFromDropdownOpen(false);
+                  }}
+                  className="flex items-center gap-1 font-bold text-gray-900 dark:text-white text-[15px] hover:opacity-80 transition"
+                >
+                  {toAsset?.name || 'Select'} <ChevronDown size={18} className="text-[#8e98bc]" />
+                </button>
+                {renderDropdown(toDropdownOpen, setToDropdownOpen, toAsset, setToAssetId)}
+              </div>
 
               <input 
                 type="text" 
