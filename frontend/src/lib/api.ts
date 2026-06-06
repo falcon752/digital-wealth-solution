@@ -168,7 +168,7 @@ export const loansAPI = {
   list: () => api.get('/loans'),
   // admin
   updateStatus: (id: string, data: { status: 'pending' | 'approved' | 'rejected'; adminNote?: string }) =>
-    api.put(`/admin/loans/${id}/status`, data),
+    api.put(`/loans/${id}/status`, data),
 };
 
 // ─── Earns / Savings ───────────────────────────────────────────────────────
@@ -184,5 +184,5 @@ export const earnsAPI = {
   list: () => api.get('/earns'),
   // admin
   updateStatus: (id: string, data: { status: 'pending' | 'active' | 'rejected'; adminNote?: string }) =>
-    api.put(`/admin/earns/${id}/status`, data),
+    api.put(`/earns/${id}/status`, data),
 };
