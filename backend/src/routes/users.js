@@ -2,7 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
 const { body, validationResult } = require('express-validator');
-const { User, Deposit, Withdrawal, Asset } = require('../database');
+const { User, Deposit, Withdrawal, Asset, Swap } = require('../database');
 const { authenticate } = require('../middleware/auth');
 const { logActivity } = require('../utils/activity');
 
