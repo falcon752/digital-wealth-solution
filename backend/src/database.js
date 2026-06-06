@@ -35,27 +35,6 @@ const userSchema = new mongoose.Schema(
 applyToJSON(userSchema);
 const User = mongoose.model('User', userSchema);
 
-// ─── LOAN ─────────────────────────────────────────────────────────────────────
-const loanSchema = new mongoose.Schema(
-  {
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    collateralAsset: { type: String, required: true },
-    collateralAmount: { type: Number, required: true },
-    loanAsset: { type: String, required: true },
-    loanAmount: { type: Number, required: true },
-    ltv: { type: Number, required: true },
-    apr: { type: Number, required: true },
-    monthlyInterest: { type: Number, required: true },
-    originationFee: { type: Number, required: true },
-    payoutAddress: { type: String, required: true },
-    status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
-    adminNote: { type: String, default: null },
-  },
-  { timestamps: true }
-);
-applyToJSON(loanSchema);
-const Loan = mongoose.model('Loan', loanSchema);
-
 // ─── ASSET ────────────────────────────────────────────────────────────────────
 const assetSchema = new mongoose.Schema(
   {
