@@ -28,20 +28,24 @@ router.get('/prices', authenticate, async (req, res) => {
     if (!ids) return res.json({ prices: {} });
 
     const r = await fetch(
-      `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd`,
+      `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`,
       { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(8000) }
     );
     const data = await r.json();
 
     const prices = {};
+    const changes24h = {};
     symbols.forEach((sym) => {
       const cgId = COIN_IDS[sym];
-      if (cgId && data[cgId]?.usd) prices[sym] = data[cgId].usd;
+      if (cgId && data[cgId]?.usd) {
+        prices[sym] = data[cgId].usd;
+        changes24h[sym] = data[cgId].usd_24h_change || 0;
+      }
     });
 
-    res.json({ prices });
+    res.json({ prices, changes24h });
   } catch {
-    res.json({ prices: {} });
+    res.json({ prices: {}, changes24h: {} });
   }
 });
 

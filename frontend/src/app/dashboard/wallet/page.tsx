@@ -26,19 +26,40 @@ export default function UserDashboard() {
   const [stats, setStats] = useState<any>(null);
   const [dbAssets, setDbAssets] = useState<any[]>([]);
   const [prices, setPrices] = useState<Record<string, number>>({});
+  const [changes24h, setChanges24h] = useState<Record<string, number>>({});
 
   useEffect(() => {
     usersAPI.getDashboardStats().then((res) => setStats(res.data)).catch(console.error);
     assetsAPI.list().then(res => setDbAssets(res.data.assets || [])).catch(console.error);
-    assetsAPI.prices().then(res => setPrices(res.data.prices || {})).catch(console.error);
+    assetsAPI.prices().then(res => {
+      setPrices(res.data.prices || {});
+      setChanges24h(res.data.changes24h || {});
+    }).catch(console.error);
   }, []);
 
-  const totalBalance = dbAssets.reduce((sum, a) => {
-    const symbol = a.symbol.toUpperCase();
-    const price = prices[symbol] || 0;
-    const balanceCrypto = stats?.assetBalances?.[a.id] || 0;
-    return sum + (balanceCrypto * price);
-  }, 0);
+  const { totalBalance, previousTotalBalance } = dbAssets.reduce(
+    (acc, a) => {
+      const symbol = a.symbol.toUpperCase();
+      const price = prices[symbol] || 0;
+      const change24h = changes24h[symbol] || 0;
+      const balanceCrypto = stats?.assetBalances?.[a.id] || 0;
+      
+      const currentUsd = balanceCrypto * price;
+      // Formula: previousPrice = currentPrice / (1 + (change / 100))
+      const previousPrice = price / (1 + change24h / 100);
+      const previousUsd = balanceCrypto * previousPrice;
+      
+      return {
+        totalBalance: acc.totalBalance + currentUsd,
+        previousTotalBalance: acc.previousTotalBalance + previousUsd,
+      };
+    },
+    { totalBalance: 0, previousTotalBalance: 0 }
+  );
+
+  const absoluteChange = totalBalance - previousTotalBalance;
+  const percentageChange = previousTotalBalance > 0 ? (absoluteChange / previousTotalBalance) * 100 : 0;
+  const isPositive = absoluteChange >= 0;
 
   const activeAssets = dbAssets
     .filter(a => !user?.hiddenAssets?.includes(a.symbol.toUpperCase()))
@@ -86,9 +107,14 @@ export default function UserDashboard() {
         <h1 className="text-4xl font-bold text-gray-900 dark:text-white tracking-tight">
           {formatCurrency(totalBalance)}
         </h1>
-        <p className="text-gray-400 font-medium mt-1 text-sm">
-          {formatCurrency(totalBalance)} (0.00%)
-        </p>
+        <div className="flex items-center gap-1.5 mt-1 font-medium text-sm">
+          <span className={isPositive ? 'text-green-500' : 'text-red-500'}>
+            {isPositive ? '+' : '-'}{formatCurrency(Math.abs(absoluteChange))}
+          </span>
+          <span className={`px-1.5 py-0.5 rounded-md text-xs ${isPositive ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
+            {isPositive ? '+' : ''}{percentageChange.toFixed(2)}%
+          </span>
+        </div>
       </div>
 
       {/* Action Buttons */}
