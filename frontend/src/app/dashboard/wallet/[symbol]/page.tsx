@@ -18,25 +18,37 @@ const symbolToCoinGecko: Record<string, string> = {
   LINK: 'chainlink', BCH: 'bitcoin-cash', TRX: 'tron', ATOM: 'cosmos', UNI: 'uniswap'
 };
 
-// Generates a smooth wavy chart line that perfectly anchors to start and end prices
+// Generates a realistic jagged crypto chart line using a constrained random walk
 const generateWavyChartData = (currentPrice: number, changePercent: number) => {
   const data = [];
   const startPrice = currentPrice / (1 + (changePercent / 100));
-  const points = 40; // 40 points for a smooth line
+  const points = 60; // More points for a detailed jagged look
+  
+  const walk = [startPrice];
+  let tempPrice = startPrice;
+  
+  for (let i = 1; i < points; i++) {
+    // Generate a random step (volatility)
+    const volatility = currentPrice * 0.006; 
+    const step = (Math.random() - 0.5) * volatility;
+    
+    // Add a slight bias towards the target
+    const trend = (currentPrice - startPrice) / points;
+    
+    tempPrice += step + trend;
+    walk.push(tempPrice);
+  }
+  
+  // Linear correction to guarantee the final point perfectly hits currentPrice
+  const endWalkPrice = walk[points - 1];
+  const correctionDiff = currentPrice - endWalkPrice;
   
   for (let i = 0; i < points; i++) {
-    const progress = i / (points - 1); // 0 to 1
-    // Linear interpolation from startPrice to currentPrice
-    const linearPrice = startPrice + (currentPrice - startPrice) * progress;
-    
-    // Add a sine wave for "waviness"
-    const waveFrequency = 2.5; // Number of wave cycles
-    // Taper the wave off at the very end so it hits the exact currentPrice
-    const waveAmplitude = currentPrice * 0.005 * (1 - Math.pow(progress, 4)); 
-    const wave = Math.sin(progress * Math.PI * 2 * waveFrequency) * waveAmplitude;
-    
-    data.push({ time: i, price: linearPrice + wave });
+    const progress = i / (points - 1);
+    const correctedPrice = walk[i] + (correctionDiff * progress);
+    data.push({ time: i, price: correctedPrice });
   }
+  
   return data;
 };
 
@@ -175,7 +187,7 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData}>
               <Line 
-                type="monotone" 
+                type="linear" 
                 dataKey="price" 
                 stroke={chartColor} 
                 strokeWidth={2}
