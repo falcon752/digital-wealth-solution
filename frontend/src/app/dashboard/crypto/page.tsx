@@ -14,6 +14,7 @@ import {
 import { assetsAPI, depositsAPI, usersAPI, withdrawalsAPI } from '@/lib/api';
 import { Asset } from '@/types';
 import { useAuth } from '@/context/AuthContext';
+import { useSidebar } from '@/context/SidebarContext';
 
 // ─── Deposit modal schema ───────────────────────────────────────────────────
 const buySchema = z.object({
@@ -547,6 +548,7 @@ function SendModal({
 // ─── Main page ──────────────────────────────────────────────────────────────
 export default function CryptoAssetsPage() {
   const { user } = useAuth();
+  const { openSidebar } = useSidebar();
   const router = useRouter();
   const [assets, setAssets] = useState<AssetRow[]>([]);
   const [balance, setBalance] = useState(0);
@@ -600,7 +602,7 @@ export default function CryptoAssetsPage() {
     <div className="flex flex-col min-h-full bg-white dark:bg-gray-950">
       {/* Wallet header */}
       <div className="flex items-center justify-between px-5 h-14 border-b border-gray-100 dark:border-gray-800 shrink-0">
-        <button className="w-9 h-9 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
+        <button onClick={openSidebar} className="w-9 h-9 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
           <AlignJustify size={20} />
         </button>
         <button className="flex items-center gap-1.5 text-sm font-semibold text-gray-900 dark:text-white hover:opacity-80 transition-opacity">

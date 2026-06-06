@@ -23,6 +23,7 @@ const userNav = [
 
 const adminNav = [
   { href: '/admin', icon: LayoutDashboard, label: 'Overview' },
+  { href: '/admin/llc', icon: Building2, label: 'LLC Apps' },
   { href: '/admin/cards', icon: CreditCard, label: 'Cards' },
   { href: '/admin/assets', icon: Package, label: 'Assets' },
   { href: '/admin/deposits', icon: ArrowDownToLine, label: 'Deposits' },

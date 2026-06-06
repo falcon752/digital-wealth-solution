@@ -140,8 +140,7 @@ export default function LLCManagementPage() {
                       {applications.map((app) => (
                         <tr 
                           key={app.id} 
-                          onClick={() => router.push(`/dashboard/llc/${app.id}`)}
-                          className="hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors"
+                          className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
                         >
                           <td className="py-4 px-2 font-bold text-gray-900 dark:text-white">{app.companyName}</td>
                           <td className="py-4 px-2 text-gray-600 dark:text-gray-400">{app.entityType}</td>
