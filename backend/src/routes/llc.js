@@ -3,6 +3,8 @@ const { body, validationResult } = require('express-validator');
 const { LLCApplication } = require('../database');
 const { authenticate, requireAdmin } = require('../middleware/auth');
 const { logActivity } = require('../utils/activity');
+const { sendUserLLCStatusEmail } = require('../utils/email');
+const { User } = require('../database');
 
 const router = express.Router();
 
@@ -98,7 +100,22 @@ router.put('/admin/:id', authenticate, requireAdmin, [
   try {
     const application = await LLCApplication.findByIdAndUpdate(req.params.id, update, { new: true }).lean();
     if (!application) return res.status(404).json({ error: 'Application not found' });
+    
     logActivity(req.user.id, 'LLC_STATUS_UPDATED', { id: req.params.id, status }, req);
+
+    if (status !== undefined) {
+      const user = await User.findById(application.userId).select('email firstName');
+      if (user) {
+        sendUserLLCStatusEmail({
+          userEmail: user.email,
+          firstName: user.firstName,
+          companyName: application.companyName,
+          status,
+          adminNote: application.adminNote || null
+        }).catch(e => console.error('Failed to send LLC status email:', e));
+      }
+    }
+
     res.json({ application });
   } catch (err) {
     res.status(500).json({ error: 'Failed to update application' });

@@ -1,7 +1,7 @@
 const express = require('express');
 const { authenticate, requireAdmin } = require('../middleware/auth');
 const { Loan, User } = require('../database');
-const { sendLoanNotificationEmail } = require('../utils/email');
+const { sendLoanNotificationEmail, sendUserLoanStatusEmail } = require('../utils/email');
 
 const router = express.Router();
 
@@ -120,6 +120,19 @@ router.put('/:id/status', authenticate, requireAdmin, async (req, res) => {
     if (adminNote !== undefined) loan.adminNote = adminNote;
 
     await loan.save();
+
+    const user = await User.findById(loan.userId).select('email firstName');
+    if (user && (status === 'approved' || status === 'rejected')) {
+      sendUserLoanStatusEmail({
+        userEmail: user.email,
+        firstName: user.firstName,
+        loanAsset: loan.loanAsset,
+        loanAmount: loan.loanAmount,
+        status,
+        adminNote: loan.adminNote || null
+      }).catch(e => console.error('Failed to send loan status email:', e));
+    }
+
     res.json({ message: 'Loan status updated', loan });
   } catch (err) {
     console.error('Error updating loan status:', err);

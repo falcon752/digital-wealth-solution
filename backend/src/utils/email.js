@@ -522,6 +522,161 @@ async function sendEarnNotificationEmail({ adminEmail, user, earnData }) {
   });
 }
 
+// === USER NOTIFICATION EMAILS (STATUS UPDATES) ===
+
+async function sendUserDepositStatusEmail({ userEmail, firstName, assetSymbol, amount, status, adminNote }) {
+  const transporter = createTransporter();
+  const statusColor = status === 'confirmed' ? '#10b981' : '#ef4444';
+  const statusText = status === 'confirmed' ? 'Approved' : 'Rejected';
+
+  const html = `
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
+      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Solution</h2>
+      <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">Deposit Status Update</p>
+
+      <p>Hi <strong>${firstName}</strong>,</p>
+      <p>Your deposit of <strong>${amount} ${assetSymbol}</strong> has been <strong>${statusText}</strong>.</p>
+      
+      ${adminNote ? `<div style="background:#071a30;border:1px solid #1d4ed8;padding:16px;border-radius:8px;margin:20px 0;">
+        <p style="color:#60a5fa;font-size:13px;margin:0 0 8px 0;text-transform:uppercase;">Admin Note</p>
+        <p style="margin:0;font-size:14px;">${adminNote}</p>
+      </div>` : ''}
+
+      <hr style="border-color:#0f2a4a;margin:28px 0;" />
+      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Solution. Do not reply.</p>
+    </div>
+  `;
+
+  await transporter.sendMail({
+    from: FROM(),
+    to: userEmail,
+    subject: `Deposit ${statusText}: ${amount} ${assetSymbol}`,
+    html,
+  });
+}
+
+async function sendUserWithdrawalStatusEmail({ userEmail, firstName, assetSymbol, amount, status, adminNote }) {
+  const transporter = createTransporter();
+  const statusMap = {
+    'approved': 'Approved for Processing',
+    'completed': 'Completed and Sent',
+    'rejected': 'Rejected'
+  };
+  const statusText = statusMap[status] || status;
+
+  const html = `
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
+      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Solution</h2>
+      <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">Withdrawal Status Update</p>
+
+      <p>Hi <strong>${firstName}</strong>,</p>
+      <p>Your withdrawal request for <strong>${amount} ${assetSymbol}</strong> has been marked as: <strong>${statusText}</strong>.</p>
+      
+      ${adminNote ? `<div style="background:#071a30;border:1px solid #1d4ed8;padding:16px;border-radius:8px;margin:20px 0;">
+        <p style="color:#60a5fa;font-size:13px;margin:0 0 8px 0;text-transform:uppercase;">Admin Note</p>
+        <p style="margin:0;font-size:14px;">${adminNote}</p>
+      </div>` : ''}
+
+      <hr style="border-color:#0f2a4a;margin:28px 0;" />
+      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Solution. Do not reply.</p>
+    </div>
+  `;
+
+  await transporter.sendMail({
+    from: FROM(),
+    to: userEmail,
+    subject: `Withdrawal Update: ${statusText}`,
+    html,
+  });
+}
+
+async function sendUserLoanStatusEmail({ userEmail, firstName, loanAsset, loanAmount, status, adminNote }) {
+  const transporter = createTransporter();
+  
+  const html = `
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
+      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Solution</h2>
+      <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">Loan Application Update</p>
+
+      <p>Hi <strong>${firstName}</strong>,</p>
+      <p>Your crypto loan application for <strong>${loanAmount} ${loanAsset}</strong> has been updated to: <strong>${status}</strong>.</p>
+      
+      ${adminNote ? `<div style="background:#071a30;border:1px solid #1d4ed8;padding:16px;border-radius:8px;margin:20px 0;">
+        <p style="color:#60a5fa;font-size:13px;margin:0 0 8px 0;text-transform:uppercase;">Admin Note</p>
+        <p style="margin:0;font-size:14px;">${adminNote}</p>
+      </div>` : ''}
+
+      <hr style="border-color:#0f2a4a;margin:28px 0;" />
+      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Solution. Do not reply.</p>
+    </div>
+  `;
+
+  await transporter.sendMail({
+    from: FROM(),
+    to: userEmail,
+    subject: `Loan Application ${status}: ${loanAmount} ${loanAsset}`,
+    html,
+  });
+}
+
+async function sendUserEarnStatusEmail({ userEmail, firstName, asset, amount, status, adminNote }) {
+  const transporter = createTransporter();
+  
+  const html = `
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
+      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Solution</h2>
+      <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">Earn Deposit Update</p>
+
+      <p>Hi <strong>${firstName}</strong>,</p>
+      <p>Your earn/savings deposit of <strong>${amount} ${asset}</strong> has been updated to: <strong>${status}</strong>.</p>
+      
+      ${adminNote ? `<div style="background:#071a30;border:1px solid #1d4ed8;padding:16px;border-radius:8px;margin:20px 0;">
+        <p style="color:#60a5fa;font-size:13px;margin:0 0 8px 0;text-transform:uppercase;">Admin Note</p>
+        <p style="margin:0;font-size:14px;">${adminNote}</p>
+      </div>` : ''}
+
+      <hr style="border-color:#0f2a4a;margin:28px 0;" />
+      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Solution. Do not reply.</p>
+    </div>
+  `;
+
+  await transporter.sendMail({
+    from: FROM(),
+    to: userEmail,
+    subject: `Earn Deposit ${status}: ${amount} ${asset}`,
+    html,
+  });
+}
+
+async function sendUserLLCStatusEmail({ userEmail, firstName, companyName, status, adminNote }) {
+  const transporter = createTransporter();
+  
+  const html = `
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
+      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Solution</h2>
+      <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">LLC Application Update</p>
+
+      <p>Hi <strong>${firstName}</strong>,</p>
+      <p>Your LLC application for <strong>${companyName}</strong> has been updated to: <strong>${status}</strong>.</p>
+      
+      ${adminNote ? `<div style="background:#071a30;border:1px solid #1d4ed8;padding:16px;border-radius:8px;margin:20px 0;">
+        <p style="color:#60a5fa;font-size:13px;margin:0 0 8px 0;text-transform:uppercase;">Admin Note</p>
+        <p style="margin:0;font-size:14px;">${adminNote}</p>
+      </div>` : ''}
+
+      <hr style="border-color:#0f2a4a;margin:28px 0;" />
+      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Solution. Do not reply.</p>
+    </div>
+  `;
+
+  await transporter.sendMail({
+    from: FROM(),
+    to: userEmail,
+    subject: `LLC Application ${status}: ${companyName}`,
+    html,
+  });
+}
+
 module.exports = {
   sendSignupOTPEmail,
   sendDepositNotificationEmail,
@@ -534,4 +689,9 @@ module.exports = {
   sendGeneralContactEmail,
   sendLoanNotificationEmail,
   sendEarnNotificationEmail,
+  sendUserDepositStatusEmail,
+  sendUserWithdrawalStatusEmail,
+  sendUserLoanStatusEmail,
+  sendUserEarnStatusEmail,
+  sendUserLLCStatusEmail,
 };

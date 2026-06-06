@@ -4,7 +4,14 @@ const { body, validationResult } = require('express-validator');
 const { User, Asset, Deposit, Withdrawal, ActivityLog } = require('../database');
 const { authenticate, requireAdmin } = require('../middleware/auth');
 const { logActivity } = require('../utils/activity');
-const { sendWelcomeEmail } = require('../utils/email');
+const { 
+  sendWelcomeEmail,
+  sendUserDepositStatusEmail,
+  sendUserWithdrawalStatusEmail,
+  sendUserLoanStatusEmail,
+  sendUserEarnStatusEmail,
+  sendUserLLCStatusEmail
+} = require('../utils/email');
 
 const router = express.Router();
 
@@ -242,6 +249,9 @@ router.put('/deposits/:id/confirm', authenticate, requireAdmin, [
     if (!deposit) return res.status(404).json({ error: 'Deposit not found' });
     if (deposit.status !== 'pending') return res.status(400).json({ error: 'Deposit is not pending' });
 
+    const user = await User.findById(deposit.userId).select('email firstName');
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
     const usdValue = req.body.usdValue ? parseFloat(req.body.usdValue) : (deposit.usdValue || 0);
 
     console.log(`[DEPOSIT CONFIRM] id=${req.params.id} usdValue=${usdValue} userId=${deposit.userId}`);
@@ -265,6 +275,16 @@ router.put('/deposits/:id/confirm', authenticate, requireAdmin, [
     }
 
     logActivity(req.user.id, 'DEPOSIT_CONFIRMED', { depositId: req.params.id, usdValue }, req);
+
+    sendUserDepositStatusEmail({
+      userEmail: user.email,
+      firstName: user.firstName,
+      assetSymbol: deposit.assetSymbol,
+      amount: deposit.amount,
+      status: 'confirmed',
+      adminNote: req.body.adminNote || null,
+    }).catch(e => console.error('Failed to send deposit email:', e));
+
     res.json({ message: 'Deposit confirmed and balance updated' });
   } catch (err) {
     console.error('Confirm deposit error:', err);
@@ -283,12 +303,26 @@ router.put('/deposits/:id/reject', authenticate, requireAdmin, [
     if (!deposit) return res.status(404).json({ error: 'Deposit not found' });
     if (deposit.status !== 'pending') return res.status(400).json({ error: 'Deposit is not pending' });
 
+    const user = await User.findById(deposit.userId).select('email firstName');
+
     await Deposit.findByIdAndUpdate(req.params.id, {
       status: 'rejected',
       adminNote: req.body.adminNote || null,
     });
 
     logActivity(req.user.id, 'DEPOSIT_REJECTED', { depositId: req.params.id }, req);
+
+    if (user) {
+      sendUserDepositStatusEmail({
+        userEmail: user.email,
+        firstName: user.firstName,
+        assetSymbol: deposit.assetSymbol,
+        amount: deposit.amount,
+        status: 'rejected',
+        adminNote: req.body.adminNote || null,
+      }).catch(e => console.error('Failed to send deposit email:', e));
+    }
+
     res.json({ message: 'Deposit rejected' });
   } catch (err) {
     res.status(500).json({ error: 'Failed to reject deposit' });
@@ -348,7 +382,21 @@ router.put('/withdrawals/:id/approve', authenticate, requireAdmin, [
       adminNote: req.body.adminNote || null,
     });
 
+    const user = await User.findById(w.userId).select('email firstName');
+
     logActivity(req.user.id, 'WITHDRAWAL_APPROVED', { withdrawalId: req.params.id }, req);
+
+    if (user) {
+      sendUserWithdrawalStatusEmail({
+        userEmail: user.email,
+        firstName: user.firstName,
+        assetSymbol: w.assetSymbol,
+        amount: w.amount,
+        status: 'approved',
+        adminNote: req.body.adminNote || null,
+      }).catch(e => console.error('Failed to send withdrawal email:', e));
+    }
+
     res.json({ message: 'Withdrawal approved' });
   } catch (err) {
     res.status(500).json({ error: 'Failed to approve withdrawal' });
@@ -387,7 +435,21 @@ router.put('/withdrawals/:id/complete', authenticate, requireAdmin, [
       console.warn(`[WITHDRAWAL COMPLETE] usdValue is ${w.usdValue} — balance NOT deducted for userId=${w.userId}`);
     }
 
+    const user = await User.findById(w.userId).select('email firstName');
+
     logActivity(req.user.id, 'WITHDRAWAL_COMPLETED', { withdrawalId: req.params.id }, req);
+
+    if (user) {
+      sendUserWithdrawalStatusEmail({
+        userEmail: user.email,
+        firstName: user.firstName,
+        assetSymbol: w.assetSymbol,
+        amount: w.amount,
+        status: 'completed',
+        adminNote: req.body.adminNote || null,
+      }).catch(e => console.error('Failed to send withdrawal email:', e));
+    }
+
     res.json({ message: 'Withdrawal completed and balance deducted' });
   } catch (err) {
     console.error('Complete withdrawal error:', err);
@@ -413,7 +475,21 @@ router.put('/withdrawals/:id/reject', authenticate, requireAdmin, [
       adminNote: req.body.adminNote || null,
     });
 
+    const user = await User.findById(w.userId).select('email firstName');
+
     logActivity(req.user.id, 'WITHDRAWAL_REJECTED', { withdrawalId: req.params.id }, req);
+
+    if (user) {
+      sendUserWithdrawalStatusEmail({
+        userEmail: user.email,
+        firstName: user.firstName,
+        assetSymbol: w.assetSymbol,
+        amount: w.amount,
+        status: 'rejected',
+        adminNote: req.body.adminNote || null,
+      }).catch(e => console.error('Failed to send withdrawal email:', e));
+    }
+
     res.json({ message: 'Withdrawal rejected' });
   } catch (err) {
     res.status(500).json({ error: 'Failed to reject withdrawal' });

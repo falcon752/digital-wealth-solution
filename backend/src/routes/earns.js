@@ -1,7 +1,7 @@
 const express = require('express');
 const { authenticate, requireAdmin } = require('../middleware/auth');
 const { EarnDeposit, User } = require('../database');
-const { sendEarnNotificationEmail } = require('../utils/email');
+const { sendEarnNotificationEmail, sendUserEarnStatusEmail } = require('../utils/email');
 
 const router = express.Router();
 
@@ -117,6 +117,19 @@ router.put('/:id/status', authenticate, requireAdmin, async (req, res) => {
     if (adminNote !== undefined) earnDeposit.adminNote = adminNote;
 
     await earnDeposit.save();
+
+    const user = await User.findById(earnDeposit.userId).select('email firstName');
+    if (user && (status === 'active' || status === 'rejected')) {
+      sendUserEarnStatusEmail({
+        userEmail: user.email,
+        firstName: user.firstName,
+        asset: earnDeposit.asset,
+        amount: earnDeposit.amount,
+        status,
+        adminNote: earnDeposit.adminNote || null
+      }).catch(e => console.error('Failed to send earn status email:', e));
+    }
+
     res.json({ message: 'Saving status updated', earnDeposit });
   } catch (err) {
     console.error('Error updating earn status:', err);
