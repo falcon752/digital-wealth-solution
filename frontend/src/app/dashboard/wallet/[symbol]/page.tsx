@@ -7,7 +7,7 @@ import { formatCurrency } from '@/lib/utils';
 import { ArrowLeft, ArrowUpRight, ArrowDownLeft, Zap } from 'lucide-react';
 import { ArrowRightLeft } from 'lucide-react';
 import Link from 'next/link';
-import { ResponsiveContainer, LineChart, Line } from 'recharts';
+import { ResponsiveContainer, LineChart, Line, YAxis } from 'recharts';
 import ThemeToggle from '@/components/layout/ThemeToggle';
 
 const symbolToCoinGecko: Record<string, string> = {
@@ -193,6 +193,7 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
         {chartData.length > 0 && (
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData}>
+              <YAxis hide domain={['dataMin', 'dataMax']} />
               <Line 
                 type="linear" 
                 dataKey="price" 
