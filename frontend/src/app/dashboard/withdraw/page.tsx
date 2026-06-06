@@ -26,21 +26,24 @@ type Step = 'form' | 'otp' | 'totp' | 'success';
 
 export default function WithdrawPage() {
   const [assets, setAssets] = useState<Asset[]>([]);
-  const [balance, setBalance] = useState(0);
+  const [availableBalances, setAvailableBalances] = useState<Record<string, number>>({});
   const [step, setStep] = useState<Step>('form');
   const [withdrawalId, setWithdrawalId] = useState('');
   const [otp, setOtp] = useState('');
   const [totpCode, setTotpCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const { register, handleSubmit, formState: { errors }, setValue } = useForm<WithdrawForm>({
+  const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm<WithdrawForm>({
     resolver: zodResolver(withdrawSchema),
   });
 
+  const selectedAssetId = watch('assetId');
+
   useEffect(() => {
-    assetsAPI.list().then((r) => {
-      const fetchedAssets = r.data.assets || [];
+    Promise.all([assetsAPI.list(), usersAPI.getDashboardStats()]).then(([assetsRes, statsRes]) => {
+      const fetchedAssets = assetsRes.data.assets || [];
       setAssets(fetchedAssets);
+      setAvailableBalances(statsRes.data.availableAssetBalances || {});
 
       if (typeof window !== 'undefined') {
         const searchParams = new URLSearchParams(window.location.search);
@@ -53,10 +56,15 @@ export default function WithdrawPage() {
         }
       }
     });
-    usersAPI.getBalance().then((r) => setBalance(r.data.balance));
   }, [setValue]);
 
   const onSubmit = async (data: WithdrawForm) => {
+    const available = availableBalances[data.assetId] || 0;
+    if (Number(data.amount) > available) {
+      toast.error(`Amount exceeds available balance (${available})`);
+      return;
+    }
+
     setIsLoading(true);
     try {
       const res = await withdrawalsAPI.create({
@@ -138,8 +146,14 @@ export default function WithdrawPage() {
           {/* Balance */}
           <div className="glass rounded-2xl p-5 flex items-center justify-between">
             <div>
-              <p className="text-xs text-[var(--text-muted)] mb-1">Available Balance</p>
-              <p className="text-2xl font-bold text-[var(--text-primary)]">{formatCurrency(balance)}</p>
+              <p className="text-xs text-[var(--text-muted)] mb-1">Available to Withdraw</p>
+              <p className="text-2xl font-bold text-[var(--text-primary)]">
+                {selectedAssetId && assets.find(a => a.id === selectedAssetId) ? (
+                  `${(availableBalances[selectedAssetId] || 0).toLocaleString('en-US', { maximumFractionDigits: 6 })} ${assets.find(a => a.id === selectedAssetId)?.symbol}`
+                ) : (
+                  'Select an asset'
+                )}
+              </p>
             </div>
             <Shield size={28} className="text-brand-400 opacity-60" />
           </div>

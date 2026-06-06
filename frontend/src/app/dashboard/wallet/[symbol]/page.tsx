@@ -68,6 +68,7 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
   const [timeframe, setTimeframe] = useState('1D'); // Kept for UI buttons, but chart remains static shape
   const [activeTab, setActiveTab] = useState('Holdings');
   const [balanceCrypto, setBalanceCrypto] = useState<number>(0);
+  const [availableBalanceCrypto, setAvailableBalanceCrypto] = useState<number>(0);
   const [transactions, setTransactions] = useState<any[]>([]);
 
   // Computed metrics
@@ -87,7 +88,9 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
       if (found) {
         setAssetInfo(found);
         const balances = statsRes.data.assetBalances || {};
+        const availableBalances = statsRes.data.availableAssetBalances || {};
         setBalanceCrypto(balances[found.id] || 0);
+        setAvailableBalanceCrypto(availableBalances[found.id] || 0);
       }
       
       const allTxs = statsRes.data.recentTransactions || [];
@@ -273,6 +276,11 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
               <div className="flex flex-col">
                 <span className="font-bold text-[#1e2335] dark:text-white text-[16px]">{symbol}</span>
                 <span className="text-[13px] text-[#8f9bb3] dark:text-gray-400 font-medium mt-0.5">{balanceCrypto.toFixed(5)} {symbol}</span>
+                {availableBalanceCrypto < balanceCrypto && (
+                  <span className="text-[11px] text-[#2d68d8] dark:text-blue-400 font-bold mt-1 bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded-md inline-block w-fit">
+                    Available: {availableBalanceCrypto.toFixed(5)}
+                  </span>
+                )}
               </div>
             </div>
             

@@ -202,19 +202,21 @@ router.get('/dashboard-stats', authenticate, async (req, res) => {
       }
     });
 
-    // Subtract locked collateral from Loans and Earns
+    const availableAssetBalances = { ...assetBalances };
+
+    // Subtract locked collateral from Loans and Earns for the available balance
     const allAssets = await Asset.find({ isActive: true }).select('_id symbol');
     const symbolToId = {};
     allAssets.forEach(a => symbolToId[a.symbol] = a._id.toString());
 
     loanAgg.forEach(l => {
       const id = symbolToId[l._id];
-      if (id) assetBalances[id] = (assetBalances[id] || 0) - l.total;
+      if (id) availableAssetBalances[id] = (availableAssetBalances[id] || 0) - l.total;
     });
 
     earnAgg.forEach(e => {
       const id = symbolToId[e._id];
-      if (id) assetBalances[id] = (assetBalances[id] || 0) - e.total;
+      if (id) availableAssetBalances[id] = (availableAssetBalances[id] || 0) - e.total;
     });
 
     res.json({
@@ -224,7 +226,8 @@ router.get('/dashboard-stats', authenticate, async (req, res) => {
       pendingDeposits,
       pendingWithdrawals,
       recentTransactions,
-      assetBalances,
+      assetBalances, // This is now the Total Balance
+      availableAssetBalances, // New explicit field
     });
   } catch (err) {
     console.error('Dashboard stats error:', err);
