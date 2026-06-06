@@ -13,6 +13,7 @@ const COIN_IDS = {
   SOL: 'solana', ADA: 'cardano', TRX: 'tron', MATIC: 'matic-network',
   DOT: 'polkadot', AVAX: 'avalanche-2', LINK: 'chainlink', SHIB: 'shiba-inu',
   BCH: 'bitcoin-cash', XLM: 'stellar', ATOM: 'cosmos', UNI: 'uniswap',
+  HBAR: 'hedera-hashgraph',
 };
 
 const router = express.Router();
