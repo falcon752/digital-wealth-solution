@@ -136,6 +136,23 @@ const llcApplicationSchema = new mongoose.Schema(
 applyToJSON(llcApplicationSchema);
 const LLCApplication = mongoose.model('LLCApplication', llcApplicationSchema);
 
+// ─── SWAP ─────────────────────────────────────────────────────────────────────
+const swapSchema = new mongoose.Schema(
+  {
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    fromAssetId: { type: mongoose.Schema.Types.ObjectId, ref: 'Asset', required: true },
+    toAssetId: { type: mongoose.Schema.Types.ObjectId, ref: 'Asset', required: true },
+    fromAmount: { type: Number, required: true },
+    toAmount: { type: Number, required: true },
+    exchangeRate: { type: Number, required: true },
+    usdValue: { type: Number, default: 0 },
+    status: { type: String, enum: ['completed'], default: 'completed' }
+  },
+  { timestamps: true }
+);
+applyToJSON(swapSchema);
+const Swap = mongoose.model('Swap', swapSchema);
+
 // ─── ACTIVITY LOG ─────────────────────────────────────────────────────────────
 const activityLogSchema = new mongoose.Schema(
   {
@@ -181,5 +198,6 @@ module.exports = {
   Withdrawal,
   LLCApplication,
   Loan,
-  ActivityLog
+  ActivityLog,
+  Swap
 };

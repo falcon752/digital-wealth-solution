@@ -102,8 +102,11 @@ router.get('/dashboard-stats', authenticate, async (req, res) => {
 
     const userObjectId = new mongoose.Types.ObjectId(userId);
 
-    const [user, depositedAgg, withdrawnAgg, pendingDeposits, pendingWithdrawals, recentDeposits, recentWithdrawals, assetDeposits, assetWithdrawals] =
-      await Promise.all([
+    const [
+      user, depositedAgg, withdrawnAgg, pendingDeposits, pendingWithdrawals, 
+      recentDeposits, recentWithdrawals, recentSwaps,
+      assetDeposits, assetWithdrawals, assetSwapsFrom, assetSwapsTo
+    ] = await Promise.all([
         User.findById(userId).select('balance'),
         Deposit.aggregate([
           { $match: { userId: userObjectId, status: 'confirmed' } },
@@ -117,6 +120,7 @@ router.get('/dashboard-stats', authenticate, async (req, res) => {
         Withdrawal.countDocuments({ userId, status: { $in: ['pending', 'approved'] } }),
         Deposit.find({ userId }).sort({ createdAt: -1 }).limit(10).populate('assetId', 'name symbol').lean(),
         Withdrawal.find({ userId }).sort({ createdAt: -1 }).limit(10).populate('assetId', 'name symbol').lean(),
+        Swap.find({ userId }).sort({ createdAt: -1 }).limit(10).populate('fromAssetId', 'name symbol').populate('toAssetId', 'name symbol').lean(),
         Deposit.aggregate([
           { $match: { userId: userObjectId, status: 'confirmed' } },
           { $group: { _id: '$assetId', total: { $sum: '$amount' } } },
@@ -124,6 +128,14 @@ router.get('/dashboard-stats', authenticate, async (req, res) => {
         Withdrawal.aggregate([
           { $match: { userId: userObjectId, status: 'completed' } },
           { $group: { _id: '$assetId', total: { $sum: '$amount' } } },
+        ]),
+        Swap.aggregate([
+          { $match: { userId: userObjectId, status: 'completed' } },
+          { $group: { _id: '$fromAssetId', total: { $sum: '$fromAmount' } } },
+        ]),
+        Swap.aggregate([
+          { $match: { userId: userObjectId, status: 'completed' } },
+          { $group: { _id: '$toAssetId', total: { $sum: '$toAmount' } } },
         ]),
       ]);
 
@@ -148,6 +160,18 @@ router.get('/dashboard-stats', authenticate, async (req, res) => {
         assetName: w.assetId?.name,
         assetSymbol: w.assetId?.symbol,
       })),
+      ...recentSwaps.map((s) => ({
+        type: 'swap',
+        id: s._id.toString(),
+        amount: s.fromAmount,
+        usdValue: s.usdValue,
+        status: s.status,
+        createdAt: s.createdAt,
+        assetName: s.fromAssetId?.name,
+        assetSymbol: s.fromAssetId?.symbol,
+        toAssetSymbol: s.toAssetId?.symbol,
+        toAmount: s.toAmount,
+      })),
     ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 10);
 
     const assetBalances = {};
@@ -157,6 +181,16 @@ router.get('/dashboard-stats', authenticate, async (req, res) => {
     assetWithdrawals.forEach(w => {
       if (w._id) {
         assetBalances[w._id.toString()] = (assetBalances[w._id.toString()] || 0) - w.total;
+      }
+    });
+    assetSwapsFrom.forEach(s => {
+      if (s._id) {
+        assetBalances[s._id.toString()] = (assetBalances[s._id.toString()] || 0) - s.total;
+      }
+    });
+    assetSwapsTo.forEach(s => {
+      if (s._id) {
+        assetBalances[s._id.toString()] = (assetBalances[s._id.toString()] || 0) + s.total;
       }
     });
 
@@ -217,6 +251,27 @@ router.get('/transactions', authenticate, async (req, res) => {
           confirmedAt: w.processedAt,
           assetName: w.assetId?.name,
           assetSymbol: w.assetId?.symbol,
+        }))
+      );
+    }
+
+    if (!type || type === 'swap') {
+      const swaps = await Swap.find({ userId })
+        .populate('fromAssetId', 'name symbol')
+        .populate('toAssetId', 'name symbol')
+        .lean();
+      transactions = transactions.concat(
+        swaps.map((s) => ({
+          type: 'swap',
+          id: s._id.toString(),
+          amount: s.fromAmount,
+          usdValue: s.usdValue,
+          status: s.status,
+          createdAt: s.createdAt,
+          assetName: s.fromAssetId?.name,
+          assetSymbol: s.fromAssetId?.symbol,
+          toAssetSymbol: s.toAssetId?.symbol,
+          toAmount: s.toAmount,
         }))
       );
     }

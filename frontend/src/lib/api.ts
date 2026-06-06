@@ -67,6 +67,8 @@ export const assetsAPI = {
   list: () => api.get('/assets'),
   prices: () => api.get('/assets/prices'),
   get: (id: string) => api.get(`/assets/${id}`),
+  swap: (data: { fromAssetId: string; toAssetId: string; fromAmount: number }) =>
+    api.post('/assets/swap', data),
   // admin
   adminList: () => api.get('/admin/assets'),
   create: (formData: FormData) =>

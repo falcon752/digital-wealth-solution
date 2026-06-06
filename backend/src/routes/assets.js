@@ -67,6 +67,107 @@ router.get('/:id', authenticate, async (req, res) => {
   }
 });
 
+// POST /api/assets/swap
+router.post('/swap', authenticate, [
+  body('fromAssetId').notEmpty(),
+  body('toAssetId').notEmpty(),
+  body('fromAmount').isFloat({ min: 0.000001 }),
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+  const { fromAssetId, toAssetId, fromAmount } = req.body;
+  if (fromAssetId === toAssetId) return res.status(400).json({ error: 'Cannot swap to the same asset' });
+
+  try {
+    const mongoose = require('mongoose');
+    const { Deposit, Withdrawal, Swap } = require('../database');
+    const userObjectId = new mongoose.Types.ObjectId(req.user.id);
+    const fromObjectId = new mongoose.Types.ObjectId(fromAssetId);
+
+    // 1. Check if both assets exist and are active
+    const [fromAsset, toAsset] = await Promise.all([
+      Asset.findOne({ _id: fromAssetId, isActive: true }),
+      Asset.findOne({ _id: toAssetId, isActive: true })
+    ]);
+
+    if (!fromAsset || !toAsset) {
+      return res.status(404).json({ error: 'One or both assets not found or inactive' });
+    }
+
+    // 2. Compute current balance of fromAsset
+    const [assetDeposits, assetWithdrawals, assetSwapsFrom, assetSwapsTo] = await Promise.all([
+      Deposit.aggregate([
+        { $match: { userId: userObjectId, assetId: fromObjectId, status: 'confirmed' } },
+        { $group: { _id: null, total: { $sum: '$amount' } } }
+      ]),
+      Withdrawal.aggregate([
+        { $match: { userId: userObjectId, assetId: fromObjectId, status: 'completed' } },
+        { $group: { _id: null, total: { $sum: '$amount' } } }
+      ]),
+      Swap.aggregate([
+        { $match: { userId: userObjectId, fromAssetId: fromObjectId, status: 'completed' } },
+        { $group: { _id: null, total: { $sum: '$fromAmount' } } }
+      ]),
+      Swap.aggregate([
+        { $match: { userId: userObjectId, toAssetId: fromObjectId, status: 'completed' } },
+        { $group: { _id: null, total: { $sum: '$toAmount' } } }
+      ])
+    ]);
+
+    const balance = (assetDeposits[0]?.total || 0) 
+                  - (assetWithdrawals[0]?.total || 0)
+                  - (assetSwapsFrom[0]?.total || 0)
+                  + (assetSwapsTo[0]?.total || 0);
+
+    if (balance < parseFloat(fromAmount)) {
+      return res.status(400).json({ error: 'Insufficient balance to swap' });
+    }
+
+    // 3. Fetch live prices from CoinGecko to determine exchange rate securely
+    const symbols = [fromAsset.symbol.toUpperCase(), toAsset.symbol.toUpperCase()];
+    const ids = [...new Set(symbols.map((s) => COIN_IDS[s]).filter(Boolean))].join(',');
+    
+    if (!ids) return res.status(500).json({ error: 'Failed to fetch asset pricing' });
+
+    const r = await fetch(
+      `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd`,
+      { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(8000) }
+    );
+    const data = await r.json();
+
+    const fromPriceUsd = data[COIN_IDS[symbols[0]]]?.usd;
+    const toPriceUsd = data[COIN_IDS[symbols[1]]]?.usd;
+
+    if (!fromPriceUsd || !toPriceUsd) {
+      return res.status(500).json({ error: 'Pricing unavailable for selected assets' });
+    }
+
+    const usdValue = parseFloat(fromAmount) * fromPriceUsd;
+    const exchangeRate = fromPriceUsd / toPriceUsd;
+    const toAmount = parseFloat(fromAmount) * exchangeRate;
+
+    // 4. Create the Swap record
+    const swap = await Swap.create({
+      userId: req.user.id,
+      fromAssetId,
+      toAssetId,
+      fromAmount: parseFloat(fromAmount),
+      toAmount,
+      exchangeRate,
+      usdValue,
+      status: 'completed'
+    });
+
+    logActivity(req.user.id, 'CRYPTO_SWAPPED', { swapId: swap.id, fromAmount, fromAsset: symbols[0], toAmount, toAsset: symbols[1] }, req);
+
+    res.status(201).json({ message: 'Swap completed successfully', swap });
+  } catch (err) {
+    console.error('Swap error:', err);
+    res.status(500).json({ error: 'Failed to execute swap' });
+  }
+});
+
 // POST /api/assets  (admin only)
 router.post('/', authenticate, requireAdmin, (req, res, next) => {
   upload.single('qrCode')(req, res, (err) => {
