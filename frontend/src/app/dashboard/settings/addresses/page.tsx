@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { X, Search, Copy, QrCode } from 'lucide-react';
-import { assetsAPI } from '@/lib/api';
+import { assetsAPI, apiBase } from '@/lib/api';
 import toast from 'react-hot-toast';
 
 function getAssetColor(symbol: string) {
@@ -236,7 +236,7 @@ export default function CryptoAddressesPage() {
             
             <div className="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 mb-6 w-full flex items-center justify-center aspect-square max-w-[240px]">
               {selectedAsset.qrCodeImage ? (
-                <img src={`${(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api').replace('/api', '')}${selectedAsset.qrCodeImage}`} alt="QR Code" className="w-full h-full object-contain" />
+                <img src={`${apiBase}${selectedAsset.qrCodeImage}`} alt="QR Code" className="w-full h-full object-contain" />
               ) : (
                 <div className="text-gray-400 font-medium text-sm flex flex-col items-center gap-2">
                   <QrCode size={32} />
