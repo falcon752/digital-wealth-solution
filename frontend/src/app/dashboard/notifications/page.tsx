@@ -13,7 +13,12 @@ export default function NotificationsPage() {
   useEffect(() => {
     usersAPI.getDashboardStats().then((res) => {
       const txs = res.data?.recentTransactions || [];
-      const mapped = txs.map((tx: any) => {
+      const clearedAt = localStorage.getItem('notificationsClearedAt');
+      const clearedTime = clearedAt ? parseInt(clearedAt) : 0;
+
+      const mapped = txs
+        .filter((tx: any) => new Date(tx.createdAt).getTime() > clearedTime)
+        .map((tx: any) => {
         const isDeposit = tx.type === 'deposit';
         let title = '';
         let message = '';
@@ -47,6 +52,11 @@ export default function NotificationsPage() {
     }).catch(console.error).finally(() => setLoading(false));
   }, []);
 
+  const handleClearAll = () => {
+    setNotifications([]);
+    localStorage.setItem('notificationsClearedAt', Date.now().toString());
+  };
+
   return (
     <div className="min-h-full flex flex-col bg-white dark:bg-gray-900 pb-20">
       
@@ -60,7 +70,7 @@ export default function NotificationsPage() {
         </h1>
         <div className="flex items-center gap-3">
           <ThemeToggle />
-          <button className="text-[14px] font-bold text-[#2d68d8] dark:text-blue-500 hover:opacity-80">
+          <button onClick={handleClearAll} className="text-[14px] font-bold text-[#2d68d8] dark:text-blue-500 hover:opacity-80">
             Clear All
           </button>
         </div>
