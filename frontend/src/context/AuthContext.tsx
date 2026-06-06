@@ -52,9 +52,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const storedUser = localStorage.getItem('dws_user');
     if (storedToken && storedUser) {
       try {
+        const parsedUser = JSON.parse(storedUser);
         setToken(storedToken);
-        setUser(JSON.parse(storedUser));
+        setUser(parsedUser);
         
+        // If the stored user is pending onboarding fee, we block the UI until authAPI.me() finishes.
+        // This prevents a stale cache from flashing the /pay-onboarding page if they were recently approved.
+        const shouldBlockUI = parsedUser.role === 'user' && !parsedUser.onboardingFeePaid;
+        
+        if (!shouldBlockUI) {
+          setIsLoading(false);
+        }
+
         // Background refresh to sync MongoDB payment/onboarding updates instantly
         authAPI.me()
           .then((res) => {
@@ -67,13 +76,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             localStorage.removeItem('dws_user');
             setToken(null);
             setUser(null);
+          })
+          .finally(() => {
+            if (shouldBlockUI) {
+              setIsLoading(false);
+            }
           });
       } catch {
         localStorage.removeItem('dws_token');
         localStorage.removeItem('dws_user');
+        setIsLoading(false);
       }
+    } else {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, []);
 
   return (
