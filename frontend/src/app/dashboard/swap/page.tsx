@@ -114,7 +114,7 @@ export default function SwapCryptoPage() {
     return (
       <>
         <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)}></div>
-        <div className="absolute top-full left-0 mt-2 w-full sm:w-[250px] bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 max-h-[300px] overflow-y-auto z-50">
+        <div className="absolute top-full left-0 mt-2 w-[220px] bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 max-h-[300px] overflow-y-auto z-50">
           {assets.map((asset) => (
             <button
               key={asset.id}
