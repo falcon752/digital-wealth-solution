@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { assetsAPI, loansAPI } from '@/lib/api';
+import { assetsAPI, loansAPI, earnsAPI } from '@/lib/api';
 import { formatCurrency } from '@/lib/utils';
 import { Asset } from '@/types';
 import DashboardHeader from '@/components/layout/DashboardHeader';
@@ -99,6 +99,7 @@ export default function LendingPage() {
 
   const handleConfirmBorrow = async () => {
     if (!payoutAddress) return toast.error('Please enter a payout address');
+    if (!email) return toast.error('Please enter your contact email');
     if (!termsAccepted) return toast.error('Please accept the terms');
     if (!collateralAsset || !loanAsset) return toast.error('Please select assets');
     
@@ -114,7 +115,8 @@ export default function LendingPage() {
         apr,
         monthlyInterest,
         originationFee,
-        payoutAddress
+        payoutAddress,
+        contactEmail: email
       });
       
       toast.success('Loan request submitted successfully!');
@@ -126,16 +128,28 @@ export default function LendingPage() {
   };
 
   const handleConfirmEarn = async () => {
+    if (!email) return toast.error('Please enter your contact email');
     if (!termsAccepted) return toast.error('Please accept the terms');
     if (!earnAsset) return toast.error('Please select an asset');
     
     setIsSubmitting(true);
     
-    // Simulate API call for earning deposit
-    setTimeout(() => {
+    try {
+      await earnsAPI.create({
+        asset: earnAsset.symbol,
+        amount: Number(earnAmount),
+        apy: earnApy,
+        monthlyReward: earnMonthlyReward,
+        term: 'Unlimited',
+        contactEmail: email
+      });
+
       toast.success('Saving deposit started successfully!');
       router.push('/dashboard');
-    }, 1500);
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || 'Failed to start saving deposit');
+      setIsSubmitting(false);
+    }
   };
 
   const filteredAssets = assets.filter(a => 

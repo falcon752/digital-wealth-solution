@@ -15,6 +15,7 @@ const adminRoutes = require('./routes/admin');
 const llcRoutes = require('./routes/llc');
 const contactRoutes = require('./routes/contact');
 const loansRoutes = require('./routes/loans');
+const earnsRoutes = require('./routes/earns');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -73,6 +74,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/llc', llcRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/loans', loansRoutes);
+app.use('/api/earns', earnsRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

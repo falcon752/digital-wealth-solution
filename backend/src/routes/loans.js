@@ -20,10 +20,10 @@ router.get('/', authenticate, async (req, res) => {
 // Create a new loan request
 router.post('/', authenticate, async (req, res) => {
   try {
-    const { collateralAsset, collateralAmount, loanAsset, loanAmount, ltv, apr, monthlyInterest, originationFee, payoutAddress } = req.body;
+    const { collateralAsset, collateralAmount, loanAsset, loanAmount, ltv, apr, monthlyInterest, originationFee, payoutAddress, contactEmail } = req.body;
 
-    if (!collateralAsset || !collateralAmount || !loanAsset || !loanAmount || !payoutAddress) {
-      return res.status(400).json({ error: 'Missing required loan parameters' });
+    if (!collateralAsset || !collateralAmount || !loanAsset || !loanAmount || !payoutAddress || !contactEmail) {
+      return res.status(400).json({ error: 'Missing required loan parameters including contact email' });
     }
 
     const loan = new Loan({
@@ -37,6 +37,7 @@ router.post('/', authenticate, async (req, res) => {
       monthlyInterest: monthlyInterest || 0,
       originationFee: originationFee || 0,
       payoutAddress,
+      contactEmail,
       status: 'pending'
     });
 

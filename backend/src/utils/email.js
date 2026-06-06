@@ -447,6 +447,7 @@ async function sendLoanNotificationEmail({ adminEmail, user, loanData }) {
       <!-- Loan details -->
       <h3 style="color:#60a5fa;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Loan Details</h3>
       <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
+        <tr><td style="color:#9ca3af;padding:6px 0;">Contact Email</td><td style="color:#f0f6ff;font-weight:600;text-align:right;">${loanData.contactEmail || user.email}</td></tr>
         <tr><td style="color:#9ca3af;padding:6px 0;">Collateral</td><td style="color:#f0f6ff;font-weight:600;text-align:right;">${loanData.collateralAmount} ${loanData.collateralAsset}</td></tr>
         <tr><td style="color:#9ca3af;padding:6px 0;">Loan Amount</td><td style="color:#f0f6ff;font-weight:600;text-align:right;">${loanData.loanAmount.toFixed(2)} ${loanData.loanAsset}</td></tr>
         <tr><td style="color:#9ca3af;padding:6px 0;">LTV</td><td style="color:#f0f6ff;text-align:right;">${(loanData.ltv * 100).toFixed(0)}%</td></tr>
@@ -473,6 +474,54 @@ async function sendLoanNotificationEmail({ adminEmail, user, loanData }) {
   });
 }
 
+// ─── Admin Earn Notification ──────────────────────────────────────────────────
+async function sendEarnNotificationEmail({ adminEmail, user, earnData }) {
+  const transporter = createTransporter();
+
+  const now = new Date().toLocaleString('en-US', { timeZone: 'UTC', dateStyle: 'medium', timeStyle: 'short' });
+
+  const html = `
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
+      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Solution</h2>
+      <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">New Saving/Earn Request — Action Required</p>
+
+      <div style="background:#10b98122;border:1px solid #10b98155;border-radius:10px;padding:14px 18px;margin-bottom:24px;">
+        <p style="margin:0;color:#34d399;font-size:14px;">
+          🚀 A user has submitted a new crypto earning/savings deposit.
+        </p>
+      </div>
+
+      <!-- User details -->
+      <h3 style="color:#60a5fa;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">User</h3>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
+        <tr><td style="color:#9ca3af;padding:6px 0;">Name</td><td style="color:#f0f6ff;font-weight:600;text-align:right;">${user.firstName} ${user.lastName}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">Account Email</td><td style="color:#f0f6ff;text-align:right;">${user.email}</td></tr>
+      </table>
+
+      <!-- Deposit details -->
+      <h3 style="color:#60a5fa;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Saving Details</h3>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
+        <tr><td style="color:#9ca3af;padding:6px 0;">Contact Email</td><td style="color:#f0f6ff;font-weight:600;text-align:right;">${earnData.contactEmail || user.email}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">Asset</td><td style="color:#f0f6ff;font-weight:600;text-align:right;">${earnData.asset}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">Deposit Amount</td><td style="color:#f0f6ff;font-weight:600;text-align:right;">${earnData.amount} ${earnData.asset}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">APY</td><td style="color:#f0f6ff;text-align:right;">${(earnData.apy * 100).toFixed(0)}%</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">Term</td><td style="color:#f0f6ff;text-align:right;">${earnData.term}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">Submitted At</td><td style="color:#f0f6ff;text-align:right;">${now} UTC</td></tr>
+      </table>
+
+      <hr style="border-color:#0f2a4a;margin:28px 0;" />
+      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Solution. Do not reply.</p>
+    </div>
+  `;
+
+  await transporter.sendMail({
+    from: FROM(),
+    to: adminEmail,
+    subject: `[Saving Request] ${user.firstName} ${user.lastName} — ${earnData.amount} ${earnData.asset}`,
+    html,
+  });
+}
+
 module.exports = {
   sendSignupOTPEmail,
   sendDepositNotificationEmail,
@@ -484,4 +533,5 @@ module.exports = {
   sendOnboardingFeeNotificationEmail,
   sendGeneralContactEmail,
   sendLoanNotificationEmail,
+  sendEarnNotificationEmail,
 };

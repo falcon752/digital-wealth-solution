@@ -159,9 +159,26 @@ export const loansAPI = {
     monthlyInterest: number;
     originationFee: number;
     payoutAddress: string;
+    contactEmail: string;
   }) => api.post('/loans', data),
   list: () => api.get('/loans'),
   // admin
   updateStatus: (id: string, data: { status: 'pending' | 'approved' | 'rejected'; adminNote?: string }) =>
-    api.put(`/loans/${id}/status`, data),
+    api.put(`/admin/loans/${id}/status`, data),
+};
+
+// ─── Earns / Savings ───────────────────────────────────────────────────────
+export const earnsAPI = {
+  create: (data: {
+    asset: string;
+    amount: number;
+    apy: number;
+    monthlyReward: number;
+    term: string;
+    contactEmail: string;
+  }) => api.post('/earns', data),
+  list: () => api.get('/earns'),
+  // admin
+  updateStatus: (id: string, data: { status: 'pending' | 'active' | 'rejected'; adminNote?: string }) =>
+    api.put(`/admin/earns/${id}/status`, data),
 };

@@ -136,6 +136,46 @@ const llcApplicationSchema = new mongoose.Schema(
 applyToJSON(llcApplicationSchema);
 const LLCApplication = mongoose.model('LLCApplication', llcApplicationSchema);
 
+// ─── LOAN ─────────────────────────────────────────────────────────────────────
+const loanSchema = new mongoose.Schema(
+  {
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    collateralAsset: { type: String, required: true },
+    collateralAmount: { type: Number, required: true },
+    loanAsset: { type: String, required: true },
+    loanAmount: { type: Number, required: true },
+    ltv: { type: Number, required: true },
+    apr: { type: Number, required: true },
+    monthlyInterest: { type: Number, required: true },
+    originationFee: { type: Number, required: true },
+    payoutAddress: { type: String, required: true },
+    contactEmail: { type: String, required: true },
+    status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
+    adminNote: { type: String, default: null },
+  },
+  { timestamps: true }
+);
+applyToJSON(loanSchema);
+const Loan = mongoose.model('Loan', loanSchema);
+
+// ─── EARN DEPOSIT ─────────────────────────────────────────────────────────────
+const earnDepositSchema = new mongoose.Schema(
+  {
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    asset: { type: String, required: true },
+    amount: { type: Number, required: true },
+    apy: { type: Number, required: true },
+    monthlyReward: { type: Number, required: true },
+    term: { type: String, required: true },
+    contactEmail: { type: String, required: true },
+    status: { type: String, enum: ['pending', 'active', 'rejected'], default: 'pending' },
+    adminNote: { type: String, default: null },
+  },
+  { timestamps: true }
+);
+applyToJSON(earnDepositSchema);
+const EarnDeposit = mongoose.model('EarnDeposit', earnDepositSchema);
+
 // ─── SWAP ─────────────────────────────────────────────────────────────────────
 const swapSchema = new mongoose.Schema(
   {
@@ -198,6 +238,7 @@ module.exports = {
   Withdrawal,
   LLCApplication,
   Loan,
+  EarnDeposit,
   ActivityLog,
   Swap
 };
