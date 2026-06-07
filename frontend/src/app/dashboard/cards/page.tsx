@@ -6,7 +6,7 @@ import api from '@/lib/api';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import Button from '@/components/ui/Button';
 import toast from 'react-hot-toast';
-import { CreditCard, CheckCircle2, Clock } from 'lucide-react';
+import { CreditCard, CheckCircle2, Clock, ShieldCheck, CircleDollarSign, Globe, Lock } from 'lucide-react';
 
 export default function CardsPage() {
   const { user } = useAuth();
@@ -164,6 +164,29 @@ export default function CardsPage() {
               </div>
             )}
           </div>
+          
+          {/* Card Benefits Section */}
+          <div className="w-full max-w-sm mt-8 mb-4">
+            <h3 className="font-bold text-gray-900 dark:text-white mb-4 text-base">Card Benefits</h3>
+            <div className="space-y-3">
+              {[
+                { title: 'Fraud Protection', description: '24/7 monitoring for suspicious activity', icon: ShieldCheck },
+                { title: 'Cashback Rewards', description: 'Earn up to 2% on all purchases', icon: CircleDollarSign },
+                { title: 'Global Acceptance', description: 'Use your card worldwide with no foreign fees', icon: Globe },
+                { title: 'Secure Transactions', description: 'Enhanced security with chip technology', icon: Lock },
+              ].map((b, i) => (
+                <div key={i} className="flex items-center gap-4 bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700/50">
+                  <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-500 shrink-0">
+                    <b.icon size={20} />
+                  </div>
+                  <div>
+                    <div className="font-bold text-sm text-gray-900 dark:text-white">{b.title}</div>
+                    <div className="text-[12px] text-gray-500 dark:text-gray-400 mt-0.5">{b.description}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -247,6 +270,29 @@ export default function CardsPage() {
             Submit Application
           </Button>
 
+        </div>
+
+        {/* Card Benefits Section */}
+        <div className="w-full max-w-sm mx-auto mt-8 mb-4">
+          <h3 className="font-bold text-gray-900 dark:text-white mb-4 text-base">Card Benefits</h3>
+          <div className="space-y-3">
+            {[
+              { title: 'Fraud Protection', description: '24/7 monitoring for suspicious activity', icon: ShieldCheck },
+              { title: 'Cashback Rewards', description: 'Earn up to 2% on all purchases', icon: CircleDollarSign },
+              { title: 'Global Acceptance', description: 'Use your card worldwide with no foreign fees', icon: Globe },
+              { title: 'Secure Transactions', description: 'Enhanced security with chip technology', icon: Lock },
+            ].map((b, i) => (
+              <div key={i} className="flex items-center gap-4 bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700/50">
+                <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-500 shrink-0">
+                  <b.icon size={20} />
+                </div>
+                <div>
+                  <div className="font-bold text-sm text-gray-900 dark:text-white">{b.title}</div>
+                  <div className="text-[12px] text-gray-500 dark:text-gray-400 mt-0.5">{b.description}</div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </form>
     </div>
