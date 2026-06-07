@@ -122,6 +122,22 @@ export default function SettingsPage() {
               <ChevronRight size={18} className="text-[#2d68d8]" />
             </Link>
 
+            <Link href="/dashboard/settings/addresses" className="flex items-center justify-between bg-white dark:bg-gray-800 px-4 py-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700/50">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-[#eaf1ff] dark:bg-blue-900/30 flex items-center justify-center text-[#2d68d8]">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <rect x="7" y="7" width="3" height="3"></rect>
+                    <rect x="14" y="7" width="3" height="3"></rect>
+                    <rect x="7" y="14" width="3" height="3"></rect>
+                    <rect x="14" y="14" width="3" height="3"></rect>
+                  </svg>
+                </div>
+                <span className="font-semibold text-[15px] text-gray-900 dark:text-white">Crypto Addresses</span>
+              </div>
+              <ChevronRight size={18} className="text-[#2d68d8]" />
+            </Link>
+
             <Link href="/dashboard/settings/deposit-log" className="flex items-center justify-between bg-white dark:bg-gray-800 px-4 py-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700/50">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-xl bg-[#eaf1ff] dark:bg-blue-900/30 flex items-center justify-center text-[#2d68d8]">

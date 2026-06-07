@@ -208,6 +208,13 @@ export default function CryptoAddressesPage() {
             No crypto assets found
           </div>
         )}
+
+        {/* Footer Text */}
+        <div className="text-center mt-8 mb-6">
+          <button className="text-[#00b15d] font-semibold text-[15px] hover:text-[#00b15d]/80 transition">
+            Didn't see your crypto? Import
+          </button>
+        </div>
       </div>
 
       {/* QR Code Modal */}
