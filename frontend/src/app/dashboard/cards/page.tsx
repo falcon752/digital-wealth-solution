@@ -41,8 +41,7 @@ export default function CardsPage() {
 
   const fetchCard = async () => {
     try {
-      // Assuming GET /api/cards returns { cards: [...] }
-      const res = await api.get('/api/cards');
+      const res = await api.get('/cards');
       if (res.data.cards && res.data.cards.length > 0) {
         setCard(res.data.cards[0]);
       }
@@ -56,9 +55,8 @@ export default function CardsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-
     try {
-      const res = await api.post('/api/cards/apply', {
+      const res = await api.post('/cards/apply', {
         cardHolderName,
         cardNumber,
         cardType
