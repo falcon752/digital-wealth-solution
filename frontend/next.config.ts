@@ -16,6 +16,16 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
+        hostname: "digitalwealthpartnersllc.net",
+        pathname: "/uploads/**",
+      },
+      {
+        protocol: "https",
+        hostname: "www.digitalwealthpartnersllc.net",
+        pathname: "/uploads/**",
+      },
+      {
+        protocol: "https",
         hostname: "cdn.jsdelivr.net",
         pathname: "/**",
       },
