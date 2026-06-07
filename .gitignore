@@ -32,7 +32,7 @@ yarn-error.log*
 Thumbs.db
 
 # Uploads (user-generated content)
-backend/uploads/*
+# backend/uploads/*
 !backend/uploads/.gitkeep
 
 # TypeScript
