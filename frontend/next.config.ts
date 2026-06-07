@@ -10,6 +10,47 @@ const nextConfig: NextConfig = {
         pathname: "/uploads/**",
       },
       {
+        protocol: "http",
+        hostname: "localhost",
+        port: "3000",
+        pathname: "/**",
+      },
+      {
+        protocol: "http",
+        hostname: "localhost",
+        port: "3001",
+        pathname: "/**",
+      },
+      {
+        protocol: "http",
+        hostname: "localhost",
+        port: "3002",
+        pathname: "/**",
+      },
+      {
+        protocol: "http",
+        hostname: "localhost",
+        port: "3003",
+        pathname: "/**",
+      },
+      {
+        protocol: "http",
+        hostname: "localhost",
+        port: "3004",
+        pathname: "/**",
+      },
+      {
+        protocol: "http",
+        hostname: "144.91.86.110",
+        pathname: "/uploads/**",
+      },
+      {
+        protocol: "http",
+        hostname: "144.91.86.110",
+        port: "5000",
+        pathname: "/uploads/**",
+      },
+      {
         protocol: "https",
         hostname: "wyomingllc-limited.com",
         pathname: "/uploads/**",
