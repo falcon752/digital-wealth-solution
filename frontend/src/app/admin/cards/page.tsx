@@ -32,7 +32,7 @@ export default function AdminCardsPage() {
     if (!selectedCard) return;
     setIsUpdating(true);
     try {
-      await api.put(`/admin/cards/${selectedCard._id}`, { status, adminNote });
+      await api.put(`/admin/cards/${selectedCard.id}`, { status, adminNote });
       toast.success(`Card ${status}`);
       setSelectedCard(null);
       setAdminNote('');
@@ -65,7 +65,7 @@ export default function AdminCardsPage() {
               </thead>
               <tbody className="divide-y divide-[var(--border-color)]">
                 {cards.map(card => (
-                  <tr key={card._id} className="hover:bg-[var(--bg-hover)] transition-colors">
+                  <tr key={card.id} className="hover:bg-[var(--bg-hover)] transition-colors">
                     <td className="px-6 py-4">
                       <div className="font-medium text-[var(--text-primary)]">
                         {card.userId?.firstName} {card.userId?.lastName}
