@@ -112,7 +112,7 @@ export default function SettingsPage() {
               <ChevronRight size={18} className="text-[#6366f1]" />
             </Link>
 
-            <Link href="/dashboard/deposit" className="flex items-center justify-between bg-white dark:bg-gray-800 px-4 py-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700/50">
+            <Link href="/dashboard/settings/deposit-log" className="flex items-center justify-between bg-white dark:bg-gray-800 px-4 py-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700/50">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-xl bg-[#eeeffe] dark:bg-indigo-900/30 flex items-center justify-center text-[#6366f1]">
                   <Download size={20} />
