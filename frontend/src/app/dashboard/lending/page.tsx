@@ -164,7 +164,7 @@ export default function LendingPage() {
       {/* STEP 1: CALCULATOR */}
       {step === 1 && (
         <div className="flex-1 p-4 md:p-6 max-w-2xl mx-auto w-full">
-          <h1 className="text-[32px] md:text-[40px] font-bold text-gray-900 dark:text-white leading-tight mb-8">
+          <h1 className="text-[32px] md:text-[40px] font-semibold text-gray-900 dark:text-white leading-tight mb-8">
             Borrow, earn,<br />trade, <span className="font-light italic">save</span>
           </h1>
 
