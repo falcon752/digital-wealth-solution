@@ -10,11 +10,15 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { usersAPI } from '@/lib/api';
+import { useRouter } from 'next/navigation';
 
 export default function SettingsPage() {
   const { user, logout } = useAuth();
+  const router = useRouter();
   
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [stats, setStats] = useState<any>(null);
+  const [tradesCount, setTradesCount] = useState(0);
 
   useEffect(() => {
     if (user?.profileImage) {
@@ -22,17 +26,23 @@ export default function SettingsPage() {
     }
   }, [user]);
 
+  useEffect(() => {
+    usersAPI.getDashboardStats().then(res => setStats(res.data)).catch(console.error);
+    usersAPI.getTransactions({ limit: 1 }).then(res => setTradesCount(res.data.total || 0)).catch(console.error);
+  }, []);
+
   const fullName = user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : '';
+  const heldAssetsCount = stats?.assetBalances ? Object.values(stats.assetBalances).filter((v: any) => v > 0).length : 0;
 
   return (
     <div className="min-h-full flex flex-col bg-[#f4f5f8] dark:bg-gray-900 pb-20">
       
       {/* Header */}
       <header className="flex items-center justify-between px-4 py-4 bg-[#f4f5f8] dark:bg-gray-900 sticky top-0 z-10">
-        <Link href="/dashboard" className="flex items-center gap-2 text-gray-500 dark:text-gray-400 font-medium">
+        <button onClick={() => router.back()} className="flex items-center gap-2 text-gray-500 dark:text-gray-400 font-medium">
           <ArrowLeft size={18} />
           Back
-        </Link>
+        </button>
         <h1 className="text-[18px] font-bold text-gray-900 dark:text-white absolute left-1/2 -translate-x-1/2">
           Account
         </h1>
@@ -68,12 +78,12 @@ export default function SettingsPage() {
           <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 flex flex-col items-center justify-center shadow-sm border border-gray-100 dark:border-gray-700/50">
             <span className="text-[12px] text-gray-400 font-medium mb-1">Total Assets</span>
             <span className="text-[15px] font-bold text-gray-900 dark:text-white">
-              ${(user?.balance || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+              {heldAssetsCount}
             </span>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 flex flex-col items-center justify-center shadow-sm border border-gray-100 dark:border-gray-700/50">
             <span className="text-[12px] text-gray-400 font-medium mb-1">Trades</span>
-            <span className="text-[15px] font-bold text-gray-900 dark:text-white">0</span>
+            <span className="text-[15px] font-bold text-gray-900 dark:text-white">{tradesCount}</span>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 flex flex-col items-center justify-center shadow-sm border border-gray-100 dark:border-gray-700/50">
             <span className="text-[12px] text-gray-400 font-medium mb-1">Referrals</span>
