@@ -55,8 +55,8 @@ router.put('/assets/toggle', authenticate, [
 
 // PUT /api/users/profile
 router.put('/profile', authenticate, upload.single('profileImage'), [
-  body('firstName').optional().trim().notEmpty().isLength({ max: 50 }),
-  body('lastName').optional().trim().notEmpty().isLength({ max: 50 }),
+  body('firstName').optional().trim().isLength({ max: 50 }),
+  body('lastName').optional().trim().isLength({ max: 50 }),
   body('username').optional().trim().isLength({ max: 50 }),
   body('phoneNumber').optional().trim().isLength({ max: 20 }),
   body('address').optional().trim().isLength({ max: 100 }),

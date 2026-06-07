@@ -81,7 +81,8 @@ export default function EditProfilePage() {
         window.location.reload(); 
       }, 1500);
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to update profile');
+      const msg = error.response?.data?.error || error.response?.data?.errors?.[0]?.msg || 'Failed to update profile';
+      toast.error(msg);
     } finally {
       setIsSubmitting(false);
     }
