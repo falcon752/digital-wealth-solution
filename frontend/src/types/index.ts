@@ -3,6 +3,13 @@ export interface User {
   email: string;
   firstName: string;
   lastName: string;
+  username?: string | null;
+  phoneNumber?: string | null;
+  address?: string | null;
+  city?: string | null;
+  state?: string | null;
+  country?: string | null;
+  profileImage?: string | null;
   role: 'user' | 'admin';
   isActive: boolean;
   twoFactorEnabled: boolean;

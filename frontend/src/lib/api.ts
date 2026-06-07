@@ -52,8 +52,10 @@ export const authAPI = {
 // ─── Users ────────────────────────────────────────────────────────────────
 export const usersAPI = {
   getProfile: () => api.get('/users/profile'),
-  updateProfile: (data: { firstName?: string; lastName?: string }) =>
-    api.put('/users/profile', data),
+  updateProfile: (data: FormData) =>
+    api.put('/users/profile', data, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
   changePassword: (data: { currentPassword: string; newPassword: string }) =>
     api.put('/users/change-password', data),
   updateAntiPhishing: (phrase: string) => api.put('/users/anti-phishing', { phrase }),

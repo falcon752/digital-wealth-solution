@@ -12,7 +12,6 @@ export default function SecuritySettingsPage() {
   const [loading, setLoading] = useState(false);
   
   // Password visibility toggles
-  const [showPasscode, setShowPasscode] = useState(false);
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
 
@@ -60,28 +59,6 @@ export default function SecuritySettingsPage() {
 
         <form onSubmit={pwForm.handleSubmit(changePassword)} className="space-y-6">
           
-          {/* Passcode (Placeholder UI based on screenshot) */}
-          <div className="space-y-2">
-            <label className="text-[14px] font-bold text-gray-900 dark:text-white ml-1">
-              Your Six Digit Passcode
-            </label>
-            <div className="relative">
-              <input 
-                type={showPasscode ? "text" : "password"}
-                placeholder="Enter six-digit passcode"
-                maxLength={6}
-                className="w-full bg-[#f4f5f8] dark:bg-gray-800 text-gray-900 dark:text-white placeholder:text-[#a0a8b9] font-medium text-[15px] py-4 pl-4 pr-12 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-              />
-              <button 
-                type="button" 
-                onClick={() => setShowPasscode(!showPasscode)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-              >
-                {showPasscode ? <Eye size={20} /> : <EyeOff size={20} />}
-              </button>
-            </div>
-          </div>
-
           {/* Current Password */}
           <div className="space-y-2">
             <label className="text-[14px] font-bold text-gray-900 dark:text-white ml-1">

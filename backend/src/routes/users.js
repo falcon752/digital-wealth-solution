@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const { body, validationResult } = require('express-validator');
 const { User, Deposit, Withdrawal, Asset, Swap, Loan, EarnDeposit } = require('../database');
 const { authenticate } = require('../middleware/auth');
+const { upload } = require('../middleware/upload');
 const { logActivity } = require('../utils/activity');
 
 const router = express.Router();
@@ -53,22 +54,38 @@ router.put('/assets/toggle', authenticate, [
 });
 
 // PUT /api/users/profile
-router.put('/profile', authenticate, [
+router.put('/profile', authenticate, upload.single('profileImage'), [
   body('firstName').optional().trim().notEmpty().isLength({ max: 50 }),
   body('lastName').optional().trim().notEmpty().isLength({ max: 50 }),
+  body('username').optional().trim().isLength({ max: 50 }),
+  body('phoneNumber').optional().trim().isLength({ max: 20 }),
+  body('address').optional().trim().isLength({ max: 100 }),
+  body('city').optional().trim().isLength({ max: 50 }),
+  body('state').optional().trim().isLength({ max: 50 }),
+  body('country').optional().trim().isLength({ max: 50 }),
 ], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-  const { firstName, lastName } = req.body;
+  const { firstName, lastName, username, phoneNumber, address, city, state, country } = req.body;
   const update = {};
-  if (firstName) update.firstName = firstName;
-  if (lastName) update.lastName = lastName;
+  if (firstName !== undefined) update.firstName = firstName;
+  if (lastName !== undefined) update.lastName = lastName;
+  if (username !== undefined) update.username = username;
+  if (phoneNumber !== undefined) update.phoneNumber = phoneNumber;
+  if (address !== undefined) update.address = address;
+  if (city !== undefined) update.city = city;
+  if (state !== undefined) update.state = state;
+  if (country !== undefined) update.country = country;
+
+  if (req.file) {
+    update.profileImage = req.file.filename;
+  }
 
   try {
-    await User.findByIdAndUpdate(req.user.id, update);
+    const user = await User.findByIdAndUpdate(req.user.id, update, { new: true }).select('-password -twoFactorSecret');
     logActivity(req.user.id, 'PROFILE_UPDATED', null, req);
-    res.json({ message: 'Profile updated successfully' });
+    res.json({ message: 'Profile updated successfully', user });
   } catch (err) {
     res.status(500).json({ error: 'Update failed' });
   }
