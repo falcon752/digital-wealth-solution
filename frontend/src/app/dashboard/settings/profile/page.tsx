@@ -97,7 +97,7 @@ export default function EditProfilePage() {
         <div className="bg-white dark:bg-gray-800 rounded-3xl p-5 flex items-center gap-4 shadow-sm mb-6">
           <div className="w-16 h-16 rounded-full bg-orange-100 overflow-hidden flex items-center justify-center shrink-0 border border-gray-100 dark:border-gray-700">
             {previewImage ? (
-              <Image src={previewImage} alt="Profile" width={64} height={64} className="w-full h-full object-cover" />
+              <img src={previewImage} alt="Profile" className="w-full h-full object-cover" />
             ) : (
               <UserIcon className="text-orange-400" size={32} />
             )}

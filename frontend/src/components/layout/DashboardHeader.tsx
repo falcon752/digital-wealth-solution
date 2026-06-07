@@ -97,8 +97,16 @@ export default function DashboardHeader({ title, subtitle, tabs }: DashboardHead
           </div>
           <div className="relative" ref={dropdownRef}>
             <button onClick={() => setOpen(prev => !prev)} className="flex items-center gap-1.5">
-              <div className="w-9 h-9 rounded-full bg-[#1e3a5f] flex items-center justify-center text-white text-xs font-bold shadow-md">
-                {user?.firstName?.[0]}{user?.lastName?.[0]}
+              <div className="w-9 h-9 rounded-full bg-[#2d68d8] flex items-center justify-center text-white text-xs font-bold shadow-md overflow-hidden shrink-0 border border-gray-100 dark:border-gray-700">
+                {user?.profileImage ? (
+                  <img 
+                    src={`${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/uploads/${user.profileImage}`} 
+                    alt="Profile" 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <>{user?.firstName?.[0]}{user?.lastName?.[0]}</>
+                )}
               </div>
               <ChevronDown size={16} className={cn('text-gray-400 dark:text-gray-500 transition-transform hidden md:block', open && 'rotate-180')} />
             </button>

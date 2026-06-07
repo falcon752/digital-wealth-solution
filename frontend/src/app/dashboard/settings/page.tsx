@@ -94,42 +94,42 @@ export default function SettingsPage() {
               }
             }} className="flex items-center justify-between bg-white dark:bg-gray-800 px-4 py-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700/50">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-[#eeeffe] dark:bg-indigo-900/30 flex items-center justify-center text-[#6366f1]">
+                <div className="w-10 h-10 rounded-xl bg-[#eaf1ff] dark:bg-blue-900/30 flex items-center justify-center text-[#2d68d8]">
                   <Handshake size={20} />
                 </div>
                 <span className="font-bold text-[15px] text-gray-900 dark:text-white">Referral</span>
               </div>
-              <ChevronRight size={18} className="text-[#6366f1]" />
+              <ChevronRight size={18} className="text-[#2d68d8]" />
             </Link>
 
             <Link href="/dashboard/transactions" className="flex items-center justify-between bg-white dark:bg-gray-800 px-4 py-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700/50">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-[#eeeffe] dark:bg-indigo-900/30 flex items-center justify-center text-[#6366f1]">
+                <div className="w-10 h-10 rounded-xl bg-[#eaf1ff] dark:bg-blue-900/30 flex items-center justify-center text-[#2d68d8]">
                   <ArrowRightLeft size={20} />
                 </div>
                 <span className="font-bold text-[15px] text-gray-900 dark:text-white">Transactions</span>
               </div>
-              <ChevronRight size={18} className="text-[#6366f1]" />
+              <ChevronRight size={18} className="text-[#2d68d8]" />
             </Link>
 
             <Link href="/dashboard/settings/deposit-log" className="flex items-center justify-between bg-white dark:bg-gray-800 px-4 py-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700/50">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-[#eeeffe] dark:bg-indigo-900/30 flex items-center justify-center text-[#6366f1]">
+                <div className="w-10 h-10 rounded-xl bg-[#eaf1ff] dark:bg-blue-900/30 flex items-center justify-center text-[#2d68d8]">
                   <Download size={20} />
                 </div>
                 <span className="font-bold text-[15px] text-gray-900 dark:text-white">Deposit Log</span>
               </div>
-              <ChevronRight size={18} className="text-[#6366f1]" />
+              <ChevronRight size={18} className="text-[#2d68d8]" />
             </Link>
 
             <Link href="/dashboard/cards" className="flex items-center justify-between bg-white dark:bg-gray-800 px-4 py-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700/50">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-[#eeeffe] dark:bg-indigo-900/30 flex items-center justify-center text-[#6366f1]">
+                <div className="w-10 h-10 rounded-xl bg-[#eaf1ff] dark:bg-blue-900/30 flex items-center justify-center text-[#2d68d8]">
                   <CreditCard size={20} />
                 </div>
                 <span className="font-bold text-[15px] text-gray-900 dark:text-white">Cards</span>
               </div>
-              <ChevronRight size={18} className="text-[#6366f1]" />
+              <ChevronRight size={18} className="text-[#2d68d8]" />
             </Link>
 
           </div>
@@ -142,32 +142,32 @@ export default function SettingsPage() {
             
             <Link href="/dashboard/settings/profile" className="flex items-center justify-between bg-white dark:bg-gray-800 px-4 py-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700/50">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-[#eeeffe] dark:bg-indigo-900/30 flex items-center justify-center text-[#6366f1]">
+                <div className="w-10 h-10 rounded-xl bg-[#eaf1ff] dark:bg-blue-900/30 flex items-center justify-center text-[#2d68d8]">
                   <User size={20} />
                 </div>
                 <span className="font-bold text-[15px] text-gray-900 dark:text-white">Edit Profile</span>
               </div>
-              <ChevronRight size={18} className="text-[#6366f1]" />
+              <ChevronRight size={18} className="text-[#2d68d8]" />
             </Link>
 
             <Link href="/dashboard/settings/security" className="flex items-center justify-between bg-white dark:bg-gray-800 px-4 py-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700/50">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-[#eeeffe] dark:bg-indigo-900/30 flex items-center justify-center text-[#6366f1]">
+                <div className="w-10 h-10 rounded-xl bg-[#eaf1ff] dark:bg-blue-900/30 flex items-center justify-center text-[#2d68d8]">
                   <Lock size={20} />
                 </div>
                 <span className="font-bold text-[15px] text-gray-900 dark:text-white">Reset Password</span>
               </div>
-              <ChevronRight size={18} className="text-[#6366f1]" />
+              <ChevronRight size={18} className="text-[#2d68d8]" />
             </Link>
 
             <button onClick={logout} className="w-full flex items-center justify-between bg-white dark:bg-gray-800 px-4 py-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700/50">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-[#eeeffe] dark:bg-indigo-900/30 flex items-center justify-center text-[#6366f1]">
+                <div className="w-10 h-10 rounded-xl bg-[#eaf1ff] dark:bg-blue-900/30 flex items-center justify-center text-[#2d68d8]">
                   <LogOut size={20} />
                 </div>
                 <span className="font-bold text-[15px] text-gray-900 dark:text-white">Logout</span>
               </div>
-              <ChevronRight size={18} className="text-[#6366f1]" />
+              <ChevronRight size={18} className="text-[#2d68d8]" />
             </button>
 
           </div>
