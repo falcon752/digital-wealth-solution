@@ -210,7 +210,7 @@ export default function DepositPage() {
                 </div>
               )}
 
-              <div className="w-full bg-[#f4f6fa] dark:bg-gray-900/50 rounded-[14px] p-2 flex items-center justify-between gap-3">
+              <div className="w-full bg-[#f4f6fa] dark:bg-gray-900/50 rounded-[14px] p-2 flex items-center justify-between gap-3 mb-4">
                 <div className="flex-1 overflow-hidden">
                   <p className="text-[13px] font-medium text-gray-600 dark:text-gray-300 truncate w-full pl-3">
                     {selectedAsset.walletAddress}
@@ -224,6 +224,34 @@ export default function DepositPage() {
                   Copy
                 </button>
               </div>
+
+              {selectedAsset.memo ? (
+                <div className="w-full bg-[#f4f6fa] dark:bg-gray-900/50 rounded-[14px] p-2 flex items-center justify-between gap-3">
+                  <div className="flex-1 overflow-hidden">
+                    <p className="text-[11px] font-bold text-[#8f9bb3] uppercase tracking-wider mb-0.5 pl-3">Memo / Tag Required</p>
+                    <p className="text-[13px] font-bold text-gray-900 dark:text-white truncate w-full pl-3">
+                      {selectedAsset.memo}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(selectedAsset.memo!);
+                      toast.success('Memo copied!');
+                    }}
+                    className="bg-[#2d68d8]/10 text-[#2d68d8] dark:bg-blue-900/30 dark:text-blue-400 px-4 py-2.5 rounded-[10px] text-[14px] font-bold flex items-center gap-2 hover:bg-[#2d68d8]/20 transition-colors shrink-0"
+                  >
+                    <Copy size={16} strokeWidth={2.5} />
+                    Copy
+                  </button>
+                </div>
+              ) : (
+                <div className="mt-1 mb-2 flex justify-center">
+                  <span className="text-[14px] font-extrabold text-gray-900 dark:text-white border-b-[3px] border-[#10b981] pb-0.5 inline-block">
+                    No memo required
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Submission Form below */}

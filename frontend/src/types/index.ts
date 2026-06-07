@@ -30,6 +30,7 @@ export interface Asset {
   qrCodeUrl?: string | null;
   logoUrl?: string | null;
   network?: string;
+  memo?: string | null;
   minDeposit?: number;
   isActive?: boolean;
   createdAt?: string;

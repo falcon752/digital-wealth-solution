@@ -53,6 +53,7 @@ const assetSchema = new mongoose.Schema(
     walletAddress: { type: String, required: true },
     qrCodeImage: { type: String, default: null },
     network: { type: String, default: null },
+    memo: { type: String, default: null },
     minDeposit: { type: Number, default: 0 },
     isActive: { type: Boolean, default: true },
   },

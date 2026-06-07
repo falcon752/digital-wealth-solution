@@ -53,7 +53,7 @@ router.get('/prices', authenticate, async (req, res) => {
 router.get('/', authenticate, async (req, res) => {
   try {
     const assets = await Asset.find({ isActive: true }).sort({ name: 1 })
-      .select('id name symbol walletAddress qrCodeImage network minDeposit');
+      .select('id name symbol walletAddress qrCodeImage network minDeposit memo');
     res.json({ assets });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch assets' });
@@ -64,7 +64,7 @@ router.get('/', authenticate, async (req, res) => {
 router.get('/:id', authenticate, async (req, res) => {
   try {
     const asset = await Asset.findOne({ _id: req.params.id, isActive: true })
-      .select('id name symbol walletAddress qrCodeImage network minDeposit');
+      .select('id name symbol walletAddress qrCodeImage network minDeposit memo');
     if (!asset) return res.status(404).json({ error: 'Asset not found' });
     res.json({ asset });
   } catch (err) {
@@ -196,6 +196,7 @@ router.post('/', authenticate, requireAdmin, (req, res, next) => {
   body('symbol').trim().notEmpty().toUpperCase().isLength({ max: 20 }),
   body('walletAddress').trim().notEmpty().isLength({ max: 200 }),
   body('network').optional().trim().isLength({ max: 100 }),
+  body('memo').optional().trim().isLength({ max: 100 }),
   body('minDeposit').optional().isFloat({ min: 0 }),
 ], async (req, res) => {
   const errors = validationResult(req);
@@ -204,7 +205,7 @@ router.post('/', authenticate, requireAdmin, (req, res, next) => {
     return res.status(400).json({ errors: errors.array() });
   }
 
-  const { name, symbol, walletAddress, network, minDeposit } = req.body;
+  const { name, symbol, walletAddress, network, memo, minDeposit } = req.body;
 
   try {
     const existing = await Asset.findOne({ symbol: symbol.toUpperCase() });
@@ -220,6 +221,7 @@ router.post('/', authenticate, requireAdmin, (req, res, next) => {
       walletAddress,
       qrCodeImage,
       network: network || null,
+      memo: memo || null,
       minDeposit: parseFloat(minDeposit) || 0,
     });
 
@@ -242,6 +244,7 @@ router.put('/:id', authenticate, requireAdmin, (req, res, next) => {
   body('name').optional().trim().notEmpty().isLength({ max: 100 }),
   body('walletAddress').optional().trim().notEmpty().isLength({ max: 200 }),
   body('network').optional().trim().isLength({ max: 100 }),
+  body('memo').optional().trim().isLength({ max: 100 }),
   body('minDeposit').optional().isFloat({ min: 0 }),
   body('isActive').optional().isBoolean(),
 ], async (req, res) => {
@@ -258,11 +261,12 @@ router.put('/:id', authenticate, requireAdmin, (req, res, next) => {
       return res.status(404).json({ error: 'Asset not found' });
     }
 
-    const { name, walletAddress, network, minDeposit, isActive } = req.body;
+    const { name, walletAddress, network, memo, minDeposit, isActive } = req.body;
     const update = {};
     if (name) update.name = name;
     if (walletAddress) update.walletAddress = walletAddress;
     if (network !== undefined) update.network = network || null;
+    if (memo !== undefined) update.memo = memo || null;
     if (minDeposit != null) update.minDeposit = parseFloat(minDeposit);
     if (isActive != null) update.isActive = isActive === 'true' || isActive === true;
 

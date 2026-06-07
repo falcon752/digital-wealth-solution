@@ -16,10 +16,11 @@ interface AssetFormData {
   symbol: string;
   walletAddress: string;
   network: string;
+  memo: string;
   minDeposit: string;
 }
 
-const empty: AssetFormData = { name: '', symbol: '', walletAddress: '', network: '', minDeposit: '0.001' };
+const empty: AssetFormData = { name: '', symbol: '', walletAddress: '', network: '', memo: '', minDeposit: '0.001' };
 
 export default function AdminAssetsPage() {
   const [assets, setAssets] = useState<Asset[]>([]);
@@ -50,7 +51,7 @@ export default function AdminAssetsPage() {
 
   const openEdit = (a: Asset) => {
     setEditing(a);
-    setForm({ name: a.name, symbol: a.symbol, walletAddress: a.walletAddress, network: a.network ?? '', minDeposit: String(a.minDeposit ?? 0) });
+    setForm({ name: a.name, symbol: a.symbol, walletAddress: a.walletAddress, network: a.network ?? '', memo: a.memo ?? '', minDeposit: String(a.minDeposit ?? 0) });
     setQrFile(null);
     setQrPreview(a.qrCodeUrl || null);
     setShowModal(true);
@@ -190,6 +191,7 @@ export default function AdminAssetsPage() {
             <Input label="Network" placeholder="ERC-20, TRC-20, BEP-20…" value={form.network} onChange={(e) => setForm({ ...form, network: e.target.value })} />
             <Input label="Min Deposit" type="number" step="any" value={form.minDeposit} onChange={(e) => setForm({ ...form, minDeposit: e.target.value })} />
           </div>
+          <Input label="Memo / Tag (Optional)" placeholder="e.g. 123456789" value={form.memo} onChange={(e) => setForm({ ...form, memo: e.target.value })} />
 
           {/* QR Code Upload */}
           <div>
