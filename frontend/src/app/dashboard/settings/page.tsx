@@ -107,7 +107,7 @@ export default function SettingsPage() {
                 <div className="w-10 h-10 rounded-xl bg-[#eaf1ff] dark:bg-blue-900/30 flex items-center justify-center text-[#2d68d8]">
                   <Handshake size={20} />
                 </div>
-                <span className="font-bold text-[15px] text-gray-900 dark:text-white">Referral</span>
+                <span className="font-semibold text-[15px] text-gray-900 dark:text-white">Referral</span>
               </div>
               <ChevronRight size={18} className="text-[#2d68d8]" />
             </Link>
@@ -117,7 +117,7 @@ export default function SettingsPage() {
                 <div className="w-10 h-10 rounded-xl bg-[#eaf1ff] dark:bg-blue-900/30 flex items-center justify-center text-[#2d68d8]">
                   <ArrowRightLeft size={20} />
                 </div>
-                <span className="font-bold text-[15px] text-gray-900 dark:text-white">Transactions</span>
+                <span className="font-semibold text-[15px] text-gray-900 dark:text-white">Transactions</span>
               </div>
               <ChevronRight size={18} className="text-[#2d68d8]" />
             </Link>
@@ -127,7 +127,7 @@ export default function SettingsPage() {
                 <div className="w-10 h-10 rounded-xl bg-[#eaf1ff] dark:bg-blue-900/30 flex items-center justify-center text-[#2d68d8]">
                   <Download size={20} />
                 </div>
-                <span className="font-bold text-[15px] text-gray-900 dark:text-white">Deposit Log</span>
+                <span className="font-semibold text-[15px] text-gray-900 dark:text-white">Deposit Log</span>
               </div>
               <ChevronRight size={18} className="text-[#2d68d8]" />
             </Link>
@@ -137,7 +137,7 @@ export default function SettingsPage() {
                 <div className="w-10 h-10 rounded-xl bg-[#eaf1ff] dark:bg-blue-900/30 flex items-center justify-center text-[#2d68d8]">
                   <CreditCard size={20} />
                 </div>
-                <span className="font-bold text-[15px] text-gray-900 dark:text-white">Cards</span>
+                <span className="font-semibold text-[15px] text-gray-900 dark:text-white">Cards</span>
               </div>
               <ChevronRight size={18} className="text-[#2d68d8]" />
             </Link>
@@ -155,7 +155,7 @@ export default function SettingsPage() {
                 <div className="w-10 h-10 rounded-xl bg-[#eaf1ff] dark:bg-blue-900/30 flex items-center justify-center text-[#2d68d8]">
                   <User size={20} />
                 </div>
-                <span className="font-bold text-[15px] text-gray-900 dark:text-white">Edit Profile</span>
+                <span className="font-semibold text-[15px] text-gray-900 dark:text-white">Edit Profile</span>
               </div>
               <ChevronRight size={18} className="text-[#2d68d8]" />
             </Link>
@@ -165,7 +165,7 @@ export default function SettingsPage() {
                 <div className="w-10 h-10 rounded-xl bg-[#eaf1ff] dark:bg-blue-900/30 flex items-center justify-center text-[#2d68d8]">
                   <Lock size={20} />
                 </div>
-                <span className="font-bold text-[15px] text-gray-900 dark:text-white">Reset Password</span>
+                <span className="font-semibold text-[15px] text-gray-900 dark:text-white">Reset Password</span>
               </div>
               <ChevronRight size={18} className="text-[#2d68d8]" />
             </Link>
@@ -175,7 +175,7 @@ export default function SettingsPage() {
                 <div className="w-10 h-10 rounded-xl bg-[#eaf1ff] dark:bg-blue-900/30 flex items-center justify-center text-[#2d68d8]">
                   <LogOut size={20} />
                 </div>
-                <span className="font-bold text-[15px] text-gray-900 dark:text-white">Logout</span>
+                <span className="font-semibold text-[15px] text-gray-900 dark:text-white">Logout</span>
               </div>
               <ChevronRight size={18} className="text-[#2d68d8]" />
             </button>
