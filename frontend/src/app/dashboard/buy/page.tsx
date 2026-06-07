@@ -45,77 +45,77 @@ export default function BuyCryptoPage() {
   const cryptoAmount = currentPrice > 0 ? (parseFloat(amount || '0') / currentPrice).toFixed(8) : '0.00000000';
 
   return (
-    <div className="flex flex-col min-h-full pb-20 bg-[#0f172a] dark:bg-[#0f172a]">
-      {/* Keeping background dark natively based on the screenshot, but adapting to theme via text classes */}
-      <DashboardHeader title={`Buy ${selectedAsset}`} />
+    <div className="flex flex-col min-h-screen pb-20 bg-[#f4f5f8] dark:bg-[#0f172a]">
+      <DashboardHeader title={`Buy Crypto`} />
 
-      <div className="flex-1 flex flex-col items-center justify-center p-6 mt-[10vh]">
-        
-        {/* Amount Input */}
-        <div className="flex flex-col items-center w-full max-w-sm mb-12">
-          <div className="flex items-center text-white text-5xl font-bold mb-2">
-            <span className="text-gray-400 mr-2">$</span>
-            <input 
-              type="number" 
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              className="bg-transparent border-none text-white text-center w-[150px] focus:outline-none focus:ring-0 p-0"
-              placeholder="0"
-            />
-          </div>
-          <p className="text-gray-400 text-sm font-medium">
-            ≈ {cryptoAmount} {selectedAsset}
-          </p>
-
-          <button 
-            onClick={() => setIsAssetModalOpen(true)}
-            className="mt-4 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 transition text-white text-xs font-medium"
-          >
-            {selectedAsset} <ChevronDown size={14} />
-          </button>
-        </div>
-
-        {/* Provider Selector Row */}
-        <div className="w-full max-w-sm mb-6">
-          <button 
-            onClick={() => {
-              setTempProvider(provider);
-              setIsProviderModalOpen(true);
-            }}
-            className="w-full flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 transition rounded-2xl border border-white/10"
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
-                <CreditCard size={20} className="text-white" />
-              </div>
-              <div className="flex flex-col items-start">
-                {provider ? (
-                  <>
-                    <span className="text-white font-bold text-sm">{provider}</span>
-                    <span className="text-gray-400 text-xs">Selected</span>
-                  </>
-                ) : (
-                  <>
-                    <span className="text-white font-bold text-sm">Choose Payment Method</span>
-                    <span className="text-gray-400 text-xs">Select provider</span>
-                  </>
-                )}
-              </div>
+      <div className="flex-1 p-4 mt-6">
+        <div className="w-full max-w-md mx-auto bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700/50 p-6 flex flex-col items-center">
+          
+          {/* Amount Input */}
+          <div className="flex flex-col items-center w-full mb-8">
+            <div className="flex items-center text-gray-900 dark:text-white text-5xl font-bold mb-2">
+              <span className="text-gray-400 mr-2">$</span>
+              <input 
+                type="number" 
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                className="bg-transparent border-none text-gray-900 dark:text-white text-center w-[150px] focus:outline-none focus:ring-0 p-0"
+                placeholder="0"
+              />
             </div>
-            <ChevronRight size={20} className="text-gray-400" />
-          </button>
-        </div>
+            <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">
+              ≈ {cryptoAmount} {selectedAsset}
+            </p>
 
-        {/* Buy Button */}
-        <div className="w-full max-w-sm">
-          <Button 
-            onClick={handleBuy}
-            className="w-full h-14 bg-[#facc15] hover:bg-[#eab308] text-black font-extrabold text-base rounded-2xl"
-          >
-            Buy {selectedAsset} Now
-          </Button>
-        </div>
+            <button 
+              onClick={() => setIsAssetModalOpen(true)}
+              className="mt-4 flex items-center gap-1.5 px-4 py-2 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition text-gray-900 dark:text-white text-[13px] font-bold shadow-sm"
+            >
+              {selectedAsset} <ChevronDown size={14} />
+            </button>
+          </div>
 
+          {/* Provider Selector Row */}
+          <div className="w-full mb-6">
+            <button 
+              onClick={() => {
+                setTempProvider(provider);
+                setIsProviderModalOpen(true);
+              }}
+              className="w-full flex items-center justify-between p-4 bg-[#f4f5f8] dark:bg-gray-900 hover:bg-gray-200 dark:hover:bg-gray-800 transition rounded-2xl"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-white dark:bg-gray-800 flex items-center justify-center shadow-sm">
+                  <CreditCard size={20} className="text-[#2d68d8]" />
+                </div>
+                <div className="flex flex-col items-start">
+                  {provider ? (
+                    <>
+                      <span className="text-gray-900 dark:text-white font-bold text-[14px]">{provider}</span>
+                      <span className="text-gray-500 dark:text-gray-400 text-[12px]">Selected Provider</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-gray-900 dark:text-white font-bold text-[14px]">Choose Payment Method</span>
+                      <span className="text-gray-500 dark:text-gray-400 text-[12px]">Select provider</span>
+                    </>
+                  )}
+                </div>
+              </div>
+              <ChevronRight size={18} className="text-gray-400" />
+            </button>
+          </div>
+
+          {/* Buy Button */}
+          <div className="w-full">
+            <Button 
+              onClick={handleBuy}
+              className="w-full h-14 bg-[#2d68d8] hover:bg-blue-700 text-white font-bold text-[16px] rounded-xl"
+            >
+              Buy {selectedAsset} Now
+            </Button>
+          </div>
+        </div>
       </div>
 
       {/* Payment Method Modal */}
