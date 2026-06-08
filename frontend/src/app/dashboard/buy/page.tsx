@@ -96,7 +96,7 @@ export default function BuyCryptoPage() {
                     </>
                   ) : (
                     <>
-                      <span className="text-gray-900 dark:text-white font-semibold text-[14px]">Choose Payment Method</span>
+                      <span className="text-gray-900 dark:text-white font-semibold text-[14px]">Choose Exchange Provider</span>
                       <span className="text-gray-500 dark:text-gray-400 text-[12px]">Select provider</span>
                     </>
                   )}
