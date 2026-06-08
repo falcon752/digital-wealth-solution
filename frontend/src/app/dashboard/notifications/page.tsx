@@ -65,12 +65,12 @@ export default function NotificationsPage() {
         <Link href="/dashboard/settings" className="text-gray-900 dark:text-white p-1">
           <ArrowLeft size={22} />
         </Link>
-        <h1 className="text-[17px] font-bold text-gray-900 dark:text-white">
+        <h1 className="text-[17px] font-semibold text-gray-900 dark:text-white">
           Notifications
         </h1>
         <div className="flex items-center gap-3">
           <ThemeToggle />
-          <button onClick={handleClearAll} className="text-[14px] font-bold text-[#2d68d8] dark:text-blue-500 hover:opacity-80">
+          <button onClick={handleClearAll} className="text-[14px] font-semibold text-[#2d68d8] dark:text-blue-500 hover:opacity-80">
             Clear All
           </button>
         </div>
@@ -96,7 +96,7 @@ export default function NotificationsPage() {
                 
                 {/* Content */}
                 <div className="flex-1 pr-4">
-                  <h3 className="font-bold text-[16px] text-gray-900 dark:text-white mb-1">
+                  <h3 className="font-semibold text-[16px] text-gray-900 dark:text-white mb-1">
                     {notif.title}
                   </h3>
                   <p className="text-[14px] text-gray-600 dark:text-gray-400 font-medium leading-relaxed">

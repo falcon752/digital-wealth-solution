@@ -118,7 +118,7 @@ export default function Navbar({ transparent = false }: NavbarProps) {
 
           <Link
             href="/contact"
-            className="inline-flex items-center text-[15px] font-bold text-white px-7 py-3 rounded-sm transition-all hover:opacity-90 active:scale-95 shadow-[0px_4px_12px_rgba(44,51,66,0.2)]"
+            className="inline-flex items-center text-[15px] font-semibold text-white px-7 py-3 rounded-sm transition-all hover:opacity-90 active:scale-95 shadow-[0px_4px_12px_rgba(44,51,66,0.2)]"
             style={{ backgroundColor: '#2C3342' }}
           >
             Contact Us

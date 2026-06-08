@@ -13,7 +13,7 @@ export default function CryptoWealthManagementPage() {
       {/* ─── HERO SECTION ────────────────────────────────────────────── */}
       <section className="pt-32 pb-24 px-6 text-center" style={{ backgroundColor: '#2C3342' }}>
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-white font-bold mb-8 leading-tight" style={{ fontSize: '48px' }}>
+          <h1 className="text-white font-semibold mb-8 leading-tight" style={{ fontSize: '48px' }}>
             Full Service <span style={{ color: '#AD7F4E' }}>Crypto Wealth Management</span>
           </h1>
           <div className="w-16 h-0.5 mx-auto mb-10" style={{ backgroundColor: '#AD7F4E', opacity: 0.5 }}></div>
@@ -28,7 +28,7 @@ export default function CryptoWealthManagementPage() {
       {/* ─── YOU WANT EXPOSURE SECTION ───────────────────────────────── */}
       <section className="py-24 px-6 bg-white text-center">
         <div className="max-w-4xl mx-auto mb-16">
-          <h2 className="font-bold mb-6" style={{ color: '#1e266d', fontSize: '36px' }}>
+          <h2 className="font-semibold mb-6" style={{ color: '#1e266d', fontSize: '36px' }}>
             You Want Exposure, <span style={{ color: '#AD7F4E' }}>Not Another Job</span>
           </h2>
           <div className="w-12 h-0.5 mx-auto mb-8" style={{ backgroundColor: '#AD7F4E' }}></div>
@@ -55,7 +55,7 @@ export default function CryptoWealthManagementPage() {
             },
           ].map((item, idx) => (
             <div key={idx} className="p-10 rounded-lg shadow-sm border border-gray-50 flex flex-col items-center" style={{ backgroundColor: '#fcfcfc' }}>
-              <h3 className="font-bold mb-4" style={{ color: '#1e266d', fontSize: '20px' }}>{item.title}</h3>
+              <h3 className="font-semibold mb-4" style={{ color: '#1e266d', fontSize: '20px' }}>{item.title}</h3>
               <div className="w-10 h-0.5 mb-6" style={{ backgroundColor: '#AD7F4E' }}></div>
               <p className="leading-relaxed text-sm" style={{ color: '#4a5568' }}>{item.desc}</p>
             </div>
@@ -66,7 +66,7 @@ export default function CryptoWealthManagementPage() {
       {/* ─── REGISTERED ADVISER SECTION ─────────────────────────────── */}
       <section className="py-24 px-6 text-center" style={{ backgroundColor: '#f9f9f9' }}>
         <div className="max-w-4xl mx-auto">
-          <h2 className="font-bold mb-6 leading-tight" style={{ color: '#1e266d', fontSize: '36px' }}>
+          <h2 className="font-semibold mb-6 leading-tight" style={{ color: '#1e266d', fontSize: '36px' }}>
             A Registered Investment Adviser <span style={{ color: '#AD7F4E' }}>Focused on<br />Digital Assets</span>
           </h2>
           <div className="w-12 h-0.5 mx-auto mb-10" style={{ backgroundColor: '#AD7F4E' }}></div>
@@ -85,7 +85,7 @@ export default function CryptoWealthManagementPage() {
       {/* ─── WHO DWP WORKS WITH SECTION ──────────────────────────────── */}
       <section className="py-24 px-6 text-center bg-white">
         <div className="max-w-4xl mx-auto mb-16">
-          <h2 className="font-bold mb-6" style={{ color: '#1e266d', fontSize: '36px' }}>
+          <h2 className="font-semibold mb-6" style={{ color: '#1e266d', fontSize: '36px' }}>
             Who <span style={{ color: '#AD7F4E' }}>DWP</span> Works With
           </h2>
           <div className="w-12 h-0.5 mx-auto mb-8" style={{ backgroundColor: '#AD7F4E' }}></div>
@@ -107,7 +107,7 @@ export default function CryptoWealthManagementPage() {
             },
           ].map((item, idx) => (
             <div key={idx} className="p-12 rounded-lg shadow-sm border border-gray-50 flex flex-col items-center" style={{ backgroundColor: '#fcfcfc' }}>
-              <h3 className="font-bold mb-4" style={{ color: '#1e266d', fontSize: '22px' }}>{item.title}</h3>
+              <h3 className="font-semibold mb-4" style={{ color: '#1e266d', fontSize: '22px' }}>{item.title}</h3>
               <div className="w-10 h-0.5 mb-8" style={{ backgroundColor: '#AD7F4E' }}></div>
               <p className="leading-relaxed text-sm" style={{ color: '#4a5568' }}>{item.desc}</p>
             </div>
@@ -119,7 +119,7 @@ export default function CryptoWealthManagementPage() {
       <section className="py-24 px-6 bg-white border-t border-gray-100">
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-20">
           <div>
-            <h2 className="font-bold mb-8 leading-tight" style={{ color: '#1e266d', fontSize: '30px' }}>
+            <h2 className="font-semibold mb-8 leading-tight" style={{ color: '#1e266d', fontSize: '30px' }}>
               Model Portfolios and <span style={{ color: '#AD7F4E' }}>Customized Accounts</span>
             </h2>
             <div className="w-12 h-0.5 mb-10" style={{ backgroundColor: '#AD7F4E' }}></div>
@@ -138,7 +138,7 @@ export default function CryptoWealthManagementPage() {
           </div>
 
           <div>
-            <h2 className="font-bold mb-8 leading-tight" style={{ color: '#1e266d', fontSize: '30px' }}>
+            <h2 className="font-semibold mb-8 leading-tight" style={{ color: '#1e266d', fontSize: '30px' }}>
               Digital Assets in <span style={{ color: '#AD7F4E' }}>Retirement Accounts</span>
             </h2>
             <div className="w-12 h-0.5 mb-10" style={{ backgroundColor: '#AD7F4E' }}></div>
@@ -165,7 +165,7 @@ export default function CryptoWealthManagementPage() {
       {/* ─── CUSTODY & SECURITY SECTION ─────────────────────────────── */}
       <section className="py-24 px-6 text-center bg-white border-t border-gray-100">
         <div className="max-w-4xl mx-auto mb-16">
-          <h2 className="font-bold mb-6" style={{ color: '#1e266d', fontSize: '36px' }}>
+          <h2 className="font-semibold mb-6" style={{ color: '#1e266d', fontSize: '36px' }}>
             Custody and <span style={{ color: '#AD7F4E' }}>Security</span>
           </h2>
           <div className="w-12 h-0.5 mx-auto mb-8" style={{ backgroundColor: '#AD7F4E' }}></div>
@@ -191,7 +191,7 @@ export default function CryptoWealthManagementPage() {
             },
           ].map((item, idx) => (
             <div key={idx} className="p-10 rounded-lg shadow-sm border border-gray-50 flex flex-col items-center" style={{ backgroundColor: '#fcfcfc' }}>
-              <h3 className="font-bold mb-4" style={{ color: '#1e266d', fontSize: '20px' }}>{item.title}</h3>
+              <h3 className="font-semibold mb-4" style={{ color: '#1e266d', fontSize: '20px' }}>{item.title}</h3>
               <div className="w-10 h-0.5 mb-6" style={{ backgroundColor: '#AD7F4E' }}></div>
               <p className="leading-relaxed text-sm" style={{ color: '#4a5568' }}>{item.desc}</p>
             </div>
@@ -207,7 +207,7 @@ export default function CryptoWealthManagementPage() {
       <section className="py-24 px-6 bg-white border-t border-gray-100">
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-20">
           <div>
-            <h2 className="font-bold mb-8 leading-tight" style={{ color: '#1e266d', fontSize: '30px' }}>
+            <h2 className="font-semibold mb-8 leading-tight" style={{ color: '#1e266d', fontSize: '30px' }}>
               Trading, Execution, and <span style={{ color: '#AD7F4E' }}>Strategy</span>
             </h2>
             <div className="w-12 h-0.5 mb-10" style={{ backgroundColor: '#AD7F4E' }}></div>
@@ -227,7 +227,7 @@ export default function CryptoWealthManagementPage() {
           </div>
 
           <div>
-            <h2 className="font-bold mb-8 leading-tight" style={{ color: '#1e266d', fontSize: '30px' }}>
+            <h2 className="font-semibold mb-8 leading-tight" style={{ color: '#1e266d', fontSize: '30px' }}>
               Why Investors Are <span style={{ color: '#AD7F4E' }}>Paying Attention</span>
             </h2>
             <div className="w-12 h-0.5 mb-10" style={{ backgroundColor: '#AD7F4E' }}></div>
@@ -249,7 +249,7 @@ export default function CryptoWealthManagementPage() {
       {/* ─── CONVERSATION FOOTER ─────────────────────────────────────── */}
       <section className="py-24 px-6 text-center" style={{ backgroundColor: '#2C3342' }}>
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-white font-bold mb-8" style={{ fontSize: '36px' }}>
+          <h2 className="text-white font-semibold mb-8" style={{ fontSize: '36px' }}>
             Start the <span style={{ color: '#AD7F4E' }}>Conversation</span>
           </h2>
           <div className="w-12 h-0.5 mx-auto mb-10" style={{ backgroundColor: '#AD7F4E', opacity: 0.5 }}></div>

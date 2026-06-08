@@ -139,7 +139,7 @@ export default function BlogPage() {
 
                     {/* Title */}
                     <h2 
-                      className="font-bold mb-6 hover:text-[#AD7F4E] transition-colors leading-tight"
+                      className="font-semibold mb-6 hover:text-[#AD7F4E] transition-colors leading-tight"
                       style={{ color: '#1e266d', fontSize: '32px' }}
                     >
                       <Link href={post.href}>
@@ -168,7 +168,7 @@ export default function BlogPage() {
 
             {/* Pagination */}
             <div className="mt-10 flex items-center gap-3">
-              <button className="w-10 h-10 flex items-center justify-center rounded bg-[#1e266d] text-white font-bold">1</button>
+              <button className="w-10 h-10 flex items-center justify-center rounded bg-[#1e266d] text-white font-semibold">1</button>
               <button className="w-10 h-10 flex items-center justify-center rounded border border-gray-100 text-gray-700 hover:border-[#AD7F4E] hover:text-[#AD7F4E] transition-colors">2</button>
               <button className="w-10 h-10 flex items-center justify-center rounded border border-gray-100 text-gray-700 hover:border-[#AD7F4E] hover:text-[#AD7F4E] transition-colors">
                 <ChevronRight className="w-4 h-4" />
@@ -183,7 +183,7 @@ export default function BlogPage() {
                 
                 {/* Search */}
                 <div>
-                  <h3 className="font-bold mb-5 text-lg" style={{ color: '#1e266d' }}>Search</h3>
+                  <h3 className="font-semibold mb-5 text-lg" style={{ color: '#1e266d' }}>Search</h3>
                   <div className="relative">
                     <input
                       type="text"
@@ -196,7 +196,7 @@ export default function BlogPage() {
 
                 {/* Recent Posts */}
                 <div>
-                  <h3 className="font-bold mb-6 text-lg" style={{ color: '#1e266d' }}>Recent Posts</h3>
+                  <h3 className="font-semibold mb-6 text-lg" style={{ color: '#1e266d' }}>Recent Posts</h3>
                   <div className="space-y-6">
                     {RECENT_POSTS.map((post, idx) => (
                       <Link key={idx} href={post.href} className="group flex gap-4 items-start">
@@ -210,7 +210,7 @@ export default function BlogPage() {
                         </div>
                         <div className="flex flex-col gap-1">
                           <h4 
-                            className="font-bold text-sm leading-snug transition-colors group-hover:text-[#AD7F4E]"
+                            className="font-semibold text-sm leading-snug transition-colors group-hover:text-[#AD7F4E]"
                             style={{ color: '#1e266d' }}
                           >
                             {post.title}
@@ -223,7 +223,7 @@ export default function BlogPage() {
 
                 {/* Follow Us */}
                 <div>
-                  <h3 className="font-bold mb-6 text-lg" style={{ color: '#1e266d' }}>Follow Us</h3>
+                  <h3 className="font-semibold mb-6 text-lg" style={{ color: '#1e266d' }}>Follow Us</h3>
                   <div className="flex gap-4">
                     <a 
                       href="#" 

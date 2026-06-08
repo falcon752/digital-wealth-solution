@@ -53,7 +53,7 @@ export default function BuyCryptoPage() {
           
           {/* Amount Input */}
           <div className="flex flex-col items-center w-full mb-8">
-            <div className="flex items-center text-gray-900 dark:text-white text-5xl font-bold mb-2">
+            <div className="flex items-center text-gray-900 dark:text-white text-5xl font-semibold mb-2">
               <span className="text-gray-400 mr-2">$</span>
               <input 
                 type="number" 
@@ -69,7 +69,7 @@ export default function BuyCryptoPage() {
 
             <button 
               onClick={() => setIsAssetModalOpen(true)}
-              className="mt-4 flex items-center gap-1.5 px-4 py-2 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition text-gray-900 dark:text-white text-[13px] font-bold shadow-sm"
+              className="mt-4 flex items-center gap-1.5 px-4 py-2 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition text-gray-900 dark:text-white text-[13px] font-semibold shadow-sm"
             >
               {selectedAsset} <ChevronDown size={14} />
             </button>
@@ -91,12 +91,12 @@ export default function BuyCryptoPage() {
                 <div className="flex flex-col items-start">
                   {provider ? (
                     <>
-                      <span className="text-gray-900 dark:text-white font-bold text-[14px]">{provider}</span>
+                      <span className="text-gray-900 dark:text-white font-semibold text-[14px]">{provider}</span>
                       <span className="text-gray-500 dark:text-gray-400 text-[12px]">Selected Provider</span>
                     </>
                   ) : (
                     <>
-                      <span className="text-gray-900 dark:text-white font-bold text-[14px]">Choose Payment Method</span>
+                      <span className="text-gray-900 dark:text-white font-semibold text-[14px]">Choose Payment Method</span>
                       <span className="text-gray-500 dark:text-gray-400 text-[12px]">Select provider</span>
                     </>
                   )}
@@ -110,7 +110,7 @@ export default function BuyCryptoPage() {
           <div className="w-full">
             <Button 
               onClick={handleBuy}
-              className="w-full h-14 bg-[#2d68d8] hover:bg-blue-700 text-white font-bold text-[16px] rounded-xl"
+              className="w-full h-14 bg-[#2d68d8] hover:bg-blue-700 text-white font-semibold text-[16px] rounded-xl"
             >
               Buy {selectedAsset} Now
             </Button>
@@ -131,7 +131,7 @@ export default function BuyCryptoPage() {
             </div>
             <div className="flex items-center gap-3">
               <CreditCard size={20} className="text-gray-400" />
-              <span className="text-gray-900 dark:text-white font-bold text-sm">Transak</span>
+              <span className="text-gray-900 dark:text-white font-semibold text-sm">Transak</span>
             </div>
           </button>
 
@@ -144,7 +144,7 @@ export default function BuyCryptoPage() {
             </div>
             <div className="flex items-center gap-3">
               <CreditCard size={20} className="text-gray-400" />
-              <span className="text-gray-900 dark:text-white font-bold text-sm">MoonPay</span>
+              <span className="text-gray-900 dark:text-white font-semibold text-sm">MoonPay</span>
             </div>
           </button>
 
@@ -184,7 +184,7 @@ export default function BuyCryptoPage() {
                     e.currentTarget.src = `https://ui-avatars.com/api/?name=${a.symbol[0]}&background=3b82f6&color=fff&rounded=true&bold=true`;
                   }}
                 />
-                <span className="font-bold text-sm text-gray-900 dark:text-white">{a.symbol.toUpperCase()}</span>
+                <span className="font-semibold text-sm text-gray-900 dark:text-white">{a.symbol.toUpperCase()}</span>
               </div>
               {selectedAsset === a.symbol.toUpperCase() && (
                 <CheckCircle2 size={18} className="text-blue-500" />

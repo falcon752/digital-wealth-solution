@@ -63,7 +63,7 @@ export default function CryptoAddressesPage() {
         <Link href="/dashboard/settings" className="text-gray-900 dark:text-white p-1">
           <X size={22} />
         </Link>
-        <h1 className="text-[17px] font-bold text-gray-900 dark:text-white">
+        <h1 className="text-[17px] font-semibold text-gray-900 dark:text-white">
           Receive
         </h1>
         <div className="w-8"></div> {/* Spacer for centering */}
@@ -72,7 +72,7 @@ export default function CryptoAddressesPage() {
       {/* Search Bar */}
       <div className="px-4 py-3 border-b border-gray-50 dark:border-gray-800">
         <div className="relative">
-          <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 font-bold" />
+          <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 font-semibold" />
           <input 
             type="text" 
             placeholder="Search" 
@@ -95,7 +95,7 @@ export default function CryptoAddressesPage() {
                 <button
                   key={filter}
                   onClick={() => setActiveFilter(filter)}
-                  className={`px-4 py-1.5 rounded-lg text-[14px] font-bold border transition ${
+                  className={`px-4 py-1.5 rounded-lg text-[14px] font-semibold border transition ${
                     isActive 
                       ? 'bg-[#2d68d8]/10 dark:bg-blue-900/30 border-[#2d68d8] text-[#2d68d8] dark:text-blue-400' 
                       : 'bg-[#f4f5f8] dark:bg-gray-800 border-transparent text-gray-500 dark:text-gray-400'
@@ -135,8 +135,8 @@ export default function CryptoAddressesPage() {
 
       {/* List Header */}
       <div className="px-4 py-3 flex items-center justify-between">
-        <span className="text-[14px] font-bold text-gray-500 dark:text-gray-400">Popular</span>
-        <div className="bg-[#f4f5f8] dark:bg-gray-800 text-gray-500 dark:text-gray-400 text-[12px] font-bold px-2 py-0.5 rounded flex items-center gap-1">
+        <span className="text-[14px] font-semibold text-gray-500 dark:text-gray-400">Popular</span>
+        <div className="bg-[#f4f5f8] dark:bg-gray-800 text-gray-500 dark:text-gray-400 text-[12px] font-semibold px-2 py-0.5 rounded flex items-center gap-1">
           {displayedAssets.length}
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
         </div>
@@ -172,7 +172,7 @@ export default function CryptoAddressesPage() {
               
               <div className="flex flex-col min-w-0 flex-1">
                 <div className="flex items-center gap-2 mb-0.5">
-                  <span className="font-bold text-gray-900 dark:text-white text-[16px] tracking-wide shrink-0">
+                  <span className="font-semibold text-gray-900 dark:text-white text-[16px] tracking-wide shrink-0">
                     {asset.symbol}
                   </span>
                   <span className="text-[11px] text-gray-500 dark:text-gray-400 bg-[#f4f5f8] dark:bg-gray-800 px-1.5 py-0.5 rounded font-medium truncate">
@@ -231,7 +231,7 @@ export default function CryptoAddressesPage() {
                   e.currentTarget.src = `https://ui-avatars.com/api/?name=${selectedAsset.symbol[0]}&background=${getAssetColor(selectedAsset.symbol).replace('#','')}&color=fff&rounded=true&bold=true`;
                 }}
               />
-              <h3 className="font-bold text-[18px] text-gray-900 dark:text-white">Receive {selectedAsset.symbol}</h3>
+              <h3 className="font-semibold text-[18px] text-gray-900 dark:text-white">Receive {selectedAsset.symbol}</h3>
             </div>
             
             <div className="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 mb-6 w-full flex items-center justify-center aspect-square max-w-[240px]">
@@ -253,7 +253,7 @@ export default function CryptoAddressesPage() {
               </div>
               <button
                 onClick={() => handleCopy(selectedAsset.walletAddress)}
-                className="bg-[#2d68d8] text-white px-5 py-2.5 rounded-[10px] text-[14px] font-bold flex items-center gap-2 hover:bg-blue-700 transition-colors shrink-0"
+                className="bg-[#2d68d8] text-white px-5 py-2.5 rounded-[10px] text-[14px] font-semibold flex items-center gap-2 hover:bg-blue-700 transition-colors shrink-0"
               >
                 <Copy size={16} />
                 Copy

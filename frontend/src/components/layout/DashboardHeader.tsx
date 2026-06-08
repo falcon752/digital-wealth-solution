@@ -60,7 +60,7 @@ export default function DashboardHeader({ title, subtitle, tabs }: DashboardHead
 
           {/* Title (Desktop only) */}
           <div className="hidden md:block min-w-0">
-            <h1 className="text-base md:text-lg font-bold text-gray-900 dark:text-white truncate">{title}</h1>
+            <h1 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white truncate">{title}</h1>
             {subtitle && (
               <p className="text-xs text-gray-500 dark:text-gray-400 truncate hidden sm:block">{subtitle}</p>
             )}
@@ -97,7 +97,7 @@ export default function DashboardHeader({ title, subtitle, tabs }: DashboardHead
           </div>
           <div className="relative">
             <div className="flex items-center gap-1.5">
-              <div className="w-9 h-9 rounded-full bg-[#2d68d8] flex items-center justify-center text-white text-xs font-bold shadow-md overflow-hidden shrink-0 border border-gray-100 dark:border-gray-700">
+              <div className="w-9 h-9 rounded-full bg-[#2d68d8] flex items-center justify-center text-white text-xs font-semibold shadow-md overflow-hidden shrink-0 border border-gray-100 dark:border-gray-700">
                 {user?.profileImage ? (
                   <img 
                     src={`${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/uploads/${user.profileImage}`} 

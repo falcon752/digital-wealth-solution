@@ -124,7 +124,7 @@ export default function WithdrawPage() {
             <div className="w-16 h-16 rounded-2xl bg-emerald-500/15 flex items-center justify-center mx-auto mb-4">
               <Check size={28} className="text-emerald-400" />
             </div>
-            <h2 className="text-xl font-bold text-[var(--text-primary)] mb-2">Withdrawal Submitted</h2>
+            <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-2">Withdrawal Submitted</h2>
             <p className="text-[var(--text-muted)] text-sm mb-6">
               Your withdrawal request has been verified and submitted. The admin will process it shortly.
             </p>
@@ -147,7 +147,7 @@ export default function WithdrawPage() {
           <div className="glass rounded-2xl p-5 flex items-center justify-between">
             <div>
               <p className="text-xs text-[var(--text-muted)] mb-1">Available to Withdraw</p>
-              <p className="text-2xl font-bold text-[var(--text-primary)]">
+              <p className="text-2xl font-semibold text-[var(--text-primary)]">
                 {selectedAssetId && assets.find(a => a.id === selectedAssetId) ? (
                   `${(availableBalances[selectedAssetId] || 0).toLocaleString('en-US', { maximumFractionDigits: 6 })} ${assets.find(a => a.id === selectedAssetId)?.symbol}`
                 ) : (
@@ -226,7 +226,7 @@ export default function WithdrawPage() {
                 <div className="w-14 h-14 rounded-2xl bg-brand-600/20 border border-brand-500/30 flex items-center justify-center mx-auto mb-4">
                   <Shield size={24} className="text-brand-400" />
                 </div>
-                <h2 className="text-lg font-bold text-[var(--text-primary)]">
+                <h2 className="text-lg font-semibold text-[var(--text-primary)]">
                   {step === 'otp' ? 'Email Verification' : '2FA Verification'}
                 </h2>
                 <p className="text-sm text-[var(--text-muted)] mt-1">

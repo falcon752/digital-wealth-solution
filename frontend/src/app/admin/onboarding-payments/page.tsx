@@ -105,7 +105,7 @@ export default function AdminOnboardingPaymentsPage() {
             </div>
             <div>
               <span className="text-sm text-gray-500 dark:text-gray-400 font-medium">Pending Approvals</span>
-              <h2 className="text-3xl font-black text-gray-800 dark:text-gray-100 mt-1">{pendingCount}</h2>
+              <h2 className="text-3xl font-semibold text-gray-800 dark:text-gray-100 mt-1">{pendingCount}</h2>
               <p className="text-xs text-amber-600 dark:text-amber-500 font-medium mt-1">Users waiting for $1,000 XRP check</p>
             </div>
           </div>
@@ -118,7 +118,7 @@ export default function AdminOnboardingPaymentsPage() {
             </div>
             <div>
               <span className="text-sm text-gray-500 dark:text-gray-400 font-medium">Approved Institutional Accounts</span>
-              <h2 className="text-3xl font-black text-gray-800 dark:text-gray-100 mt-1">{approvedCount}</h2>
+              <h2 className="text-3xl font-semibold text-gray-800 dark:text-gray-100 mt-1">{approvedCount}</h2>
               <p className="text-xs text-green-600 dark:text-green-500 font-medium mt-1">Active users with dashboard access</p>
             </div>
           </div>
@@ -194,7 +194,7 @@ export default function AdminOnboardingPaymentsPage() {
                   {filteredUsers.map((u) => (
                     <tr key={u.id} className="border-b border-gray-100 dark:border-gray-700/50 last:border-0 hover:bg-gray-50/30 dark:hover:bg-gray-700/10 transition-colors">
                       <td className="px-6 py-4">
-                        <div className="font-bold text-sm text-gray-800 dark:text-gray-200">{u.firstName} {u.lastName}</div>
+                        <div className="font-semibold text-sm text-gray-800 dark:text-gray-200">{u.firstName} {u.lastName}</div>
                         <div className="text-xs text-gray-400 mt-0.5">{u.email}</div>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
@@ -207,7 +207,7 @@ export default function AdminOnboardingPaymentsPage() {
                             Payment Approved
                           </span>
                         ) : u.onboardingFeeSubmitted ? (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 animate-pulse">
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 animate-pulse">
                             <Clock size={13} />
                             Awaiting Review (Paid)
                           </span>
@@ -229,7 +229,7 @@ export default function AdminOnboardingPaymentsPage() {
                         ) : (
                           <Button
                             onClick={() => handleApprovePayment(u)}
-                            className="bg-blue-600! hover:bg-blue-700! text-xs font-bold px-4 py-2 rounded-xl transition-all shadow-md hover:translate-y-[-1px]"
+                            className="bg-blue-600! hover:bg-blue-700! text-xs font-semibold px-4 py-2 rounded-xl transition-all shadow-md hover:translate-y-[-1px]"
                           >
                             Approve Account
                           </Button>

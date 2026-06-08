@@ -102,7 +102,7 @@ export default function DepositPage() {
               <Check size={36} strokeWidth={3} />
             </div>
           </div>
-          <h2 className="text-[28px] font-extrabold text-gray-900 dark:text-white mb-3 tracking-tight">Deposit Submitted</h2>
+          <h2 className="text-[28px] font-semibold text-gray-900 dark:text-white mb-3 tracking-tight">Deposit Submitted</h2>
           <p className="text-gray-500 dark:text-gray-400 text-[15px] text-center max-w-[280px] font-medium leading-relaxed">
             Your deposit request has been submitted. The admin will verify and confirm your balance shortly.
           </p>
@@ -110,13 +110,13 @@ export default function DepositPage() {
         
         <div className="px-6 flex flex-col gap-3 w-full max-w-md mx-auto">
           <Link href="/dashboard/assets" className="w-full">
-            <Button className="w-full bg-[#2d68d8] text-white hover:bg-blue-700 h-[52px] text-[16px] font-bold rounded-2xl border-none">
+            <Button className="w-full bg-[#2d68d8] text-white hover:bg-blue-700 h-[52px] text-[16px] font-semibold rounded-2xl border-none">
               Done
             </Button>
           </Link>
           <Button 
             onClick={resetFlow} 
-            className="w-full bg-[#f4f5f8] dark:bg-gray-800 text-gray-900 dark:text-white h-[52px] text-[16px] font-bold rounded-2xl hover:bg-gray-200 dark:hover:bg-gray-700 border-none"
+            className="w-full bg-[#f4f5f8] dark:bg-gray-800 text-gray-900 dark:text-white h-[52px] text-[16px] font-semibold rounded-2xl hover:bg-gray-200 dark:hover:bg-gray-700 border-none"
           >
             Make another deposit
           </Button>
@@ -131,7 +131,7 @@ export default function DepositPage() {
         <>
           <DashboardHeader title="Receive Crypto" subtitle="Select an asset to receive" />
           <div className="flex-1 p-5">
-            <h2 className="text-[18px] font-bold text-gray-900 dark:text-white mb-4 px-1">Available Assets</h2>
+            <h2 className="text-[18px] font-semibold text-gray-900 dark:text-white mb-4 px-1">Available Assets</h2>
             <div className="space-y-3">
               {assets.map((a) => (
                 <div
@@ -151,7 +151,7 @@ export default function DepositPage() {
                     />
                   </div>
                   <div className="ml-4 flex-1">
-                    <p className="font-bold text-[16px] text-gray-900 dark:text-white">{a.name}</p>
+                    <p className="font-semibold text-[16px] text-gray-900 dark:text-white">{a.name}</p>
                     <p className="text-[13px] font-medium text-gray-500 dark:text-gray-400 mt-0.5">{a.network || a.symbol}</p>
                   </div>
                   <ChevronRight size={20} className="text-gray-400" />
@@ -167,7 +167,7 @@ export default function DepositPage() {
             <button onClick={() => setSelectedAsset(null)} className="p-2 -ml-2 text-[#2d68d8] hover:text-blue-700 transition-colors">
               <X size={20} strokeWidth={2.5} />
             </button>
-            <h1 className="text-[17px] font-bold text-gray-900 dark:text-white">Receive {selectedAsset.name}</h1>
+            <h1 className="text-[17px] font-semibold text-gray-900 dark:text-white">Receive {selectedAsset.name}</h1>
             <div className="w-10"></div> {/* Spacer for exact centering */}
           </div>
 
@@ -189,7 +189,7 @@ export default function DepositPage() {
                   />
                 </div>
                 <div>
-                  <h3 className="font-bold text-[16px] text-gray-900 dark:text-white">{selectedAsset.network || selectedAsset.name} Network</h3>
+                  <h3 className="font-semibold text-[16px] text-gray-900 dark:text-white">{selectedAsset.network || selectedAsset.name} Network</h3>
                 </div>
               </div>
               
@@ -218,7 +218,7 @@ export default function DepositPage() {
                 </div>
                 <button
                   onClick={copyAddress}
-                  className="bg-[#2d68d8] text-white px-5 py-2.5 rounded-[10px] text-[14px] font-bold flex items-center gap-2 hover:bg-blue-700 transition-colors shrink-0"
+                  className="bg-[#2d68d8] text-white px-5 py-2.5 rounded-[10px] text-[14px] font-semibold flex items-center gap-2 hover:bg-blue-700 transition-colors shrink-0"
                 >
                   {copied ? <Check size={16} strokeWidth={2.5} /> : <Copy size={16} strokeWidth={2.5} />}
                   Copy
@@ -228,8 +228,8 @@ export default function DepositPage() {
               {selectedAsset.memo ? (
                 <div className="w-full bg-[#f4f6fa] dark:bg-gray-900/50 rounded-[14px] p-2 flex items-center justify-between gap-3">
                   <div className="flex-1 overflow-hidden">
-                    <p className="text-[11px] font-bold text-[#8f9bb3] uppercase tracking-wider mb-0.5 pl-3">Memo / Tag Required</p>
-                    <p className="text-[13px] font-bold text-gray-900 dark:text-white truncate w-full pl-3">
+                    <p className="text-[11px] font-semibold text-[#8f9bb3] uppercase tracking-wider mb-0.5 pl-3">Memo / Tag Required</p>
+                    <p className="text-[13px] font-semibold text-gray-900 dark:text-white truncate w-full pl-3">
                       {selectedAsset.memo}
                     </p>
                   </div>
@@ -239,7 +239,7 @@ export default function DepositPage() {
                       navigator.clipboard.writeText(selectedAsset.memo!);
                       toast.success('Memo copied!');
                     }}
-                    className="bg-[#2d68d8]/10 text-[#2d68d8] dark:bg-blue-900/30 dark:text-blue-400 px-4 py-2.5 rounded-[10px] text-[14px] font-bold flex items-center gap-2 hover:bg-[#2d68d8]/20 transition-colors shrink-0"
+                    className="bg-[#2d68d8]/10 text-[#2d68d8] dark:bg-blue-900/30 dark:text-blue-400 px-4 py-2.5 rounded-[10px] text-[14px] font-semibold flex items-center gap-2 hover:bg-[#2d68d8]/20 transition-colors shrink-0"
                   >
                     <Copy size={16} strokeWidth={2.5} />
                     Copy
@@ -247,7 +247,7 @@ export default function DepositPage() {
                 </div>
               ) : (
                 <div className="mt-1 mb-2 flex justify-center">
-                  <span className="text-[14px] font-extrabold text-gray-900 dark:text-white border-b-[3px] border-[#10b981] pb-0.5 inline-block">
+                  <span className="text-[14px] font-semibold text-gray-900 dark:text-white border-b-[3px] border-[#10b981] pb-0.5 inline-block">
                     No memo required
                   </span>
                 </div>
@@ -256,7 +256,7 @@ export default function DepositPage() {
 
             {/* Submission Form below */}
             <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-700/50">
-              <h3 className="text-[16px] font-bold text-gray-900 dark:text-white mb-5">Confirm Deposit</h3>
+              <h3 className="text-[16px] font-semibold text-gray-900 dark:text-white mb-5">Confirm Deposit</h3>
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <Input
                   label="Amount sent"

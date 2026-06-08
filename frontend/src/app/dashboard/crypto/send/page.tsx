@@ -19,7 +19,7 @@ function CoinIcon({ symbol }: { symbol: string }) {
 
   if (errored) {
     return (
-      <div className="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-bold text-gray-500 dark:text-gray-400 shrink-0">
+      <div className="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-semibold text-gray-500 dark:text-gray-400 shrink-0">
         {symbol.slice(0, 2)}
       </div>
     );
@@ -116,7 +116,7 @@ export default function SendAssetsPage() {
                 <CoinIcon symbol={asset.symbol} />
 
                 <div className="flex-1 min-w-0">
-                  <p className="text-base font-bold text-gray-900 dark:text-white leading-tight">
+                  <p className="text-base font-semibold text-gray-900 dark:text-white leading-tight">
                     {asset.name} ({asset.symbol})
                   </p>
                   <p className="text-sm text-gray-400 dark:text-gray-500 mt-0.5 tabular-nums">

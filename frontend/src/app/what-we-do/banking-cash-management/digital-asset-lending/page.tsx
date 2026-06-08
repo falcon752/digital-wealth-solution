@@ -15,7 +15,7 @@ export default function DigitalAssetLendingPage() {
       <section className="pt-32 pb-12 px-6 text-center">
         <div className="max-w-7xl mx-auto">
           <FadeIn direction="up">
-            <h1 className="font-bold mb-4" style={{ color: '#282e3f', fontSize: '38px' }}>
+            <h1 className="font-semibold mb-4" style={{ color: '#282e3f', fontSize: '38px' }}>
               Digital Asset Lending
             </h1>
             <nav className="flex items-center justify-center gap-2 text-base font-medium" style={{ color: '#445781' }}>
@@ -35,7 +35,7 @@ export default function DigitalAssetLendingPage() {
       <section className="py-24 px-6 bg-[#282e3f] text-center" style={{ padding: '120px 15px 100px' }}>
         <div className="max-w-7xl mx-auto">
           <FadeIn direction="up">
-            <h2 className="text-white font-bold leading-tight" style={{ fontSize: '48px' }}>
+            <h2 className="text-white font-semibold leading-tight" style={{ fontSize: '48px' }}>
               Digital Asset <span style={{ color: '#c69c6d' }}>Lending</span>
             </h2>
           </FadeIn>
@@ -46,7 +46,7 @@ export default function DigitalAssetLendingPage() {
       <section className="py-24 px-6">
         <div className="max-w-4xl mx-auto text-center">
           <FadeIn direction="up">
-            <h2 className="font-bold mb-10" style={{ color: '#282e3f', fontSize: '38px' }}>
+            <h2 className="font-semibold mb-10" style={{ color: '#282e3f', fontSize: '38px' }}>
               Why Consider <span style={{ color: '#c69c6d' }}>Digital Asset Lending</span>
             </h2>
             <div className="space-y-8 text-base leading-relaxed text-left max-w-3xl mx-auto" style={{ color: '#4a5568' }}>
@@ -69,7 +69,7 @@ export default function DigitalAssetLendingPage() {
       <section className="py-24 px-6" style={{ backgroundColor: '#f9f9f9' }}>
         <div className="max-w-7xl mx-auto text-center">
           <FadeIn direction="up">
-            <h2 className="font-bold mb-20" style={{ color: '#282e3f', fontSize: '38px' }}>
+            <h2 className="font-semibold mb-20" style={{ color: '#282e3f', fontSize: '38px' }}>
               A Coordinated Approach to <span style={{ color: '#c69c6d' }}>Crypto Lending</span>
             </h2>
           </FadeIn>
@@ -95,7 +95,7 @@ export default function DigitalAssetLendingPage() {
             ].map((item, idx) => (
               <FadeIn key={idx} direction="up" delay={idx * 0.1}>
                 <div className="bg-white p-12 rounded-sm shadow-[rgba(38,42,76,0.1)_0px_5px_70px_0px] border border-gray-100 flex flex-col items-center h-full text-center">
-                  <h4 className="font-bold mb-4" style={{ color: '#282e3f', fontSize: '16px' }}>{item.title}</h4>
+                  <h4 className="font-semibold mb-4" style={{ color: '#282e3f', fontSize: '16px' }}>{item.title}</h4>
                   <div className="w-12 h-0.5 mb-8" style={{ backgroundColor: '#c69c6d' }}></div>
                   <p className="text-sm leading-relaxed" style={{ color: '#4a5568' }}>{item.desc}</p>
                 </div>
@@ -109,7 +109,7 @@ export default function DigitalAssetLendingPage() {
       <section className="py-24 px-6 text-center">
         <div className="max-w-4xl mx-auto">
           <FadeIn direction="up">
-            <h2 className="font-bold mb-10" style={{ color: '#282e3f', fontSize: '38px' }}>
+            <h2 className="font-semibold mb-10" style={{ color: '#282e3f', fontSize: '38px' }}>
               Coordination With <span style={{ color: '#c69c6d' }}>Traditional Credit Planning</span>
             </h2>
             <div className="space-y-8 text-base leading-relaxed text-left max-w-3xl mx-auto" style={{ color: '#4a5568' }}>
@@ -128,7 +128,7 @@ export default function DigitalAssetLendingPage() {
       <section className="py-24 px-6" style={{ backgroundColor: '#f9f9f9' }}>
         <div className="max-w-4xl mx-auto bg-white p-16 rounded-sm shadow-[rgba(38,42,76,0.1)_0px_5px_70px_0px] border border-gray-50 text-center">
           <FadeIn direction="up">
-            <h2 className="font-bold mb-8" style={{ color: '#282e3f', fontSize: '38px' }}>
+            <h2 className="font-semibold mb-8" style={{ color: '#282e3f', fontSize: '38px' }}>
               Building Flexibility Into <span style={{ color: '#c69c6d' }}>Your Wealth Plan</span>
             </h2>
             <div className="space-y-6 text-base leading-relaxed text-left max-w-2xl mx-auto" style={{ color: '#4a5568' }}>
@@ -151,7 +151,7 @@ export default function DigitalAssetLendingPage() {
       <section className="py-24 px-6 text-center">
         <div className="max-w-4xl mx-auto">
           <FadeIn direction="up">
-            <h2 className="font-bold mb-10" style={{ color: '#282e3f', fontSize: '38px' }}>
+            <h2 className="font-semibold mb-10" style={{ color: '#282e3f', fontSize: '38px' }}>
               Tax-Aware, <span style={{ color: '#c69c6d' }}>Risk-Managed</span> Lending Guidance
             </h2>
             <div className="space-y-8 text-base leading-relaxed text-left max-w-3xl mx-auto" style={{ color: '#4a5568' }}>
@@ -171,7 +171,7 @@ export default function DigitalAssetLendingPage() {
       <section className="py-24 px-6 bg-[#282e3f] text-center">
         <div className="max-w-7xl mx-auto">
           <FadeIn direction="up">
-            <h2 className="text-white font-bold mb-12 leading-tight" style={{ fontSize: '48px' }}>
+            <h2 className="text-white font-semibold mb-12 leading-tight" style={{ fontSize: '48px' }}>
               Let&apos;s Discuss Your <span style={{ color: '#c69c6d' }}>Crypto Lending Strategy</span>
             </h2>
             <Link
@@ -202,7 +202,7 @@ export default function DigitalAssetLendingPage() {
       <section className="py-20 px-6 bg-[#f9f9f9]">
         <div className="max-w-6xl mx-auto text-center">
           <p className="text-xs leading-relaxed" style={{ color: '#a0aec0' }}>
-            <span className="font-bold uppercase tracking-widest">Disclosure:</span> Digital Wealth Partners, LLC (&quot;DWP&quot;) is a Registered Investment Advisor. Digital asset lending involves risks, including collateral volatility, counterparty default, and liquidity constraints. Borrowing against crypto may not be suitable for all investors. Tax outcomes depend on individual circumstances and should be reviewed with a qualified tax professional. DWP may receive referral compensation from certain lending partners, which will be disclosed prior to engagement.
+            <span className="font-semibold uppercase tracking-widest">Disclosure:</span> Digital Wealth Partners, LLC (&quot;DWP&quot;) is a Registered Investment Advisor. Digital asset lending involves risks, including collateral volatility, counterparty default, and liquidity constraints. Borrowing against crypto may not be suitable for all investors. Tax outcomes depend on individual circumstances and should be reviewed with a qualified tax professional. DWP may receive referral compensation from certain lending partners, which will be disclosed prior to engagement.
           </p>
         </div>
       </section>

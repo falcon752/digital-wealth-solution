@@ -65,7 +65,7 @@ export default function DashboardSidebar() {
       >
         {/* Header: Menu + close button */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 dark:border-gray-800">
-          <span className="font-bold text-[17px] text-gray-900 dark:text-white">Menu</span>
+          <span className="font-semibold text-[17px] text-gray-900 dark:text-white">Menu</span>
           <button
             onClick={closeSidebar}
             className="md:hidden p-1 rounded-lg text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
@@ -102,13 +102,13 @@ export default function DashboardSidebar() {
 
         {/* Footer */}
         <div className="border-t border-gray-100 dark:border-gray-800 px-6 py-5 space-y-4">
-          <div className="text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wide leading-relaxed">
+          <div className="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide leading-relaxed">
             Digital Wealth Solution<br />
             Business Management Platform
           </div>
           <button
             onClick={() => { closeSidebar(); logout(); }}
-            className="flex items-center gap-2 text-[14px] font-bold text-red-500 hover:text-red-600 transition-colors"
+            className="flex items-center gap-2 text-[14px] font-semibold text-red-500 hover:text-red-600 transition-colors"
           >
             <LogOut size={16} />
             Sign out

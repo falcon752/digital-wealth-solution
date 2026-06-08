@@ -130,7 +130,7 @@ export default function AdminCardsPage() {
             </div>
 
             <div>
-              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">
                 Admin Note (Optional)
               </label>
               <textarea

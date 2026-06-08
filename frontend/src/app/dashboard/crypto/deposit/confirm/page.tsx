@@ -18,7 +18,7 @@ function CoinIcon({ symbol }: { symbol: string }) {
   const slug = ICON_SLUG[symbol.toUpperCase()] || symbol.toLowerCase();
   const [err, setErr] = useState(false);
   if (err) return (
-    <div className="w-10 h-10 rounded-full bg-orange-400 flex items-center justify-center text-xs font-bold text-white shrink-0">
+    <div className="w-10 h-10 rounded-full bg-orange-400 flex items-center justify-center text-xs font-semibold text-white shrink-0">
       {symbol.slice(0, 2)}
     </div>
   );

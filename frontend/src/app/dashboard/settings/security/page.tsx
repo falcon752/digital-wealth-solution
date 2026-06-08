@@ -43,7 +43,7 @@ export default function SecuritySettingsPage() {
         <Link href="/dashboard/settings" className="text-gray-900 dark:text-white p-1 absolute left-4">
           <ArrowLeft size={22} />
         </Link>
-        <h1 className="flex-1 text-center font-bold text-gray-900 dark:text-white text-[17px]">
+        <h1 className="flex-1 text-center font-semibold text-gray-900 dark:text-white text-[17px]">
           Security Settings
         </h1>
         <div className="absolute right-4">
@@ -61,7 +61,7 @@ export default function SecuritySettingsPage() {
           
           {/* Current Password */}
           <div className="space-y-2">
-            <label className="text-[14px] font-bold text-gray-900 dark:text-white ml-1">
+            <label className="text-[14px] font-semibold text-gray-900 dark:text-white ml-1">
               Current Password
             </label>
             <div className="relative">
@@ -83,7 +83,7 @@ export default function SecuritySettingsPage() {
 
           {/* New Password */}
           <div className="space-y-2">
-            <label className="text-[14px] font-bold text-gray-900 dark:text-white ml-1">
+            <label className="text-[14px] font-semibold text-gray-900 dark:text-white ml-1">
               New Password
             </label>
             <div className="relative">
@@ -105,7 +105,7 @@ export default function SecuritySettingsPage() {
 
           {/* Confirm New Password */}
           <div className="space-y-2">
-            <label className="text-[14px] font-bold text-gray-900 dark:text-white ml-1">
+            <label className="text-[14px] font-semibold text-gray-900 dark:text-white ml-1">
               Confirm New Password
             </label>
             <div className="relative">
@@ -122,7 +122,7 @@ export default function SecuritySettingsPage() {
             <button 
               type="submit" 
               disabled={loading}
-              className="w-full flex items-center justify-center bg-blue-600 dark:bg-blue-500 text-white font-bold py-4 rounded-2xl hover:bg-blue-700 transition disabled:opacity-50"
+              className="w-full flex items-center justify-center bg-blue-600 dark:bg-blue-500 text-white font-semibold py-4 rounded-2xl hover:bg-blue-700 transition disabled:opacity-50"
             >
               {loading ? 'Updating...' : 'Confirm Changes'}
             </button>

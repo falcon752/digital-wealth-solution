@@ -173,11 +173,11 @@ export default function LendingPage() {
             <div className="flex bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-1 mb-4">
               <button 
                 onClick={() => setActiveTab('borrow')}
-                className={`flex-1 py-2.5 rounded-xl shadow-sm text-sm font-bold transition-colors ${activeTab === 'borrow' ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
+                className={`flex-1 py-2.5 rounded-xl shadow-sm text-sm font-semibold transition-colors ${activeTab === 'borrow' ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
               >Borrow</button>
               <button 
                 onClick={() => setActiveTab('earn')}
-                className={`flex-1 py-2.5 rounded-xl shadow-sm text-sm font-bold transition-colors ${activeTab === 'earn' ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
+                className={`flex-1 py-2.5 rounded-xl shadow-sm text-sm font-semibold transition-colors ${activeTab === 'earn' ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
               >Earn</button>
             </div>
 
@@ -191,7 +191,7 @@ export default function LendingPage() {
                       type="number" 
                       value={collateralAmount}
                       onChange={(e) => setCollateralAmount(e.target.value)}
-                      className="bg-transparent text-[24px] font-bold text-gray-900 dark:text-white w-full focus:outline-none"
+                      className="bg-transparent text-[24px] font-semibold text-gray-900 dark:text-white w-full focus:outline-none"
                       placeholder="0.00"
                     />
                     <button 
@@ -199,7 +199,7 @@ export default function LendingPage() {
                       className="flex items-center gap-2 bg-white dark:bg-gray-800 px-3 py-2 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 shrink-0 hover:bg-gray-50 transition-colors"
                     >
                       {collateralAsset && <AssetIcon symbol={collateralAsset.symbol} />}
-                      <span className="font-bold text-gray-900 dark:text-white">{collateralAsset?.symbol}</span>
+                      <span className="font-semibold text-gray-900 dark:text-white">{collateralAsset?.symbol}</span>
                       <ChevronDown size={16} className="text-gray-400" />
                     </button>
                   </div>
@@ -219,7 +219,7 @@ export default function LendingPage() {
                 <div className="bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-4 mt-2 mb-4">
                   <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Loan</div>
                   <div className="flex items-center justify-between gap-4">
-                    <div className="text-[24px] font-bold text-gray-900 dark:text-white truncate">
+                    <div className="text-[24px] font-semibold text-gray-900 dark:text-white truncate">
                       {loanAmount.toFixed(2)}
                     </div>
                     <button 
@@ -227,7 +227,7 @@ export default function LendingPage() {
                       className="flex items-center gap-2 bg-white dark:bg-gray-800 px-3 py-2 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 shrink-0 hover:bg-gray-50 transition-colors"
                     >
                       {loanAsset && <AssetIcon symbol={loanAsset.symbol} />}
-                      <span className="font-bold text-gray-900 dark:text-white">{loanAsset?.symbol}</span>
+                      <span className="font-semibold text-gray-900 dark:text-white">{loanAsset?.symbol}</span>
                       <ChevronDown size={16} className="text-gray-400" />
                     </button>
                   </div>
@@ -245,7 +245,7 @@ export default function LendingPage() {
                     <div className="flex items-center gap-1 text-sm font-medium text-gray-500">
                       LTV <Info size={14} />
                     </div>
-                    <div className="flex items-center gap-1 text-sm font-bold text-gray-900 dark:text-white">
+                    <div className="flex items-center gap-1 text-sm font-semibold text-gray-900 dark:text-white">
                       {ltv * 100}% <ChevronDown size={14} />
                     </div>
                   </div>
@@ -256,7 +256,7 @@ export default function LendingPage() {
                     <div className="flex items-center gap-1 text-sm font-medium text-gray-500">
                       APR <Info size={14} />
                     </div>
-                    <div className="flex items-center gap-1 text-sm font-bold text-gray-900 dark:text-white">
+                    <div className="flex items-center gap-1 text-sm font-semibold text-gray-900 dark:text-white">
                       {aprOption.label} <ChevronDown size={14} />
                     </div>
                   </div>
@@ -282,7 +282,7 @@ export default function LendingPage() {
                       type="number" 
                       value={earnAmount}
                       onChange={(e) => setEarnAmount(e.target.value)}
-                      className="bg-transparent text-[24px] font-bold text-gray-900 dark:text-white w-full focus:outline-none"
+                      className="bg-transparent text-[24px] font-semibold text-gray-900 dark:text-white w-full focus:outline-none"
                       placeholder="0.00"
                     />
                     <button 
@@ -290,7 +290,7 @@ export default function LendingPage() {
                       className="flex items-center gap-2 bg-white dark:bg-gray-800 px-3 py-2 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 shrink-0 hover:bg-gray-50 transition-colors"
                     >
                       {earnAsset && <AssetIcon symbol={earnAsset.symbol} />}
-                      <span className="font-bold text-gray-900 dark:text-white">{earnAsset?.symbol}</span>
+                      <span className="font-semibold text-gray-900 dark:text-white">{earnAsset?.symbol}</span>
                       <ChevronDown size={16} className="text-gray-400" />
                     </button>
                   </div>
@@ -341,7 +341,7 @@ export default function LendingPage() {
             <button onClick={() => setStep(1)} className="p-2 -ml-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors">
               <ChevronLeft size={24} className="text-gray-900 dark:text-white" />
             </button>
-            <h1 className="text-[24px] font-bold text-gray-900 dark:text-white">
+            <h1 className="text-[24px] font-semibold text-gray-900 dark:text-white">
               {activeTab === 'borrow' ? "Confirm your loan" : "Confirm your saving"}
             </h1>
           </div>
@@ -354,16 +354,16 @@ export default function LendingPage() {
                   <X size={24} className="text-gray-400" />
                   <div>
                     <div className="text-xs font-medium text-gray-500">Your Collateral</div>
-                    <div className="text-xl font-bold text-gray-900 dark:text-white">{collateralAsset?.symbol}</div>
+                    <div className="text-xl font-semibold text-gray-900 dark:text-white">{collateralAsset?.symbol}</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   {loanAsset && <AssetIcon symbol={loanAsset.symbol} />}
                   <div>
                     <div className="text-xs font-medium text-gray-500">Your loan</div>
-                    <div className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                    <div className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                       {loanAsset?.symbol}
-                      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-500 text-white leading-none">TRX</span>
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-red-500 text-white leading-none">TRX</span>
                     </div>
                   </div>
                 </div>
@@ -373,27 +373,27 @@ export default function LendingPage() {
               <div className="space-y-4 py-4 border-y border-gray-100 dark:border-gray-800">
                 <div className="flex justify-between items-center text-sm">
                   <span className="flex items-center gap-1 text-gray-500">Loan-to-Value <Info size={14} /></span>
-                  <span className="font-bold text-gray-900 dark:text-white">{ltv * 100}%</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">{ltv * 100}%</span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="flex items-center gap-1 text-gray-500">APR <Info size={14} /></span>
-                  <span className="font-bold text-gray-900 dark:text-white">{aprOption.label}</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">{aprOption.label}</span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="flex items-center gap-1 text-gray-500">Duration <Info size={14} /></span>
-                  <span className="font-bold text-gray-900 dark:text-white">{aprOption.term}</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">{aprOption.term}</span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="flex items-center gap-1 text-gray-500">Monthly interest <Info size={14} /></span>
-                  <span className="font-bold text-gray-900 dark:text-white">{monthlyInterest.toFixed(6)} {loanAsset?.symbol}</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">{monthlyInterest.toFixed(6)} {loanAsset?.symbol}</span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="flex items-center gap-1 text-gray-500">Origination fee <Info size={14} /></span>
-                  <span className="font-bold text-gray-900 dark:text-white">{originationFee.toFixed(6)} {loanAsset?.symbol}</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">{originationFee.toFixed(6)} {loanAsset?.symbol}</span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="flex items-center gap-1 text-gray-500">Margin call <Info size={14} /></span>
-                  <span className="font-bold text-gray-900 dark:text-white">{marginCallPrice.toFixed(2)} {collateralAsset?.symbol}/USD</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">{marginCallPrice.toFixed(2)} {collateralAsset?.symbol}/USD</span>
                 </div>
               </div>
 
@@ -458,9 +458,9 @@ export default function LendingPage() {
                 {earnAsset && <AssetIcon symbol={earnAsset.symbol} />}
                 <div>
                   <div className="text-xs font-medium text-gray-500">Your deposit</div>
-                  <div className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                  <div className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                     {earnAmount} {earnAsset?.symbol}
-                    <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-500 text-white leading-none">TRX</span>
+                    <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-red-500 text-white leading-none">TRX</span>
                   </div>
                 </div>
               </div>
@@ -469,29 +469,29 @@ export default function LendingPage() {
               <div className="space-y-4 py-4 border-y border-gray-100 dark:border-gray-800">
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-gray-500">Annual percentage yield</span>
-                  <span className="font-bold text-gray-900 dark:text-white">5%</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">5%</span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-gray-500">Monthly Reward</span>
-                  <span className="font-bold text-gray-900 dark:text-white flex items-center gap-1">
+                  <span className="font-semibold text-gray-900 dark:text-white flex items-center gap-1">
                     {earnMonthlyReward.toFixed(2)} {earnAsset?.symbol}
-                    <span className="px-1 py-0.5 rounded text-[8px] font-bold bg-red-500 text-white leading-none">TRX</span>
+                    <span className="px-1 py-0.5 rounded text-[8px] font-semibold bg-red-500 text-white leading-none">TRX</span>
                   </span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-gray-500">Yearly Reward</span>
-                  <span className="font-bold text-gray-900 dark:text-white flex items-center gap-1">
+                  <span className="font-semibold text-gray-900 dark:text-white flex items-center gap-1">
                     {earnYearlyReward.toFixed(2)} {earnAsset?.symbol}
-                    <span className="px-1 py-0.5 rounded text-[8px] font-bold bg-red-500 text-white leading-none">TRX</span>
+                    <span className="px-1 py-0.5 rounded text-[8px] font-semibold bg-red-500 text-white leading-none">TRX</span>
                   </span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-gray-500">Earn term</span>
-                  <span className="font-bold text-gray-900 dark:text-white">Unlimited</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">Unlimited</span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-gray-500">Interest accumulation period</span>
-                  <span className="font-bold text-gray-900 dark:text-white">Daily</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">Daily</span>
                 </div>
               </div>
 
@@ -519,7 +519,7 @@ export default function LendingPage() {
                 </Button>
 
                 <Button 
-                  className="w-full py-4 text-[15px] font-bold rounded-2xl bg-blue-600! hover:bg-blue-700! text-white!"
+                  className="w-full py-4 text-[15px] font-semibold rounded-2xl bg-blue-600! hover:bg-blue-700! text-white!"
                   onClick={handleConfirmEarn}
                   loading={isSubmitting}
                 >
@@ -548,7 +548,7 @@ export default function LendingPage() {
       {(modalType === 'collateral' || modalType === 'loan' || modalType === 'earn') && (
         <div className="fixed inset-0 z-[100] flex flex-col bg-gray-100 dark:bg-gray-900 animate-in slide-in-from-bottom-full duration-300">
           <div className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0">
-            <h2 className="text-lg font-bold text-gray-900 dark:text-white">Choose asset</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Choose asset</h2>
             <button onClick={() => setModalType(null)} className="p-2 -mr-2 text-gray-400 hover:text-gray-600">
               <X size={24} />
             </button>
@@ -589,7 +589,7 @@ export default function LendingPage() {
                   <div className="flex items-center gap-3">
                     <AssetIcon symbol={asset.symbol} />
                     <div className="flex flex-col">
-                      <span className="font-bold text-gray-900 dark:text-white">{asset.symbol}</span>
+                      <span className="font-semibold text-gray-900 dark:text-white">{asset.symbol}</span>
                       <span className="text-sm text-gray-500">{asset.name}</span>
                     </div>
                   </div>

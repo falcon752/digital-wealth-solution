@@ -19,7 +19,7 @@ function CoinIcon({ symbol, size = 28 }: { symbol: string; size?: number }) {
   if (err) return (
     <div
       style={{ width: size, height: size }}
-      className="rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center text-[10px] font-bold text-gray-500 shrink-0"
+      className="rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center text-[10px] font-semibold text-gray-500 shrink-0"
     >
       {symbol.slice(0, 2)}
     </div>

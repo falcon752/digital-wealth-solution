@@ -84,7 +84,7 @@ function OTPInput({ value, onChange }: { value: string[]; onChange: (v: string[]
           onKeyDown={(e) => handleKey(e, idx)}
           onPaste={idx === 0 ? handlePaste : undefined}
           className={`
-            w-12 h-14 text-center text-xl font-bold rounded-xl border-2 outline-none
+            w-12 h-14 text-center text-xl font-semibold rounded-xl border-2 outline-none
             transition-all duration-200
             bg-white dark:bg-gray-900
             text-gray-900 dark:text-white
@@ -231,7 +231,7 @@ export default function RegisterPage() {
           <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-blue-900 to-blue-600 flex items-center justify-center mx-auto mb-6 shadow-xl shadow-blue-900/40">
             <Shield size={36} className="text-white" strokeWidth={2} />
           </div>
-          <h1 className="text-3xl font-bold text-(--text-primary)">Create Account</h1>
+          <h1 className="text-3xl font-semibold text-(--text-primary)">Create Account</h1>
           <p className="text-(--text-muted) text-sm mt-2 max-w-xs mx-auto">
             Start your investment journey with Digital Wealth Solution.
           </p>
@@ -331,7 +331,7 @@ export default function RegisterPage() {
         <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-blue-900 to-blue-600 flex items-center justify-center mx-auto mb-6 shadow-xl shadow-blue-900/40">
           <Mail size={36} className="text-white" strokeWidth={2} />
         </div>
-        <h1 className="text-3xl font-bold text-(--text-primary)">Check your email</h1>
+        <h1 className="text-3xl font-semibold text-(--text-primary)">Check your email</h1>
         <p className="text-(--text-muted) text-sm mt-2 max-w-xs mx-auto">
           We sent a 6-digit verification code to
         </p>

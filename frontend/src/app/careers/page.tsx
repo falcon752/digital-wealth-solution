@@ -33,7 +33,7 @@ export default function CareersPage() {
             <div className="lg:w-1/2 z-10">
               <FadeIn direction="left">
                 <h1 
-                  className="font-bold mb-8 leading-tight" 
+                  className="font-semibold mb-8 leading-tight" 
                   style={{ color: '#1e266d', fontSize: '64px' }}
                 >
                   Looking for<br />a new career?
@@ -111,7 +111,7 @@ export default function CareersPage() {
           <FadeIn direction="up">
             <div className="text-center mb-20">
               <h2 
-                className="font-bold mb-5" 
+                className="font-semibold mb-5" 
                 style={{ color: '#1e266d', fontSize: '42px' }}
               >
                 Open positions
@@ -126,7 +126,7 @@ export default function CareersPage() {
               <div className="mb-12">
                 <div className="relative inline-block">
                   <div className="flex items-center gap-6 px-5 py-2.5 border border-gray-100 rounded-sm bg-white cursor-pointer shadow-[0_2px_8px_rgba(0,0,0,0.03)]">
-                    <span className="text-xs font-bold" style={{ color: '#1e266d' }}>All Job Type</span>
+                    <span className="text-xs font-semibold" style={{ color: '#1e266d' }}>All Job Type</span>
                     <ChevronDown className="w-4 h-4 text-gray-400" />
                   </div>
                 </div>
@@ -139,7 +139,7 @@ export default function CareersPage() {
                     key={idx} 
                     className="flex flex-col sm:flex-row items-center justify-between py-10 border-b border-gray-100 group transition-all"
                   >
-                    <h3 className="font-bold text-lg mb-4 sm:mb-0" style={{ color: '#1e266d' }}>
+                    <h3 className="font-semibold text-lg mb-4 sm:mb-0" style={{ color: '#1e266d' }}>
                       {job.title}
                     </h3>
                     
@@ -150,7 +150,7 @@ export default function CareersPage() {
                       </div>
                       <Link 
                         href={job.href}
-                        className="inline-flex items-center gap-1 text-[13px] font-bold transition-colors group-hover:text-[#AD7F4E]"
+                        className="inline-flex items-center gap-1 text-[13px] font-semibold transition-colors group-hover:text-[#AD7F4E]"
                         style={{ color: '#1e266d' }}
                       >
                         More Details
@@ -170,7 +170,7 @@ export default function CareersPage() {
         <div className="max-w-4xl mx-auto">
           <FadeIn direction="up">
             <h2 
-              className="font-bold mb-6" 
+              className="font-semibold mb-6" 
               style={{ color: '#1e266d', fontSize: '36px' }}
             >
               Can&apos;t find the perfect position?

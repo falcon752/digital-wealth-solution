@@ -29,7 +29,7 @@ export default function LandingPage() {
               {/* ── Left: Content ── */}
               <div className="lg:col-span-7 relative z-10">
                 <h1
-                  className="font-bold mb-8 text-[32px] sm:text-[42px] md:text-[51px] leading-tight md:leading-[51px]"
+                  className="font-semibold mb-8 text-[32px] sm:text-[42px] md:text-[51px] leading-tight md:leading-[51px]"
                   style={{
                     color: '#1e266d',
                     fontFamily: "Arial, sans-serif",
@@ -52,7 +52,7 @@ export default function LandingPage() {
                 <div className="flex flex-col sm:flex-row gap-5 items-start sm:items-center mb-16">
                   <Link
                     href="/contact"
-                    className="inline-flex items-center justify-center text-white font-bold px-10 py-4 rounded transition-all hover:opacity-90 active:scale-95"
+                    className="inline-flex items-center justify-center text-white font-semibold px-10 py-4 rounded transition-all hover:opacity-90 active:scale-95"
                     style={{
                       backgroundColor: '#2C3342',
                       fontSize: '15px',
@@ -158,7 +158,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-6">
           <FadeIn direction="up">
             <h2
-              className="font-bold text-center mb-16"
+              className="font-semibold text-center mb-16"
               style={{ color: '#1e266d', fontSize: '36px' }}
             >
               Your Portfolio with One Coordinated Plan
@@ -221,7 +221,7 @@ export default function LandingPage() {
                   </div>
                   <div>
                     <h3
-                      className="font-bold mb-3"
+                      className="font-semibold mb-3"
                       style={{ color: '#1e266d', fontSize: '20px' }}
                     >
                       {title}
@@ -251,7 +251,7 @@ export default function LandingPage() {
             <FadeIn direction="left" className="lg:col-span-5">
               <div className="max-w-md">
                 <h2
-                  className="font-bold leading-tight mb-8"
+                  className="font-semibold leading-tight mb-8"
                   style={{ color: '#1e266d', fontSize: '38px', fontFamily: "'Cormorant Garamond', serif" }}
                 >
                   Our Mission: Help clients protect and build wealth with digital assets
@@ -266,7 +266,7 @@ export default function LandingPage() {
                 </p>
                 <Link
                   href="/services"
-                  className="inline-flex items-center gap-3 text-white font-bold px-7 py-3.5 rounded-md transition-all hover:translate-y-[-2px] hover:shadow-xl active:scale-95"
+                  className="inline-flex items-center gap-3 text-white font-semibold px-7 py-3.5 rounded-md transition-all hover:translate-y-[-2px] hover:shadow-xl active:scale-95"
                   style={{
                     backgroundColor: '#2C3342',
                     fontSize: '15px',
@@ -342,7 +342,7 @@ export default function LandingPage() {
                           {icon}
                         </div>
                         <h4
-                          className="font-bold mb-4 leading-tight"
+                          className="font-semibold mb-4 leading-tight"
                           style={{ color: '#1e266d', fontSize: '16px' }}
                         >
                           {title}
@@ -355,7 +355,7 @@ export default function LandingPage() {
                         </p>
                         <Link
                           href="/contact"
-                          className="text-[14px] font-bold transition-opacity hover:opacity-70"
+                          className="text-[14px] font-semibold transition-opacity hover:opacity-70"
                           style={{ color: '#AD7F4E' }}
                         >
                           Learn More
@@ -402,7 +402,7 @@ export default function LandingPage() {
                           {icon}
                         </div>
                         <h4
-                          className="font-bold mb-4 leading-tight"
+                          className="font-semibold mb-4 leading-tight"
                           style={{ color: '#1e266d', fontSize: '16px' }}
                         >
                           {title}
@@ -415,7 +415,7 @@ export default function LandingPage() {
                         </p>
                         <Link
                           href="/contact"
-                          className="text-[14px] font-bold transition-opacity hover:opacity-70"
+                          className="text-[14px] font-semibold transition-opacity hover:opacity-70"
                           style={{ color: '#AD7F4E' }}
                         >
                           Learn More
@@ -476,7 +476,7 @@ export default function LandingPage() {
                 </p>
 
                 <h1
-                  className="font-bold mb-10 text-[36px] sm:text-[48px] md:text-[64px] leading-[1.1]"
+                  className="font-semibold mb-10 text-[36px] sm:text-[48px] md:text-[64px] leading-[1.1]"
                   style={{
                     fontFamily: "Arial, sans-serif",
                     fontWeight: "bold"
@@ -489,7 +489,7 @@ export default function LandingPage() {
                 <div className="flex flex-col sm:flex-row gap-5 items-start sm:items-center mb-10">
                   <Link
                     href="/contact"
-                    className="inline-flex items-center justify-center text-white font-bold px-10 py-4 rounded transition-all hover:bg-opacity-90 active:scale-95"
+                    className="inline-flex items-center justify-center text-white font-semibold px-10 py-4 rounded transition-all hover:bg-opacity-90 active:scale-95"
                     style={{
                       backgroundColor: '#2C3342',
                       fontSize: '15px',
@@ -510,14 +510,14 @@ export default function LandingPage() {
       <section className="py-24 text-center bg-white">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16">
           <h3
-            className="font-bold text-2xl md:text-[34px] leading-tight"
+            className="font-semibold text-2xl md:text-[34px] leading-tight"
             style={{ color: '#1e266d' }}
           >
             Speak to a team member at Digital Wealth Partners to learn more
           </h3>
           <Link
             href="/contact"
-            className="inline-block font-bold px-10 py-5 rounded-md text-white transition-all hover:opacity-90 hover:scale-105 shadow-lg whitespace-nowrap"
+            className="inline-block font-semibold px-10 py-5 rounded-md text-white transition-all hover:opacity-90 hover:scale-105 shadow-lg whitespace-nowrap"
             style={{ backgroundColor: '#2C3342', fontSize: '15px' }}
           >
             Contact Us

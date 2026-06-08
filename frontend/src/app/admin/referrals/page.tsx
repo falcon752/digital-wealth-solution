@@ -89,7 +89,7 @@ export default function AdminReferralsPage() {
                         <div className="text-[13px] text-gray-500 dark:text-gray-400">{r.email}</div>
                       </td>
                       <td className="p-4">
-                        <span className="bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 px-2 py-1 rounded text-xs font-bold tracking-wider">
+                        <span className="bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 px-2 py-1 rounded text-xs font-semibold tracking-wider">
                           {r.referralCode}
                         </span>
                       </td>

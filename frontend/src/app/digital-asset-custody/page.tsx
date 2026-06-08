@@ -53,7 +53,7 @@ export default function DigitalAssetCustodyPage() {
           <section className="py-10">
             <div style={{ border: '1px solid #e5e7eb', borderRadius: '2px', padding: '28px 32px' }}>
               <h1
-                className="font-bold mb-4"
+                className="font-semibold mb-4"
                 style={{ color: '#1e266d', fontSize: '22px' }}
               >
                 Digital Asset Custody with Digital Wealth Partners
@@ -74,7 +74,7 @@ export default function DigitalAssetCustodyPage() {
               {/* Left */}
               <div>
                 <h2
-                  className="font-bold mb-5"
+                  className="font-semibold mb-5"
                   style={{ color: '#1e266d', fontSize: '28px' }}
                 >
                   Build Your Strategy
@@ -100,7 +100,7 @@ export default function DigitalAssetCustodyPage() {
               {/* Right */}
               <div>
                 <h2
-                  className="font-bold mb-5"
+                  className="font-semibold mb-5"
                   style={{ color: '#1e266d', fontSize: '28px' }}
                 >
                   Already a Client?
@@ -131,7 +131,7 @@ export default function DigitalAssetCustodyPage() {
               {/* Left – bullet list */}
               <div>
                 <h2
-                  className="font-bold mb-8"
+                  className="font-semibold mb-8"
                   style={{ color: '#1e266d', fontSize: '28px' }}
                 >
                   Secure Digital Asset Custody
@@ -146,7 +146,7 @@ export default function DigitalAssetCustodyPage() {
                         </svg>
                       </span>
                       <p style={{ color: '#3b5284', fontSize: '14.5px', lineHeight: '1.7' }}>
-                        <span className="font-bold">{bold}</span>
+                        <span className="font-semibold">{bold}</span>
                         {text}
                       </p>
                     </li>

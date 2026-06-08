@@ -13,7 +13,7 @@ export default function TermsOfServicePage() {
       {/* ─── BREADCRUMB HEADER ───────────────────────────────────────── */}
       <section className="pt-32 pb-10 px-6 text-center bg-white border-b border-gray-50">
         <div className="max-w-7xl mx-auto">
-          <h1 className="font-bold mb-4" style={{ color: '#1e266d', fontSize: '36px' }}>
+          <h1 className="font-semibold mb-4" style={{ color: '#1e266d', fontSize: '36px' }}>
             Terms of Service
           </h1>
           <nav className="text-sm font-medium" style={{ color: '#6b7280' }}>
@@ -51,15 +51,15 @@ export default function TermsOfServicePage() {
                 By accessing the Platform, you agree to abide by these Terms of Service and to comply with all applicable laws and regulations. We reserve the right to review and amend any of these Terms at our sole discretion and update this page. Any changes to these Terms will take effect immediately from the date of publication. If you do not agree with these Terms, you are prohibited from using or accessing our Platform or using any other services provided by us.
               </p>
               
-              <p className="font-bold">
+              <p className="font-semibold">
                 PLEASE READ THESE TERMS CAREFULLY BEFORE USING THE PLATFORM. THESE TERMS GOVERN YOUR USE OF THE PLATFORM, APP, THE SITE, AND ANY PURCHASES YOU MAKE, UNLESS WE HAVE EXECUTED A SEPARATE WRITTEN AGREEMENT WITH YOU FOR THAT PURPOSE. WE ARE ONLY WILLING TO MAKE THE PLATFORM AVAILABLE TO YOU IF YOU ACCEPT ALL OF THESE TERMS. BY USING THE PLATFORM, YOU ARE CONFIRMING YOU UNDERSTAND AND AGREE TO BE BOUND BY ALL OF THESE TERMS. IF YOU ARE ACCEPTING THESE TERMS ON BEHALF OF A COMPANY OR OTHER LEGAL ENTITY, YOU REPRESENT THAT YOU HAVE THE LEGAL AUTHORITY TO ACCEPT THESE TERMS ON THAT ENTITY'S BEHALF, IN WHICH CASE "YOU" WILL MEAN THAT ENTITY. IF YOU DO NOT HAVE SUCH AUTHORITY, OR IF YOU DO NOT ACCEPT ALL OF THESE TERMS, THEN WE ARE UNWILLING TO MAKE THE PLATFORM AVAILABLE TO YOU. IF YOU DO NOT AGREE TO THESE TERMS, YOU MAY NOT ACCESS OR USE THE PLATFORM.
               </p>
               
-              <p className="font-bold">YOUR USE OF THE PLATFORM IS ENTIRELY AT YOUR OWN RISK.</p>
+              <p className="font-semibold">YOUR USE OF THE PLATFORM IS ENTIRELY AT YOUR OWN RISK.</p>
 
               {/* Changes section */}
               <div className="pt-8">
-                <h2 className="font-bold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Changes to the Terms of Service</h2>
+                <h2 className="font-semibold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Changes to the Terms of Service</h2>
                 <p className="mb-4">
                   We may revise and update these Terms of Service from time to time in our sole discretion. All changes are effective immediately when we post them, and apply to all access to and use of the Platform thereafter. However, any changes to the dispute resolution provisions set out in "Governing Law and Jurisdiction" will not apply to any disputes for which the parties have actual notice on or before the date the change is posted on the Platform.
                 </p>
@@ -70,7 +70,7 @@ export default function TermsOfServicePage() {
 
               {/* Services section */}
               <div className="pt-8">
-                <h2 className="font-bold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Services Provided</h2>
+                <h2 className="font-semibold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Services Provided</h2>
                 <p className="mb-4">
                   We offer a broad range of advisory services to help you manage your financial goals. Our team provides strategic guidance on asset allocation, portfolio management, and risk mitigation, while integrating both traditional investments and digital assets into a comprehensive financial plan. We also assist with secure storage solutions for digital assets by working with third-party custodians and offering best practices for safeguarding your holdings. Additionally, we provide support for tax planning and regulatory compliance. To help you make informed decisions, we also offer educational resources and insights on market trends and emerging opportunities.
                 </p>
@@ -81,8 +81,8 @@ export default function TermsOfServicePage() {
 
               {/* Account Registration section */}
               <div className="pt-8">
-                <h2 className="font-bold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Account Registration and Security Procedures</h2>
-                <h3 className="font-bold mb-3">Account Registration Process:</h3>
+                <h2 className="font-semibold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Account Registration and Security Procedures</h2>
+                <h3 className="font-semibold mb-3">Account Registration Process:</h3>
                 <p className="mb-6">
                   The Company has established a set of measures, protocols, and processes that include, but are not limited to, password protection, multi-factor authentication, identity verification protocols such as passphrases or security questions, encryption, and secure communication channels (<strong>"Security Procedures"</strong>). You agree to comply with the Security Procedures as a condition of using the services provided by the Company. The Company may update or amend the Security Procedures from time to time to ensure the ongoing protection of your data and assets, which may be incorporated into other agreements by reference by the Company.
                 </p>
@@ -102,7 +102,7 @@ export default function TermsOfServicePage() {
                   Upon submission of this form, the Company will initiate a verification process. You will receive a call from our team, during which you will be required to confirm the Identifiers you provided during the registration process. Failure to accurately provide this information may result in the rejection of your account registration.
                 </p>
                 
-                <h3 className="font-bold mb-3">Additional Security Measures:</h3>
+                <h3 className="font-semibold mb-3">Additional Security Measures:</h3>
                 <p className="mb-8">
                   During the verification phone call, the Company may request that you set up additional security Identifiers, including but not limited to a personalized passphrase or security question. This passphrase will be used for future verification purposes, including but not limited to account inquiries, changes, and resets.
                 </p>
@@ -110,7 +110,7 @@ export default function TermsOfServicePage() {
 
               {/* Account Security section */}
               <div className="pt-8">
-                <h2 className="font-bold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Account Security</h2>
+                <h2 className="font-semibold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Account Security</h2>
                 <p className="mb-4">
                   You are responsible for maintaining the confidentiality of your account credentials, including your password and any additional security identifiers such as the passphrase. You agree to notify the Company immediately in the event of any unauthorized access to or use of your account, or if your security credentials are compromised.
                 </p>
@@ -121,7 +121,7 @@ export default function TermsOfServicePage() {
 
               {/* Account Recovery section */}
               <div className="pt-8">
-                <h2 className="font-bold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Account Recovery</h2>
+                <h2 className="font-semibold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Account Recovery</h2>
                 <p className="mb-4">
                   If you lose access to your account or are unable to log in, you may initiate an account reset by contacting the Company through the designated support channels. To reset your account, you will be required to verify your identity by providing key identifiers, including but not limited to:
                 </p>
@@ -142,7 +142,7 @@ export default function TermsOfServicePage() {
                   If you cannot provide the necessary verification information, the Company reserves the right to deny access to your account until your identity can be confirmed by other means at Company discretion.
                 </p>
                 
-                <h3 className="font-bold mb-3">Unauthorized Access or Account Compromise:</h3>
+                <h3 className="font-semibold mb-3">Unauthorized Access or Account Compromise:</h3>
                 <p className="mb-6">
                   If you believe that your account has been accessed without your authorization, you must immediately contact the Company to secure your account. You may be required to go through an identity verification process similar to the account reset procedure in order to regain control of your account.
                 </p>
@@ -183,7 +183,7 @@ export default function TermsOfServicePage() {
 
               {/* Data Sharing section */}
               <div className="pt-8">
-                <h2 className="font-bold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Data Sharing</h2>
+                <h2 className="font-semibold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Data Sharing</h2>
                 <p className="mb-4">
                   By using the Platform, you acknowledge and agree that we may share your information, including but not limited to personal data, with our parent companies, subsidiaries, and affiliates, as necessary to provide, enhance, and improve our services, comply with legal obligations, or for other legitimate business purposes. For the purposes of this clause, "affiliate" is defined as any entity that controls, is controlled by, or is under common control with our company. "Control" means the ownership of fifty percent (50%) or more of the voting interests of an entity or the ability to direct the management or policies of such entity, whether through ownership, contract, or other means.
                 </p>
@@ -203,7 +203,7 @@ export default function TermsOfServicePage() {
                   ))}
                 </ul>
                 
-                <h3 className="font-bold mb-3 uppercase">Opt-out of Referral Services</h3>
+                <h3 className="font-semibold mb-3 uppercase">Opt-out of Referral Services</h3>
                 <p className="mb-4">
                   You have the right to opt out of receiving referrals for services, products, or solutions provided by our affiliates, parent companies, or subsidiaries. If you do not wish to be referred for such services or receive promotional communications related to these referrals:
                 </p>
@@ -228,7 +228,7 @@ export default function TermsOfServicePage() {
 
               {/* Intellectual Property section */}
               <div className="pt-8">
-                <h2 className="font-bold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Intellectual Property Rights</h2>
+                <h2 className="font-semibold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Intellectual Property Rights</h2>
                 <p className="mb-4">
                   The Platform and its entire contents, features, and functionality (including but not limited to all information, software, text, displays, images, video, and audio, and the design, selection, and arrangement thereof) are owned by the Company, its licensors, or other providers of such material and are protected by copyright, trademark, patent, trade secret, and other intellectual property or proprietary rights laws.
                 </p>
@@ -275,7 +275,7 @@ export default function TermsOfServicePage() {
 
               {/* Trademarks section */}
               <div className="pt-8">
-                <h2 className="font-bold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Trademarks</h2>
+                <h2 className="font-semibold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Trademarks</h2>
                 <p>
                   The Company name, the Company logo, and all related names, logos, product and service names, designs, and slogans are trademarks of the Company or its affiliates or licensors. You must not use such marks without the prior written permission of the Company. All other names, logos, product and service names, designs, and slogans on this Platform are the trademarks of their respective owners.
                 </p>
@@ -283,7 +283,7 @@ export default function TermsOfServicePage() {
 
               {/* Prohibited Uses section */}
               <div className="pt-8">
-                <h2 className="font-bold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Prohibited Uses</h2>
+                <h2 className="font-semibold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Prohibited Uses</h2>
                 <p className="mb-4">You may use the Platform only for lawful purposes and in accordance with these Terms of Service. You agree not to use the Platform:</p>
                 <ul className="space-y-3 mb-6">
                   {[
@@ -322,7 +322,7 @@ export default function TermsOfServicePage() {
 
               {/* User Contributions section */}
               <div className="pt-8">
-                <h2 className="font-bold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>User Contributions</h2>
+                <h2 className="font-semibold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>User Contributions</h2>
                 <p className="mb-4">
                   The Platform may contain message boards, chat rooms, personal web pages or profiles, forums, and other interactive features (collectively, <strong>"Interactive Services"</strong>) that allow users to post, submit, publish, display, or transmit to other users or other persons (hereinafter, <strong>"post"</strong>) content or materials (collectively, <strong>"User Contributions"</strong>) on or through the Platform.
                 </p>
@@ -348,14 +348,14 @@ export default function TermsOfServicePage() {
                 <p className="mb-4">
                   We are not responsible or liable to any third party for the content or accuracy of any User Contributions posted by you or any other user of the Platform.
                 </p>
-                <p className="font-bold">
+                <p className="font-semibold">
                   WE ARE UNDER NO OBLIGATION TO USE, EDIT OR CONTROL USER CONTENT THAT YOU OR ANY OTHER USER POSTS ON THE PLATFORM AND WILL NOT BE IN ANY WAY RESPONSIBLE OR LIABLE FOR USER CONTENT. WE DO NOT GUARANTEE THAT ANY USER CONTENT IS ACCURATE, TRUTHFUL OR APPROPRIATE FOR ITS STATED PURPOSE. WE MAY, HOWEVER, AT ANY TIME AND WITHOUT PRIOR NOTICE, SCREEN, REMOVE, EDIT, OR BLOCK ANY USER CONTENT THAT IN OUR SOLE JUDGMENT VIOLATES THESE TERMS OR IS OTHERWISE OBJECTIONABLE, SUCH AS, WITHOUT LIMITATION, USER CONTENT THAT WE DETERMINE IS OR COULD BE INTERPRETED TO BE ABUSIVE, BIGOTED, DANGEROUS, DEFAMATORY, FALSE, HARASSING, HARMFUL, INFRINGING, MISLEADING, OBSCENE, OFFENSIVE, PORNOGRAPHIC, RACIST, THREATENING, UNLAWFUL, VIOLENT, VULGAR, OR OTHERWISE INAPPROPRIATE.
                 </p>
               </div>
 
               {/* Monitoring section */}
               <div className="pt-8">
-                <h2 className="font-bold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Monitoring and Enforcement; Termination</h2>
+                <h2 className="font-semibold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Monitoring and Enforcement; Termination</h2>
                 <p className="mb-2">We have the right to:</p>
                 <ul className="space-y-3 mb-6">
                   {[
@@ -374,7 +374,7 @@ export default function TermsOfServicePage() {
                 <p className="mb-4">
                   Without limiting the foregoing, we have the right to cooperate fully with any law enforcement authorities or court order requesting or directing us to disclose the identity or other information of anyone posting any materials on or through the Platform.
                 </p>
-                <p className="font-bold mb-4">
+                <p className="font-semibold mb-4">
                   YOU WAIVE AND HOLD HARMLESS THE COMPANY AND ITS AFFILIATES, LICENSEES, AND SERVICE PROVIDERS FROM ANY CLAIMS RESULTING FROM ANY ACTION TAKEN BY ANY OF THE FOREGOING PARTIES DURING, OR TAKEN AS A CONSEQUENCE OF, INVESTIGATIONS BY EITHER SUCH PARTIES OR LAW ENFORCEMENT AUTHORITIES.
                 </p>
                 <p>
@@ -384,7 +384,7 @@ export default function TermsOfServicePage() {
 
               {/* Content Standards section */}
               <div className="pt-8">
-                <h2 className="font-bold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Content Standards</h2>
+                <h2 className="font-semibold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Content Standards</h2>
                 <p className="mb-4">
                   These content standards apply to any and all User Contributions and use of Interactive Services. User Contributions must in their entirety comply with all applicable federal, state, local, and international laws and regulations. Without limiting the foregoing, User Contributions must not:
                 </p>
@@ -411,7 +411,7 @@ export default function TermsOfServicePage() {
 
               {/* Copyright section */}
               <div className="pt-8">
-                <h2 className="font-bold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Copyright Infringement</h2>
+                <h2 className="font-semibold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Copyright Infringement</h2>
                 <p>
                   If you believe that any User Contributions violate your copyright, please contact us immediately for instructions on sending us a notice of copyright infringement. It is the policy of the Company to terminate the user accounts of repeat infringers.
                 </p>
@@ -419,7 +419,7 @@ export default function TermsOfServicePage() {
 
               {/* Reliance section */}
               <div className="pt-8">
-                <h2 className="font-bold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Reliance on Information Posted</h2>
+                <h2 className="font-semibold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Reliance on Information Posted</h2>
                 <p className="mb-4">
                   The information presented on or through the Platform is made available solely for general information purposes. We do not warrant the accuracy, completeness, or usefulness of this information. Any reliance you place on such information is strictly at your own risk. We disclaim all liability and responsibility arising from any reliance placed on such materials by you or any other visitor to the Platform, or by anyone who may be informed of any of its contents.
                 </p>
@@ -430,7 +430,7 @@ export default function TermsOfServicePage() {
 
               {/* Changes to Platform section */}
               <div className="pt-8">
-                <h2 className="font-bold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Changes to the Platform</h2>
+                <h2 className="font-semibold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Changes to the Platform</h2>
                 <p>
                   We may update the content on this Platform from time to time, but its content is not necessarily complete or up-to-date. Any of the material on the Platform may be out of date at any given time, and we are under no obligation to update such material.
                 </p>
@@ -438,7 +438,7 @@ export default function TermsOfServicePage() {
 
               {/* Information About You section */}
               <div className="pt-8">
-                <h2 className="font-bold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Information About You and Your Visits to the Platform</h2>
+                <h2 className="font-semibold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Information About You and Your Visits to the Platform</h2>
                 <p>
                   All information we collect on this Platform is subject to our Privacy Policy. By using the Platform, you consent to all actions taken by us with respect to your information in compliance with the Privacy Policy.
                 </p>
@@ -446,7 +446,7 @@ export default function TermsOfServicePage() {
 
               {/* Linking section */}
               <div className="pt-8">
-                <h2 className="font-bold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Linking to the Platform and Social Media Features</h2>
+                <h2 className="font-semibold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Linking to the Platform and Social Media Features</h2>
                 <p className="mb-4">
                   You may link to our homepage, provided you do so in a way that is fair and legal and does not damage our reputation or take advantage of it, but you must not establish a link in such a way as to suggest any form of association, approval, or endorsement on our part without our express written consent.
                 </p>
@@ -490,7 +490,7 @@ export default function TermsOfServicePage() {
 
               {/* Links From Platform section */}
               <div className="pt-8">
-                <h2 className="font-bold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Links from the Platform</h2>
+                <h2 className="font-semibold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Links from the Platform</h2>
                 <p>
                   If the Platform contains links to other sites and resources provided by third parties, these links are provided for your convenience only. This includes links contained in advertisements, including banner advertisements and sponsored links. We have no control over the contents of those sites or resources, and accept no responsibility for them or for any loss or damage that may arise from your use of them. If you decide to access any of the third-party Platforms linked to this Platform, you do so entirely at your own risk and subject to the terms and conditions of use for such Platforms.
                 </p>
@@ -498,11 +498,11 @@ export default function TermsOfServicePage() {
 
               {/* Disclaimer section */}
               <div className="pt-8">
-                <h2 className="font-bold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Disclaimer of Warranties</h2>
+                <h2 className="font-semibold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Disclaimer of Warranties</h2>
                 <p className="mb-4">
                   You understand that we cannot and do not guarantee or warrant that files available for downloading from the internet or the Platform will be free of viruses or other destructive code. You are responsible for implementing sufficient procedures and checkpoints to satisfy your particular requirements for anti-virus protection and accuracy of data input and output, and for maintaining a means external to our site for any reconstruction of any lost data.
                 </p>
-                <p className="font-bold mb-4">
+                <p className="font-semibold mb-4">
                   TO THE FULLEST EXTENT PROVIDED BY LAW, WE WILL NOT BE LIABLE FOR ANY LOSS OR DAMAGE CAUSED BY A DISTRIBUTED DENIAL-OF-SERVICE ATTACK, VIRUSES, OR OTHER TECHNOLOGICALLY HARMFUL MATERIAL THAT MAY INFECT YOUR COMPUTER EQUIPMENT, COMPUTER PROGRAMS, DATA, OR OTHER PROPRIETARY MATERIAL DUE TO YOUR USE OF THE PLATFORM OR ANY SERVICES OR ITEMS OBTAINED THROUGH THE PLATFORM OR TO YOUR DOWNLOADING OF ANY MATERIAL POSTED ON IT, OR ON ANY PLATFORM LINKED TO IT.
                 </p>
                 <p className="mb-4">
@@ -518,8 +518,8 @@ export default function TermsOfServicePage() {
 
               {/* Liability section */}
               <div className="pt-8">
-                <h2 className="font-bold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Limitation on Liability</h2>
-                <p className="font-bold mb-4">
+                <h2 className="font-semibold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Limitation on Liability</h2>
+                <p className="font-semibold mb-4">
                   TO THE FULLEST EXTENT PROVIDED BY LAW, IN NO EVENT WILL THE COMPANY, ITS AFFILIATES, OR THEIR LICENSORS, SERVICE PROVIDERS, EMPLOYEES, AGENTS, OFFICERS, OR DIRECTORS BE LIABLE FOR DAMAGES OF ANY KIND, UNDER ANY LEGAL THEORY, ARISING OUT OF OR IN CONNECTION WITH YOUR USE, OR INABILITY TO USE, THE PLATFORM, ANY WEBSITES LINKED TO IT, ANY CONTENT ON THE PLATFORM OR SUCH OTHER WEBSITES, INCLUDING ANY DIRECT, INDIRECT, SPECIAL, INCIDENTAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING BUT NOT LIMITED TO, PERSONAL INJURY, PAIN AND SUFFERING, EMOTIONAL DISTRESS, LOSS OF REVENUE, LOSS OF PROFITS, LOSS OF BUSINESS OR ANTICIPATED SAVINGS, LOSS OF USE, LOSS OF GOODWILL, LOSS OF DATA, AND WHETHER CAUSED BY TORT (INCLUDING NEGLIGENCE), BREACH OF CONTRACT, OR OTHERWISE, EVEN IF FORESEEABLE.
                 </p>
                 <p className="mb-4">
@@ -532,7 +532,7 @@ export default function TermsOfServicePage() {
 
               {/* Indemnification section */}
               <div className="pt-8">
-                <h2 className="font-bold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Indemnification</h2>
+                <h2 className="font-semibold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Indemnification</h2>
                 <p>
                   You agree to defend, indemnify, and hold harmless the Company, its affiliates, licensors, and service providers, and its and their respective officers, directors, employees, contractors, agents, licensors, suppliers, successors, and assigns from and against any claims, liabilities, damages, judgments, awards, losses, costs, expenses, or fees (including reasonable attorneys' fees) arising out of or relating to your violation of these Terms of Service or your use of the Platform, including, but not limited to, your User Contributions, any use of the Platform's content, services, and products other than as expressly authorized in these Terms of Service, or your use of any information obtained from the Platform.
                 </p>
@@ -540,7 +540,7 @@ export default function TermsOfServicePage() {
 
               {/* Governing Law section */}
               <div className="pt-8">
-                <h2 className="font-bold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Governing Law and Jurisdiction</h2>
+                <h2 className="font-semibold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Governing Law and Jurisdiction</h2>
                 <p className="mb-4">
                   All matters relating to the Platform and these Terms of Service, and any dispute or claim arising therefrom or related thereto (in each case, including non-contractual disputes or claims), shall be governed by and construed in accordance with the laws of the State of Wyoming without giving effect to any choice or conflict of law provision or rule (whether of the State of Wyoming or any other jurisdiction).
                 </p>
@@ -551,31 +551,31 @@ export default function TermsOfServicePage() {
 
               {/* Dispute Resolution section */}
               <div className="pt-8">
-                <h2 className="font-bold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Dispute Resolution; Arbitration</h2>
-                <p className="font-bold">
+                <h2 className="font-semibold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Dispute Resolution; Arbitration</h2>
+                <p className="font-semibold">
                   PLEASE READ THIS SECTION CAREFULLY. IT MAY SIGNIFICANTLY AFFECT YOUR LEGAL RIGHTS, INCLUDING YOUR RIGHT TO FILE A LAWSUIT IN COURT. ALL DISPUTES ARISING OUT OF OR RELATED TO THESE TERMS OF SERVICE OR ANY ASPECT OF THE RELATIONSHIP BETWEEN YOU AND US, WHETHER BASED IN CONTRACT, TORT, STATUTE, FRAUD, MISREPRESENTATION, OR ANY OTHER LEGAL THEORY, WILL BE RESOLVED THROUGH FINAL AND BINDING ARBITRATION BEFORE A NEUTRAL ARBITRATOR INSTEAD OF IN A COURT BY A JUDGE OR JURY, AND YOU AGREE THAT THE COMPANY AND YOU ARE EACH WAIVING THE RIGHT TO SUE IN COURT AND TO HAVE A TRIAL BY A JURY. YOU AGREE THAT ANY ARBITRATION WILL TAKE PLACE ON AN INDIVIDUAL BASIS; CLASS ARBITRATIONS AND CLASS ACTIONS ARE NOT PERMITTED, AND YOU AGREE TO GIVE UP THE ABILITY TO PARTICIPATE IN A CLASS ACTION.
                 </p>
               </div>
 
               {/* Limitation section */}
               <div className="pt-8">
-                <h2 className="font-bold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Limitation on Time to File Claims</h2>
-                <p className="font-bold">
+                <h2 className="font-semibold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Limitation on Time to File Claims</h2>
+                <p className="font-semibold">
                   ANY CAUSE OF ACTION OR CLAIM YOU MAY HAVE ARISING OUT OF OR RELATING TO THESE TERMS OF SERVICE OR THE PLATFORM MUST BE COMMENCED WITHIN ONE (1) YEAR AFTER THE CAUSE OF ACTION ACCRUES; OTHERWISE, SUCH CAUSE OF ACTION OR CLAIM IS PERMANENTLY BARRED.
                 </p>
               </div>
 
               {/* No Class Action section */}
               <div className="pt-8">
-                <h2 className="font-bold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>No Class Action</h2>
-                <p className="font-bold">
+                <h2 className="font-semibold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>No Class Action</h2>
+                <p className="font-semibold">
                   YOU AND THE COMPANY AGREE THAT EACH MAY BRING CLAIMS AGAINST THE OTHER ONLY IN YOUR OR ITS INDIVIDUAL CAPACITY AND NOT AS A PLAINTIFF OR CLASS MEMBER IN ANY PURPORTED CLASS OR REPRESENTATIVE PROCEEDING.
                 </p>
               </div>
 
               {/* Waiver section */}
               <div className="pt-8">
-                <h2 className="font-bold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Waiver and Severability</h2>
+                <h2 className="font-semibold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Waiver and Severability</h2>
                 <p className="mb-4">
                   No waiver by the Company of any term or condition set out in these Terms of Service shall be deemed a further or continuing waiver of such term or condition or a waiver of any other term or condition, and any failure of the Company to assert a right or provision under these Terms of Service shall not constitute a waiver of such right or provision.
                 </p>
@@ -586,7 +586,7 @@ export default function TermsOfServicePage() {
 
               {/* Entire Agreement section */}
               <div className="pt-8">
-                <h2 className="font-bold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Entire Agreement</h2>
+                <h2 className="font-semibold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Entire Agreement</h2>
                 <p>
                   The Terms of Service, our Privacy Policy, and Terms of Sale constitute the sole and entire agreement between you and the Company regarding the Platform and supersede all prior and contemporaneous understandings, agreements, representations, and warranties, both written and oral, regarding the Platform.
                 </p>
@@ -594,7 +594,7 @@ export default function TermsOfServicePage() {
 
               {/* Comments section */}
               <div className="pt-8">
-                <h2 className="font-bold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Your Comments and Concerns</h2>
+                <h2 className="font-semibold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Your Comments and Concerns</h2>
                 <p className="mb-4">All notices of copyright infringement claims should be sent in the manner and by the means set out therein.</p>
                 <p>
                   All other feedback, comments, requests for technical support, and other communications relating to the Platform should be directed to: <Link href="mailto:info@digitalwealthpartners.net" className="text-[#AD7F4E] hover:underline">info@digitalwealthpartners.net</Link>
@@ -607,7 +607,7 @@ export default function TermsOfServicePage() {
           <aside className="lg:w-[320px] space-y-12">
             {/* Search */}
             <div>
-              <h3 className="font-bold text-lg mb-6" style={{ color: '#1e266d' }}>Search</h3>
+              <h3 className="font-semibold text-lg mb-6" style={{ color: '#1e266d' }}>Search</h3>
               <div className="relative">
                 <input
                   type="text"
@@ -620,7 +620,7 @@ export default function TermsOfServicePage() {
 
             {/* Recent Posts */}
             <div>
-              <h3 className="font-bold text-lg mb-6" style={{ color: '#1e266d' }}>Recent Posts</h3>
+              <h3 className="font-semibold text-lg mb-6" style={{ color: '#1e266d' }}>Recent Posts</h3>
               <div className="space-y-6">
                 {[
                   {
@@ -651,7 +651,7 @@ export default function TermsOfServicePage() {
 
             {/* Follow us */}
             <div>
-              <h3 className="font-bold text-lg mb-6" style={{ color: '#1e266d' }}>Follow us</h3>
+              <h3 className="font-semibold text-lg mb-6" style={{ color: '#1e266d' }}>Follow us</h3>
               <div className="flex gap-3">
                 <a href="#" className="w-10 h-10 rounded-full border border-gray-100 flex items-center justify-center text-gray-400 hover:text-[#AD7F4E] transition-colors">
                   <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
@@ -663,7 +663,7 @@ export default function TermsOfServicePage() {
 
             {/* Mission Statement */}
             <div>
-              <h3 className="font-bold text-lg mb-6" style={{ color: '#1e266d' }}>Mission Statement</h3>
+              <h3 className="font-semibold text-lg mb-6" style={{ color: '#1e266d' }}>Mission Statement</h3>
               <p className="text-xs leading-relaxed" style={{ color: '#4a5568' }}>
                 To redefine wealth management for the digital age by providing unparalleled expertise in digital assets and alternative investments, delivering customized, high-performance investment solutions to our clients.
               </p>

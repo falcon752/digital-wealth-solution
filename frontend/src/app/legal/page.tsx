@@ -52,7 +52,7 @@ export default function LegalLandingPage() {
                   href={card.href}
                   className="group relative bg-white p-12 flex flex-col items-center text-center shadow-[0_10px_30px_rgba(0,0,0,0.03)] border border-gray-50 transition-all duration-300 hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] hover:-translate-y-1 min-h-[360px] justify-center"
                 >
-                  <h2 className="font-bold mb-6 transition-colors group-hover:text-[#AD7F4E]" style={{ color: '#1e266d', fontSize: '20px', lineHeight: '1.4' }}>
+                  <h2 className="font-semibold mb-6 transition-colors group-hover:text-[#AD7F4E]" style={{ color: '#1e266d', fontSize: '20px', lineHeight: '1.4' }}>
                     {card.title}
                   </h2>
                   
@@ -60,7 +60,7 @@ export default function LegalLandingPage() {
                     {card.description}
                   </p>
                   
-                  <span className="text-xs font-bold uppercase tracking-wider transition-colors group-hover:text-[#AD7F4E]" style={{ color: '#1e266d' }}>
+                  <span className="text-xs font-semibold uppercase tracking-wider transition-colors group-hover:text-[#AD7F4E]" style={{ color: '#1e266d' }}>
                     Learn More
                   </span>
 

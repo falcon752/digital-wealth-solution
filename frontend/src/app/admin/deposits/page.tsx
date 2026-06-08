@@ -261,7 +261,7 @@ export default function AdminDepositsPage() {
               </div>
               <div className="flex justify-between">
                 <span className="text-[var(--text-muted)]">Amount</span>
-                <span className="font-bold text-[var(--text-primary)]">
+                <span className="font-semibold text-[var(--text-primary)]">
                   {confirmTarget.amount} {confirmTarget.assetSymbol}
                 </span>
               </div>

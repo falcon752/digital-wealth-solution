@@ -10,30 +10,30 @@ import Button from '@/components/ui/Button';
 
 const ACTION_COLORS: Record<string, string> = {
   // Authentication & Registrations
-  USER_REGISTERED: 'text-green-500 font-bold',
+  USER_REGISTERED: 'text-green-500 font-semibold',
   LOGIN_SUCCESS: 'text-brand-500',
-  LOGIN_FAILED: 'text-red-500 font-bold',
-  LOGIN_2FA_FAILED: 'text-red-400 font-bold',
+  LOGIN_FAILED: 'text-red-500 font-semibold',
+  LOGIN_2FA_FAILED: 'text-red-400 font-semibold',
   PASSWORD_RESET: 'text-yellow-500 font-semibold',
   '2FA_ENABLED': 'text-emerald-500 font-semibold',
   '2FA_DISABLED': 'text-red-500 font-semibold',
 
   // Onboarding Fee Approvals
-  ONBOARDING_FEE_SUBMITTED: 'text-orange-500 font-extrabold animate-pulse',
-  USER_PAYMENT_VERIFIED: 'text-green-500 font-bold',
-  INQUIRY_SUBMITTED: 'text-teal-500 font-bold animate-pulse',
+  ONBOARDING_FEE_SUBMITTED: 'text-orange-500 font-semibold animate-pulse',
+  USER_PAYMENT_VERIFIED: 'text-green-500 font-semibold',
+  INQUIRY_SUBMITTED: 'text-teal-500 font-semibold animate-pulse',
 
   // Deposits
-  DEPOSIT_SUBMITTED: 'text-amber-500 font-bold animate-pulse',
-  DEPOSIT_CONFIRMED: 'text-green-600 font-bold',
-  DEPOSIT_REJECTED: 'text-red-600 font-bold',
+  DEPOSIT_SUBMITTED: 'text-amber-500 font-semibold animate-pulse',
+  DEPOSIT_CONFIRMED: 'text-green-600 font-semibold',
+  DEPOSIT_REJECTED: 'text-red-600 font-semibold',
 
   // Withdrawals
   WITHDRAWAL_SUBMITTED: 'text-orange-500 font-semibold',
-  WITHDRAWAL_VERIFIED: 'text-blue-500 font-bold',
-  WITHDRAWAL_APPROVED: 'text-indigo-500 font-bold',
-  WITHDRAWAL_COMPLETED: 'text-emerald-600 font-bold',
-  WITHDRAWAL_REJECTED: 'text-red-600 font-bold',
+  WITHDRAWAL_VERIFIED: 'text-blue-500 font-semibold',
+  WITHDRAWAL_APPROVED: 'text-indigo-500 font-semibold',
+  WITHDRAWAL_COMPLETED: 'text-emerald-600 font-semibold',
+  WITHDRAWAL_REJECTED: 'text-red-600 font-semibold',
   WITHDRAWAL_OTP_FAILED: 'text-red-400',
 
   // Admin Actions

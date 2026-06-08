@@ -122,7 +122,7 @@ export default function UserDashboard() {
           onClick={() => setIsBalanceHidden((hidden) => !hidden)}
           aria-pressed={isBalanceHidden}
           aria-label={isBalanceHidden ? 'Show balance' : 'Hide balance'}
-          className="text-4xl font-bold text-gray-900 dark:text-white tracking-tight cursor-pointer select-none"
+          className="text-4xl font-semibold text-gray-900 dark:text-white tracking-tight cursor-pointer select-none"
         >
           {isBalanceHidden ? '****' : formatCurrency(totalBalance)}
         </button>
@@ -140,29 +140,29 @@ export default function UserDashboard() {
       <div className="grid grid-cols-4 gap-3 px-4 mb-8">
         <Link href="/dashboard/withdraw" className="flex flex-col items-center justify-center gap-1.5 bg-[#f4f5f8] dark:bg-gray-800 rounded-2xl text-gray-900 dark:text-white hover:bg-gray-200 transition py-3.5">
           <ArrowUp size={22} />
-          <span className="text-xs font-bold">Send</span>
+          <span className="text-xs font-semibold">Send</span>
         </Link>
         <Link href="/dashboard/deposit" className="flex flex-col items-center justify-center gap-1.5 bg-[#f4f5f8] dark:bg-gray-800 rounded-2xl text-gray-900 dark:text-white hover:bg-gray-200 transition py-3.5">
           <QrCode size={22} />
-          <span className="text-xs font-bold">Receive</span>
+          <span className="text-xs font-semibold">Receive</span>
         </Link>
         <Link href="/dashboard/buy" className="flex flex-col items-center justify-center gap-1.5 bg-[#2d68d8] rounded-2xl text-white hover:bg-[#255bc2] transition shadow-md shadow-blue-500/20 py-3.5">
           <Zap size={22} className="fill-current" />
-          <span className="text-xs font-bold">Buy</span>
+          <span className="text-xs font-semibold">Buy</span>
         </Link>
         <Link href="/dashboard/swap" className="flex flex-col items-center justify-center gap-1.5 bg-[#f4f5f8] dark:bg-gray-800 rounded-2xl text-gray-900 dark:text-white hover:bg-gray-200 transition py-3.5">
           <ArrowLeftRight size={22} />
-          <span className="text-xs font-bold">Swap</span>
+          <span className="text-xs font-semibold">Swap</span>
         </Link>
       </div>
 
       {/* Tabs */}
       <div className="flex justify-between items-center px-4 border-b border-gray-100 dark:border-gray-800 pb-2">
         <div className="flex gap-6">
-          <button className="text-[#2d68d8] dark:text-blue-500 font-bold border-b-[3px] border-[#2d68d8] pb-2 -mb-[9px] text-[15px]">
+          <button className="text-[#2d68d8] dark:text-blue-500 font-semibold border-b-[3px] border-[#2d68d8] pb-2 -mb-[9px] text-[15px]">
             Crypto
           </button>
-          <button className="text-gray-400 font-bold pb-2 text-[15px]">
+          <button className="text-gray-400 font-semibold pb-2 text-[15px]">
             NFTs
           </button>
         </div>
@@ -186,8 +186,8 @@ export default function UserDashboard() {
             />
             <div className="flex-1 flex flex-col">
               <div className="flex justify-between items-center leading-tight">
-                <span className="font-bold text-gray-900 dark:text-white text-[15px] tracking-wide">{asset.symbol}</span>
-                <span className="font-bold text-gray-900 dark:text-white text-[15px] tracking-wide">
+                <span className="font-semibold text-gray-900 dark:text-white text-[15px] tracking-wide">{asset.symbol}</span>
+                <span className="font-semibold text-gray-900 dark:text-white text-[15px] tracking-wide">
                   {isBalanceHidden ? `**** ${asset.symbol}` : `${asset.balance.toFixed(8)} ${asset.symbol}`}
                 </span>
               </div>
@@ -198,7 +198,7 @@ export default function UserDashboard() {
                 </span>
               </div>
               <div className="mt-1.5 leading-tight flex items-center gap-2">
-                <span className="text-[13px] font-bold text-gray-900 dark:text-white">
+                <span className="text-[13px] font-semibold text-gray-900 dark:text-white">
                   ${asset.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </span>
                 <span className={`text-[12px] font-medium ${asset.change24h >= 0 ? 'text-green-500' : 'text-red-500'}`}>
@@ -216,7 +216,7 @@ export default function UserDashboard() {
       </div>
 
       <div className="flex justify-center mt-6">
-        <Link href="/dashboard/assets" className="text-[#1e3a8a] dark:text-blue-400 font-bold text-[15px] tracking-wide hover:underline">
+        <Link href="/dashboard/assets" className="text-[#1e3a8a] dark:text-blue-400 font-semibold text-[15px] tracking-wide hover:underline">
           Manage crypto
         </Link>
       </div>

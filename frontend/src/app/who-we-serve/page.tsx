@@ -14,7 +14,7 @@ export default function WhoWeServePage() {
       {/* ─── BREADCRUMB HEADER ───────────────────────────────────────── */}
       <section className="pt-32 pb-10 px-6 text-center bg-white border-b border-gray-50">
         <div className="max-w-4xl mx-auto">
-          <h1 className="font-bold mb-4" style={{ color: '#1e266d', fontSize: '36px' }}>
+          <h1 className="font-semibold mb-4" style={{ color: '#1e266d', fontSize: '36px' }}>
             Who We Serve
           </h1>
           <nav className="text-sm font-medium" style={{ color: '#6b7280' }}>
@@ -29,7 +29,7 @@ export default function WhoWeServePage() {
       <section className="py-32 px-6 text-center" style={{ backgroundColor: '#2C3342' }}>
         <FadeIn direction="up">
           <div className="max-w-5xl mx-auto">
-            <h2 className="text-white font-bold leading-tight" style={{ fontSize: '42px' }}>
+            <h2 className="text-white font-semibold leading-tight" style={{ fontSize: '42px' }}>
               Digital Asset <span style={{ color: '#AD7F4E' }}>Investment Solutions</span> Aligned with Your Portfolio's Growth
             </h2>
           </div>
@@ -39,7 +39,7 @@ export default function WhoWeServePage() {
       {/* ─── WHEN YOUR PORTFOLIO INCLUDES SECTION ─────────────────────── */}
       <section className="py-24 px-6 bg-white">
         <div className="max-w-4xl mx-auto mb-16 text-center">
-          <h2 className="font-bold mb-6" style={{ color: '#1e266d', fontSize: '32px' }}>
+          <h2 className="font-semibold mb-6" style={{ color: '#1e266d', fontSize: '32px' }}>
             When Your Portfolio Includes Both <span style={{ color: '#AD7F4E' }}>Digital and Traditional</span> Assets
           </h2>
         </div>
@@ -81,7 +81,7 @@ export default function WhoWeServePage() {
       {/* ─── INVESTMENT APPROACH SECTION ──────────────────────────────── */}
       <section className="py-24 px-6 text-center" style={{ backgroundColor: '#f9f9f9' }}>
         <div className="max-w-4xl mx-auto mb-16">
-          <h2 className="font-bold mb-4" style={{ color: '#1e266d', fontSize: '36px' }}>
+          <h2 className="font-semibold mb-4" style={{ color: '#1e266d', fontSize: '36px' }}>
             Our Digital Asset <span style={{ color: '#AD7F4E' }}>Investment Approach</span>
           </h2>
           <div className="w-12 h-0.5 mx-auto mt-6" style={{ backgroundColor: '#AD7F4E' }}></div>
@@ -91,7 +91,7 @@ export default function WhoWeServePage() {
           {/* Portfolio Construction */}
           <FadeIn direction="left">
             <div className="p-10 rounded-lg shadow-sm border border-gray-100 bg-white text-left h-full">
-              <h3 className="font-bold mb-6 text-center" style={{ color: '#1e266d', fontSize: '20px' }}>Portfolio Construction Across Asset Classes</h3>
+              <h3 className="font-semibold mb-6 text-center" style={{ color: '#1e266d', fontSize: '20px' }}>Portfolio Construction Across Asset Classes</h3>
               <div className="w-10 h-0.5 mx-auto mb-8" style={{ backgroundColor: '#AD7F4E' }}></div>
               <div className="space-y-4 text-xs leading-relaxed" style={{ color: '#4a5568' }}>
                 <p>
@@ -115,7 +115,7 @@ export default function WhoWeServePage() {
           {/* Custody and Security */}
           <FadeIn direction="right">
             <div className="p-10 rounded-lg shadow-sm border border-gray-100 bg-white text-left h-full">
-              <h3 className="font-bold mb-6 text-center" style={{ color: '#1e266d', fontSize: '20px' }}>Custody and Security Coordination</h3>
+              <h3 className="font-semibold mb-6 text-center" style={{ color: '#1e266d', fontSize: '20px' }}>Custody and Security Coordination</h3>
               <div className="w-10 h-0.5 mx-auto mb-8" style={{ backgroundColor: '#AD7F4E' }}></div>
               <div className="space-y-4 text-xs leading-relaxed" style={{ color: '#4a5568' }}>
                 <p>
@@ -133,7 +133,7 @@ export default function WhoWeServePage() {
           {/* Tax Strategy */}
           <FadeIn direction="left">
             <div className="p-10 rounded-lg shadow-sm border border-gray-100 bg-white text-left h-full">
-              <h3 className="font-bold mb-6 text-center" style={{ color: '#1e266d', fontSize: '20px' }}>Tax Strategy Across Traditional and Digital Assets</h3>
+              <h3 className="font-semibold mb-6 text-center" style={{ color: '#1e266d', fontSize: '20px' }}>Tax Strategy Across Traditional and Digital Assets</h3>
               <div className="w-10 h-0.5 mx-auto mb-8" style={{ backgroundColor: '#AD7F4E' }}></div>
               <div className="space-y-4 text-xs leading-relaxed" style={{ color: '#4a5568' }}>
                 <p>
@@ -154,7 +154,7 @@ export default function WhoWeServePage() {
           {/* Regulatory Compliance */}
           <FadeIn direction="right">
             <div className="p-10 rounded-lg shadow-sm border border-gray-100 bg-white text-left h-full">
-              <h3 className="font-bold mb-6 text-center" style={{ color: '#1e266d', fontSize: '20px' }}>Regulatory and Reporting Compliance</h3>
+              <h3 className="font-semibold mb-6 text-center" style={{ color: '#1e266d', fontSize: '20px' }}>Regulatory and Reporting Compliance</h3>
               <div className="w-10 h-0.5 mx-auto mb-8" style={{ backgroundColor: '#AD7F4E' }}></div>
               <div className="space-y-4 text-xs leading-relaxed" style={{ color: '#4a5568' }}>
                 <p>
@@ -169,7 +169,7 @@ export default function WhoWeServePage() {
 
         {/* Estate and Transition Planning */}
         <div className="max-w-3xl mx-auto p-10 rounded-lg shadow-sm border border-gray-100 bg-white text-left">
-          <h3 className="font-bold mb-6 text-center" style={{ color: '#1e266d', fontSize: '20px' }}>Estate and Transition Planning</h3>
+          <h3 className="font-semibold mb-6 text-center" style={{ color: '#1e266d', fontSize: '20px' }}>Estate and Transition Planning</h3>
           <div className="w-10 h-0.5 mx-auto mb-8" style={{ backgroundColor: '#AD7F4E' }}></div>
           <div className="space-y-4 text-xs leading-relaxed" style={{ color: '#4a5568' }}>
             <p>
@@ -187,7 +187,7 @@ export default function WhoWeServePage() {
       {/* ─── WEALTH MANAGEMENT SECTION ───────────────────────────────── */}
       <section className="py-24 px-6 bg-white text-center">
         <div className="max-w-4xl mx-auto mb-16">
-          <h2 className="font-bold mb-4" style={{ color: '#1e266d', fontSize: '36px' }}>
+          <h2 className="font-semibold mb-4" style={{ color: '#1e266d', fontSize: '36px' }}>
             Wealth Management That Reflects Your <span style={{ color: '#AD7F4E' }}>Entire Financial Life</span>
           </h2>
         </div>
@@ -207,7 +207,7 @@ export default function WhoWeServePage() {
       {/* ─── CTA BANNER SECTION ───────────────────────────────────────── */}
       <section className="py-24 px-6 text-center" style={{ backgroundColor: '#2C3342' }}>
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-white font-bold mb-10" style={{ fontSize: '36px' }}>
+          <h2 className="text-white font-semibold mb-10" style={{ fontSize: '36px' }}>
             Ready to Integrate Your <span style={{ color: '#AD7F4E' }}>Digital and Traditional Assets</span>?
           </h2>
           

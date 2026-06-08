@@ -88,17 +88,17 @@ export default function SiteFooter() {
 
           {/* Col 2 — Quick Links */}
           <div>
-            <h4 className="font-bold mb-8 text-[17px] uppercase tracking-wider" style={{ color: '#AD7F4E' }}>
+            <h4 className="font-semibold mb-8 text-[17px] uppercase tracking-wider" style={{ color: '#AD7F4E' }}>
               Quick Links
             </h4>
             <ul className="space-y-5">
               <li>
-                <Link href="/who-we-serve/" className="text-[15px] font-bold hover:opacity-80 transition-opacity" style={{ color: '#AD7F4E' }}>
+                <Link href="/who-we-serve/" className="text-[15px] font-semibold hover:opacity-80 transition-opacity" style={{ color: '#AD7F4E' }}>
                   Who We Serve
                 </Link>
               </li>
               <li>
-                <Link href="/what-we-do/" className="text-[15px] font-bold hover:opacity-80 transition-opacity" style={{ color: '#AD7F4E' }}>
+                <Link href="/what-we-do/" className="text-[15px] font-semibold hover:opacity-80 transition-opacity" style={{ color: '#AD7F4E' }}>
                   What We Do
                 </Link>
               </li>
@@ -107,13 +107,13 @@ export default function SiteFooter() {
 
           {/* Col 3 — Key Services */}
           <div>
-            <h4 className="font-bold mb-8 text-[17px] uppercase tracking-wider" style={{ color: '#AD7F4E' }}>
+            <h4 className="font-semibold mb-8 text-[17px] uppercase tracking-wider" style={{ color: '#AD7F4E' }}>
               Key Services
             </h4>
             <ul className="space-y-5">
               {KEY_SERVICES.map((item) => (
                 <li key={item.label}>
-                  <Link href={item.href} className="text-[15px] font-bold hover:opacity-80 transition-opacity" style={{ color: '#AD7F4E' }}>
+                  <Link href={item.href} className="text-[15px] font-semibold hover:opacity-80 transition-opacity" style={{ color: '#AD7F4E' }}>
                     {item.label}
                   </Link>
                 </li>
@@ -127,7 +127,7 @@ export default function SiteFooter() {
               href="https://adviserinfo.sec.gov/"
               target="_blank"
               rel="noopener noreferrer"
-              className="font-bold text-[17px] leading-snug hover:opacity-80 transition-opacity"
+              className="font-semibold text-[17px] leading-snug hover:opacity-80 transition-opacity"
               style={{ color: '#AD7F4E' }}
             >
               IAPD – Investment<br />Advisor Public<br />Disclosure

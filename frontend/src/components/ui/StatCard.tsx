@@ -17,7 +17,7 @@ export default function StatCard({ label, value, icon, change, positive, classNa
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-xs text-[var(--text-muted)] font-medium mb-1">{label}</p>
-        <p className="text-2xl font-bold text-[var(--text-primary)] truncate">{value}</p>
+        <p className="text-2xl font-semibold text-[var(--text-primary)] truncate">{value}</p>
         {change && (
           <p className={cn('text-xs mt-1', positive ? 'text-emerald-400' : 'text-red-400')}>
             {change}

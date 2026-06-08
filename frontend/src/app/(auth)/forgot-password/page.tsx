@@ -56,7 +56,7 @@ export default function ForgotPasswordPage() {
         <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-blue-900 to-blue-600 flex items-center justify-center mx-auto mb-6 shadow-xl shadow-blue-900/40">
           <KeyRound size={36} className="text-white" strokeWidth={2} />
         </div>
-        <h1 className="text-3xl font-bold text-(--text-primary)">Forgot Password</h1>
+        <h1 className="text-3xl font-semibold text-(--text-primary)">Forgot Password</h1>
         <p className="text-(--text-muted) text-sm mt-2 max-w-xs mx-auto">
           Enter your registered email address and we&apos;ll send you a 6-digit reset code.
         </p>

@@ -91,7 +91,7 @@ function MemberCard({ name, role, photo, bio, linkedin, showBadge = false }: {
 
       {/* Info */}
       <div className="p-5 flex flex-col flex-1">
-        <h3 className="font-bold mb-2" style={{ color: '#1e266d', fontSize: '17px' }}>{name}</h3>
+        <h3 className="font-semibold mb-2" style={{ color: '#1e266d', fontSize: '17px' }}>{name}</h3>
         <p className="text-sm leading-relaxed flex-1" style={{ color: '#4a5568', fontSize: '13px' }}>
           {bio.length > 90 ? bio.slice(0, 90) + '…' : bio}
         </p>
@@ -119,7 +119,7 @@ function SectionTitle({ title }: { title: string }) {
   return (
     <div className="flex items-center gap-4 my-14">
       <div className="flex-1 h-px" style={{ backgroundColor: '#1e266d' }} />
-      <h2 className="font-bold px-2 shrink-0" style={{ color: '#1e266d', fontSize: '28px' }}>{title}</h2>
+      <h2 className="font-semibold px-2 shrink-0" style={{ color: '#1e266d', fontSize: '28px' }}>{title}</h2>
       <div className="flex-1 h-px" style={{ backgroundColor: '#1e266d' }} />
     </div>
   );
@@ -164,7 +164,7 @@ export default function AboutPage() {
           {/* ── Left: text ── */}
           <div className="relative z-10">
             <h1
-              className="font-extrabold leading-tight mb-7"
+              className="font-semibold leading-tight mb-7"
               style={{ color: '#1e266d', fontSize: '51px', lineHeight: '58px' }}
             >
               Meet the team members
@@ -237,7 +237,7 @@ export default function AboutPage() {
               <path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 10v11M12 10v11M16 10v11" />
             </svg>
           </div>
-          <h2 className="font-bold mb-4" style={{ color: '#1e266d', fontSize: '22px' }}>Mission Statement</h2>
+          <h2 className="font-semibold mb-4" style={{ color: '#1e266d', fontSize: '22px' }}>Mission Statement</h2>
           <p className="max-w-3xl mx-auto leading-relaxed" style={{ color: '#4a5568', fontSize: '15px' }}>
             To redefine wealth management for the digital age by providing unparalleled expertise
             in digital assets and alternative investments, delivering customized, high-performance

@@ -104,7 +104,7 @@ export default function EditProfilePage() {
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <h2 className="text-[17px] font-bold text-gray-900 dark:text-white truncate">
+            <h2 className="text-[17px] font-semibold text-gray-900 dark:text-white truncate">
               {fullName || 'Loading...'}
             </h2>
             <p className="text-[14px] text-gray-500 dark:text-gray-400 truncate underline decoration-gray-300 dark:decoration-gray-600 underline-offset-2 mt-0.5">
@@ -117,7 +117,7 @@ export default function EditProfilePage() {
         <div className="space-y-5">
           
           <div className="space-y-2">
-            <label className="text-[15px] font-bold text-gray-900 dark:text-white ml-1">
+            <label className="text-[15px] font-semibold text-gray-900 dark:text-white ml-1">
               Upload Image
             </label>
             <div className="flex items-center gap-3">
@@ -142,7 +142,7 @@ export default function EditProfilePage() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-[15px] font-bold text-gray-900 dark:text-white ml-1">
+            <label className="text-[15px] font-semibold text-gray-900 dark:text-white ml-1">
               Full Name
             </label>
             <input
@@ -155,7 +155,7 @@ export default function EditProfilePage() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-[15px] font-bold text-gray-900 dark:text-white ml-1">
+            <label className="text-[15px] font-semibold text-gray-900 dark:text-white ml-1">
               Username
             </label>
             <input
@@ -167,7 +167,7 @@ export default function EditProfilePage() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-[15px] font-bold text-gray-900 dark:text-white ml-1">
+            <label className="text-[15px] font-semibold text-gray-900 dark:text-white ml-1">
               Email
             </label>
             <input
@@ -179,7 +179,7 @@ export default function EditProfilePage() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-[15px] font-bold text-gray-900 dark:text-white ml-1">
+            <label className="text-[15px] font-semibold text-gray-900 dark:text-white ml-1">
               Phone Number
             </label>
             <input
@@ -191,7 +191,7 @@ export default function EditProfilePage() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-[15px] font-bold text-gray-900 dark:text-white ml-1">
+            <label className="text-[15px] font-semibold text-gray-900 dark:text-white ml-1">
               Address
             </label>
             <input
@@ -203,7 +203,7 @@ export default function EditProfilePage() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-[15px] font-bold text-gray-900 dark:text-white ml-1">
+            <label className="text-[15px] font-semibold text-gray-900 dark:text-white ml-1">
               City
             </label>
             <input
@@ -215,7 +215,7 @@ export default function EditProfilePage() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-[15px] font-bold text-gray-900 dark:text-white ml-1">
+            <label className="text-[15px] font-semibold text-gray-900 dark:text-white ml-1">
               State
             </label>
             <input
@@ -227,7 +227,7 @@ export default function EditProfilePage() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-[15px] font-bold text-gray-900 dark:text-white ml-1">
+            <label className="text-[15px] font-semibold text-gray-900 dark:text-white ml-1">
               Country
             </label>
             <input

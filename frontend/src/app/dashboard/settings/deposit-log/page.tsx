@@ -44,7 +44,7 @@ export default function DepositLogPage() {
             <div className="w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-500 mb-4">
               <Download size={32} />
             </div>
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">No Deposits Yet</h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No Deposits Yet</h3>
             <p className="text-[14px] text-gray-500 dark:text-gray-400 text-center max-w-[250px]">
               You haven't made any deposits yet. Your deposit history will appear here.
             </p>
@@ -59,7 +59,7 @@ export default function DepositLogPage() {
                       <Download size={20} />
                     </div>
                     <div>
-                      <h4 className="font-bold text-[15px] text-gray-900 dark:text-white">
+                      <h4 className="font-semibold text-[15px] text-gray-900 dark:text-white">
                         {tx.assetName || tx.assetSymbol} Deposit
                       </h4>
                       <p className="text-[13px] text-gray-500 dark:text-gray-400 mt-0.5">
@@ -68,7 +68,7 @@ export default function DepositLogPage() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-[15px] text-emerald-500">
+                    <p className="font-semibold text-[15px] text-emerald-500">
                       +{tx.amount} {tx.assetSymbol}
                     </p>
                     {tx.usdValue ? (
@@ -81,7 +81,7 @@ export default function DepositLogPage() {
                 
                 <div className="flex items-center justify-between pt-3 border-t border-gray-50 dark:border-gray-700/50">
                   <span className="text-[13px] text-gray-500 dark:text-gray-400 font-medium">Status</span>
-                  <span className={`text-[12px] font-bold px-3 py-1 rounded-full ${
+                  <span className={`text-[12px] font-semibold px-3 py-1 rounded-full ${
                     tx.status === 'confirmed' ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' :
                     tx.status === 'pending' ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400' :
                     'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'

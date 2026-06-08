@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
 import DashboardHeader from '@/components/layout/DashboardHeader';
@@ -8,9 +9,41 @@ import Button from '@/components/ui/Button';
 import toast from 'react-hot-toast';
 import { CreditCard, CheckCircle2, Clock, ShieldCheck, CircleDollarSign, Globe, Lock } from 'lucide-react';
 
+type UserCard = {
+  id: string;
+  cardHolderName: string;
+  cardNumber: string;
+  cardType: string;
+  status: 'pending' | 'approved' | 'rejected';
+  adminNote?: string | null;
+  createdAt?: string;
+};
+
+type ApiErrorResponse = {
+  error?: string;
+};
+
+function formatCardDate(date?: string) {
+  if (!date) return 'Pending';
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    year: 'numeric',
+  }).format(new Date(date));
+}
+
+function getValidThru(date?: string) {
+  if (!date) return 'Pending';
+  const validThru = new Date(date);
+  validThru.setFullYear(validThru.getFullYear() + 3);
+  return new Intl.DateTimeFormat('en-US', {
+    month: '2-digit',
+    year: '2-digit',
+  }).format(validThru);
+}
+
 export default function CardsPage() {
   const { user } = useAuth();
-  const [card, setCard] = useState<any>(null);
+  const [card, setCard] = useState<UserCard | null>(null);
   const [loading, setLoading] = useState(true);
   
   // Application form state
@@ -63,8 +96,11 @@ export default function CardsPage() {
       });
       toast.success(res.data.message || 'Application submitted successfully');
       setCard(res.data.card);
-    } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to submit application');
+    } catch (error: unknown) {
+      const message = axios.isAxiosError<ApiErrorResponse>(error)
+        ? error.response?.data?.error
+        : null;
+      toast.error(message || 'Failed to submit application');
     } finally {
       setIsSubmitting(false);
     }
@@ -86,6 +122,14 @@ export default function CardsPage() {
     const isPending = card.status === 'pending';
     const isApproved = card.status === 'approved';
     const isRejected = card.status === 'rejected';
+    const cardInfo = [
+      { label: 'Card Holder', value: card.cardHolderName },
+      { label: 'Card Number', value: card.cardNumber, mono: true },
+      { label: 'Card Type', value: card.cardType },
+      { label: 'Status', value: card.status.charAt(0).toUpperCase() + card.status.slice(1) },
+      { label: 'Issued', value: formatCardDate(card.createdAt) },
+      { label: 'Valid Thru', value: getValidThru(card.createdAt), mono: true },
+    ];
 
     return (
       <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-[#0f172a] pb-20">
@@ -111,7 +155,7 @@ export default function CardsPage() {
                     <div className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Card Holder</div>
                     <div className="font-medium tracking-wide uppercase">{card.cardHolderName}</div>
                   </div>
-                  <div className="font-bold italic text-lg opacity-80">
+                  <div className="font-semibold italic text-lg opacity-80">
                     {card.cardType}
                   </div>
                 </div>
@@ -119,8 +163,24 @@ export default function CardsPage() {
             </div>
           </div>
 
+          <div className="w-full max-w-sm mt-5 bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700 shadow-sm">
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Card Information</h3>
+            <div className="grid grid-cols-2 gap-3">
+              {cardInfo.map((item) => (
+                <div key={item.label} className="rounded-xl bg-gray-50 dark:bg-gray-900/60 px-4 py-3">
+                  <div className="text-[11px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">
+                    {item.label}
+                  </div>
+                  <div className={`mt-1 text-sm font-semibold text-gray-900 dark:text-white break-words ${item.mono ? 'font-mono' : ''}`}>
+                    {item.value}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div className="w-full max-w-sm mt-8 bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm">
-            <h3 className="font-bold text-gray-900 dark:text-white mb-4 text-center">Card Status</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-4 text-center">Card Status</h3>
             
             {isPending && (
               <div className="flex flex-col items-center text-center gap-3">
@@ -128,7 +188,7 @@ export default function CardsPage() {
                   <Clock size={32} />
                 </div>
                 <div>
-                  <h4 className="font-bold text-gray-900 dark:text-white">Under Review</h4>
+                  <h4 className="font-semibold text-gray-900 dark:text-white">Under Review</h4>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                     Your card application is currently being processed. This usually takes 1-2 business days.
                   </p>
@@ -142,7 +202,7 @@ export default function CardsPage() {
                   <CheckCircle2 size={32} />
                 </div>
                 <div>
-                  <h4 className="font-bold text-gray-900 dark:text-white">Card Active</h4>
+                  <h4 className="font-semibold text-gray-900 dark:text-white">Card Active</h4>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                     Your digital card is active and ready to use.
                   </p>
@@ -156,7 +216,7 @@ export default function CardsPage() {
                   <Clock size={32} />
                 </div>
                 <div>
-                  <h4 className="font-bold text-gray-900 dark:text-white">Application Rejected</h4>
+                  <h4 className="font-semibold text-gray-900 dark:text-white">Application Rejected</h4>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                     {card.adminNote || 'Unfortunately, your application could not be approved at this time.'}
                   </p>
@@ -167,7 +227,7 @@ export default function CardsPage() {
           
           {/* Card Benefits Section */}
           <div className="w-full max-w-sm mt-8 mb-4">
-            <h3 className="font-bold text-gray-900 dark:text-white mb-4 text-base">Card Benefits</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-4 text-base">Card Benefits</h3>
             <div className="space-y-3">
               {[
                 { title: 'Fraud Protection', description: '24/7 monitoring for suspicious activity', icon: ShieldCheck },
@@ -180,7 +240,7 @@ export default function CardsPage() {
                     <b.icon size={20} />
                   </div>
                   <div>
-                    <div className="font-bold text-sm text-gray-900 dark:text-white">{b.title}</div>
+                    <div className="font-semibold text-sm text-gray-900 dark:text-white">{b.title}</div>
                     <div className="text-[12px] text-gray-500 dark:text-gray-400 mt-0.5">{b.description}</div>
                   </div>
                 </div>
@@ -201,7 +261,7 @@ export default function CardsPage() {
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700/50 p-5 space-y-5">
           
           <div className="space-y-1.5">
-            <label className="text-sm font-bold text-gray-900 dark:text-white">
+            <label className="text-sm font-semibold text-gray-900 dark:text-white">
               Card Holder Name
             </label>
             <input
@@ -214,7 +274,7 @@ export default function CardsPage() {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-sm font-bold text-gray-900 dark:text-white">
+            <label className="text-sm font-semibold text-gray-900 dark:text-white">
               Card Number
             </label>
             <input
@@ -226,7 +286,7 @@ export default function CardsPage() {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-sm font-bold text-gray-900 dark:text-white">
+            <label className="text-sm font-semibold text-gray-900 dark:text-white">
               Card Type
             </label>
             <select
@@ -242,7 +302,7 @@ export default function CardsPage() {
           <button
             type="button"
             onClick={generateMockCardNumber}
-            className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-bold text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+            className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-semibold text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 2v6h-6"></path>
@@ -257,7 +317,7 @@ export default function CardsPage() {
             <p className="text-[13px] text-gray-500 dark:text-gray-400 leading-relaxed">
               The Wyoming LLC (Card) is a Decentralized concept that combines quantum security and blockchain technology and has created a new financial system.
             </p>
-            <p className="text-[14px] font-bold text-gray-900 dark:text-white mt-2">
+            <p className="text-[14px] font-semibold text-gray-900 dark:text-white mt-2">
               Card Charges $0
             </p>
           </div>
@@ -265,7 +325,7 @@ export default function CardsPage() {
           <Button
             type="submit"
             loading={isSubmitting}
-            className="w-full py-4 text-[15px] font-bold mt-2"
+            className="w-full py-4 text-[15px] font-semibold mt-2"
           >
             Submit Application
           </Button>
@@ -274,7 +334,7 @@ export default function CardsPage() {
 
         {/* Card Benefits Section */}
         <div className="w-full max-w-sm mx-auto mt-8 mb-4">
-          <h3 className="font-bold text-gray-900 dark:text-white mb-4 text-base">Card Benefits</h3>
+          <h3 className="font-semibold text-gray-900 dark:text-white mb-4 text-base">Card Benefits</h3>
           <div className="space-y-3">
             {[
               { title: 'Fraud Protection', description: '24/7 monitoring for suspicious activity', icon: ShieldCheck },
@@ -287,7 +347,7 @@ export default function CardsPage() {
                   <b.icon size={20} />
                 </div>
                 <div>
-                  <div className="font-bold text-sm text-gray-900 dark:text-white">{b.title}</div>
+                  <div className="font-semibold text-sm text-gray-900 dark:text-white">{b.title}</div>
                   <div className="text-[12px] text-gray-500 dark:text-gray-400 mt-0.5">{b.description}</div>
                 </div>
               </div>

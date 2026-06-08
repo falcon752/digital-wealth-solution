@@ -81,7 +81,7 @@ function ResetPasswordForm() {
         <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-blue-900 to-blue-600 flex items-center justify-center mx-auto mb-6 shadow-xl shadow-blue-900/40">
           <ShieldCheck size={36} className="text-white" strokeWidth={2} />
         </div>
-        <h1 className="text-3xl font-bold text-(--text-primary)">Reset Password</h1>
+        <h1 className="text-3xl font-semibold text-(--text-primary)">Reset Password</h1>
         <p className="text-(--text-muted) text-sm mt-2 max-w-xs mx-auto">
           Enter the 6-digit code from your email and choose a new password.
         </p>

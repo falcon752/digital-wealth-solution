@@ -49,7 +49,7 @@ export default function AdminDashboard() {
                     </div>
                     <span className="font-semibold text-[var(--text-primary)]">Pending Deposits</span>
                   </div>
-                  <span className="text-2xl font-bold text-amber-400">{stats?.pendingDeposits || 0}</span>
+                  <span className="text-2xl font-semibold text-amber-400">{stats?.pendingDeposits || 0}</span>
                 </div>
                 <Link href="/admin/deposits?status=pending">
                   <Button variant="secondary" size="sm" className="w-full">Review Deposits</Button>
@@ -64,7 +64,7 @@ export default function AdminDashboard() {
                     </div>
                     <span className="font-semibold text-[var(--text-primary)]">Pending Withdrawals</span>
                   </div>
-                  <span className="text-2xl font-bold text-brand-400">{stats?.pendingWithdrawals || 0}</span>
+                  <span className="text-2xl font-semibold text-brand-400">{stats?.pendingWithdrawals || 0}</span>
                 </div>
                 <Link href="/admin/withdrawals?status=pending">
                   <Button variant="secondary" size="sm" className="w-full">Review Withdrawals</Button>

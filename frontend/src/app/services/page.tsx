@@ -184,7 +184,7 @@ export default function ServicesPage() {
                 style={{ backgroundColor: '#ffffff' }}
               >
                 <h2
-                  className="font-bold mb-4 leading-snug"
+                  className="font-semibold mb-4 leading-snug"
                   style={{ color: '#1e266d', fontSize: 'clamp(22px, 3vw, 30px)' }}
                 >
                   {title}

@@ -66,7 +66,7 @@ export default function FinanceDashboardPage() {
       {bannerVisible && (
         <div className="bg-[#5c68f2] text-white px-4 py-3 flex items-start justify-between">
           <p className="text-[13px] font-medium leading-relaxed pr-4">
-            👋 <span className="font-bold">Welcome, {user?.firstName || ''}!</span> Manage your active crypto loans, collateral, and earnings.
+            👋 <span className="font-semibold">Welcome, {user?.firstName || ''}!</span> Manage your active crypto loans, collateral, and earnings.
           </p>
           <button onClick={() => setBannerVisible(false)} className="mt-0.5 text-white/80 hover:text-white shrink-0">
             <X size={16} strokeWidth={2.5} />
@@ -78,7 +78,7 @@ export default function FinanceDashboardPage() {
         
         {/* Page heading */}
         <div className="pt-2">
-          <h2 className="text-[22px] font-extrabold text-gray-900 dark:text-white leading-tight mb-1">Loan & Earn Overview</h2>
+          <h2 className="text-[22px] font-semibold text-gray-900 dark:text-white leading-tight mb-1">Loan & Earn Overview</h2>
           <p className="text-[14px] font-medium text-gray-600 dark:text-gray-400 leading-relaxed">
             Track your borrowed assets and passive income deposits.
           </p>
@@ -99,7 +99,7 @@ export default function FinanceDashboardPage() {
                   <ArrowRightLeft size={18} className="text-[#3b82f6]" strokeWidth={2.5} />
                 </div>
                 <div className="text-center">
-                  <p className="text-[18px] font-extrabold text-gray-900 dark:text-white leading-none mb-1">
+                  <p className="text-[18px] font-semibold text-gray-900 dark:text-white leading-none mb-1">
                     {formatCurrency(stats.activeLoansUsd)}
                   </p>
                   <p className="text-[13px] font-medium text-gray-500 dark:text-gray-400">Active Loans</p>
@@ -112,7 +112,7 @@ export default function FinanceDashboardPage() {
                   <CircleDollarSign size={18} className="text-[#ef4444]" strokeWidth={2.5} />
                 </div>
                 <div className="text-center">
-                  <p className="text-[18px] font-extrabold text-gray-900 dark:text-white leading-none mb-1">
+                  <p className="text-[18px] font-semibold text-gray-900 dark:text-white leading-none mb-1">
                     {formatCurrency(stats.activeCollateralUsd)}
                   </p>
                   <p className="text-[13px] font-medium text-gray-500 dark:text-gray-400">Locked Collateral</p>
@@ -125,7 +125,7 @@ export default function FinanceDashboardPage() {
                   <PiggyBank size={18} className="text-[#10b981]" strokeWidth={2.5} />
                 </div>
                 <div className="text-center">
-                  <p className="text-[20px] font-extrabold text-gray-900 dark:text-white leading-none mb-1">
+                  <p className="text-[20px] font-semibold text-gray-900 dark:text-white leading-none mb-1">
                     {formatCurrency(stats.activeEarningsUsd)}
                   </p>
                   <p className="text-[13px] font-medium text-gray-500 dark:text-gray-400">Active Deposits (Earnings)</p>
@@ -138,7 +138,7 @@ export default function FinanceDashboardPage() {
             <div className="pt-2">
               <Button 
                 onClick={() => router.push('/dashboard/lending')} 
-                className="w-full h-14 text-[16px] font-bold rounded-2xl flex items-center justify-center gap-2"
+                className="w-full h-14 text-[16px] font-semibold rounded-2xl flex items-center justify-center gap-2"
               >
                 <Plus size={20} />
                 New Loan or Earn

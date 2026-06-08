@@ -90,7 +90,7 @@ function PayOnboardingPageContent() {
         <div className="max-w-3xl mx-auto">
           <FadeIn direction="up">
             <div className="text-center mb-12">
-              <h1 className="text-[36px] font-bold mb-4" style={{ color: '#1e266d' }}>
+              <h1 className="text-[36px] font-semibold mb-4" style={{ color: '#1e266d' }}>
                 Onboarding Fee Payment
               </h1>
               <p className="text-[18px] text-gray-600 max-w-xl mx-auto">
@@ -111,10 +111,10 @@ function PayOnboardingPageContent() {
                       className="object-contain"
                     />
                   </div>
-                  <span className="text-[24px] font-bold text-gray-800 tracking-tight">XRP (Ripple)</span>
+                  <span className="text-[24px] font-semibold text-gray-800 tracking-tight">XRP (Ripple)</span>
                 </div>
-                <span className="text-gray-500 uppercase tracking-widest text-xs font-bold mb-1">Required Onboarding Fee</span>
-                <span className="text-[48px] font-black" style={{ color: '#A87A49' }}>$1,000.00</span>
+                <span className="text-gray-500 uppercase tracking-widest text-xs font-semibold mb-1">Required Onboarding Fee</span>
+                <span className="text-[48px] font-semibold" style={{ color: '#A87A49' }}>$1,000.00</span>
               </div>
 
               <div className="grid md:grid-cols-2 gap-12 items-center">
@@ -134,7 +134,7 @@ function PayOnboardingPageContent() {
                 {/* Wallet Info */}
                 <div className="space-y-6">
                   <div>
-                    <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400 mb-2">XRP Wallet Address</h3>
+                    <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-2">XRP Wallet Address</h3>
                     <div className="flex items-center gap-3">
                       <div 
                         className="flex-1 bg-gray-50 p-4 rounded-lg border border-gray-200 font-mono text-sm break-all"
@@ -175,7 +175,7 @@ function PayOnboardingPageContent() {
                             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                           </svg>
                         </div>
-                        <h3 className="text-amber-900 font-bold mb-1">Verification in Progress</h3>
+                        <h3 className="text-amber-900 font-semibold mb-1">Verification in Progress</h3>
                         <p className="text-amber-700 text-sm leading-relaxed">
                           We have received your confirmation. Our team is currently verifying the transfer on the ledger. 
                           This process usually takes 2-6 hours. You will be automatically redirected to your dashboard once approved.
@@ -185,7 +185,7 @@ function PayOnboardingPageContent() {
                       <Button 
                         onClick={handleCheckStatus}
                         loading={isChecking}
-                        className="w-full bg-blue-600! hover:bg-blue-700! text-white font-bold py-3 rounded-lg shadow-lg hover:translate-y-[-1px] transition-all"
+                        className="w-full bg-blue-600! hover:bg-blue-700! text-white font-semibold py-3 rounded-lg shadow-lg hover:translate-y-[-1px] transition-all"
                       >
                         Check Approval Status
                       </Button>
@@ -205,7 +205,7 @@ function PayOnboardingPageContent() {
                       </p>
                       <Button 
                         onClick={() => setShowForm(true)}
-                        className="w-full py-4 text-white font-bold rounded-lg transition-all shadow-lg hover:translate-y-[-2px]"
+                        className="w-full py-4 text-white font-semibold rounded-lg transition-all shadow-lg hover:translate-y-[-2px]"
                         style={{ backgroundColor: '#1e266d' }}
                       >
                         I have made the transfer
@@ -233,7 +233,7 @@ function PayOnboardingPageContent() {
                           </Button>
                           <Button 
                             type="submit"
-                            className="flex-[2] py-3 text-white font-bold"
+                            className="flex-[2] py-3 text-white font-semibold"
                             style={{ backgroundColor: '#A87A49' }}
                             loading={isSubmitting}
                           >

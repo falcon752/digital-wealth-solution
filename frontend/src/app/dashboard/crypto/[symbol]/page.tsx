@@ -55,7 +55,7 @@ function CoinIcon({ symbol }: { symbol: string }) {
   const slug = ICON_SLUG[symbol.toUpperCase()] || symbol.toLowerCase();
   const [err, setErr] = useState(false);
   if (err) return (
-    <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-bold text-gray-500">
+    <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-semibold text-gray-500">
       {symbol.slice(0, 2)}
     </div>
   );
@@ -200,7 +200,7 @@ export default function CoinDetailPage() {
 
       {/* ── Price ──────────────────────────────────────────────────────────── */}
       <div className="text-center px-5 pb-3 shrink-0">
-        <p className="text-4xl font-bold text-gray-900 dark:text-white tracking-tight">
+        <p className="text-4xl font-semibold text-gray-900 dark:text-white tracking-tight">
           ${price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </p>
         {priceChange !== 0 && (
@@ -268,7 +268,7 @@ export default function CoinDetailPage() {
               <div className="flex items-center gap-3">
                 <CoinIcon symbol={symbol} />
                 <div>
-                  <p className="text-sm font-bold text-gray-900 dark:text-white">{symbol}</p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">{symbol}</p>
                   <p className="text-xs text-gray-400 dark:text-gray-500">0.00000 {symbol}</p>
                 </div>
               </div>
@@ -349,7 +349,7 @@ export default function CoinDetailPage() {
               <div className="w-16 h-16 rounded-full bg-green-50 dark:bg-green-900/20 flex items-center justify-center mb-4">
                 <Check size={28} className="text-green-500" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Admin Notified!</h3>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Admin Notified!</h3>
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
                 Your deposit request has been submitted. Admin will verify the transaction and credit your balance.
               </p>
@@ -459,7 +459,7 @@ export default function CoinDetailPage() {
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-0 sm:p-4">
           <div className="bg-white dark:bg-gray-900 w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100 dark:border-gray-800">
-              <p className="font-bold text-gray-900 dark:text-white">Receive {symbol}</p>
+              <p className="font-semibold text-gray-900 dark:text-white">Receive {symbol}</p>
               <button onClick={() => setBottomAction(null)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
                 <X size={20} />
               </button>

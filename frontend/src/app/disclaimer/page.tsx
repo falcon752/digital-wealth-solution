@@ -22,7 +22,7 @@ export default function DisclaimerPage() {
         />
         <div className="relative z-10 text-center">
           <h1
-            className="text-white font-bold"
+            className="text-white font-semibold"
             style={{ fontSize: '40px', letterSpacing: '-0.01em' }}
           >
             Disclaimer

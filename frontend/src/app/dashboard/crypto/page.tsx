@@ -45,7 +45,7 @@ function CoinIcon({ symbol }: { symbol: string }) {
 
   if (errored) {
     return (
-      <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-bold text-gray-500 dark:text-gray-400">
+      <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-semibold text-gray-500 dark:text-gray-400">
         {symbol.slice(0, 2)}
       </div>
     );
@@ -114,7 +114,7 @@ function BuyModal({
           <div className="flex items-center gap-3">
             <CoinIcon symbol={asset.symbol} />
             <div>
-              <p className="font-bold text-gray-900 dark:text-white">Buy {asset.symbol}</p>
+              <p className="font-semibold text-gray-900 dark:text-white">Buy {asset.symbol}</p>
               <p className="text-xs text-gray-500 dark:text-gray-400">{asset.name}</p>
             </div>
           </div>
@@ -229,7 +229,7 @@ function ReceiveModal({
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-0 sm:p-4">
       <div className="bg-white dark:bg-gray-900 w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100 dark:border-gray-800">
-          <p className="font-bold text-gray-900 dark:text-white">Receive {asset.symbol}</p>
+          <p className="font-semibold text-gray-900 dark:text-white">Receive {asset.symbol}</p>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
             <X size={20} />
           </button>
@@ -286,7 +286,7 @@ function AssetPickerModal({
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-0 sm:p-4">
       <div className="bg-white dark:bg-gray-900 w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 max-h-[70vh] flex flex-col">
         <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
-          <p className="font-bold text-gray-900 dark:text-white">
+          <p className="font-semibold text-gray-900 dark:text-white">
             {mode === 'buy' ? 'Buy — Select Asset' : mode === 'receive' ? 'Receive — Select Asset' : 'Send — Select Asset'}
           </p>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
@@ -302,7 +302,7 @@ function AssetPickerModal({
             >
               <CoinIcon symbol={a.symbol} />
               <div>
-                <p className="text-sm font-bold text-gray-900 dark:text-white">{a.symbol}</p>
+                <p className="text-sm font-semibold text-gray-900 dark:text-white">{a.symbol}</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">{a.name}</p>
               </div>
             </button>
@@ -410,7 +410,7 @@ function SendModal({
             <div className="w-16 h-16 rounded-full border-2 border-red-400 flex items-center justify-center mx-auto mb-4">
               <X size={28} className="text-red-400" />
             </div>
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Error</h3>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Error</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">{validationError}</p>
             <button
               onClick={() => setValidationError(null)}
@@ -525,7 +525,7 @@ function SendModal({
                   value={otp}
                   onChange={(e) => setOtp(e.target.value.slice(0, 6))}
                   placeholder="000000"
-                  className="w-full text-center text-2xl font-bold tracking-widest px-4 py-4 rounded-2xl border-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 transition-colors"
+                  className="w-full text-center text-2xl font-semibold tracking-widest px-4 py-4 rounded-2xl border-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 transition-colors"
                 />
 
                 <button
@@ -617,7 +617,7 @@ export default function CryptoAssetsPage() {
 
       {/* Balance */}
       <div className="text-center pt-8 pb-6 px-6 shrink-0">
-        <p className="text-5xl font-bold text-gray-900 dark:text-white tracking-tight">
+        <p className="text-5xl font-semibold text-gray-900 dark:text-white tracking-tight">
           ${balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </p>
         <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">$0.00 (0.00%)</p>
@@ -691,7 +691,7 @@ export default function CryptoAssetsPage() {
               </div>
               {/* Name / price */}
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-gray-900 dark:text-white">
+                <p className="text-sm font-semibold text-gray-900 dark:text-white">
                   {asset.name} ({asset.symbol})
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">

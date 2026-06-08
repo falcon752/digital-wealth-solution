@@ -162,7 +162,7 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
         </Link>
         
         <div className="flex flex-col items-center">
-          <span className="text-[17px] font-bold text-[#1e2335] dark:text-white leading-tight">{symbol}</span>
+          <span className="text-[17px] font-semibold text-[#1e2335] dark:text-white leading-tight">{symbol}</span>
           <span className="text-[10px] font-medium text-[#8f9bb3] dark:text-gray-400 tracking-widest mt-0.5 uppercase">COIN | {symbol}</span>
         </div>
 
@@ -178,7 +178,7 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
 
       {/* Price Section */}
       <div className="flex flex-col items-center mt-8 mb-10 px-4">
-        <h1 className="text-[42px] font-bold text-[#1e2335] dark:text-white tracking-tight leading-none">
+        <h1 className="text-[42px] font-semibold text-[#1e2335] dark:text-white tracking-tight leading-none">
           {formatCurrency(price)}
         </h1>
         <div className={`flex items-center gap-1.5 mt-3 text-[14px] font-semibold ${isPositive ? 'text-[#00b15d]' : 'text-[#d5434d]'}`}>
@@ -218,7 +218,7 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
             <button
               key={tf}
               onClick={() => setTimeframe(tf)}
-              className={`px-[14px] py-2 rounded-xl text-[13px] font-bold transition-colors ${
+              className={`px-[14px] py-2 rounded-xl text-[13px] font-semibold transition-colors ${
                 isActive 
                   ? 'bg-[#e6f0fa] dark:bg-gray-800 text-[#2d68d8] dark:text-white' 
                   : 'text-[#8f9bb3] dark:text-gray-400 bg-transparent'
@@ -274,10 +274,10 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
                 }}
               />
               <div className="flex flex-col">
-                <span className="font-bold text-[#1e2335] dark:text-white text-[16px]">{symbol}</span>
+                <span className="font-semibold text-[#1e2335] dark:text-white text-[16px]">{symbol}</span>
                 <span className="text-[13px] text-[#8f9bb3] dark:text-gray-400 font-medium mt-0.5">{balanceCrypto.toFixed(5)} {symbol}</span>
                 {availableBalanceCrypto < balanceCrypto && (
-                  <span className="text-[11px] text-[#2d68d8] dark:text-blue-400 font-bold mt-1 bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded-md inline-block w-fit">
+                  <span className="text-[11px] text-[#2d68d8] dark:text-blue-400 font-semibold mt-1 bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded-md inline-block w-fit">
                     Available: {availableBalanceCrypto.toFixed(5)}
                   </span>
                 )}
@@ -285,7 +285,7 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
             </div>
             
             <div className="flex flex-col items-end">
-              <span className="font-bold text-[#1e2335] dark:text-white text-[15px]">USD{balanceUsd.toFixed(2)}</span>
+              <span className="font-semibold text-[#1e2335] dark:text-white text-[15px]">USD{balanceUsd.toFixed(2)}</span>
               <span className="text-[13px] text-[#8f9bb3] dark:text-gray-400 font-medium mt-0.5">-</span>
             </div>
           </div>
@@ -305,7 +305,7 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
               {transactions.map((tx, idx) => (
                 <div key={idx} className="flex items-center justify-between pb-4 border-b border-gray-100 dark:border-gray-800 last:border-0">
                   <div className="flex flex-col">
-                    <span className="font-bold text-[#1e2335] dark:text-white text-[15px] capitalize">
+                    <span className="font-semibold text-[#1e2335] dark:text-white text-[15px] capitalize">
                       {tx.type} {tx.assetSymbol || tx.fromAssetSymbol}
                     </span>
                     <span className="text-[13px] text-[#8f9bb3] dark:text-gray-400 font-medium mt-0.5">
@@ -313,7 +313,7 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
                     </span>
                   </div>
                   <div className="flex flex-col items-end">
-                    <span className={`font-bold text-[15px] ${tx.type === 'deposit' || tx.type === 'earn' ? 'text-[#00b15d]' : 'text-[#1e2335] dark:text-white'}`}>
+                    <span className={`font-semibold text-[15px] ${tx.type === 'deposit' || tx.type === 'earn' ? 'text-[#00b15d]' : 'text-[#1e2335] dark:text-white'}`}>
                       {tx.type === 'deposit' ? '+' : tx.type === 'withdrawal' ? '-' : ''}{tx.amount} {tx.assetSymbol || tx.fromAssetSymbol}
                     </span>
                     <span className="text-[13px] text-[#8f9bb3] dark:text-gray-400 font-medium mt-0.5 capitalize">
@@ -332,7 +332,7 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
         <div className="flex flex-col mt-6 px-4 pb-8">
           <h2 className="text-[14px] font-semibold text-[#8f9bb3] dark:text-gray-400 mb-4">About {symbol}</h2>
           <div className="bg-[#f8f9fa] dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700">
-            <h3 className="font-bold text-[#1e2335] dark:text-white text-[17px] mb-2">{assetInfo?.name || symbol}</h3>
+            <h3 className="font-semibold text-[#1e2335] dark:text-white text-[17px] mb-2">{assetInfo?.name || symbol}</h3>
             <p className="text-[14px] text-gray-600 dark:text-gray-300 leading-relaxed font-medium">
               {assetInfo?.name || symbol} ({symbol}) is a digital asset available on the platform. It can be used for seamless borderless transactions, earning yields, and securing collateralized loans. The real-time pricing and historical charts are fetched via aggregations.
             </p>

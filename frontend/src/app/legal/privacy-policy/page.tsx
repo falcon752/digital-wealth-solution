@@ -13,7 +13,7 @@ export default function PrivacyPolicyPage() {
       {/* ─── BREADCRUMB HEADER ───────────────────────────────────────── */}
       <section className="pt-32 pb-10 px-6 text-center bg-white border-b border-gray-50">
         <div className="max-w-4xl mx-auto">
-          <h1 className="font-bold mb-4" style={{ color: '#1e266d', fontSize: '36px' }}>
+          <h1 className="font-semibold mb-4" style={{ color: '#1e266d', fontSize: '36px' }}>
             Privacy Policy
           </h1>
           <nav className="text-sm font-medium" style={{ color: '#6b7280' }}>
@@ -44,7 +44,7 @@ export default function PrivacyPolicyPage() {
 
             {/* I. Introduction */}
             <div>
-              <h2 className="font-bold mb-6" style={{ color: '#1e266d', fontSize: '24px' }}>I. Introduction</h2>
+              <h2 className="font-semibold mb-6" style={{ color: '#1e266d', fontSize: '24px' }}>I. Introduction</h2>
               <div className="space-y-4">
                 <p>
                   Pursuant to U.S. Securities and Exchange Commission (<strong>'SEC'</strong>) Regulation S-P, investment advisers must adopt and
@@ -72,7 +72,7 @@ export default function PrivacyPolicyPage() {
 
             {/* II. Policy */}
             <div>
-              <h2 className="font-bold mb-6" style={{ color: '#1e266d', fontSize: '24px' }}>II. Policy</h2>
+              <h2 className="font-semibold mb-6" style={{ color: '#1e266d', fontSize: '24px' }}>II. Policy</h2>
               <div className="space-y-4">
                 <p>
                   DWP does not disclose any NPI about its Clients or investors to non-affiliated third parties except as described in this privacy
@@ -92,7 +92,7 @@ export default function PrivacyPolicyPage() {
 
             {/* III. Collection of Information */}
             <div>
-              <h2 className="font-bold mb-6" style={{ color: '#1e266d', fontSize: '24px' }}>III. Collection of Information</h2>
+              <h2 className="font-semibold mb-6" style={{ color: '#1e266d', fontSize: '24px' }}>III. Collection of Information</h2>
               <p className="mb-6">
                 DWP may possess NPI about Clients and investors to serve investment needs, provide customer service, and comply with legal and
                 regulatory requirements. The type of NPI that DWP may possess includes the following categories of information:
@@ -137,7 +137,7 @@ export default function PrivacyPolicyPage() {
 
             {/* IV. Confidentiality and Security */}
             <div>
-              <h2 className="font-bold mb-6" style={{ color: '#1e266d', fontSize: '24px' }}>IV. Confidentiality and Security</h2>
+              <h2 className="font-semibold mb-6" style={{ color: '#1e266d', fontSize: '24px' }}>IV. Confidentiality and Security</h2>
               <p>
                 Except as described below, access to NPI about existing, former, and prospective clients and private fund investors is restricted to
                 DWP employees who need to know that information in order to provide products or services to Clients or investors. Those employees
@@ -149,7 +149,7 @@ export default function PrivacyPolicyPage() {
 
             {/* V. Physical Safeguard Procedures */}
             <div>
-              <h2 className="font-bold mb-6" style={{ color: '#1e266d', fontSize: '24px' }}>V. Physical Safeguard Procedures</h2>
+              <h2 className="font-semibold mb-6" style={{ color: '#1e266d', fontSize: '24px' }}>V. Physical Safeguard Procedures</h2>
               <ol className="space-y-4 list-decimal pl-5">
                 {[
                   'When in use, Client and private fund investor information will not be left unattended;',
@@ -158,7 +158,7 @@ export default function PrivacyPolicyPage() {
                   'Any hard copy documents containing Client and private fund investor information that are not to be retained will be disposed of promptly in a secure manner (for example, by shredding or through a secure document destruction service).',
                 ].map((item, idx) => (
                   <li key={idx} className="pl-4">
-                    <span className="font-bold mr-2">{idx + 1}</span>
+                    <span className="font-semibold mr-2">{idx + 1}</span>
                     {item}
                   </li>
                 ))}
@@ -167,7 +167,7 @@ export default function PrivacyPolicyPage() {
 
             {/* VI. Electronic Safeguard Procedures */}
             <div>
-              <h2 className="font-bold mb-6" style={{ color: '#1e266d', fontSize: '24px' }}>VI. Electronic Safeguard Procedures</h2>
+              <h2 className="font-semibold mb-6" style={{ color: '#1e266d', fontSize: '24px' }}>VI. Electronic Safeguard Procedures</h2>
               <ol className="space-y-4 list-decimal pl-5">
                 {[
                   'All computers with access to Client and investor information are password protected and have active and current anti-virus, anti-spyware, and firewall protection;',
@@ -177,7 +177,7 @@ export default function PrivacyPolicyPage() {
                   'Employees with access to NPI receive training regarding the importance of protecting such information and the proper handling of NPI.',
                 ].map((item, idx) => (
                   <li key={idx} className="pl-4">
-                    <span className="font-bold mr-2">{idx + 1}</span>
+                    <span className="font-semibold mr-2">{idx + 1}</span>
                     {item}
                   </li>
                 ))}
@@ -186,7 +186,7 @@ export default function PrivacyPolicyPage() {
 
             {/* VII. Anti-Identity Theft Procedures */}
             <div>
-              <h2 className="font-bold mb-6" style={{ color: '#1e266d', fontSize: '24px' }}>VII. Anti-Identity Theft Procedures</h2>
+              <h2 className="font-semibold mb-6" style={{ color: '#1e266d', fontSize: '24px' }}>VII. Anti-Identity Theft Procedures</h2>
               <p>
                 In addition to complying with the procedures above regarding safeguarding of NPI, DWP will only transfer funds to investor accounts
                 that are in the name of the investor of record and, in the case of wire transfers, to such investor's account as identified upon the
@@ -198,7 +198,7 @@ export default function PrivacyPolicyPage() {
 
             {/* VIII. Uses of Information */}
             <div>
-              <h2 className="font-bold mb-6" style={{ color: '#1e266d', fontSize: '24px' }}>VIII. Uses of Information</h2>
+              <h2 className="font-semibold mb-6" style={{ color: '#1e266d', fontSize: '24px' }}>VIII. Uses of Information</h2>
               <p className="mb-4">
                 Investor NPI may be used internally by DWP's employees to process subscriptions and provide services to such investors or the
                 private funds in which they are invested.
@@ -222,7 +222,7 @@ export default function PrivacyPolicyPage() {
                 ))}
               </ul>
               <p className="mb-6">DWP discloses NPI only as reasonably necessary for the purposes described above or as otherwise permitted or required by law.</p>
-              <p className="font-bold mb-6">
+              <p className="font-semibold mb-6">
                 DWP does not disclose NPI to nonaffiliated third parties so that they may market their own products or services directly to you.
                 While we may engage in joint marketing initiatives with certain nonaffiliated third parties, we do not share client NPI with
                 them for those joint marketing purposes.
@@ -239,7 +239,7 @@ export default function PrivacyPolicyPage() {
 
             {/* IX. Opt Out Rights */}
             <div>
-              <h2 className="font-bold mb-6" style={{ color: '#1e266d', fontSize: '24px' }}>IX. Opt Out Rights</h2>
+              <h2 className="font-semibold mb-6" style={{ color: '#1e266d', fontSize: '24px' }}>IX. Opt Out Rights</h2>
               <div className="space-y-6">
                 <p>
                   Clients and investors may instruct DWP not to share (i) creditworthiness information with Affiliates for their everyday business
@@ -290,7 +290,7 @@ export default function PrivacyPolicyPage() {
 
             {/* X. Contact Us */}
             <div>
-              <h2 className="font-bold mb-6" style={{ color: '#1e266d', fontSize: '24px' }}>X. Contact Us</h2>
+              <h2 className="font-semibold mb-6" style={{ color: '#1e266d', fontSize: '24px' }}>X. Contact Us</h2>
               <div className="space-y-4">
                 <p>If you have any questions or concerns about this privacy notice, please contact DWP using the following contact information:</p>
                 <div className="space-y-2">

@@ -15,7 +15,7 @@ export default function WhatWeDoPage() {
       <section className="pt-32 pb-24 px-6 text-center" style={{ backgroundColor: '#2C3342' }}>
         <FadeIn direction="up">
           <div className="max-w-4xl mx-auto">
-            <h1 className="text-white font-bold mb-8 leading-tight" style={{ fontSize: '48px' }}>
+            <h1 className="text-white font-semibold mb-8 leading-tight" style={{ fontSize: '48px' }}>
               What We Do at Digital Wealth Partners
             </h1>
             <div className="w-16 h-0.5 mx-auto mb-10" style={{ backgroundColor: '#AD7F4E', opacity: 0.5 }}></div>
@@ -36,7 +36,7 @@ export default function WhatWeDoPage() {
       <section className="py-24 px-6 bg-white text-center">
         <div className="max-w-4xl mx-auto mb-16">
           <FadeIn direction="up">
-            <h2 className="font-bold mb-6" style={{ color: '#1e266d', fontSize: '36px' }}>
+            <h2 className="font-semibold mb-6" style={{ color: '#1e266d', fontSize: '36px' }}>
               One Plan, Not Three Separate Accounts
             </h2>
             <div className="w-12 h-0.5 mx-auto mb-8" style={{ backgroundColor: '#AD7F4E' }}></div>
@@ -68,7 +68,7 @@ export default function WhatWeDoPage() {
           ].map((item, idx) => (
             <FadeIn key={idx} direction="up" delay={idx * 0.1}>
               <div className="p-10 rounded-lg shadow-sm border border-gray-50 flex flex-col items-center h-full" style={{ backgroundColor: '#fcfcfc' }}>
-                <h3 className="font-bold mb-4" style={{ color: '#1e266d', fontSize: '18px' }}>{item.title}</h3>
+                <h3 className="font-semibold mb-4" style={{ color: '#1e266d', fontSize: '18px' }}>{item.title}</h3>
                 <div className="w-10 h-0.5 mb-6" style={{ backgroundColor: '#AD7F4E' }}></div>
                 <p className="leading-relaxed text-xs text-left" style={{ color: '#4a5568' }}>{item.desc}</p>
               </div>
@@ -81,7 +81,7 @@ export default function WhatWeDoPage() {
       <section className="py-24 px-6 text-center" style={{ backgroundColor: '#f9f9f9' }}>
         <div className="max-w-4xl mx-auto mb-16">
           <FadeIn direction="up">
-            <h2 className="font-bold mb-6" style={{ color: '#1e266d', fontSize: '36px' }}>
+            <h2 className="font-semibold mb-6" style={{ color: '#1e266d', fontSize: '36px' }}>
               Core Services
             </h2>
             <div className="w-12 h-0.5 mx-auto mb-8" style={{ backgroundColor: '#AD7F4E' }}></div>
@@ -132,7 +132,7 @@ export default function WhatWeDoPage() {
           ].map((item, idx) => (
             <FadeIn key={idx} direction="up" delay={idx * 0.05}>
               <div className="p-8 rounded-lg shadow-sm border border-gray-100 bg-white text-left h-full">
-                <h3 className="font-bold mb-4" style={{ color: '#1e266d', fontSize: '17px' }}>{item.title}</h3>
+                <h3 className="font-semibold mb-4" style={{ color: '#1e266d', fontSize: '17px' }}>{item.title}</h3>
                 <p className="leading-relaxed text-[13px]" style={{ color: '#4a5568' }}>{item.desc}</p>
               </div>
             </FadeIn>
@@ -140,7 +140,7 @@ export default function WhatWeDoPage() {
           {/* Alternative Investments - Full width on mobile/single col */}
           <FadeIn direction="up" delay={0.4} className="md:col-span-2 lg:col-span-1">
             <div className="p-8 rounded-lg shadow-sm border border-gray-100 bg-white text-left h-full">
-              <h3 className="font-bold mb-4" style={{ color: '#1e266d', fontSize: '17px' }}>Alternative Investments</h3>
+              <h3 className="font-semibold mb-4" style={{ color: '#1e266d', fontSize: '17px' }}>Alternative Investments</h3>
               <p className="leading-relaxed text-[13px]" style={{ color: '#4a5568' }}>
                 Access depends on eligibility and suitability. Due diligence considers fees, liquidity, manager track record, and fit within your plan.
                 Private investments are illiquid and can lose value.
@@ -153,7 +153,7 @@ export default function WhatWeDoPage() {
       {/* ─── WHO WE WORK WITH SECTION ────────────────────────────────── */}
       <section className="py-24 px-6 bg-white text-center">
         <div className="max-w-4xl mx-auto mb-16">
-          <h2 className="font-bold mb-6" style={{ color: '#1e266d', fontSize: '36px' }}>
+          <h2 className="font-semibold mb-6" style={{ color: '#1e266d', fontSize: '36px' }}>
             Who We Work With
           </h2>
           <div className="w-12 h-0.5 mx-auto mb-8" style={{ backgroundColor: '#AD7F4E' }}></div>
@@ -186,7 +186,7 @@ export default function WhatWeDoPage() {
             },
           ].map((item, idx) => (
             <div key={idx} className="p-10 rounded-lg shadow-sm border border-gray-50 flex flex-col items-center" style={{ backgroundColor: '#fcfcfc' }}>
-              <h3 className="font-bold mb-4" style={{ color: '#1e266d', fontSize: '20px' }}>{item.title}</h3>
+              <h3 className="font-semibold mb-4" style={{ color: '#1e266d', fontSize: '20px' }}>{item.title}</h3>
               <p className="leading-relaxed text-sm text-left" style={{ color: '#4a5568' }}>{item.desc}</p>
             </div>
           ))}
@@ -196,7 +196,7 @@ export default function WhatWeDoPage() {
       {/* ─── WHAT YOU SHOULD KNOW SECTION ────────────────────────────── */}
       <section className="py-24 px-6 text-center" style={{ backgroundColor: '#f9f9f9' }}>
         <div className="max-w-4xl mx-auto mb-16">
-          <h2 className="font-bold mb-6" style={{ color: '#1e266d', fontSize: '36px' }}>
+          <h2 className="font-semibold mb-6" style={{ color: '#1e266d', fontSize: '36px' }}>
             What You Should Know
           </h2>
           <div className="w-12 h-0.5 mx-auto mb-8" style={{ backgroundColor: '#AD7F4E' }}></div>
@@ -228,7 +228,7 @@ export default function WhatWeDoPage() {
             },
           ].map((item, idx) => (
             <div key={idx} className="p-10 rounded-lg shadow-sm border border-gray-100 bg-white text-left">
-              <h3 className="font-bold mb-6" style={{ color: '#1e266d', fontSize: '19px' }}>{item.title}</h3>
+              <h3 className="font-semibold mb-6" style={{ color: '#1e266d', fontSize: '19px' }}>{item.title}</h3>
               <p className="leading-relaxed text-[13px]" style={{ color: '#4a5568' }}>{item.desc}</p>
             </div>
           ))}
@@ -238,7 +238,7 @@ export default function WhatWeDoPage() {
       {/* ─── WHAT YOU CAN EXPECT SECTION ─────────────────────────────── */}
       <section className="py-24 px-6 text-center" style={{ backgroundColor: '#2C3342' }}>
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-white font-bold mb-6" style={{ fontSize: '36px' }}>
+          <h2 className="text-white font-semibold mb-6" style={{ fontSize: '36px' }}>
             What You Can Expect
           </h2>
           <div className="w-12 h-0.5 mx-auto mb-8" style={{ backgroundColor: '#AD7F4E', opacity: 0.5 }}></div>
@@ -266,7 +266,7 @@ export default function WhatWeDoPage() {
       {/* ─── HOW WE WORK TOGETHER SECTION ────────────────────────────── */}
       <section className="py-24 px-6 bg-white text-center">
         <div className="max-w-4xl mx-auto mb-20">
-          <h2 className="font-bold mb-6" style={{ color: '#1e266d', fontSize: '42px' }}>
+          <h2 className="font-semibold mb-6" style={{ color: '#1e266d', fontSize: '42px' }}>
             How We Work Together
           </h2>
           <div className="w-12 h-0.5 mx-auto mb-8" style={{ backgroundColor: '#AD7F4E' }}></div>
@@ -299,10 +299,10 @@ export default function WhatWeDoPage() {
             },
           ].map((item, idx) => (
             <div key={idx} className="flex flex-col items-center">
-              <span className="text-[60px] font-bold mb-6" style={{ color: '#e5e7eb', lineHeight: 1 }}>
+              <span className="text-[60px] font-semibold mb-6" style={{ color: '#e5e7eb', lineHeight: 1 }}>
                 {item.num}
               </span>
-              <h3 className="font-bold mb-4" style={{ color: '#1e266d', fontSize: '18px' }}>{item.title}</h3>
+              <h3 className="font-semibold mb-4" style={{ color: '#1e266d', fontSize: '18px' }}>{item.title}</h3>
               <p className="leading-relaxed text-xs text-center" style={{ color: '#4a5568' }}>{item.desc}</p>
             </div>
           ))}
@@ -312,7 +312,7 @@ export default function WhatWeDoPage() {
       {/* ─── READY TO TALK SECTION ───────────────────────────────────── */}
       <section className="py-24 px-6 text-center" style={{ backgroundColor: '#2C3342' }}>
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-white font-bold mb-6" style={{ fontSize: '42px' }}>
+          <h2 className="text-white font-semibold mb-6" style={{ fontSize: '42px' }}>
             Ready to Talk?
           </h2>
           <div className="w-12 h-0.5 mx-auto mb-8" style={{ backgroundColor: '#AD7F4E', opacity: 0.5 }}></div>

@@ -134,7 +134,7 @@ export default function SwapCryptoPage() {
                 }}
               />
               <div className="flex flex-col items-start">
-                <span className="font-bold text-[14px] text-gray-900 dark:text-white">{asset.name}</span>
+                <span className="font-semibold text-[14px] text-gray-900 dark:text-white">{asset.name}</span>
                 <span className="font-medium text-[12px] text-gray-500">{asset.symbol.toUpperCase()}</span>
               </div>
             </button>
@@ -152,7 +152,7 @@ export default function SwapCryptoPage() {
         <Link href="/dashboard" className="text-[#2d68d8] dark:text-blue-500 absolute left-4">
           <ArrowLeft size={22} />
         </Link>
-        <h1 className="flex-1 text-center font-bold text-gray-900 dark:text-white text-[17px]">
+        <h1 className="flex-1 text-center font-semibold text-gray-900 dark:text-white text-[17px]">
           Swap Crypto
         </h1>
         <div className="absolute right-4">
@@ -195,7 +195,7 @@ export default function SwapCryptoPage() {
                     setFromDropdownOpen(!fromDropdownOpen);
                     setToDropdownOpen(false);
                   }}
-                  className="flex items-center gap-1 font-bold text-gray-900 dark:text-white text-[15px] hover:opacity-80 transition"
+                  className="flex items-center gap-1 font-semibold text-gray-900 dark:text-white text-[15px] hover:opacity-80 transition"
                 >
                   {fromAsset?.name || 'Select'} - {fromBalance.toFixed(6)} <ChevronDown size={18} className="text-[#8e98bc]" />
                 </button>
@@ -216,7 +216,7 @@ export default function SwapCryptoPage() {
                   <button 
                     key={pct} 
                     onClick={() => handlePercentage(pct)}
-                    className="bg-white dark:bg-gray-800 text-[#8e98bc] hover:text-[#2d68d8] dark:hover:text-blue-400 text-[11px] font-bold px-3 py-1.5 rounded-[6px] shadow-sm border border-gray-100 dark:border-gray-700 transition"
+                    className="bg-white dark:bg-gray-800 text-[#8e98bc] hover:text-[#2d68d8] dark:hover:text-blue-400 text-[11px] font-semibold px-3 py-1.5 rounded-[6px] shadow-sm border border-gray-100 dark:border-gray-700 transition"
                   >
                     {pct === 100 ? 'MAX' : `${pct}%`}
                   </button>
@@ -252,7 +252,7 @@ export default function SwapCryptoPage() {
                     setToDropdownOpen(!toDropdownOpen);
                     setFromDropdownOpen(false);
                   }}
-                  className="flex items-center gap-1 font-bold text-gray-900 dark:text-white text-[15px] hover:opacity-80 transition"
+                  className="flex items-center gap-1 font-semibold text-gray-900 dark:text-white text-[15px] hover:opacity-80 transition"
                 >
                   {toAsset?.name || 'Select'} <ChevronDown size={18} className="text-[#8e98bc]" />
                 </button>
@@ -263,7 +263,7 @@ export default function SwapCryptoPage() {
                 type="text" 
                 placeholder="0.00000000" 
                 value={toAmount > 0 ? toAmount.toFixed(8) : ''}
-                className="bg-transparent text-right text-[26px] font-bold text-gray-900 dark:text-white focus:outline-none w-1/2" 
+                className="bg-transparent text-right text-[26px] font-semibold text-gray-900 dark:text-white focus:outline-none w-1/2" 
                 readOnly
               />
             </div>
@@ -278,13 +278,13 @@ export default function SwapCryptoPage() {
           <div className="bg-[#f8f9fb] dark:bg-gray-900/30 rounded-xl p-4 mt-2 flex flex-col gap-3 border border-gray-50 dark:border-gray-800">
             <div className="flex items-start gap-8">
               <span className="text-[13px] text-[#8e98bc] font-medium w-16">Exchange<br/>Rate</span>
-              <span className="text-[13px] font-bold text-gray-900 dark:text-white pt-0.5">
+              <span className="text-[13px] font-semibold text-gray-900 dark:text-white pt-0.5">
                 {fromAsset && toAsset ? `1 ${fromAsset.symbol.toUpperCase()} = ${exchangeRate.toFixed(8)} ${toAsset.symbol.toUpperCase()}` : '-'}
               </span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-[13px] text-[#8e98bc] font-medium">You'll receive</span>
-              <span className="text-[13px] font-bold text-[#2d68d8] dark:text-blue-400">
+              <span className="text-[13px] font-semibold text-[#2d68d8] dark:text-blue-400">
                 {toAmount > 0 ? `${toAmount.toFixed(6)} ${toAsset?.symbol.toUpperCase()}` : '0.00'}
               </span>
             </div>
@@ -295,7 +295,7 @@ export default function SwapCryptoPage() {
             <button 
               onClick={handleSubmit}
               disabled={submitting}
-              className="w-full bg-[#2d68d8] hover:bg-[#255bc2] text-white font-bold text-[16px] py-4 rounded-xl transition shadow-[0_4px_12px_rgba(45,104,216,0.2)] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full bg-[#2d68d8] hover:bg-[#255bc2] text-white font-semibold text-[16px] py-4 rounded-xl transition shadow-[0_4px_12px_rgba(45,104,216,0.2)] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {submitting && <Loader2 size={18} className="animate-spin" />}
               {submitting ? 'Processing...' : 'Swap Now'}

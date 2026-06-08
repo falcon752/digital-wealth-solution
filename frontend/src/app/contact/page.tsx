@@ -129,7 +129,7 @@ export default function ContactPage() {
           unoptimized
         />
         <h1
-          className="relative z-10 text-white font-bold"
+          className="relative z-10 text-white font-semibold"
           style={{ fontSize: '40px', letterSpacing: '-0.01em' }}
         >
           Contact Us

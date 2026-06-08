@@ -85,7 +85,7 @@ export default function CryptoAssetsPage() {
         <Link href="/dashboard" className="text-[#2d68d8] dark:text-blue-500 absolute left-4">
           <ArrowLeft size={22} />
         </Link>
-        <h1 className="flex-1 text-center font-bold text-gray-900 dark:text-white text-[17px]">
+        <h1 className="flex-1 text-center font-semibold text-gray-900 dark:text-white text-[17px]">
           Crypto Assets
         </h1>
         <div className="absolute right-4">
@@ -99,7 +99,7 @@ export default function CryptoAssetsPage() {
         {/* Search Bar */}
         <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800">
           <div className="relative">
-            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold" />
+            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-semibold" />
             <input 
               type="text" 
               placeholder="Search networks" 
@@ -129,7 +129,7 @@ export default function CryptoAssetsPage() {
                     }}
                   />
                   <div className="flex flex-col">
-                    <span className="font-bold text-gray-900 dark:text-white text-[16px] tracking-wide">
+                    <span className="font-semibold text-gray-900 dark:text-white text-[16px] tracking-wide">
                       {asset.name} ({asset.symbol})
                     </span>
                     <span className="text-[13px] text-[#a0a8b9] font-medium mt-0.5">

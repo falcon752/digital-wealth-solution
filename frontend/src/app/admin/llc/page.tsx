@@ -99,7 +99,7 @@ export default function AdminLLCPage() {
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <div className="text-sm font-bold text-[var(--text-primary)]">{app.companyName}</div>
+                        <div className="text-sm font-semibold text-[var(--text-primary)]">{app.companyName}</div>
                       </td>
                       <td className="px-4 py-3">
                         <div className="text-sm text-[var(--text-primary)]">{app.entityType}</div>
@@ -141,7 +141,7 @@ export default function AdminLLCPage() {
             <div className="bg-[var(--bg-secondary)] rounded-xl p-4 space-y-2 text-sm mb-4">
               <div className="flex justify-between">
                 <span className="text-[var(--text-muted)]">Company</span>
-                <span className="font-bold text-[var(--text-primary)]">{editTarget.companyName}</span>
+                <span className="font-semibold text-[var(--text-primary)]">{editTarget.companyName}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-[var(--text-muted)]">State</span>

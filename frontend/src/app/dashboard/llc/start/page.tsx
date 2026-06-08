@@ -68,7 +68,7 @@ export default function LLCStartPage() {
             <FeedbackIcon className="text-gray-500 dark:text-gray-400" />
             Feedback
           </button>
-          <button onClick={() => router.push('/dashboard')} className="text-[15px] font-bold text-gray-900 dark:text-white hover:opacity-80">
+          <button onClick={() => router.push('/dashboard')} className="text-[15px] font-semibold text-gray-900 dark:text-white hover:opacity-80">
             Login
           </button>
         </div>
@@ -92,7 +92,7 @@ export default function LLCStartPage() {
             <Building2 size={38} className="text-white" />
           </div>
           <div>
-            <h1 className="text-[34px] md:text-[40px] font-extrabold text-gray-900 dark:text-white tracking-tight leading-[1.1]">
+            <h1 className="text-[34px] md:text-[40px] font-semibold text-gray-900 dark:text-white tracking-tight leading-[1.1]">
               Start Your Business Journey
             </h1>
             <p className="mt-4 text-[16px] text-gray-600 dark:text-gray-400 max-w-md mx-auto leading-relaxed font-medium">
@@ -109,14 +109,14 @@ export default function LLCStartPage() {
               <Building2 size={26} className="text-white" />
             </div>
             <div>
-              <h2 className="text-[20px] font-bold text-gray-900 dark:text-white">New Company</h2>
+              <h2 className="text-[20px] font-semibold text-gray-900 dark:text-white">New Company</h2>
               <p className="mt-2 text-[14.5px] text-gray-600 dark:text-gray-400 leading-relaxed font-medium">
                 Perfect for starting a standalone business or individual venture.
               </p>
             </div>
             <button
               onClick={() => router.push('/dashboard/llc/new?type=new')}
-              className="mt-3 w-full flex items-center justify-center gap-2 bg-[#3b82f6] hover:bg-[#2563eb] text-white font-bold py-3.5 rounded-xl transition-colors"
+              className="mt-3 w-full flex items-center justify-center gap-2 bg-[#3b82f6] hover:bg-[#2563eb] text-white font-semibold py-3.5 rounded-xl transition-colors"
             >
               <ArrowRight size={18} />
               Choose
@@ -129,14 +129,14 @@ export default function LLCStartPage() {
               <RefreshCw size={26} className="text-white" />
             </div>
             <div>
-              <h2 className="text-[20px] font-bold text-gray-900 dark:text-white">Existing Company</h2>
+              <h2 className="text-[20px] font-semibold text-gray-900 dark:text-white">Existing Company</h2>
               <p className="mt-2 text-[14.5px] text-gray-600 dark:text-gray-400 leading-relaxed font-medium">
                 Switch to our registered agent service for enhanced protection and support.
               </p>
             </div>
             <button
               onClick={() => router.push('/dashboard/llc/new?type=existing')}
-              className="mt-3 w-full flex items-center justify-center gap-2 bg-[#3b82f6] hover:bg-[#2563eb] text-white font-bold py-3.5 rounded-xl transition-colors"
+              className="mt-3 w-full flex items-center justify-center gap-2 bg-[#3b82f6] hover:bg-[#2563eb] text-white font-semibold py-3.5 rounded-xl transition-colors"
             >
               <ArrowRight size={18} />
               Choose
@@ -146,7 +146,7 @@ export default function LLCStartPage() {
 
         {/* Understanding Business Structures */}
         <div className="bg-[#f8fafc] dark:bg-gray-800/50 rounded-2xl border border-gray-200 dark:border-gray-800 p-8 mt-4">
-          <h2 className="text-[20px] font-bold text-gray-900 dark:text-white mb-6">
+          <h2 className="text-[20px] font-semibold text-gray-900 dark:text-white mb-6">
             Understanding Business Structures
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -156,7 +156,7 @@ export default function LLCStartPage() {
                   <Icon size={20} className="text-white" />
                 </div>
                 <div>
-                  <p className="text-[15.5px] font-bold text-gray-900 dark:text-white">{title}</p>
+                  <p className="text-[15.5px] font-semibold text-gray-900 dark:text-white">{title}</p>
                   <p className="mt-1 text-[13.5px] text-gray-600 dark:text-gray-400 leading-relaxed font-medium">
                     {description}
                   </p>
@@ -170,7 +170,7 @@ export default function LLCStartPage() {
         <div className="text-center pt-4">
           <button
             onClick={() => router.push('/dashboard/llc')}
-            className="text-[14px] font-bold text-[#3b82f6] hover:text-[#2563eb] dark:hover:text-blue-400"
+            className="text-[14px] font-semibold text-[#3b82f6] hover:text-[#2563eb] dark:hover:text-blue-400"
           >
             ← Back to LLC Management
           </button>

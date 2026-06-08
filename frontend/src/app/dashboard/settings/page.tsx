@@ -43,7 +43,7 @@ export default function SettingsPage() {
           <ArrowLeft size={18} />
           Back
         </button>
-        <h1 className="text-[18px] font-bold text-gray-900 dark:text-white absolute left-1/2 -translate-x-1/2">
+        <h1 className="text-[18px] font-semibold text-gray-900 dark:text-white absolute left-1/2 -translate-x-1/2">
           Account
         </h1>
         <Link href="/dashboard" className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 font-medium">
@@ -64,7 +64,7 @@ export default function SettingsPage() {
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <h2 className="text-[16px] font-bold text-gray-900 dark:text-white truncate">
+            <h2 className="text-[16px] font-semibold text-gray-900 dark:text-white truncate">
               {fullName || 'Loading...'}
             </h2>
             <p className="text-[13px] text-gray-400 dark:text-gray-500 truncate underline decoration-gray-200 dark:decoration-gray-700 underline-offset-2 mt-0.5">
@@ -77,17 +77,17 @@ export default function SettingsPage() {
         <div className="grid grid-cols-3 gap-3 mb-8">
           <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 flex flex-col items-center justify-center shadow-sm border border-gray-100 dark:border-gray-700/50">
             <span className="text-[12px] text-gray-400 font-medium mb-1">Total Assets</span>
-            <span className="text-[15px] font-bold text-gray-900 dark:text-white">
+            <span className="text-[15px] font-semibold text-gray-900 dark:text-white">
               {heldAssetsCount}
             </span>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 flex flex-col items-center justify-center shadow-sm border border-gray-100 dark:border-gray-700/50">
             <span className="text-[12px] text-gray-400 font-medium mb-1">Trades</span>
-            <span className="text-[15px] font-bold text-gray-900 dark:text-white">{tradesCount}</span>
+            <span className="text-[15px] font-semibold text-gray-900 dark:text-white">{tradesCount}</span>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 flex flex-col items-center justify-center shadow-sm border border-gray-100 dark:border-gray-700/50">
             <span className="text-[12px] text-gray-400 font-medium mb-1">Referrals</span>
-            <span className="text-[15px] font-bold text-gray-900 dark:text-white">0</span>
+            <span className="text-[15px] font-semibold text-gray-900 dark:text-white">0</span>
           </div>
         </div>
 
