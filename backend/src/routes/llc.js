@@ -71,8 +71,7 @@ router.get('/admin', authenticate, requireAdmin, async (req, res) => {
   try {
     const applications = await LLCApplication.find()
       .populate('userId', 'firstName lastName email')
-      .sort({ createdAt: -1 })
-      .lean();
+      .sort({ createdAt: -1 });
     res.json({ applications });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch applications' });

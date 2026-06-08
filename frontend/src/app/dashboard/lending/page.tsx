@@ -626,7 +626,7 @@ export default function LendingPage() {
                   onClick={() => { setLtv(val); setModalType(null); }}
                   className="flex items-center justify-between px-6 py-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                 >
-                  <span className="text-[17px] text-gray-900 dark:text-white">{val * 100}%</span>
+                  <span className="text-[17px] italic text-gray-900 dark:text-white">{val * 100}%</span>
                   {ltv === val && <Check size={20} className="text-blue-600" />}
                 </div>
               ))}
