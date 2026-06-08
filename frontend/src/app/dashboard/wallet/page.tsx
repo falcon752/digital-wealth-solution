@@ -5,10 +5,20 @@ import { useAuth } from '@/context/AuthContext';
 import { useSidebar } from '@/context/SidebarContext';
 import { usersAPI, assetsAPI } from '@/lib/api';
 import { formatCurrency } from '@/lib/utils';
-import { ArrowUp, ArrowDown, QrCode, Zap, ArrowLeftRight, Layers, Bell, ChevronDown, List, Menu } from 'lucide-react';
+import { ArrowUp, QrCode, Zap, ArrowLeftRight, Bell, List, Menu } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import ThemeToggle from '@/components/layout/ThemeToggle';
+
+type DashboardStats = {
+  assetBalances?: Record<string, number>;
+};
+
+type DbAsset = {
+  id: string;
+  symbol: string;
+  name: string;
+};
 
 // Helper to assign colors to crypto icons
 function getAssetColor(symbol: string) {
@@ -23,10 +33,11 @@ function getAssetColor(symbol: string) {
 export default function UserDashboard() {
   const { user } = useAuth();
   const { openSidebar } = useSidebar();
-  const [stats, setStats] = useState<any>(null);
-  const [dbAssets, setDbAssets] = useState<any[]>([]);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [dbAssets, setDbAssets] = useState<DbAsset[]>([]);
   const [prices, setPrices] = useState<Record<string, number>>({});
   const [changes24h, setChanges24h] = useState<Record<string, number>>({});
+  const [isBalanceHidden, setIsBalanceHidden] = useState(false);
 
   useEffect(() => {
     usersAPI.getDashboardStats().then((res) => setStats(res.data)).catch(console.error);
@@ -106,9 +117,15 @@ export default function UserDashboard() {
 
       {/* Balance */}
       <div className="flex flex-col items-center mt-6 mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 dark:text-white tracking-tight">
-          {formatCurrency(totalBalance)}
-        </h1>
+        <button
+          type="button"
+          onClick={() => setIsBalanceHidden((hidden) => !hidden)}
+          aria-pressed={isBalanceHidden}
+          aria-label={isBalanceHidden ? 'Show balance' : 'Hide balance'}
+          className="text-4xl font-bold text-gray-900 dark:text-white tracking-tight cursor-pointer select-none"
+        >
+          {isBalanceHidden ? '****' : formatCurrency(totalBalance)}
+        </button>
         <div className="flex items-center gap-1.5 mt-1 font-medium text-sm">
           <span className={isPositive ? 'text-green-500' : 'text-red-500'}>
             {isPositive ? '+' : '-'}{formatCurrency(Math.abs(absoluteChange))}
@@ -171,13 +188,13 @@ export default function UserDashboard() {
               <div className="flex justify-between items-center leading-tight">
                 <span className="font-bold text-gray-900 dark:text-white text-[15px] tracking-wide">{asset.symbol}</span>
                 <span className="font-bold text-gray-900 dark:text-white text-[15px] tracking-wide">
-                  {asset.balance.toFixed(8)} {asset.symbol}
+                  {isBalanceHidden ? `**** ${asset.symbol}` : `${asset.balance.toFixed(8)} ${asset.symbol}`}
                 </span>
               </div>
               <div className="flex justify-between items-center leading-tight mt-1">
                 <span className="text-[13px] text-gray-400 font-medium">{asset.name}</span>
                 <span className="text-[13px] text-gray-400 font-medium">
-                  ${asset.balanceUsd.toFixed(2)}
+                  {isBalanceHidden ? '****' : `$${asset.balanceUsd.toFixed(2)}`}
                 </span>
               </div>
               <div className="mt-1.5 leading-tight flex items-center gap-2">
