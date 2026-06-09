@@ -61,7 +61,7 @@ export default function NotificationsPage() {
     <div className="min-h-full flex flex-col bg-white dark:bg-[#181818] pb-20">
       
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-4 bg-white dark:bg-[#454545] sticky top-0 z-10 border-b border-gray-50 dark:border-gray-800">
+      <header className="flex items-center justify-between px-4 py-4 bg-white dark:bg-[#2c2c2c] sticky top-0 z-10 border-b border-gray-50 dark:border-gray-800">
         <Link href="/dashboard/settings" className="text-gray-900 dark:text-white p-1">
           <ArrowLeft size={22} />
         </Link>
@@ -83,7 +83,7 @@ export default function NotificationsPage() {
           )}
           
           {!loading && notifications.map((notif) => (
-            <div key={notif.id} className="bg-white dark:bg-[#454545] border border-gray-100 dark:border-gray-700/50 rounded-2xl p-4 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] relative overflow-hidden">
+            <div key={notif.id} className="bg-white dark:bg-[#2c2c2c] border border-gray-100 dark:border-gray-700/50 rounded-2xl p-4 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] relative overflow-hidden">
               
               <div className="flex items-start gap-4">
                 {/* Icon */}

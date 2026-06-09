@@ -87,7 +87,7 @@ export default function SendAssetsPage() {
 
       {/* Search */}
       <div className="px-4 py-4 shrink-0">
-        <div className="flex items-center gap-2.5 bg-gray-100 dark:bg-[#454545] rounded-xl px-4 h-11">
+        <div className="flex items-center gap-2.5 bg-gray-100 dark:bg-[#2c2c2c] rounded-xl px-4 h-11">
           <Search size={16} className="text-gray-400 shrink-0" />
           <input
             type="text"
@@ -133,7 +133,7 @@ export default function SendAssetsPage() {
                 </button>
               </div>
               {i < filtered.length - 1 && (
-                <div className="h-px bg-gray-100 dark:bg-[#454545] mx-5" />
+                <div className="h-px bg-gray-100 dark:bg-[#2c2c2c] mx-5" />
               )}
             </div>
           ))}

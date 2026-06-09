@@ -81,7 +81,7 @@ export default function CryptoAssetsPage() {
     <div className="min-h-full flex flex-col bg-white dark:bg-[#181818] pb-10">
       
       {/* Header */}
-      <header className="flex items-center px-4 py-4 bg-white dark:bg-[#454545] sticky top-0 z-10 border-b border-gray-50 dark:border-gray-800">
+      <header className="flex items-center px-4 py-4 bg-white dark:bg-[#2c2c2c] sticky top-0 z-10 border-b border-gray-50 dark:border-gray-800">
         <Link href="/dashboard" className="text-[#2d68d8] dark:text-blue-500 absolute left-4">
           <ArrowLeft size={22} />
         </Link>
@@ -105,7 +105,7 @@ export default function CryptoAssetsPage() {
               placeholder="Search networks" 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-[#f4f5f8] dark:bg-[#454545] text-gray-900 dark:text-white placeholder:text-[#a0a8b9] font-medium text-[15px] py-3 pl-10 pr-4 rounded-xl focus:outline-none"
+              className="w-full bg-[#f4f5f8] dark:bg-[#2c2c2c] text-gray-900 dark:text-white placeholder:text-[#a0a8b9] font-medium text-[15px] py-3 pl-10 pr-4 rounded-xl focus:outline-none"
             />
           </div>
         </div>
@@ -122,7 +122,7 @@ export default function CryptoAssetsPage() {
                   <img 
                     src={`https://assets.coincap.io/assets/icons/${asset.symbol.toLowerCase()}@2x.png`} 
                     alt={asset.symbol} 
-                    className="w-[42px] h-[42px] rounded-full object-cover shadow-sm shrink-0 bg-white dark:bg-[#454545]"
+                    className="w-[42px] h-[42px] rounded-full object-cover shadow-sm shrink-0 bg-white dark:bg-[#2c2c2c]"
                     onError={(e) => {
                       e.currentTarget.onerror = null; 
                       e.currentTarget.src = `https://ui-avatars.com/api/?name=${asset.symbol[0]}&background=${getAssetColor(asset.symbol).replace('#','')}&color=fff&rounded=true&bold=true`;

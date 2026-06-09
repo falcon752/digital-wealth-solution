@@ -116,7 +116,7 @@ export default function DepositPage() {
           </Link>
           <Button 
             onClick={resetFlow} 
-            className="w-full bg-[#f4f5f8] dark:bg-[#454545] text-gray-900 dark:text-white h-[52px] text-[16px] font-semibold rounded-2xl hover:bg-gray-200 dark:hover:bg-gray-700 border-none"
+            className="w-full bg-[#f4f5f8] dark:bg-[#2c2c2c] text-gray-900 dark:text-white h-[52px] text-[16px] font-semibold rounded-2xl hover:bg-gray-200 dark:hover:bg-gray-700 border-none"
           >
             Make another deposit
           </Button>
@@ -137,7 +137,7 @@ export default function DepositPage() {
                 <div
                   key={a.id}
                   onClick={() => setSelectedAsset(a)}
-                  className="flex items-center p-4 bg-white dark:bg-[#454545] rounded-2xl border border-gray-100 dark:border-gray-700/50 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                  className="flex items-center p-4 bg-white dark:bg-[#2c2c2c] rounded-2xl border border-gray-100 dark:border-gray-700/50 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
                 >
                   <div className="w-11 h-11 rounded-full overflow-hidden shrink-0 bg-gray-50 dark:bg-gray-700 flex items-center justify-center border border-gray-100 dark:border-gray-600">
                     <img 
@@ -163,7 +163,7 @@ export default function DepositPage() {
       ) : (
         <div className="flex-1 bg-gray-50 dark:bg-[#181818] flex flex-col">
           {/* Custom Header for Step 2 */}
-          <div className="flex items-center justify-between px-5 h-16 bg-white dark:bg-[#454545] border-b border-gray-100 dark:border-gray-800 sticky top-0 z-10">
+          <div className="flex items-center justify-between px-5 h-16 bg-white dark:bg-[#2c2c2c] border-b border-gray-100 dark:border-gray-800 sticky top-0 z-10">
             <button onClick={() => setSelectedAsset(null)} className="p-2 -ml-2 text-[#2d68d8] hover:text-blue-700 transition-colors">
               <X size={20} strokeWidth={2.5} />
             </button>
@@ -174,7 +174,7 @@ export default function DepositPage() {
           <div className="flex-1 p-5 max-w-md mx-auto w-full space-y-6">
             
             {/* Screenshot Card UI */}
-            <div className="bg-white dark:bg-[#454545] rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none dark:border dark:border-gray-700/50 flex flex-col items-center border border-gray-50">
+            <div className="bg-white dark:bg-[#2c2c2c] rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none dark:border dark:border-gray-700/50 flex flex-col items-center border border-gray-50">
               
               <div className="flex items-center justify-center gap-3 mb-2">
                 <div className="w-9 h-9 rounded-full bg-[#fef4ed] dark:bg-orange-900/20 flex items-center justify-center overflow-hidden shrink-0">
@@ -210,7 +210,7 @@ export default function DepositPage() {
                 </div>
               )}
 
-              <div className="w-full bg-[#f4f6fa] dark:bg-[#454545] rounded-[14px] p-2 flex items-center justify-between gap-3 mb-4">
+              <div className="w-full bg-[#f4f6fa] dark:bg-[#2c2c2c] rounded-[14px] p-2 flex items-center justify-between gap-3 mb-4">
                 <div className="flex-1 overflow-hidden">
                   <p className="text-[13px] font-medium text-gray-600 dark:text-gray-300 truncate w-full pl-3">
                     {selectedAsset.walletAddress}
@@ -226,7 +226,7 @@ export default function DepositPage() {
               </div>
 
               {selectedAsset.memo ? (
-                <div className="w-full bg-[#f4f6fa] dark:bg-[#454545] rounded-[14px] p-2 flex items-center justify-between gap-3">
+                <div className="w-full bg-[#f4f6fa] dark:bg-[#2c2c2c] rounded-[14px] p-2 flex items-center justify-between gap-3">
                   <div className="flex-1 overflow-hidden">
                     <p className="text-[11px] font-semibold text-[#8f9bb3] uppercase tracking-wider mb-0.5 pl-3">Memo / Tag Required</p>
                     <p className="text-[13px] font-semibold text-gray-900 dark:text-white truncate w-full pl-3">
@@ -255,7 +255,7 @@ export default function DepositPage() {
             </div>
 
             {/* Submission Form below */}
-            <div className="bg-white dark:bg-[#454545] rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-700/50">
+            <div className="bg-white dark:bg-[#2c2c2c] rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-700/50">
               <h3 className="text-[16px] font-semibold text-gray-900 dark:text-white mb-5">Confirm Deposit</h3>
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <Input

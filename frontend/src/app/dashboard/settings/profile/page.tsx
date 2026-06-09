@@ -95,7 +95,7 @@ export default function EditProfilePage() {
       <form onSubmit={handleSubmit} className="p-4 flex-1">
         
         {/* User Card */}
-        <div className="bg-white dark:bg-[#454545] rounded-3xl p-5 flex items-center gap-4 shadow-sm mb-6">
+        <div className="bg-white dark:bg-[#2c2c2c] rounded-3xl p-5 flex items-center gap-4 shadow-sm mb-6">
           <div className="w-16 h-16 rounded-full bg-orange-100 overflow-hidden flex items-center justify-center shrink-0 border border-gray-100 dark:border-gray-700">
             {previewImage ? (
               <img src={previewImage} alt="Profile" className="w-full h-full object-cover" />
@@ -149,7 +149,7 @@ export default function EditProfilePage() {
               type="text"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              className="w-full bg-white dark:bg-[#454545] border-none rounded-2xl px-4 py-4 text-[15px] font-medium text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 shadow-sm"
+              className="w-full bg-white dark:bg-[#2c2c2c] border-none rounded-2xl px-4 py-4 text-[15px] font-medium text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 shadow-sm"
               required
             />
           </div>
@@ -162,7 +162,7 @@ export default function EditProfilePage() {
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full bg-white dark:bg-[#454545] border-none rounded-2xl px-4 py-4 text-[15px] font-medium text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 shadow-sm"
+              className="w-full bg-white dark:bg-[#2c2c2c] border-none rounded-2xl px-4 py-4 text-[15px] font-medium text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 shadow-sm"
             />
           </div>
 
@@ -174,7 +174,7 @@ export default function EditProfilePage() {
               type="email"
               value={email}
               readOnly
-              className="w-full bg-white dark:bg-[#454545] border-none rounded-2xl px-4 py-4 text-[15px] font-medium text-gray-900 dark:text-white opacity-80 shadow-sm"
+              className="w-full bg-white dark:bg-[#2c2c2c] border-none rounded-2xl px-4 py-4 text-[15px] font-medium text-gray-900 dark:text-white opacity-80 shadow-sm"
             />
           </div>
 
@@ -186,7 +186,7 @@ export default function EditProfilePage() {
               type="tel"
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
-              className="w-full bg-white dark:bg-[#454545] border-none rounded-2xl px-4 py-4 text-[15px] font-medium text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 shadow-sm"
+              className="w-full bg-white dark:bg-[#2c2c2c] border-none rounded-2xl px-4 py-4 text-[15px] font-medium text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 shadow-sm"
             />
           </div>
 
@@ -198,7 +198,7 @@ export default function EditProfilePage() {
               type="text"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
-              className="w-full bg-white dark:bg-[#454545] border-none rounded-2xl px-4 py-4 text-[15px] font-medium text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 shadow-sm"
+              className="w-full bg-white dark:bg-[#2c2c2c] border-none rounded-2xl px-4 py-4 text-[15px] font-medium text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 shadow-sm"
             />
           </div>
 
@@ -210,7 +210,7 @@ export default function EditProfilePage() {
               type="text"
               value={city}
               onChange={(e) => setCity(e.target.value)}
-              className="w-full bg-white dark:bg-[#454545] border-none rounded-2xl px-4 py-4 text-[15px] font-medium text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 shadow-sm"
+              className="w-full bg-white dark:bg-[#2c2c2c] border-none rounded-2xl px-4 py-4 text-[15px] font-medium text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 shadow-sm"
             />
           </div>
 
@@ -222,7 +222,7 @@ export default function EditProfilePage() {
               type="text"
               value={state}
               onChange={(e) => setState(e.target.value)}
-              className="w-full bg-white dark:bg-[#454545] border-none rounded-2xl px-4 py-4 text-[15px] font-medium text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 shadow-sm"
+              className="w-full bg-white dark:bg-[#2c2c2c] border-none rounded-2xl px-4 py-4 text-[15px] font-medium text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 shadow-sm"
             />
           </div>
 
@@ -234,7 +234,7 @@ export default function EditProfilePage() {
               type="text"
               value={country}
               onChange={(e) => setCountry(e.target.value)}
-              className="w-full bg-white dark:bg-[#454545] border-none rounded-2xl px-4 py-4 text-[15px] font-medium text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 shadow-sm"
+              className="w-full bg-white dark:bg-[#2c2c2c] border-none rounded-2xl px-4 py-4 text-[15px] font-medium text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 shadow-sm"
             />
           </div>
 

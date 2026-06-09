@@ -71,7 +71,7 @@ export default function LLCManagementPage() {
             <div className="flex flex-col gap-4">
               
               {/* Total LLCs */}
-              <div className="bg-white dark:bg-[#454545] rounded-[16px] p-5 flex items-center justify-between shadow-[0_2px_15px_-4px_rgba(0,0,0,0.05)] border-l-4 border-l-[#1e3a8a]">
+              <div className="bg-white dark:bg-[#2c2c2c] rounded-[16px] p-5 flex items-center justify-between shadow-[0_2px_15px_-4px_rgba(0,0,0,0.05)] border-l-4 border-l-[#1e3a8a]">
                 <div>
                   <p className="text-[14px] font-semibold text-[#374151] dark:text-gray-300 mb-1">Total LLCs</p>
                   <p className="text-[24px] font-semibold text-[#111827] dark:text-white mb-0.5 leading-none">{totalLLCs}</p>
@@ -83,7 +83,7 @@ export default function LLCManagementPage() {
               </div>
               
               {/* Approved LLCs */}
-              <div className="bg-white dark:bg-[#454545] rounded-[16px] p-5 flex items-center justify-between shadow-[0_2px_15px_-4px_rgba(0,0,0,0.05)] border-l-4 border-l-[#10b981]">
+              <div className="bg-white dark:bg-[#2c2c2c] rounded-[16px] p-5 flex items-center justify-between shadow-[0_2px_15px_-4px_rgba(0,0,0,0.05)] border-l-4 border-l-[#10b981]">
                 <div>
                   <p className="text-[14px] font-semibold text-[#374151] dark:text-gray-300 mb-1">Approved LLCs</p>
                   <p className="text-[24px] font-semibold text-[#111827] dark:text-white mb-0.5 leading-none">{stats.approved}</p>
@@ -95,7 +95,7 @@ export default function LLCManagementPage() {
               </div>
 
               {/* Pending LLCs */}
-              <div className="bg-white dark:bg-[#454545] rounded-[16px] p-5 flex items-center justify-between shadow-[0_2px_15px_-4px_rgba(0,0,0,0.05)] border-l-4 border-l-[#f59e0b]">
+              <div className="bg-white dark:bg-[#2c2c2c] rounded-[16px] p-5 flex items-center justify-between shadow-[0_2px_15px_-4px_rgba(0,0,0,0.05)] border-l-4 border-l-[#f59e0b]">
                 <div>
                   <p className="text-[14px] font-semibold text-[#374151] dark:text-gray-300 mb-1">Pending LLCs</p>
                   <p className="text-[24px] font-semibold text-[#111827] dark:text-white mb-0.5 leading-none">{stats.pending + stats.processing}</p>
@@ -109,7 +109,7 @@ export default function LLCManagementPage() {
             </div>
 
             {/* Applications List Section */}
-            <div className="bg-white dark:bg-[#454545] rounded-[20px] shadow-[0_2px_15px_-4px_rgba(0,0,0,0.05)] p-5 pb-8 mt-6">
+            <div className="bg-white dark:bg-[#2c2c2c] rounded-[20px] shadow-[0_2px_15px_-4px_rgba(0,0,0,0.05)] p-5 pb-8 mt-6">
               <h2 className="text-[18px] font-semibold text-[#111827] dark:text-white mb-4">Your LLC Applications</h2>
               <button
                 onClick={() => router.push('/dashboard/llc/start')}

@@ -54,7 +54,7 @@ export default function LLCStartPage() {
   return (
     <div className="min-h-full bg-white dark:bg-[#181818] font-sans text-gray-900 dark:text-white">
       {/* Header */}
-      <header className="bg-white dark:bg-[#454545] px-4 md:px-6 h-16 flex items-center justify-between border-b border-gray-200 dark:border-gray-800">
+      <header className="bg-white dark:bg-[#2c2c2c] px-4 md:px-6 h-16 flex items-center justify-between border-b border-gray-200 dark:border-gray-800">
         <div className="flex items-center">
           <img 
             src={isDarkMode ? '/wyoming-dark.png' : '/wyoming-light.png'} 
@@ -104,7 +104,7 @@ export default function LLCStartPage() {
         {/* Choice cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           {/* New Company */}
-          <div className="bg-white dark:bg-[#454545] rounded-2xl border border-gray-300 dark:border-gray-700 shadow-sm p-8 flex flex-col items-center text-center gap-4 hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
+          <div className="bg-white dark:bg-[#2c2c2c] rounded-2xl border border-gray-300 dark:border-gray-700 shadow-sm p-8 flex flex-col items-center text-center gap-4 hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
             <div className="w-14 h-14 bg-[#3b82f6] rounded-xl flex items-center justify-center">
               <Building2 size={26} className="text-white" />
             </div>
@@ -124,7 +124,7 @@ export default function LLCStartPage() {
           </div>
 
           {/* Existing Company */}
-          <div className="bg-white dark:bg-[#454545] rounded-2xl border border-gray-300 dark:border-gray-700 shadow-sm p-8 flex flex-col items-center text-center gap-4 hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
+          <div className="bg-white dark:bg-[#2c2c2c] rounded-2xl border border-gray-300 dark:border-gray-700 shadow-sm p-8 flex flex-col items-center text-center gap-4 hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
             <div className="w-14 h-14 bg-[#3b82f6] rounded-xl flex items-center justify-center">
               <RefreshCw size={26} className="text-white" />
             </div>
@@ -145,7 +145,7 @@ export default function LLCStartPage() {
         </div>
 
         {/* Understanding Business Structures */}
-        <div className="bg-[#f8fafc] dark:bg-[#454545] rounded-2xl border border-gray-200 dark:border-gray-800 p-8 mt-4">
+        <div className="bg-[#f8fafc] dark:bg-[#2c2c2c] rounded-2xl border border-gray-200 dark:border-gray-800 p-8 mt-4">
           <h2 className="text-[20px] font-semibold text-gray-900 dark:text-white mb-6">
             Understanding Business Structures
           </h2>

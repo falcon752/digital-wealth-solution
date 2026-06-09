@@ -52,7 +52,7 @@ export default function DepositLogPage() {
         ) : (
           <div className="space-y-3">
             {transactions.map((tx) => (
-              <div key={tx.id} className="bg-white dark:bg-[#454545] rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700/50 flex flex-col gap-3">
+              <div key={tx.id} className="bg-white dark:bg-[#2c2c2c] rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700/50 flex flex-col gap-3">
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-500">
