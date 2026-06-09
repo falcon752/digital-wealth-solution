@@ -30,7 +30,7 @@ export default function DepositLogPage() {
   const totalPages = Math.ceil(total / LIMIT);
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#f4f5f8] dark:bg-[#0f172a] pb-20">
+    <div className="flex flex-col min-h-screen bg-[#f4f5f8] dark:bg-[#181818] pb-20">
       <DashboardHeader title="Deposit Log" />
 
       <div className="flex-1 p-4 flex flex-col space-y-4 mt-2">
@@ -52,7 +52,7 @@ export default function DepositLogPage() {
         ) : (
           <div className="space-y-3">
             {transactions.map((tx) => (
-              <div key={tx.id} className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700/50 flex flex-col gap-3">
+              <div key={tx.id} className="bg-white dark:bg-[#454545] rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700/50 flex flex-col gap-3">
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-500">

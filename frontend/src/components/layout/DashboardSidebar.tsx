@@ -56,7 +56,7 @@ export default function DashboardSidebar() {
       <aside
         className={cn(
           // Base — fixed drawer on mobile
-          'fixed inset-y-0 left-0 z-50 flex flex-col h-[100dvh] w-[80%] max-w-[320px] bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 transition-transform duration-300 ease-in-out',
+          'fixed inset-y-0 left-0 z-50 flex flex-col h-[100dvh] w-[80%] max-w-[320px] bg-white dark:bg-[#454545] border-r border-gray-200 dark:border-gray-800 transition-transform duration-300 ease-in-out',
           // Desktop — static, narrower
           'md:static md:translate-x-0 md:w-64 md:shrink-0',
           // Mobile — slide in/out
@@ -90,7 +90,7 @@ export default function DashboardSidebar() {
                   'flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all duration-200 text-[15px] font-semibold',
                   active
                     ? 'bg-[#f4f8ff] border border-blue-100 dark:bg-blue-900/20 dark:border-blue-900 text-[#2d68d8] dark:text-blue-400'
-                    : 'bg-white border border-transparent dark:bg-gray-900 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
+                    : 'bg-white border border-transparent dark:bg-[#454545] text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
                 )}
               >
                 <Icon size={20} className={cn("shrink-0", active ? "text-[#2d68d8] dark:text-blue-400" : "text-gray-400 dark:text-gray-500")} />

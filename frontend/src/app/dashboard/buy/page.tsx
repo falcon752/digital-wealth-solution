@@ -45,11 +45,11 @@ export default function BuyCryptoPage() {
   const cryptoAmount = currentPrice > 0 ? (parseFloat(amount || '0') / currentPrice).toFixed(8) : '0.00000000';
 
   return (
-    <div className="flex flex-col min-h-screen pb-20 bg-[#f4f5f8] dark:bg-[#0f172a]">
+    <div className="flex flex-col min-h-screen pb-20 bg-[#f4f5f8] dark:bg-[#181818]">
       <DashboardHeader title={`Buy Crypto`} />
 
       <div className="flex-1 p-4 mt-6">
-        <div className="w-full max-w-md mx-auto bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700/50 p-6 flex flex-col items-center">
+        <div className="w-full max-w-md mx-auto bg-white dark:bg-[#454545] rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700/50 p-6 flex flex-col items-center">
           
           {/* Amount Input */}
           <div className="flex flex-col items-center w-full mb-8">
@@ -82,10 +82,10 @@ export default function BuyCryptoPage() {
                 setTempProvider(provider);
                 setIsProviderModalOpen(true);
               }}
-              className="w-full flex items-center justify-between p-4 bg-[#f4f5f8] dark:bg-gray-900 hover:bg-gray-200 dark:hover:bg-gray-800 transition rounded-2xl"
+              className="w-full flex items-center justify-between p-4 bg-[#f4f5f8] dark:bg-[#454545] hover:bg-gray-200 dark:hover:bg-gray-800 transition rounded-2xl"
             >
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-white dark:bg-gray-800 flex items-center justify-center shadow-sm">
+                <div className="w-10 h-10 rounded-xl bg-white dark:bg-[#454545] flex items-center justify-center shadow-sm">
                   <CreditCard size={20} className="text-[#2d68d8]" />
                 </div>
                 <div className="flex flex-col items-start">

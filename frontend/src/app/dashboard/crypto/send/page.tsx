@@ -72,7 +72,7 @@ export default function SendAssetsPage() {
   }, [search, assets]);
 
   return (
-    <div className="flex flex-col min-h-full bg-white dark:bg-gray-950">
+    <div className="flex flex-col min-h-full bg-white dark:bg-[#181818]">
       {/* Header */}
       <div className="flex items-center justify-between px-4 h-14 border-b border-gray-100 dark:border-gray-800 shrink-0">
         <button
@@ -87,7 +87,7 @@ export default function SendAssetsPage() {
 
       {/* Search */}
       <div className="px-4 py-4 shrink-0">
-        <div className="flex items-center gap-2.5 bg-gray-100 dark:bg-gray-800 rounded-xl px-4 h-11">
+        <div className="flex items-center gap-2.5 bg-gray-100 dark:bg-[#454545] rounded-xl px-4 h-11">
           <Search size={16} className="text-gray-400 shrink-0" />
           <input
             type="text"
@@ -133,7 +133,7 @@ export default function SendAssetsPage() {
                 </button>
               </div>
               {i < filtered.length - 1 && (
-                <div className="h-px bg-gray-100 dark:bg-gray-800 mx-5" />
+                <div className="h-px bg-gray-100 dark:bg-[#454545] mx-5" />
               )}
             </div>
           ))}

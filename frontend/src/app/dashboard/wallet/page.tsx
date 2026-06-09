@@ -37,11 +37,15 @@ export default function UserDashboard() {
   const [dbAssets, setDbAssets] = useState<DbAsset[]>([]);
   const [prices, setPrices] = useState<Record<string, number>>({});
   const [changes24h, setChanges24h] = useState<Record<string, number>>({});
-  const [isBalanceHidden, setIsBalanceHidden] = useState(false);
+  const [isBalanceHidden, setIsBalanceHidden] = useState(true);
+  const [assetsLoading, setAssetsLoading] = useState(true);
 
   useEffect(() => {
     usersAPI.getDashboardStats().then((res) => setStats(res.data)).catch(console.error);
-    assetsAPI.list().then(res => setDbAssets(res.data.assets || [])).catch(console.error);
+    assetsAPI.list()
+      .then(res => setDbAssets(res.data.assets || []))
+      .catch(console.error)
+      .finally(() => setAssetsLoading(false));
     assetsAPI.prices().then(res => {
       setPrices(res.data.prices || {});
       setChanges24h(res.data.changes24h || {});
@@ -93,10 +97,10 @@ export default function UserDashboard() {
     });
 
   return (
-    <div className="min-h-full flex flex-col bg-white dark:bg-gray-900 pb-10">
+    <div className="min-h-full flex flex-col bg-white dark:bg-[#181818] pb-10">
       
       {/* Header */}
-      <header className="flex justify-between items-center px-4 py-4 bg-white dark:bg-gray-900 sticky top-0 z-10">
+      <header className="flex justify-between items-center px-4 py-4 bg-white dark:bg-[#454545] sticky top-0 z-10">
         <div className="flex items-center gap-3">
           <button onClick={openSidebar} className="text-gray-900 dark:text-white hover:opacity-80 transition p-1 -ml-1 shrink-0">
             <Menu size={24} />
@@ -138,11 +142,11 @@ export default function UserDashboard() {
 
       {/* Action Buttons */}
       <div className="grid grid-cols-4 gap-3 px-4 mb-8">
-        <Link href="/dashboard/withdraw" className="flex flex-col items-center justify-center gap-1.5 bg-[#f4f5f8] dark:bg-gray-800 rounded-2xl text-gray-900 dark:text-white hover:bg-gray-200 transition py-3.5">
+        <Link href="/dashboard/withdraw" className="flex flex-col items-center justify-center gap-1.5 bg-[#f4f5f8] dark:bg-[#454545] rounded-2xl text-gray-900 dark:text-white hover:bg-gray-200 transition py-3.5">
           <ArrowUp size={22} />
           <span className="text-xs font-semibold">Send</span>
         </Link>
-        <Link href="/dashboard/deposit" className="flex flex-col items-center justify-center gap-1.5 bg-[#f4f5f8] dark:bg-gray-800 rounded-2xl text-gray-900 dark:text-white hover:bg-gray-200 transition py-3.5">
+        <Link href="/dashboard/deposit" className="flex flex-col items-center justify-center gap-1.5 bg-[#f4f5f8] dark:bg-[#454545] rounded-2xl text-gray-900 dark:text-white hover:bg-gray-200 transition py-3.5">
           <QrCode size={22} />
           <span className="text-xs font-semibold">Receive</span>
         </Link>
@@ -150,7 +154,7 @@ export default function UserDashboard() {
           <Zap size={22} className="fill-current" />
           <span className="text-xs font-semibold">Buy</span>
         </Link>
-        <Link href="/dashboard/swap" className="flex flex-col items-center justify-center gap-1.5 bg-[#f4f5f8] dark:bg-gray-800 rounded-2xl text-gray-900 dark:text-white hover:bg-gray-200 transition py-3.5">
+        <Link href="/dashboard/swap" className="flex flex-col items-center justify-center gap-1.5 bg-[#f4f5f8] dark:bg-[#454545] rounded-2xl text-gray-900 dark:text-white hover:bg-gray-200 transition py-3.5">
           <ArrowLeftRight size={22} />
           <span className="text-xs font-semibold">Swap</span>
         </Link>
@@ -173,12 +177,32 @@ export default function UserDashboard() {
 
       {/* Asset List */}
       <div className="flex flex-col">
+        {assetsLoading && (
+          <div className="flex flex-col" aria-label="Loading assets">
+            {[0, 1, 2, 3].map((item) => (
+              <div key={item} className="flex items-start gap-3 px-4 py-4 border-b border-gray-50 dark:border-gray-800/50">
+                <div className="w-[42px] h-[42px] rounded-full bg-gray-100 dark:bg-[#454545] animate-pulse shrink-0" />
+                <div className="flex-1 space-y-2.5">
+                  <div className="flex justify-between gap-4">
+                    <div className="h-4 w-16 rounded bg-gray-100 dark:bg-[#454545] animate-pulse" />
+                    <div className="h-4 w-24 rounded bg-gray-100 dark:bg-[#454545] animate-pulse" />
+                  </div>
+                  <div className="flex justify-between gap-4">
+                    <div className="h-3 w-28 rounded bg-gray-100 dark:bg-[#454545] animate-pulse" />
+                    <div className="h-3 w-14 rounded bg-gray-100 dark:bg-[#454545] animate-pulse" />
+                  </div>
+                  <div className="h-3 w-20 rounded bg-gray-100 dark:bg-[#454545] animate-pulse" />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
         {activeAssets.map((asset) => (
           <div key={asset.symbol} className="flex items-start gap-3 px-4 py-4 border-b border-gray-50 dark:border-gray-800/50 hover:bg-gray-50 dark:hover:bg-gray-800/20 transition cursor-pointer">
             <img 
               src={`https://assets.coincap.io/assets/icons/${asset.symbol.toLowerCase()}@2x.png`} 
               alt={asset.symbol} 
-              className="w-[42px] h-[42px] rounded-full object-cover shadow-sm shrink-0 bg-white dark:bg-gray-800" 
+              className="w-[42px] h-[42px] rounded-full object-cover shadow-sm shrink-0 bg-white dark:bg-[#454545]"
               onError={(e) => {
                 e.currentTarget.onerror = null; 
                 e.currentTarget.src = `https://ui-avatars.com/api/?name=${asset.symbol[0]}&background=${asset.color.replace('#','')}&color=fff&rounded=true&bold=true`;
@@ -208,7 +232,7 @@ export default function UserDashboard() {
             </div>
           </div>
         ))}
-        {activeAssets.length === 0 && (
+        {!assetsLoading && activeAssets.length === 0 && (
           <div className="py-10 text-center text-gray-400 font-medium">
             No assets available
           </div>

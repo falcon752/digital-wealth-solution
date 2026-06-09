@@ -241,7 +241,7 @@ export default function AdminOnboardingPaymentsPage() {
                     <tr>
                       <td colSpan={4} className="px-6 py-16 text-center">
                         <div className="flex flex-col items-center justify-center max-w-sm mx-auto">
-                          <div className="p-4 rounded-full bg-gray-50 dark:bg-gray-900 text-gray-400 mb-3">
+                          <div className="p-4 rounded-full bg-gray-50 dark:bg-black text-gray-400 mb-3">
                             <CreditCard size={28} />
                           </div>
                           <p className="text-sm font-semibold text-gray-600 dark:text-gray-300">No users found</p>

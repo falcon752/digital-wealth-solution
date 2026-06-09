@@ -80,9 +80,9 @@ export default function DepositsPage() {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-full bg-gray-100 dark:bg-gray-900">
+    <div className="flex flex-col min-h-full bg-gray-100 dark:bg-[#181818]">
       {/* Header */}
-      <div className="bg-white dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800">
+      <div className="bg-white dark:bg-[#454545] border-b border-gray-200 dark:border-gray-800">
         <div className="flex items-center justify-between px-4 h-14">
           <button
             onClick={() => router.back()}
@@ -103,7 +103,7 @@ export default function DepositsPage() {
       </div>
 
       <div className="flex-1 px-4 py-5">
-        <div className="bg-white dark:bg-gray-950 rounded-2xl border border-gray-200 dark:border-gray-800 p-5">
+        <div className="bg-white dark:bg-[#454545] rounded-2xl border border-gray-200 dark:border-gray-800 p-5">
           <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Deposit Assets History</h2>
 
           {loading ? (

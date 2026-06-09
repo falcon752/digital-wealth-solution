@@ -59,7 +59,7 @@ export default function FinanceDashboardPage() {
   useEffect(() => { load(); }, []);
 
   return (
-    <div className="flex flex-col min-h-full pb-20 bg-white dark:bg-gray-900">
+    <div className="flex flex-col min-h-full pb-20 bg-white dark:bg-[#181818]">
       <DashboardHeader title="Finance Dashboard" />
 
       {/* Dismissable Purple Banner */}
@@ -94,7 +94,7 @@ export default function FinanceDashboardPage() {
             <div className="grid grid-cols-2 gap-4">
               
               {/* Active Loans */}
-              <div className="bg-white dark:bg-gray-800 rounded-[16px] border border-gray-100 dark:border-gray-700 p-5 flex flex-col items-center justify-center gap-3 shadow-sm">
+              <div className="bg-white dark:bg-[#454545] rounded-[16px] border border-gray-100 dark:border-gray-700 p-5 flex flex-col items-center justify-center gap-3 shadow-sm">
                 <div className="w-10 h-10 rounded-full bg-[#eff6ff] dark:bg-blue-900/30 flex items-center justify-center shrink-0">
                   <ArrowRightLeft size={18} className="text-[#3b82f6]" strokeWidth={2.5} />
                 </div>
@@ -107,7 +107,7 @@ export default function FinanceDashboardPage() {
               </div>
 
               {/* Active Collateral */}
-              <div className="bg-white dark:bg-gray-800 rounded-[16px] border border-gray-100 dark:border-gray-700 p-5 flex flex-col items-center justify-center gap-3 shadow-sm">
+              <div className="bg-white dark:bg-[#454545] rounded-[16px] border border-gray-100 dark:border-gray-700 p-5 flex flex-col items-center justify-center gap-3 shadow-sm">
                 <div className="w-10 h-10 rounded-full bg-[#fef2f2] dark:bg-red-900/30 flex items-center justify-center shrink-0">
                   <CircleDollarSign size={18} className="text-[#ef4444]" strokeWidth={2.5} />
                 </div>
@@ -120,7 +120,7 @@ export default function FinanceDashboardPage() {
               </div>
 
               {/* Active Earnings */}
-              <div className="col-span-2 bg-white dark:bg-gray-800 rounded-[16px] border border-gray-100 dark:border-gray-700 p-5 flex flex-col items-center justify-center gap-3 shadow-sm">
+              <div className="col-span-2 bg-white dark:bg-[#454545] rounded-[16px] border border-gray-100 dark:border-gray-700 p-5 flex flex-col items-center justify-center gap-3 shadow-sm">
                 <div className="w-10 h-10 rounded-full bg-[#ecfdf5] dark:bg-green-900/30 flex items-center justify-center shrink-0">
                   <PiggyBank size={18} className="text-[#10b981]" strokeWidth={2.5} />
                 </div>
