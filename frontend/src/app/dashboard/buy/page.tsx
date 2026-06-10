@@ -12,13 +12,13 @@ export default function BuyCryptoPage() {
   const router = useRouter();
   const [amount, setAmount] = useState('150');
   const [selectedAsset, setSelectedAsset] = useState('BTC');
-  const [provider, setProvider] = useState<'MoonPay' | 'Transak' | null>(null);
+  const [provider, setProvider] = useState<'MoonPay' | 'Transak' | 'Simplex' | 'Ramp' | null>(null);
   
   const [assets, setAssets] = useState<any[]>([]);
   const [prices, setPrices] = useState<Record<string, number>>({});
   
   const [isProviderModalOpen, setIsProviderModalOpen] = useState(false);
-  const [tempProvider, setTempProvider] = useState<'MoonPay' | 'Transak' | null>(null);
+  const [tempProvider, setTempProvider] = useState<'MoonPay' | 'Transak' | 'Simplex' | 'Ramp' | null>(null);
 
   const [isAssetModalOpen, setIsAssetModalOpen] = useState(false);
 
@@ -38,6 +38,10 @@ export default function BuyCryptoPage() {
       window.open(`https://www.moonpay.com/buy?currencyCode=${selectedAsset.toLowerCase()}&baseCurrencyCode=usd&baseCurrencyAmount=${amount}`, '_blank');
     } else if (provider === 'Transak') {
       window.open(`https://global.transak.com/?fiatCurrency=USD&cryptoCurrencyCode=${selectedAsset.toUpperCase()}&fiatAmount=${amount}`, '_blank');
+    } else if (provider === 'Simplex') {
+      window.open(`https://simplex.com/buy?currency=${selectedAsset.toUpperCase()}&fiat=USD&amount=${amount}`, '_blank');
+    } else if (provider === 'Ramp') {
+      window.open(`https://app.ramp.network/buy?hostApiKey=default&cryptoAsset=${selectedAsset.toUpperCase()}&fiatCurrency=USD&defaultAmount=${amount}`, '_blank');
     }
   };
 
@@ -145,6 +149,32 @@ export default function BuyCryptoPage() {
             <div className="flex items-center gap-3">
               <CreditCard size={20} className="text-gray-400" />
               <span className="text-gray-900 dark:text-white font-semibold text-sm">MoonPay</span>
+            </div>
+          </button>
+
+          <button 
+            onClick={() => setTempProvider('Simplex')}
+            className={`w-full flex items-center gap-3 p-4 rounded-xl border-2 transition ${tempProvider === 'Simplex' ? 'border-[#3b82f6] bg-blue-50/5 dark:bg-blue-900/10' : 'border-transparent hover:bg-gray-50 dark:hover:bg-white/5'}`}
+          >
+            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${tempProvider === 'Simplex' ? 'border-[#3b82f6]' : 'border-gray-400'}`}>
+              {tempProvider === 'Simplex' && <div className="w-2.5 h-2.5 rounded-full bg-[#3b82f6]" />}
+            </div>
+            <div className="flex items-center gap-3">
+              <CreditCard size={20} className="text-gray-400" />
+              <span className="text-gray-900 dark:text-white font-semibold text-sm">Simplex</span>
+            </div>
+          </button>
+
+          <button 
+            onClick={() => setTempProvider('Ramp')}
+            className={`w-full flex items-center gap-3 p-4 rounded-xl border-2 transition ${tempProvider === 'Ramp' ? 'border-[#3b82f6] bg-blue-50/5 dark:bg-blue-900/10' : 'border-transparent hover:bg-gray-50 dark:hover:bg-white/5'}`}
+          >
+            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${tempProvider === 'Ramp' ? 'border-[#3b82f6]' : 'border-gray-400'}`}>
+              {tempProvider === 'Ramp' && <div className="w-2.5 h-2.5 rounded-full bg-[#3b82f6]" />}
+            </div>
+            <div className="flex items-center gap-3">
+              <CreditCard size={20} className="text-gray-400" />
+              <span className="text-gray-900 dark:text-white font-semibold text-sm">Ramp</span>
             </div>
           </button>
 
