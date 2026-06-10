@@ -77,7 +77,7 @@ export default function LoginPage() {
       </div>
 
       {/* Form card */}
-      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700/50 rounded-2xl shadow-sm p-8">
+      <div className="bg-white dark:bg-[#2c2c2c] border border-gray-200 dark:border-gray-700/50 rounded-2xl shadow-sm p-8">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <Input
             label="Email Address"
@@ -151,7 +151,7 @@ export default function LoginPage() {
       </div>
 
       {/* Need Help card */}
-      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700/50 rounded-2xl shadow-sm p-6 text-center">
+      <div className="bg-white dark:bg-[#2c2c2c] border border-gray-200 dark:border-gray-700/50 rounded-2xl shadow-sm p-6 text-center">
         <h3 className="font-semibold text-(--text-primary) mb-1">Need Help?</h3>
         <p className="text-sm text-(--text-muted) mb-4">
           Our customer support team is here to assist you with your account and investment questions.

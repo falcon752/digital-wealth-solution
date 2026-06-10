@@ -5,11 +5,12 @@ import ThemeToggle from '@/components/layout/ThemeToggle';
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="auth-page min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900">
+    <div className="auth-page min-h-screen flex flex-col bg-[#f9f9fb] dark:bg-[#181818]">
       {/* Navbar */}
-      <nav className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700/50 bg-white dark:bg-gray-900">
+      <nav className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#2c2c2c]">
         <Link href="/" className="flex items-center">
-          <Image src="/wyoming.png" alt="Wyoming" width={140} height={40} className="h-10 w-auto" priority />
+          <Image src="/wyoming.png" alt="Wyoming" width={140} height={40} className="h-10 w-auto dark:hidden" priority />
+          <Image src="/wyoming-dark.png" alt="Wyoming" width={140} height={40} className="h-10 w-auto hidden dark:block" priority />
         </Link>
         <ThemeToggle />
       </nav>
@@ -20,13 +21,13 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       </div>
 
       {/* Footer */}
-      <footer className="px-6 py-4 border-t border-gray-200 dark:border-gray-700/50 bg-white dark:bg-gray-900">
+      <footer className="px-6 py-4 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-[#2c2c2c]">
         <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p className="text-xs text-(--text-muted)">© 2025 Digital Wealth Partner. All rights reserved.</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">© 2025 Digital Wealth Partner. All rights reserved.</p>
           <div className="flex items-center gap-4">
-            <Link href="#" className="text-xs text-(--text-muted) hover:text-(--text-primary) transition-colors">Privacy Policy</Link>
-            <Link href="#" className="text-xs text-(--text-muted) hover:text-(--text-primary) transition-colors">Terms of Service</Link>
-            <Link href="#" className="text-xs text-(--text-muted) hover:text-(--text-primary) transition-colors">Contact</Link>
+            <Link href="#" className="text-xs text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Privacy Policy</Link>
+            <Link href="#" className="text-xs text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Terms of Service</Link>
+            <Link href="#" className="text-xs text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Contact</Link>
           </div>
         </div>
       </footer>

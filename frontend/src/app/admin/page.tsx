@@ -21,13 +21,13 @@ export default function AdminDashboard() {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-full">
+    <div className="flex flex-col min-h-full bg-[#f9f9fb] dark:bg-[#181818]">
       <DashboardHeader title="Admin Dashboard" subtitle="Platform overview" />
 
       <div className="flex-1 p-6 space-y-6">
         {loading ? (
           <div className="flex items-center justify-center h-48">
-            <div className="w-8 h-8 border-2 border-brand-400 border-t-transparent rounded-full animate-spin" />
+            <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
           </div>
         ) : (
           <>
@@ -41,13 +41,13 @@ export default function AdminDashboard() {
 
             {/* Pending Actions */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="glass rounded-2xl p-5">
+              <div className="bg-white dark:bg-[#2c2c2c] border border-gray-200 dark:border-gray-700/50 rounded-2xl p-5">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-lg bg-amber-500/15 flex items-center justify-center">
                       <ArrowDownToLine size={16} className="text-amber-400" />
                     </div>
-                    <span className="font-semibold text-[var(--text-primary)]">Pending Deposits</span>
+                    <span className="font-semibold text-gray-900 dark:text-white">Pending Deposits</span>
                   </div>
                   <span className="text-2xl font-semibold text-amber-400">{stats?.pendingDeposits || 0}</span>
                 </div>
@@ -56,15 +56,15 @@ export default function AdminDashboard() {
                 </Link>
               </div>
 
-              <div className="glass rounded-2xl p-5">
+              <div className="bg-white dark:bg-[#2c2c2c] border border-gray-200 dark:border-gray-700/50 rounded-2xl p-5">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-brand-500/15 flex items-center justify-center">
-                      <ArrowUpFromLine size={16} className="text-brand-400" />
+                    <div className="w-8 h-8 rounded-lg bg-blue-500/15 flex items-center justify-center">
+                      <ArrowUpFromLine size={16} className="text-blue-400" />
                     </div>
-                    <span className="font-semibold text-[var(--text-primary)]">Pending Withdrawals</span>
+                    <span className="font-semibold text-gray-900 dark:text-white">Pending Withdrawals</span>
                   </div>
-                  <span className="text-2xl font-semibold text-brand-400">{stats?.pendingWithdrawals || 0}</span>
+                  <span className="text-2xl font-semibold text-blue-400">{stats?.pendingWithdrawals || 0}</span>
                 </div>
                 <Link href="/admin/withdrawals?status=pending">
                   <Button variant="secondary" size="sm" className="w-full">Review Withdrawals</Button>
@@ -73,7 +73,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Recent Activity */}
-            <div className="glass rounded-2xl p-6">
+            <div className="bg-white dark:bg-[#2c2c2c] border border-gray-200 dark:border-gray-700/50 rounded-2xl p-6">
               <div className="flex items-center justify-between mb-5">
                 <h2 className="font-semibold text-[var(--text-primary)] flex items-center gap-2">
                   <Activity size={18} className="text-brand-400" /> Recent Activity
@@ -84,14 +84,14 @@ export default function AdminDashboard() {
               </div>
               <div className="space-y-2">
                 {stats?.recentActivity?.map((log, i) => (
-                  <div key={i} className="flex items-start justify-between py-2.5 px-3 rounded-xl hover:bg-brand-500/5 transition-colors">
+                  <div key={i} className="flex items-start justify-between py-2.5 px-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
                     <div>
-                      <p className="text-sm text-[var(--text-primary)] font-medium">{log.action.replace(/_/g, ' ')}</p>
-                      <p className="text-xs text-[var(--text-muted)]">
+                      <p className="text-sm text-gray-900 dark:text-white font-medium">{log.action.replace(/_/g, ' ')}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
                         {log.email || 'System'} · {log.ipAddress || 'N/A'}
                       </p>
                     </div>
-                    <p className="text-xs text-[var(--text-muted)] whitespace-nowrap ml-4">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap ml-4">
                       {formatDate(log.createdAt)}
                     </p>
                   </div>
