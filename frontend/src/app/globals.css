@@ -32,7 +32,7 @@
 
 /* ─── Light mode CSS vars ────────────────────────────────────────────────── */
 :root {
-  --bg-page:       #f9fafb;
+  --bg-page:       #f9f9fb;
   --bg-card:       #ffffff;
   --bg-input:      #ffffff;
   --border-color:  #e5e7eb;
@@ -44,13 +44,13 @@
 
 /* ─── Dark mode CSS vars ─────────────────────────────────────────────────── */
 .dark {
-  --bg-page:       #000000;
-  --bg-card:       rgba(255,255,255,0.04);
-  --bg-input:      rgba(255,255,255,0.06);
+  --bg-page:       #181818;
+  --bg-card:       #2c2c2c;
+  --bg-input:      #2c2c2c;
   --border-color:  rgba(96,165,250,0.15);
   --text-primary:  #f0f6ff;
   --text-secondary:#60a5fa;
-  --text-muted:    #6b7280;
+  --text-muted:    #9ca3af;
   --glow:          rgba(37,99,235,0.35);
 }
 
@@ -113,12 +113,13 @@ body {
   --text-muted:     #6b7280;
   --border-color:   #d1d5db;
   --bg-input:       #ffffff;
+  --bg-card:        #ffffff;
 }
 .dark .auth-page {
-  --text-primary:   #f9fafb;
-  --text-secondary: #e5e7eb;
+  --text-primary:   #f0f6ff;
+  --text-secondary: #60a5fa;
   --text-muted:     #9ca3af;
-  --border-color:   rgba(255,255,255,0.12);
-  --bg-input:       rgba(255,255,255,0.06);
-  --bg-card:        rgba(255,255,255,0.05);
+  --border-color:   rgba(96,165,250,0.15);
+  --bg-input:       #2c2c2c;
+  --bg-card:        #2c2c2c;
 }
