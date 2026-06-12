@@ -41,7 +41,15 @@ const PROVIDER_LOGOS: Record<ProviderId, string> = {
 
 function getProviderIcon(id: ProviderId) {
   const logoUrl = PROVIDER_LOGOS[id];
-  if (!logoUrl) return <CreditCard size={18} className="text-gray-500" />;
+  if (!logoUrl) {
+    return (
+      <img
+        src={`https://ui-avatars.com/api/?name=${id}&background=3b82f6&color=fff&rounded=true&bold=true&size=32`}
+        alt={id}
+        className="w-5 h-5 rounded-lg object-contain"
+      />
+    );
+  }
   
   return (
     <img
