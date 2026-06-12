@@ -137,7 +137,7 @@ export default function LoginPage() {
             </Link>
           </div>
 
-          <Button type="submit" className="w-full mt-2 bg-blue-600! hover:bg-blue-700! shadow-blue-600/30!" size="lg" loading={isLoading}>
+          <Button type="submit" className="w-full mt-2 bg-blue-600! hover:bg-blue-700! shadow-blue-600/30! text-white" size="lg" loading={isLoading}>
             {requires2FA ? 'Verify & Sign In' : 'Sign In'}
           </Button>
 

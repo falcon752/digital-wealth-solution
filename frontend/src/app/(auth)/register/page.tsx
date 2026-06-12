@@ -290,7 +290,7 @@ export default function RegisterPage() {
 
             <Button
               type="submit"
-              className="w-full mt-2 bg-blue-600! hover:bg-blue-700! shadow-blue-600/30!"
+              className="w-full mt-2 bg-blue-600! hover:bg-blue-700! shadow-blue-600/30! text-white"
               size="lg"
               loading={isSending}
             >
@@ -355,7 +355,7 @@ export default function RegisterPage() {
         <Button
           type="button"
           onClick={onVerifyOTP}
-          className="w-full bg-blue-600! hover:bg-blue-700! shadow-blue-600/30!"
+          className="w-full bg-blue-600! hover:bg-blue-700! shadow-blue-600/30! text-white"
           size="lg"
           loading={isVerifying}
         >
