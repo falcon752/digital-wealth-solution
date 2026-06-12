@@ -24,6 +24,7 @@ export default function CryptoAssetsPage() {
   const [assetBalances, setAssetBalances] = useState<Record<string, number>>({});
   const [toggledAssets, setToggledAssets] = useState<Record<string, boolean>>({});
   const [loadingToggle, setLoadingToggle] = useState<Record<string, boolean>>({});
+  const [assetsLoading, setAssetsLoading] = useState(true);
   const { user, refreshUser } = useAuth();
 
   useEffect(() => {
@@ -33,7 +34,8 @@ export default function CryptoAssetsPage() {
     ]).then(([assetsRes, statsRes]) => {
       setDbAssets(assetsRes.data.assets || []);
       setAssetBalances(statsRes.data?.assetBalances || {});
-    }).catch(console.error);
+    }).catch(console.error)
+      .finally(() => setAssetsLoading(false));
   }, []);
 
   useEffect(() => {
@@ -114,6 +116,23 @@ export default function CryptoAssetsPage() {
 
         {/* Asset List */}
         <div className="flex flex-col">
+          {assetsLoading && (
+            <div className="flex flex-col" aria-label="Loading assets">
+              {[0, 1, 2, 3, 4, 5].map((item) => (
+                <div key={item} className="flex items-center justify-between px-4 py-4 border-b border-gray-50 dark:border-gray-800/50">
+                  <div className="flex items-center gap-4 flex-1">
+                    <div className="w-[42px] h-[42px] rounded-full bg-gray-100 dark:bg-[#101010] animate-pulse shrink-0" />
+                    <div className="flex flex-col gap-2.5">
+                      <div className="h-4 w-36 rounded bg-gray-100 dark:bg-[#101010] animate-pulse" />
+                      <div className="h-3 w-28 rounded bg-gray-100 dark:bg-[#101010] animate-pulse" />
+                    </div>
+                  </div>
+                  <div className="h-7 w-12 rounded-full bg-gray-100 dark:bg-[#101010] animate-pulse" />
+                </div>
+              ))}
+            </div>
+          )}
+
           {filteredAssets.map((asset) => {
             const isToggled = toggledAssets[asset.symbol] ?? true;
             const balance = assetBalances[asset.id] || 0;
@@ -156,7 +175,7 @@ export default function CryptoAssetsPage() {
             );
           })}
 
-          {filteredAssets.length === 0 && (
+          {!assetsLoading && filteredAssets.length === 0 && (
             <div className="py-10 text-center text-gray-400 font-medium">
               No assets found
             </div>
