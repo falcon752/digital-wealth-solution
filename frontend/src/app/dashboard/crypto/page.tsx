@@ -634,10 +634,7 @@ export default function CryptoAssetsPage() {
           <button
             key={key}
             onClick={() => handleActionClick(key)}
-            className={`flex flex-col items-center justify-center gap-2 py-4 rounded-2xl text-sm font-medium transition-all ${activeAction === key
-                ? 'bg-[#2d5be3] text-white shadow-lg shadow-blue-500/25'
-                : 'bg-gray-100 dark:bg-[#2c2c2c] text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-              }`}
+            className="flex flex-col items-center justify-center gap-2 py-4 rounded-2xl text-sm font-medium transition-all bg-gray-100 dark:bg-[#2c2c2c] text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 active:bg-[#2d5be3] active:text-white"
           >
             <Icon size={20} />
             <span className="text-xs">{label}</span>

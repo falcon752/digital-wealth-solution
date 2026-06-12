@@ -142,19 +142,19 @@ export default function UserDashboard() {
 
       {/* Action Buttons */}
       <div className="grid grid-cols-4 gap-3 px-4 mb-8">
-        <Link href="/dashboard/withdraw" className="flex flex-col items-center justify-center gap-1.5 bg-[#f4f5f8] dark:bg-[#2c2c2c] rounded-2xl text-gray-900 dark:text-white hover:bg-gray-200 transition py-3.5">
+        <Link href="/dashboard/withdraw" className="flex flex-col items-center justify-center gap-1.5 bg-[#f4f5f8] dark:bg-[#2c2c2c] rounded-2xl text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 active:bg-[#2d68d8] active:text-white transition py-3.5">
           <ArrowUp size={22} />
           <span className="text-xs font-semibold">Send</span>
         </Link>
-        <Link href="/dashboard/deposit" className="flex flex-col items-center justify-center gap-1.5 bg-[#f4f5f8] dark:bg-[#2c2c2c] rounded-2xl text-gray-900 dark:text-white hover:bg-gray-200 transition py-3.5">
+        <Link href="/dashboard/deposit" className="flex flex-col items-center justify-center gap-1.5 bg-[#f4f5f8] dark:bg-[#2c2c2c] rounded-2xl text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 active:bg-[#2d68d8] active:text-white transition py-3.5">
           <QrCode size={22} />
           <span className="text-xs font-semibold">Receive</span>
         </Link>
-        <Link href="/dashboard/buy" className="flex flex-col items-center justify-center gap-1.5 bg-[#2d68d8] rounded-2xl text-white hover:bg-[#255bc2] transition shadow-md shadow-blue-500/20 py-3.5">
+        <Link href="/dashboard/buy" className="flex flex-col items-center justify-center gap-1.5 bg-[#f4f5f8] dark:bg-[#2c2c2c] rounded-2xl text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 active:bg-[#2d68d8] active:text-white transition py-3.5">
           <Zap size={22} className="fill-current" />
           <span className="text-xs font-semibold">Buy</span>
         </Link>
-        <Link href="/dashboard/swap" className="flex flex-col items-center justify-center gap-1.5 bg-[#f4f5f8] dark:bg-[#2c2c2c] rounded-2xl text-gray-900 dark:text-white hover:bg-gray-200 transition py-3.5">
+        <Link href="/dashboard/swap" className="flex flex-col items-center justify-center gap-1.5 bg-[#f4f5f8] dark:bg-[#2c2c2c] rounded-2xl text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 active:bg-[#2d68d8] active:text-white transition py-3.5">
           <ArrowLeftRight size={22} />
           <span className="text-xs font-semibold">Swap</span>
         </Link>
