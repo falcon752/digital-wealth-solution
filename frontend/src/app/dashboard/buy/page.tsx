@@ -177,7 +177,7 @@ export default function BuyCryptoPage() {
                 </div>
               </div>
 
-              <Button onClick={openProvider} className="w-full h-14 bg-[#2d68d8] hover:bg-blue-700 text-white">
+              <Button onClick={openProvider} variant="primary" size="lg" className="w-full h-14">
                 Continue to {provider}
                 <ArrowUpRight size={17} />
               </Button>

@@ -15,36 +15,120 @@ function createTransporter() {
 
 const FROM = () => process.env.EMAIL_FROM || 'DWP Mail <noreply@digitalwealthpartners.com>';
 
-// ─── Colour tokens (blue palette) ────────────────────────────────────────────
-// bg:        #03101f  (deep navy body)
-// card-bg:   #071a30  (slightly lighter card bg)
-// border:    #1d4ed8  (blue-700 — borders & accents)
-// heading:   #2563eb  (blue-600 — h2 brand colour)
-// accent:    #60a5fa  (blue-400 — subtitles, labels, OTP digit colour)
-// btn:       #2563eb  (blue-600 button bg)
-// divider:   #0f2a4a
+function themedEmail(content) {
+  return `<!doctype html>
+<html>
+  <head>
+    <meta name="color-scheme" content="light dark">
+    <meta name="supported-color-schemes" content="light dark">
+    <style>
+      :root {
+        color-scheme: light dark;
+        supported-color-schemes: light dark;
+      }
+      .email-shell {
+        margin: 0;
+        padding: 24px 12px;
+        background: #f4f7fb !important;
+        color: #111827 !important;
+      }
+      .email-shell > div {
+        background: #ffffff !important;
+        color: #111827 !important;
+        border: 1px solid #e5e7eb !important;
+        box-shadow: 0 8px 28px rgba(15, 23, 42, 0.08);
+      }
+      .email-shell p,
+      .email-shell td {
+        color: #374151 !important;
+      }
+      .email-shell strong {
+        color: #111827 !important;
+      }
+      .email-shell h2 {
+        color: #1d4ed8 !important;
+      }
+      .email-shell h3,
+      .email-shell a,
+      .email-shell span {
+        color: #2563eb !important;
+      }
+      .email-shell hr {
+        border-color: #e5e7eb !important;
+      }
+      .email-shell div {
+        border-color: #dbeafe !important;
+      }
+      .email-shell a[style*="background"] {
+        background: #2563eb !important;
+        color: #ffffff !important;
+      }
+      @media (prefers-color-scheme: dark) {
+        .email-shell {
+          background: #0f1115 !important;
+          color: #f8fafc !important;
+        }
+        .email-shell > div {
+          background: #181818 !important;
+          color: #f8fafc !important;
+          border-color: #2f3542 !important;
+          box-shadow: none !important;
+        }
+        .email-shell p,
+        .email-shell td {
+          color: #d1d5db !important;
+        }
+        .email-shell strong {
+          color: #ffffff !important;
+        }
+        .email-shell h2 {
+          color: #93c5fd !important;
+        }
+        .email-shell h3,
+        .email-shell a,
+        .email-shell span {
+          color: #60a5fa !important;
+        }
+        .email-shell hr {
+          border-color: #2f3542 !important;
+        }
+        .email-shell div {
+          border-color: #334155 !important;
+        }
+        .email-shell a[style*="background"] {
+          background: #2563eb !important;
+          color: #ffffff !important;
+        }
+      }
+    </style>
+  </head>
+  <body class="email-shell">
+    ${content}
+  </body>
+</html>`;
+}
 
 // ─── Signup OTP email ────────────────────────────────────────────────────────
 async function sendSignupOTPEmail(to, firstName, otp) {
   const transporter = createTransporter();
 
   const html = `
-    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
+    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
       <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
       <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">Email Verification</p>
 
       <p>Hi <strong>${firstName}</strong>,</p>
       <p>To complete your account registration, enter the verification code below on the sign-up page:</p>
 
-      <div style="background:#071a30;border:1px solid #1d4ed8;padding:24px;text-align:center;border-radius:12px;margin:24px 0;">
+      <div style="background:#f4f7fb;border:1px solid #dbeafe;padding:24px;text-align:center;border-radius:12px;margin:24px 0;">
         <span style="font-size:44px;font-weight:bold;letter-spacing:14px;color:#60a5fa;">${otp}</span>
       </div>
 
       <p style="color:#6b7280;font-size:13px;">
-        This code expires in <strong style="color:#f0f6ff;">10 minutes</strong>.
+        This code expires in <strong style="color:#111827;">10 minutes</strong>.
         If you did not attempt to register an account, please ignore this email.
       </p>
-      <hr style="border-color:#0f2a4a;margin:24px 0;" />
+      <hr style="border-color:#e5e7eb;margin:24px 0;" />
       <p style="color:#6b7280;font-size:12px;">© Digital Wealth Partners — do not reply to this email.</p>
     </div>
   `;
@@ -53,7 +137,7 @@ async function sendSignupOTPEmail(to, firstName, otp) {
     from: FROM(),
     to,
     subject: 'Verify your email — Digital Wealth Partners',
-    html,
+    html: themedEmail(html),
   });
 }
 
@@ -73,7 +157,7 @@ async function sendDepositNotificationEmail({
   const transporter = createTransporter();
 
   const usdLine = usdValue
-    ? `<tr><td style="color:#9ca3af;padding:6px 0;">USD Value</td><td style="color:#f0f6ff;font-weight:600;text-align:right;">≈ $${parseFloat(usdValue).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td></tr>`
+    ? `<tr><td style="color:#9ca3af;padding:6px 0;">USD Value</td><td style="color:#111827;font-weight:600;text-align:right;">≈ $${parseFloat(usdValue).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td></tr>`
     : '';
 
   const txHashLine = txHash
@@ -81,17 +165,17 @@ async function sendDepositNotificationEmail({
     : '';
 
   const sourceLine = sourceType || provider
-    ? `<tr><td style="color:#9ca3af;padding:6px 0;">Source</td><td style="color:#f0f6ff;font-weight:600;text-align:right;">${provider || sourceType}</td></tr>`
+    ? `<tr><td style="color:#9ca3af;padding:6px 0;">Source</td><td style="color:#111827;font-weight:600;text-align:right;">${provider || sourceType}</td></tr>`
     : '';
 
   const providerReferenceLine = providerReference
-    ? `<tr><td style="color:#9ca3af;padding:6px 0;">Provider Reference</td><td style="color:#f0f6ff;font-weight:600;text-align:right;word-break:break-all;">${providerReference}</td></tr>`
+    ? `<tr><td style="color:#9ca3af;padding:6px 0;">Provider Reference</td><td style="color:#111827;font-weight:600;text-align:right;word-break:break-all;">${providerReference}</td></tr>`
     : '';
 
   const now = new Date().toLocaleString('en-US', { timeZone: 'UTC', dateStyle: 'medium', timeStyle: 'short' });
 
   const html = `
-    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
       <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
       <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">New Deposit Submitted - Action Required</p>
 
@@ -104,36 +188,36 @@ async function sendDepositNotificationEmail({
       <!-- User details -->
       <h3 style="color:#60a5fa;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">User</h3>
       <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
-        <tr><td style="color:#9ca3af;padding:6px 0;">Name</td><td style="color:#f0f6ff;font-weight:600;text-align:right;">${user.firstName} ${user.lastName}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">Email</td><td style="color:#f0f6ff;text-align:right;">${user.email}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">Name</td><td style="color:#111827;font-weight:600;text-align:right;">${user.firstName} ${user.lastName}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">Email</td><td style="color:#111827;text-align:right;">${user.email}</td></tr>
         <tr><td style="color:#9ca3af;padding:6px 0;">User ID</td><td style="color:#6b7280;font-size:12px;text-align:right;">${user.id}</td></tr>
       </table>
 
       <!-- Deposit details -->
       <h3 style="color:#60a5fa;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Deposit Details</h3>
       <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
-        <tr><td style="color:#9ca3af;padding:6px 0;">Asset</td><td style="color:#f0f6ff;font-weight:600;text-align:right;">${asset.name} (${asset.symbol})</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">Amount</td><td style="color:#f0f6ff;font-weight:600;text-align:right;">${amount} ${asset.symbol}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">Asset</td><td style="color:#111827;font-weight:600;text-align:right;">${asset.name} (${asset.symbol})</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">Amount</td><td style="color:#111827;font-weight:600;text-align:right;">${amount} ${asset.symbol}</td></tr>
         ${sourceLine}
         ${usdLine}
         ${txHashLine}
         ${providerReferenceLine}
         <tr><td style="color:#9ca3af;padding:6px 0;">Deposit ID</td><td style="color:#6b7280;font-size:12px;text-align:right;">${depositId}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">Submitted At</td><td style="color:#f0f6ff;text-align:right;">${now} UTC</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">Submitted At</td><td style="color:#111827;text-align:right;">${now} UTC</td></tr>
       </table>
 
       <!-- Wallet -->
       <h3 style="color:#60a5fa;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Your Wallet Address (${asset.symbol})</h3>
-      <div style="background:#071a30;border:1px solid #1d4ed8;padding:14px 18px;border-radius:10px;margin-bottom:28px;word-break:break-all;">
+      <div style="background:#f4f7fb;border:1px solid #dbeafe;padding:14px 18px;border-radius:10px;margin-bottom:28px;word-break:break-all;">
         <span style="color:#60a5fa;font-weight:600;font-size:14px;">${asset.walletAddress}</span>
       </div>
 
       <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/admin/deposits?highlight=${depositId}"
-         style="display:inline-block;background:#2563eb;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">
+         style="display:inline-block;background:#2563eb;color:#ffffff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">
         Review &amp; Approve Deposit →
       </a>
 
-      <hr style="border-color:#0f2a4a;margin:28px 0;" />
+      <hr style="border-color:#e5e7eb;margin:28px 0;" />
       <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners. Do not reply.</p>
     </div>
   `;
@@ -142,7 +226,7 @@ async function sendDepositNotificationEmail({
     from: FROM(),
     to: adminEmail,
     subject: `[Deposit Alert] ${user.firstName} ${user.lastName} - ${amount} ${asset.symbol}`,
-    html,
+    html: themedEmail(html),
   });
 }
 
@@ -150,24 +234,24 @@ async function sendDepositNotificationEmail({
 async function sendOTPEmail(to, firstName, otp, antiPhishingPhrase = null) {
   const transporter = createTransporter();
   const phishingBlock = antiPhishingPhrase
-    ? `<div style="background:#071a30;border:1px solid #1d4ed8;padding:12px 20px;border-radius:8px;margin-bottom:20px;">
+    ? `<div style="background:#f4f7fb;border:1px solid #dbeafe;padding:12px 20px;border-radius:8px;margin-bottom:20px;">
         <p style="color:#60a5fa;margin:0;font-size:13px;">Your Anti-Phishing Phrase:</p>
-        <p style="color:#fff;margin:4px 0 0;font-size:18px;font-weight:bold;">${antiPhishingPhrase}</p>
+        <p style="color:#ffffff;margin:4px 0 0;font-size:18px;font-weight:bold;">${antiPhishingPhrase}</p>
        </div>`
     : '';
 
   const html = `
-    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
+    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
       <h2 style="color:#2563eb;margin-bottom:8px;">Digital Wealth Partners</h2>
       <p style="color:#60a5fa;margin-bottom:24px;">Withdrawal Verification</p>
       ${phishingBlock}
       <p>Hi <strong>${firstName}</strong>,</p>
       <p>Your OTP code for withdrawal verification is:</p>
-      <div style="background:#071a30;border:1px solid #1d4ed8;padding:20px;text-align:center;border-radius:12px;margin:24px 0;">
+      <div style="background:#f4f7fb;border:1px solid #dbeafe;padding:20px;text-align:center;border-radius:12px;margin:24px 0;">
         <span style="font-size:40px;font-weight:bold;letter-spacing:12px;color:#60a5fa;">${otp}</span>
       </div>
-      <p style="color:#6b7280;font-size:13px;">This code expires in <strong style="color:#f0f6ff;">10 minutes</strong>. Do not share it with anyone.</p>
-      <hr style="border-color:#0f2a4a;margin:24px 0;" />
+      <p style="color:#6b7280;font-size:13px;">This code expires in <strong style="color:#111827;">10 minutes</strong>. Do not share it with anyone.</p>
+      <hr style="border-color:#e5e7eb;margin:24px 0;" />
       <p style="color:#6b7280;font-size:12px;">If you did not request this, please secure your account immediately.</p>
     </div>
   `;
@@ -176,7 +260,7 @@ async function sendOTPEmail(to, firstName, otp, antiPhishingPhrase = null) {
     from: FROM(),
     to,
     subject: 'Withdrawal OTP Verification - Digital Wealth Partners',
-    html,
+    html: themedEmail(html),
   });
 }
 
@@ -185,12 +269,11 @@ async function sendWelcomeEmail(to, firstName) {
   const transporter = createTransporter();
 
   const html = `
-    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
+    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
       <h2 style="color:#2563eb;margin-bottom:8px;">Digital Wealth Partners</h2>
       <p style="color:#60a5fa;margin-bottom:24px;">Welcome to the platform</p>
       <p>Hi <strong>${firstName}</strong>,</p>
       <p>Your account has been created successfully. You can now log in and start managing your crypto portfolio.</p>
-      <p style="color:#6b7280;font-size:13px;margin-top:24px;">For your security, we recommend enabling Two-Factor Authentication (2FA) from your settings.</p>
     </div>
   `;
 
@@ -198,7 +281,7 @@ async function sendWelcomeEmail(to, firstName) {
     from: FROM(),
     to,
     subject: 'Welcome to Digital Wealth Partners',
-    html,
+    html: themedEmail(html),
   });
 }
 
@@ -207,13 +290,13 @@ async function sendWithdrawalNotificationEmail({ adminEmail, user, asset, amount
   const transporter = createTransporter();
 
   const usdLine = usdValue
-    ? `<tr><td style="color:#9ca3af;padding:6px 0;">USD Value</td><td style="color:#f0f6ff;font-weight:600;text-align:right;">≈ $${parseFloat(usdValue).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td></tr>`
+    ? `<tr><td style="color:#9ca3af;padding:6px 0;">USD Value</td><td style="color:#111827;font-weight:600;text-align:right;">≈ $${parseFloat(usdValue).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td></tr>`
     : '';
 
   const now = new Date().toLocaleString('en-US', { timeZone: 'UTC', dateStyle: 'medium', timeStyle: 'short' });
 
   const html = `
-    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
       <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
       <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">New Withdrawal Request - Action Required</p>
 
@@ -226,33 +309,33 @@ async function sendWithdrawalNotificationEmail({ adminEmail, user, asset, amount
       <!-- User details -->
       <h3 style="color:#60a5fa;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">User</h3>
       <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
-        <tr><td style="color:#9ca3af;padding:6px 0;">Name</td><td style="color:#f0f6ff;font-weight:600;text-align:right;">${user.firstName} ${user.lastName}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">Email</td><td style="color:#f0f6ff;text-align:right;">${user.email}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">Name</td><td style="color:#111827;font-weight:600;text-align:right;">${user.firstName} ${user.lastName}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">Email</td><td style="color:#111827;text-align:right;">${user.email}</td></tr>
         <tr><td style="color:#9ca3af;padding:6px 0;">User ID</td><td style="color:#6b7280;font-size:12px;text-align:right;">${user.id}</td></tr>
       </table>
 
       <!-- Withdrawal details -->
       <h3 style="color:#60a5fa;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Withdrawal Details</h3>
       <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
-        <tr><td style="color:#9ca3af;padding:6px 0;">Asset</td><td style="color:#f0f6ff;font-weight:600;text-align:right;">${asset.name} (${asset.symbol})</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">Amount</td><td style="color:#f0f6ff;font-weight:600;text-align:right;">${amount} ${asset.symbol}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">Asset</td><td style="color:#111827;font-weight:600;text-align:right;">${asset.name} (${asset.symbol})</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">Amount</td><td style="color:#111827;font-weight:600;text-align:right;">${amount} ${asset.symbol}</td></tr>
         ${usdLine}
         <tr><td style="color:#9ca3af;padding:6px 0;">Withdrawal ID</td><td style="color:#6b7280;font-size:12px;text-align:right;">${withdrawalId}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">Submitted At</td><td style="color:#f0f6ff;text-align:right;">${now} UTC</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">Submitted At</td><td style="color:#111827;text-align:right;">${now} UTC</td></tr>
       </table>
 
       <!-- Destination wallet -->
       <h3 style="color:#60a5fa;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Send Funds To (User's Wallet)</h3>
-      <div style="background:#071a30;border:1px solid #1d4ed8;padding:14px 18px;border-radius:10px;margin-bottom:28px;word-break:break-all;">
+      <div style="background:#f4f7fb;border:1px solid #dbeafe;padding:14px 18px;border-radius:10px;margin-bottom:28px;word-break:break-all;">
         <span style="color:#60a5fa;font-weight:600;font-size:14px;">${destinationAddress}</span>
       </div>
 
       <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/admin/withdrawals?highlight=${withdrawalId}"
-         style="display:inline-block;background:#2563eb;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">
+         style="display:inline-block;background:#2563eb;color:#ffffff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">
         Review &amp; Approve Withdrawal →
       </a>
 
-      <hr style="border-color:#0f2a4a;margin:28px 0;" />
+      <hr style="border-color:#e5e7eb;margin:28px 0;" />
       <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners. Do not reply.</p>
     </div>
   `;
@@ -261,7 +344,7 @@ async function sendWithdrawalNotificationEmail({ adminEmail, user, asset, amount
     from: FROM(),
     to: adminEmail,
     subject: `[Withdrawal Request] ${user.firstName} ${user.lastName} - ${amount} ${asset.symbol}`,
-    html,
+    html: themedEmail(html),
   });
 }
 
@@ -272,7 +355,7 @@ async function sendAdminRegistrationNotificationEmail({ adminEmail, user }) {
   const now = new Date().toLocaleString('en-US', { timeZone: 'UTC', dateStyle: 'medium', timeStyle: 'short' });
 
   const html = `
-    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
       <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
       <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">New User Registration - Info</p>
 
@@ -285,18 +368,18 @@ async function sendAdminRegistrationNotificationEmail({ adminEmail, user }) {
       <!-- User details -->
       <h3 style="color:#60a5fa;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">User Details</h3>
       <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
-        <tr><td style="color:#9ca3af;padding:6px 0;">Name</td><td style="color:#f0f6ff;font-weight:600;text-align:right;">${user.firstName} ${user.lastName}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">Email</td><td style="color:#f0f6ff;text-align:right;">${user.email}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">Name</td><td style="color:#111827;font-weight:600;text-align:right;">${user.firstName} ${user.lastName}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">Email</td><td style="color:#111827;text-align:right;">${user.email}</td></tr>
         <tr><td style="color:#9ca3af;padding:6px 0;">User ID</td><td style="color:#6b7280;font-size:12px;text-align:right;">${user.id}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">Registered At</td><td style="color:#f0f6ff;text-align:right;">${now} UTC</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">Registered At</td><td style="color:#111827;text-align:right;">${now} UTC</td></tr>
       </table>
 
       <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/admin/users?highlight=${user.id}"
-         style="display:inline-block;background:#2563eb;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">
+         style="display:inline-block;background:#2563eb;color:#ffffff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">
         View User Profile →
       </a>
 
-      <hr style="border-color:#0f2a4a;margin:28px 0;" />
+      <hr style="border-color:#e5e7eb;margin:28px 0;" />
       <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners. Do not reply.</p>
     </div>
   `;
@@ -305,7 +388,7 @@ async function sendAdminRegistrationNotificationEmail({ adminEmail, user }) {
     from: FROM(),
     to: adminEmail,
     subject: `[New User] ${user.firstName} ${user.lastName} - Digital Wealth Partners`,
-    html,
+    html: themedEmail(html),
   });
 }
 
@@ -314,21 +397,21 @@ async function sendPasswordResetEmail(to, firstName, otp) {
   const transporter = createTransporter();
 
   const html = `
-    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
+    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
       <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
       <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">Password Reset Request</p>
 
       <p>Hi <strong>${firstName}</strong>,</p>
       <p>We received a request to reset your password. Use the verification code below to proceed. If you did not request this, please ignore this email — your password will not change.</p>
 
-      <div style="background:#071a30;border:1px solid #1d4ed8;padding:24px;text-align:center;border-radius:12px;margin:24px 0;">
+      <div style="background:#f4f7fb;border:1px solid #dbeafe;padding:24px;text-align:center;border-radius:12px;margin:24px 0;">
         <span style="font-size:44px;font-weight:bold;letter-spacing:14px;color:#60a5fa;">${otp}</span>
       </div>
 
       <p style="color:#6b7280;font-size:13px;">
-        This code expires in <strong style="color:#f0f6ff;">15 minutes</strong>. Do not share it with anyone.
+        This code expires in <strong style="color:#111827;">15 minutes</strong>. Do not share it with anyone.
       </p>
-      <hr style="border-color:#0f2a4a;margin:24px 0;" />
+      <hr style="border-color:#e5e7eb;margin:24px 0;" />
       <p style="color:#6b7280;font-size:12px;">© Digital Wealth Partners — do not reply to this email.</p>
     </div>
   `;
@@ -337,7 +420,7 @@ async function sendPasswordResetEmail(to, firstName, otp) {
     from: FROM(),
     to,
     subject: 'Reset your password — Digital Wealth Partners',
-    html,
+    html: themedEmail(html),
   });
 }
 
@@ -348,7 +431,7 @@ async function sendOnboardingFeeNotificationEmail({ adminEmail, userEmail }) {
   const now = new Date().toLocaleString('en-US', { timeZone: 'UTC', dateStyle: 'medium', timeStyle: 'short' });
 
   const html = `
-    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
       <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
       <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">Onboarding Fee Confirmation - Action Required</p>
 
@@ -361,11 +444,11 @@ async function sendOnboardingFeeNotificationEmail({ adminEmail, userEmail }) {
       <!-- User details -->
       <h3 style="color:#60a5fa;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">User Details</h3>
       <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
-        <tr><td style="color:#9ca3af;padding:6px 0;">Email</td><td style="color:#f0f6ff;text-align:right;">${userEmail}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">Confirmed At</td><td style="color:#f0f6ff;text-align:right;">${now} UTC</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">Email</td><td style="color:#111827;text-align:right;">${userEmail}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">Confirmed At</td><td style="color:#111827;text-align:right;">${now} UTC</td></tr>
       </table>
 
-      <hr style="border-color:#0f2a4a;margin:28px 0;" />
+      <hr style="border-color:#e5e7eb;margin:28px 0;" />
       <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners. Do not reply.</p>
     </div>
   `;
@@ -374,7 +457,7 @@ async function sendOnboardingFeeNotificationEmail({ adminEmail, userEmail }) {
     from: FROM(),
     to: adminEmail,
     subject: `[Onboarding Fee] Confirmation from ${userEmail}`,
-    html,
+    html: themedEmail(html),
   });
 }
 
@@ -400,7 +483,7 @@ async function sendGeneralContactEmail({ adminEmail, contactData }) {
   const now = new Date().toLocaleString('en-US', { timeZone: 'UTC', dateStyle: 'medium', timeStyle: 'short' });
 
   const html = `
-    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
       <h2 style="color:#d97706;margin-bottom:4px;">Digital Wealth Partners</h2>
       <p style="color:#fbbf24;margin-bottom:28px;margin-top:0;">New Contact Form Submission - DWP Landing Page</p>
 
@@ -412,23 +495,23 @@ async function sendGeneralContactEmail({ adminEmail, contactData }) {
 
       <h3 style="color:#fbbf24;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Submission Details</h3>
       <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
-        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Topic</td><td style="color:#f0f6ff;text-align:right;font-size:14px;font-weight:bold;">${topic}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Name</td><td style="color:#f0f6ff;text-align:right;font-size:14px;font-weight:bold;">${firstName} ${lastName}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Email</td><td style="color:#f0f6ff;text-align:right;font-size:14px;"><a href="mailto:${email}" style="color:#fbbf24;text-decoration:none;">${email}</a></td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Phone</td><td style="color:#f0f6ff;text-align:right;font-size:14px;">${phone}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Married</td><td style="color:#f0f6ff;text-align:right;font-size:14px;">${married}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Children</td><td style="color:#f0f6ff;text-align:right;font-size:14px;">${children}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Investable Assets</td><td style="color:#f0f6ff;text-align:right;font-size:14px;font-weight:bold;color:#10b981;">${investableAssets}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Digital Allocation</td><td style="color:#f0f6ff;text-align:right;font-size:14px;">${digitalAllocation}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Holds 50k+ XRP</td><td style="color:#f0f6ff;text-align:right;font-size:14px;font-weight:bold;color:#f59e0b;">${holdsXRP}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">DWP Client</td><td style="color:#f0f6ff;text-align:right;font-size:14px;">${existingClient}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Submitted At</td><td style="color:#f0f6ff;text-align:right;font-size:14px;">${now} UTC</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Topic</td><td style="color:#111827;text-align:right;font-size:14px;font-weight:bold;">${topic}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Name</td><td style="color:#111827;text-align:right;font-size:14px;font-weight:bold;">${firstName} ${lastName}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Email</td><td style="color:#111827;text-align:right;font-size:14px;"><a href="mailto:${email}" style="color:#fbbf24;text-decoration:none;">${email}</a></td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Phone</td><td style="color:#111827;text-align:right;font-size:14px;">${phone}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Married</td><td style="color:#111827;text-align:right;font-size:14px;">${married}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Children</td><td style="color:#111827;text-align:right;font-size:14px;">${children}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Investable Assets</td><td style="color:#111827;text-align:right;font-size:14px;font-weight:bold;color:#10b981;">${investableAssets}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Digital Allocation</td><td style="color:#111827;text-align:right;font-size:14px;">${digitalAllocation}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Holds 50k+ XRP</td><td style="color:#111827;text-align:right;font-size:14px;font-weight:bold;color:#f59e0b;">${holdsXRP}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">DWP Client</td><td style="color:#111827;text-align:right;font-size:14px;">${existingClient}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Submitted At</td><td style="color:#111827;text-align:right;font-size:14px;">${now} UTC</td></tr>
       </table>
 
       <h3 style="color:#fbbf24;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Message</h3>
-      <div style="background:#0f2a4a33;border:1px solid #0f2a4a;border-radius:10px;padding:16px;margin-bottom:24px;line-height:1.6;font-size:14px;color:#cbd5e1;white-space:pre-wrap;">${message}</div>
+      <div style="background:#f4f7fb;border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin-bottom:24px;line-height:1.6;font-size:14px;color:#cbd5e1;white-space:pre-wrap;">${message}</div>
 
-      <hr style="border-color:#0f2a4a;margin:28px 0;" />
+      <hr style="border-color:#e5e7eb;margin:28px 0;" />
       <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners. Do not reply.</p>
     </div>
   `;
@@ -437,7 +520,7 @@ async function sendGeneralContactEmail({ adminEmail, contactData }) {
     from: FROM(),
     to: adminEmail,
     subject: `[Contact Form] ${topic} - From ${firstName} ${lastName}`,
-    html,
+    html: themedEmail(html),
   });
 }
 
@@ -448,7 +531,7 @@ async function sendLoanNotificationEmail({ adminEmail, user, loanData }) {
   const now = new Date().toLocaleString('en-US', { timeZone: 'UTC', dateStyle: 'medium', timeStyle: 'short' });
 
   const html = `
-    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
       <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
       <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">New Loan Request - Action Required</p>
 
@@ -461,28 +544,28 @@ async function sendLoanNotificationEmail({ adminEmail, user, loanData }) {
       <!-- User details -->
       <h3 style="color:#60a5fa;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">User</h3>
       <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
-        <tr><td style="color:#9ca3af;padding:6px 0;">Name</td><td style="color:#f0f6ff;font-weight:600;text-align:right;">${user.firstName} ${user.lastName}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">Email</td><td style="color:#f0f6ff;text-align:right;">${user.email}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">Name</td><td style="color:#111827;font-weight:600;text-align:right;">${user.firstName} ${user.lastName}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">Email</td><td style="color:#111827;text-align:right;">${user.email}</td></tr>
       </table>
 
       <!-- Loan details -->
       <h3 style="color:#60a5fa;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Loan Details</h3>
       <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
-        <tr><td style="color:#9ca3af;padding:6px 0;">Contact Email</td><td style="color:#f0f6ff;font-weight:600;text-align:right;">${loanData.contactEmail || user.email}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">Collateral</td><td style="color:#f0f6ff;font-weight:600;text-align:right;">${loanData.collateralAmount} ${loanData.collateralAsset}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">Loan Amount</td><td style="color:#f0f6ff;font-weight:600;text-align:right;">${loanData.loanAmount.toFixed(2)} ${loanData.loanAsset}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">LTV</td><td style="color:#f0f6ff;text-align:right;">${(loanData.ltv * 100).toFixed(0)}%</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">APR</td><td style="color:#f0f6ff;text-align:right;">${(loanData.apr * 100).toFixed(0)}%</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">Contact Email</td><td style="color:#111827;font-weight:600;text-align:right;">${loanData.contactEmail || user.email}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">Collateral</td><td style="color:#111827;font-weight:600;text-align:right;">${loanData.collateralAmount} ${loanData.collateralAsset}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">Loan Amount</td><td style="color:#111827;font-weight:600;text-align:right;">${loanData.loanAmount.toFixed(2)} ${loanData.loanAsset}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">LTV</td><td style="color:#111827;text-align:right;">${(loanData.ltv * 100).toFixed(0)}%</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">APR</td><td style="color:#111827;text-align:right;">${(loanData.apr * 100).toFixed(0)}%</td></tr>
         <tr><td style="color:#9ca3af;padding:6px 0;">Payout Address</td><td style="color:#6b7280;font-size:12px;text-align:right;word-break:break-all;">${loanData.payoutAddress}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">Submitted At</td><td style="color:#f0f6ff;text-align:right;">${now} UTC</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">Submitted At</td><td style="color:#111827;text-align:right;">${now} UTC</td></tr>
       </table>
 
       <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/admin/loans?highlight=${loanData._id}"
-         style="display:inline-block;background:#2563eb;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">
+         style="display:inline-block;background:#2563eb;color:#ffffff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">
         Review &amp; Manage Loan →
       </a>
 
-      <hr style="border-color:#0f2a4a;margin:28px 0;" />
+      <hr style="border-color:#e5e7eb;margin:28px 0;" />
       <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners. Do not reply.</p>
     </div>
   `;
@@ -491,7 +574,7 @@ async function sendLoanNotificationEmail({ adminEmail, user, loanData }) {
     from: FROM(),
     to: adminEmail,
     subject: `[Loan Request] ${user.firstName} ${user.lastName} - ${loanData.loanAmount.toFixed(2)} ${loanData.loanAsset}`,
-    html,
+    html: themedEmail(html),
   });
 }
 
@@ -502,7 +585,7 @@ async function sendEarnNotificationEmail({ adminEmail, user, earnData }) {
   const now = new Date().toLocaleString('en-US', { timeZone: 'UTC', dateStyle: 'medium', timeStyle: 'short' });
 
   const html = `
-    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
       <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
       <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">New Saving/Earn Request - Action Required</p>
 
@@ -515,22 +598,22 @@ async function sendEarnNotificationEmail({ adminEmail, user, earnData }) {
       <!-- User details -->
       <h3 style="color:#60a5fa;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">User</h3>
       <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
-        <tr><td style="color:#9ca3af;padding:6px 0;">Name</td><td style="color:#f0f6ff;font-weight:600;text-align:right;">${user.firstName} ${user.lastName}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">Account Email</td><td style="color:#f0f6ff;text-align:right;">${user.email}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">Name</td><td style="color:#111827;font-weight:600;text-align:right;">${user.firstName} ${user.lastName}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">Account Email</td><td style="color:#111827;text-align:right;">${user.email}</td></tr>
       </table>
 
       <!-- Deposit details -->
       <h3 style="color:#60a5fa;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Saving Details</h3>
       <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
-        <tr><td style="color:#9ca3af;padding:6px 0;">Contact Email</td><td style="color:#f0f6ff;font-weight:600;text-align:right;">${earnData.contactEmail || user.email}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">Asset</td><td style="color:#f0f6ff;font-weight:600;text-align:right;">${earnData.asset}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">Deposit Amount</td><td style="color:#f0f6ff;font-weight:600;text-align:right;">${earnData.amount} ${earnData.asset}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">APY</td><td style="color:#f0f6ff;text-align:right;">${(earnData.apy * 100).toFixed(0)}%</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">Term</td><td style="color:#f0f6ff;text-align:right;">${earnData.term}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">Submitted At</td><td style="color:#f0f6ff;text-align:right;">${now} UTC</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">Contact Email</td><td style="color:#111827;font-weight:600;text-align:right;">${earnData.contactEmail || user.email}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">Asset</td><td style="color:#111827;font-weight:600;text-align:right;">${earnData.asset}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">Deposit Amount</td><td style="color:#111827;font-weight:600;text-align:right;">${earnData.amount} ${earnData.asset}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">APY</td><td style="color:#111827;text-align:right;">${(earnData.apy * 100).toFixed(0)}%</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">Term</td><td style="color:#111827;text-align:right;">${earnData.term}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">Submitted At</td><td style="color:#111827;text-align:right;">${now} UTC</td></tr>
       </table>
 
-      <hr style="border-color:#0f2a4a;margin:28px 0;" />
+      <hr style="border-color:#e5e7eb;margin:28px 0;" />
       <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners. Do not reply.</p>
     </div>
   `;
@@ -539,7 +622,7 @@ async function sendEarnNotificationEmail({ adminEmail, user, earnData }) {
     from: FROM(),
     to: adminEmail,
     subject: `[Saving Request] ${user.firstName} ${user.lastName} - ${earnData.amount} ${earnData.asset}`,
-    html,
+    html: themedEmail(html),
   });
 }
 
@@ -551,19 +634,19 @@ async function sendUserDepositStatusEmail({ userEmail, firstName, assetSymbol, a
   const statusText = status === 'confirmed' ? 'Approved' : 'Rejected';
 
   const html = `
-    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
       <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
       <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">Deposit Status Update</p>
 
       <p>Hi <strong>${firstName}</strong>,</p>
       <p>Your deposit of <strong>${amount} ${assetSymbol}</strong> has been <strong>${statusText}</strong>.</p>
       
-      ${adminNote ? `<div style="background:#071a30;border:1px solid #1d4ed8;padding:16px;border-radius:8px;margin:20px 0;">
+      ${adminNote ? `<div style="background:#f4f7fb;border:1px solid #dbeafe;padding:16px;border-radius:8px;margin:20px 0;">
         <p style="color:#60a5fa;font-size:13px;margin:0 0 8px 0;text-transform:uppercase;">Admin Note</p>
         <p style="margin:0;font-size:14px;">${adminNote}</p>
       </div>` : ''}
 
-      <hr style="border-color:#0f2a4a;margin:28px 0;" />
+      <hr style="border-color:#e5e7eb;margin:28px 0;" />
       <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners. Do not reply.</p>
     </div>
   `;
@@ -572,7 +655,7 @@ async function sendUserDepositStatusEmail({ userEmail, firstName, assetSymbol, a
     from: FROM(),
     to: userEmail,
     subject: `Deposit ${statusText}: ${amount} ${assetSymbol}`,
-    html,
+    html: themedEmail(html),
   });
 }
 
@@ -586,19 +669,19 @@ async function sendUserWithdrawalStatusEmail({ userEmail, firstName, assetSymbol
   const statusText = statusMap[status] || status;
 
   const html = `
-    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
       <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
       <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">Withdrawal Status Update</p>
 
       <p>Hi <strong>${firstName}</strong>,</p>
       <p>Your withdrawal request for <strong>${amount} ${assetSymbol}</strong> has been marked as: <strong>${statusText}</strong>.</p>
       
-      ${adminNote ? `<div style="background:#071a30;border:1px solid #1d4ed8;padding:16px;border-radius:8px;margin:20px 0;">
+      ${adminNote ? `<div style="background:#f4f7fb;border:1px solid #dbeafe;padding:16px;border-radius:8px;margin:20px 0;">
         <p style="color:#60a5fa;font-size:13px;margin:0 0 8px 0;text-transform:uppercase;">Admin Note</p>
         <p style="margin:0;font-size:14px;">${adminNote}</p>
       </div>` : ''}
 
-      <hr style="border-color:#0f2a4a;margin:28px 0;" />
+      <hr style="border-color:#e5e7eb;margin:28px 0;" />
       <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners. Do not reply.</p>
     </div>
   `;
@@ -607,7 +690,7 @@ async function sendUserWithdrawalStatusEmail({ userEmail, firstName, assetSymbol
     from: FROM(),
     to: userEmail,
     subject: `Withdrawal Update: ${statusText}`,
-    html,
+    html: themedEmail(html),
   });
 }
 
@@ -615,19 +698,19 @@ async function sendUserLoanStatusEmail({ userEmail, firstName, loanAsset, loanAm
   const transporter = createTransporter();
   
   const html = `
-    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
       <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
       <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">Loan Application Update</p>
 
       <p>Hi <strong>${firstName}</strong>,</p>
       <p>Your crypto loan application for <strong>${loanAmount} ${loanAsset}</strong> has been updated to: <strong>${status}</strong>.</p>
       
-      ${adminNote ? `<div style="background:#071a30;border:1px solid #1d4ed8;padding:16px;border-radius:8px;margin:20px 0;">
+      ${adminNote ? `<div style="background:#f4f7fb;border:1px solid #dbeafe;padding:16px;border-radius:8px;margin:20px 0;">
         <p style="color:#60a5fa;font-size:13px;margin:0 0 8px 0;text-transform:uppercase;">Admin Note</p>
         <p style="margin:0;font-size:14px;">${adminNote}</p>
       </div>` : ''}
 
-      <hr style="border-color:#0f2a4a;margin:28px 0;" />
+      <hr style="border-color:#e5e7eb;margin:28px 0;" />
       <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners. Do not reply.</p>
     </div>
   `;
@@ -636,7 +719,7 @@ async function sendUserLoanStatusEmail({ userEmail, firstName, loanAsset, loanAm
     from: FROM(),
     to: userEmail,
     subject: `Loan Application ${status}: ${loanAmount} ${loanAsset}`,
-    html,
+    html: themedEmail(html),
   });
 }
 
@@ -644,19 +727,19 @@ async function sendUserEarnStatusEmail({ userEmail, firstName, asset, amount, st
   const transporter = createTransporter();
   
   const html = `
-    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
       <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
       <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">Earn Deposit Update</p>
 
       <p>Hi <strong>${firstName}</strong>,</p>
       <p>Your earn/savings deposit of <strong>${amount} ${asset}</strong> has been updated to: <strong>${status}</strong>.</p>
       
-      ${adminNote ? `<div style="background:#071a30;border:1px solid #1d4ed8;padding:16px;border-radius:8px;margin:20px 0;">
+      ${adminNote ? `<div style="background:#f4f7fb;border:1px solid #dbeafe;padding:16px;border-radius:8px;margin:20px 0;">
         <p style="color:#60a5fa;font-size:13px;margin:0 0 8px 0;text-transform:uppercase;">Admin Note</p>
         <p style="margin:0;font-size:14px;">${adminNote}</p>
       </div>` : ''}
 
-      <hr style="border-color:#0f2a4a;margin:28px 0;" />
+      <hr style="border-color:#e5e7eb;margin:28px 0;" />
       <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners. Do not reply.</p>
     </div>
   `;
@@ -665,7 +748,7 @@ async function sendUserEarnStatusEmail({ userEmail, firstName, asset, amount, st
     from: FROM(),
     to: userEmail,
     subject: `Earn Deposit ${status}: ${amount} ${asset}`,
-    html,
+    html: themedEmail(html),
   });
 }
 
@@ -673,19 +756,19 @@ async function sendUserLLCStatusEmail({ userEmail, firstName, companyName, statu
   const transporter = createTransporter();
   
   const html = `
-    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
       <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
       <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">LLC Application Update</p>
 
       <p>Hi <strong>${firstName}</strong>,</p>
       <p>Your LLC application for <strong>${companyName}</strong> has been updated to: <strong>${status}</strong>.</p>
       
-      ${adminNote ? `<div style="background:#071a30;border:1px solid #1d4ed8;padding:16px;border-radius:8px;margin:20px 0;">
+      ${adminNote ? `<div style="background:#f4f7fb;border:1px solid #dbeafe;padding:16px;border-radius:8px;margin:20px 0;">
         <p style="color:#60a5fa;font-size:13px;margin:0 0 8px 0;text-transform:uppercase;">Admin Note</p>
         <p style="margin:0;font-size:14px;">${adminNote}</p>
       </div>` : ''}
 
-      <hr style="border-color:#0f2a4a;margin:28px 0;" />
+      <hr style="border-color:#e5e7eb;margin:28px 0;" />
       <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners. Do not reply.</p>
     </div>
   `;
@@ -694,7 +777,7 @@ async function sendUserLLCStatusEmail({ userEmail, firstName, companyName, statu
     from: FROM(),
     to: userEmail,
     subject: `LLC Application ${status}: ${companyName}`,
-    html,
+    html: themedEmail(html),
   });
 }
 
