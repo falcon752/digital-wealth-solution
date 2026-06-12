@@ -1,7 +1,7 @@
 {
-  "name": "digital-wealth-solution",
+  "name": "digital-wealth-partners",
   "version": "1.0.0",
-  "description": "Digital Wealth Partner – full-stack crypto management platform",
+  "description": "Digital Wealth Partners – full-stack crypto management platform",
   "private": true,
   "scripts": {
     "dev:backend": "cd backend && npm run dev",

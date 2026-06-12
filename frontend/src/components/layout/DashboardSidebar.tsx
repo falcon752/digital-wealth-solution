@@ -103,7 +103,7 @@ export default function DashboardSidebar() {
         {/* Footer */}
         <div className="border-t border-gray-100 dark:border-gray-800 px-6 py-5 space-y-4">
           <div className="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide leading-relaxed">
-            Digital Wealth Solution<br />
+            Digital Wealth Partners<br />
             Business Management Platform
           </div>
           <button

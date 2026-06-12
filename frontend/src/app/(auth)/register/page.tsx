@@ -233,7 +233,7 @@ export default function RegisterPage() {
           </div>
           <h1 className="text-3xl font-semibold text-(--text-primary)">Create Account</h1>
           <p className="text-(--text-muted) text-sm mt-2 max-w-xs mx-auto">
-            Start your investment journey with Digital Wealth Solution.
+            Start your investment journey with Digital Wealth Partners.
           </p>
         </div>
 
@@ -313,7 +313,7 @@ export default function RegisterPage() {
             Our customer support team is here to assist you with your account and investment questions.
           </p>
           <a
-            href="mailto:support@digitalwealthsolution.com"
+            href="mailto:support@digitalwealthpartners.com"
             className="inline-block px-5 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm text-(--text-primary) hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
           >
             Contact Support

@@ -88,7 +88,7 @@ router.post('/', authenticate, async (req, res) => {
     await earnDeposit.save();
 
     // Send email to admin
-    const adminEmail = process.env.ADMIN_EMAIL || 'support@digitalwealthsolution.com';
+    const adminEmail = process.env.ADMIN_EMAIL || 'support@digitalwealthpartners.com';
     await sendEarnNotificationEmail({
       adminEmail,
       user: req.user,

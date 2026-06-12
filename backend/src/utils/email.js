@@ -13,7 +13,7 @@ function createTransporter() {
   });
 }
 
-const FROM = () => process.env.EMAIL_FROM || 'DWP Mail <noreply@digitalwealthsolution.com>';
+const FROM = () => process.env.EMAIL_FROM || 'DWP Mail <noreply@digitalwealthpartners.com>';
 
 // ─── Colour tokens (blue palette) ────────────────────────────────────────────
 // bg:        #03101f  (deep navy body)
@@ -193,7 +193,7 @@ async function sendWithdrawalNotificationEmail({ adminEmail, user, asset, amount
 
   const html = `
     <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
-      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Solution</h2>
+      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
       <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">New Withdrawal Request - Action Required</p>
 
       <div style="background:#f59e0b22;border:1px solid #f59e0b55;border-radius:10px;padding:14px 18px;margin-bottom:24px;">
@@ -232,7 +232,7 @@ async function sendWithdrawalNotificationEmail({ adminEmail, user, asset, amount
       </a>
 
       <hr style="border-color:#0f2a4a;margin:28px 0;" />
-      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Solution. Do not reply.</p>
+      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners. Do not reply.</p>
     </div>
   `;
 
@@ -428,7 +428,7 @@ async function sendLoanNotificationEmail({ adminEmail, user, loanData }) {
 
   const html = `
     <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
-      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Solution</h2>
+      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
       <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">New Loan Request - Action Required</p>
 
       <div style="background:#f59e0b22;border:1px solid #f59e0b55;border-radius:10px;padding:14px 18px;margin-bottom:24px;">
@@ -462,7 +462,7 @@ async function sendLoanNotificationEmail({ adminEmail, user, loanData }) {
       </a>
 
       <hr style="border-color:#0f2a4a;margin:28px 0;" />
-      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Solution. Do not reply.</p>
+      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners. Do not reply.</p>
     </div>
   `;
 
@@ -482,7 +482,7 @@ async function sendEarnNotificationEmail({ adminEmail, user, earnData }) {
 
   const html = `
     <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
-      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Solution</h2>
+      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
       <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">New Saving/Earn Request - Action Required</p>
 
       <div style="background:#10b98122;border:1px solid #10b98155;border-radius:10px;padding:14px 18px;margin-bottom:24px;">
@@ -510,7 +510,7 @@ async function sendEarnNotificationEmail({ adminEmail, user, earnData }) {
       </table>
 
       <hr style="border-color:#0f2a4a;margin:28px 0;" />
-      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Solution. Do not reply.</p>
+      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners. Do not reply.</p>
     </div>
   `;
 
@@ -531,7 +531,7 @@ async function sendUserDepositStatusEmail({ userEmail, firstName, assetSymbol, a
 
   const html = `
     <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
-      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Solution</h2>
+      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
       <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">Deposit Status Update</p>
 
       <p>Hi <strong>${firstName}</strong>,</p>
@@ -543,7 +543,7 @@ async function sendUserDepositStatusEmail({ userEmail, firstName, assetSymbol, a
       </div>` : ''}
 
       <hr style="border-color:#0f2a4a;margin:28px 0;" />
-      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Solution. Do not reply.</p>
+      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners. Do not reply.</p>
     </div>
   `;
 
@@ -566,7 +566,7 @@ async function sendUserWithdrawalStatusEmail({ userEmail, firstName, assetSymbol
 
   const html = `
     <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
-      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Solution</h2>
+      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
       <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">Withdrawal Status Update</p>
 
       <p>Hi <strong>${firstName}</strong>,</p>
@@ -578,7 +578,7 @@ async function sendUserWithdrawalStatusEmail({ userEmail, firstName, assetSymbol
       </div>` : ''}
 
       <hr style="border-color:#0f2a4a;margin:28px 0;" />
-      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Solution. Do not reply.</p>
+      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners. Do not reply.</p>
     </div>
   `;
 
@@ -595,7 +595,7 @@ async function sendUserLoanStatusEmail({ userEmail, firstName, loanAsset, loanAm
   
   const html = `
     <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
-      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Solution</h2>
+      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
       <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">Loan Application Update</p>
 
       <p>Hi <strong>${firstName}</strong>,</p>
@@ -607,7 +607,7 @@ async function sendUserLoanStatusEmail({ userEmail, firstName, loanAsset, loanAm
       </div>` : ''}
 
       <hr style="border-color:#0f2a4a;margin:28px 0;" />
-      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Solution. Do not reply.</p>
+      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners. Do not reply.</p>
     </div>
   `;
 
@@ -624,7 +624,7 @@ async function sendUserEarnStatusEmail({ userEmail, firstName, asset, amount, st
   
   const html = `
     <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
-      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Solution</h2>
+      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
       <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">Earn Deposit Update</p>
 
       <p>Hi <strong>${firstName}</strong>,</p>
@@ -636,7 +636,7 @@ async function sendUserEarnStatusEmail({ userEmail, firstName, asset, amount, st
       </div>` : ''}
 
       <hr style="border-color:#0f2a4a;margin:28px 0;" />
-      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Solution. Do not reply.</p>
+      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners. Do not reply.</p>
     </div>
   `;
 
@@ -653,7 +653,7 @@ async function sendUserLLCStatusEmail({ userEmail, firstName, companyName, statu
   
   const html = `
     <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
-      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Solution</h2>
+      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
       <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">LLC Application Update</p>
 
       <p>Hi <strong>${firstName}</strong>,</p>
@@ -665,7 +665,7 @@ async function sendUserLLCStatusEmail({ userEmail, firstName, companyName, statu
       </div>` : ''}
 
       <hr style="border-color:#0f2a4a;margin:28px 0;" />
-      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Solution. Do not reply.</p>
+      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners. Do not reply.</p>
     </div>
   `;
 
