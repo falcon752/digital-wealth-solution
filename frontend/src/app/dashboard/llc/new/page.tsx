@@ -168,7 +168,7 @@ function NewLLCForm() {
       {/* Banner */}
       {showBanner && (
         <div className="bg-[#5c50f6] text-white px-4 py-3.5 relative text-center text-[15px] leading-relaxed shrink-0">
-          Welcome to our new intake experience! If you find any issues, please use the <strong className="font-semibold">feedback icon above</strong>. Be the <strong className="font-semibold">first to report a validated bug</strong> and we'll refund your entire formation fee!
+          Welcome to our new intake experience! Be the <strong className="font-semibold">first to report a validated bug</strong> and we'll refund your entire formation fee!
           <button onClick={() => setShowBanner(false)} className="absolute right-3 top-1/2 -translate-y-1/2 p-2 hover:bg-white/20 rounded-full transition-colors">
             <X size={20} />
           </button>
