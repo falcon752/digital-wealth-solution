@@ -26,9 +26,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <SidebarProvider>
-      <div className="flex h-screen overflow-hidden bg-[#f9f9fb] dark:bg-[#181818]">
+      <div className="flex h-screen overflow-hidden bg-[#f9f9fb] dark:bg-[#050505]">
         <DashboardSidebar />
-        <main className="flex-1 overflow-y-auto pb-16 md:pb-0 bg-white dark:bg-[#181818]">
+        <main className="flex-1 overflow-y-auto pb-16 md:pb-0 bg-white dark:bg-[#050505]">
           {children}
         </main>
         <MobileBottomNav />

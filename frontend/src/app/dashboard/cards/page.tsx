@@ -108,7 +108,7 @@ export default function CardsPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-[#181818]">
+      <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-[#050505]">
         <DashboardHeader title="Cards" />
         <div className="flex-1 flex items-center justify-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -132,7 +132,7 @@ export default function CardsPage() {
     ];
 
     return (
-      <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-[#181818] pb-20">
+      <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-[#050505] pb-20">
         <DashboardHeader title="Your Card" />
         
         <div className="p-4 flex-1 flex flex-col items-center mt-6">
@@ -163,11 +163,11 @@ export default function CardsPage() {
             </div>
           </div>
 
-          <div className="w-full max-w-sm mt-5 bg-white dark:bg-[#2c2c2c] rounded-2xl p-5 border border-gray-100 dark:border-gray-700 shadow-sm">
+          <div className="w-full max-w-sm mt-5 bg-white dark:bg-[#101010] rounded-2xl p-5 border border-gray-100 dark:border-gray-700 shadow-sm">
             <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Card Information</h3>
             <div className="grid grid-cols-2 gap-3">
               {cardInfo.map((item) => (
-                <div key={item.label} className="rounded-xl bg-gray-50 dark:bg-[#2c2c2c] px-4 py-3">
+                <div key={item.label} className="rounded-xl bg-gray-50 dark:bg-[#101010] px-4 py-3">
                   <div className="text-[11px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">
                     {item.label}
                   </div>
@@ -179,7 +179,7 @@ export default function CardsPage() {
             </div>
           </div>
 
-          <div className="w-full max-w-sm mt-8 bg-white dark:bg-[#2c2c2c] rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm">
+          <div className="w-full max-w-sm mt-8 bg-white dark:bg-[#101010] rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm">
             <h3 className="font-semibold text-gray-900 dark:text-white mb-4 text-center">Card Status</h3>
             
             {isPending && (
@@ -235,7 +235,7 @@ export default function CardsPage() {
                 { title: 'Global Acceptance', description: 'Use your card worldwide with no foreign fees', icon: Globe },
                 { title: 'Secure Transactions', description: 'Enhanced security with chip technology', icon: Lock },
               ].map((b, i) => (
-                <div key={i} className="flex items-center gap-4 bg-white dark:bg-[#2c2c2c] rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700/50">
+                <div key={i} className="flex items-center gap-4 bg-white dark:bg-[#101010] rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700/50">
                   <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-500 shrink-0">
                     <b.icon size={20} />
                   </div>
@@ -254,11 +254,11 @@ export default function CardsPage() {
 
   // Application form
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-[#181818] pb-20">
+    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-[#050505] pb-20">
       <DashboardHeader title="Cards" />
 
       <form onSubmit={handleSubmit} className="p-4 flex-1 mt-2">
-        <div className="bg-white dark:bg-[#2c2c2c] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700/50 p-5 space-y-5">
+        <div className="bg-white dark:bg-[#101010] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700/50 p-5 space-y-5">
           
           <div className="space-y-1.5">
             <label className="text-sm font-semibold text-gray-900 dark:text-white">
@@ -268,7 +268,7 @@ export default function CardsPage() {
               type="text"
               value={cardHolderName}
               onChange={(e) => setCardHolderName(e.target.value)}
-              className="w-full bg-[#f4f5f8] dark:bg-[#2c2c2c] border-none rounded-xl px-4 py-3.5 text-sm font-medium text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+              className="w-full bg-[#f4f5f8] dark:bg-[#101010] border-none rounded-xl px-4 py-3.5 text-sm font-medium text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
               required
             />
           </div>
@@ -281,7 +281,7 @@ export default function CardsPage() {
               type="text"
               value={cardNumber}
               readOnly
-              className="w-full bg-[#f4f5f8] dark:bg-[#2c2c2c] border-none rounded-xl px-4 py-3.5 text-sm font-medium text-gray-500 dark:text-gray-400 font-mono"
+              className="w-full bg-[#f4f5f8] dark:bg-[#101010] border-none rounded-xl px-4 py-3.5 text-sm font-medium text-gray-500 dark:text-gray-400 font-mono"
             />
           </div>
 
@@ -292,7 +292,7 @@ export default function CardsPage() {
             <select
               value={cardType}
               onChange={(e) => setCardType(e.target.value)}
-              className="w-full bg-[#f4f5f8] dark:bg-[#2c2c2c] border-none rounded-xl px-4 py-3.5 text-sm font-medium text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 appearance-none"
+              className="w-full bg-[#f4f5f8] dark:bg-[#101010] border-none rounded-xl px-4 py-3.5 text-sm font-medium text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 appearance-none"
             >
               <option value="MasterCard">MasterCard</option>
               <option value="Visa">Visa</option>
@@ -302,7 +302,7 @@ export default function CardsPage() {
           <button
             type="button"
             onClick={generateMockCardNumber}
-            className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-[#2c2c2c] border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-semibold text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+            className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-[#101010] border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-semibold text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 2v6h-6"></path>
@@ -342,7 +342,7 @@ export default function CardsPage() {
               { title: 'Global Acceptance', description: 'Use your card worldwide with no foreign fees', icon: Globe },
               { title: 'Secure Transactions', description: 'Enhanced security with chip technology', icon: Lock },
             ].map((b, i) => (
-              <div key={i} className="flex items-center gap-4 bg-white dark:bg-[#2c2c2c] rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700/50">
+              <div key={i} className="flex items-center gap-4 bg-white dark:bg-[#101010] rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700/50">
                 <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-500 shrink-0">
                   <b.icon size={20} />
                 </div>

@@ -28,7 +28,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   if (isReferralLink) {
     return (
-      <div className="flex flex-col min-h-screen bg-white dark:bg-[#181818]">
+      <div className="flex flex-col min-h-screen bg-white dark:bg-[#050505]">
         {children}
       </div>
     );
@@ -54,9 +54,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <SidebarProvider>
-      <div className="flex h-screen overflow-hidden bg-gray-100 dark:bg-[#181818]">
+      <div className="flex h-screen overflow-hidden bg-gray-100 dark:bg-[#050505]">
         <DashboardSidebar />
-        <main className="flex-1 overflow-y-auto pb-16 md:pb-0 scrollbar-hide bg-white dark:bg-[#181818]">
+        <main className="flex-1 overflow-y-auto pb-16 md:pb-0 scrollbar-hide bg-white dark:bg-[#050505]">
           {children}
         </main>
         <MobileBottomNav />

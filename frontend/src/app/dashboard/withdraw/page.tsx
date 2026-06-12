@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import toast from 'react-hot-toast';
-import { Info, Check, Shield } from 'lucide-react';
+import { Info, Check, Shield, LockKeyhole, TriangleAlert } from 'lucide-react';
 import { assetsAPI, withdrawalsAPI, usersAPI } from '@/lib/api';
 import { Asset } from '@/types';
 import DashboardHeader from '@/components/layout/DashboardHeader';
@@ -22,15 +22,15 @@ const withdrawSchema = z.object({
 
 type WithdrawForm = z.infer<typeof withdrawSchema>;
 
-type Step = 'form' | 'otp' | 'totp' | 'success';
+type Step = 'form' | 'otp' | 'success';
 
 export default function WithdrawPage() {
   const [assets, setAssets] = useState<Asset[]>([]);
+  const [assetBalances, setAssetBalances] = useState<Record<string, number>>({});
   const [availableBalances, setAvailableBalances] = useState<Record<string, number>>({});
   const [step, setStep] = useState<Step>('form');
   const [withdrawalId, setWithdrawalId] = useState('');
   const [otp, setOtp] = useState('');
-  const [totpCode, setTotpCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm<WithdrawForm>({
@@ -38,11 +38,16 @@ export default function WithdrawPage() {
   });
 
   const selectedAssetId = watch('assetId');
+  const selectedAsset = selectedAssetId ? assets.find((asset) => asset.id === selectedAssetId) : undefined;
+  const availableBalance = selectedAssetId ? (availableBalances[selectedAssetId] || 0) : 0;
+  const totalBalance = selectedAssetId ? (assetBalances[selectedAssetId] || 0) : 0;
+  const lockedBalance = Math.max(totalBalance - availableBalance, 0);
 
   useEffect(() => {
     Promise.all([assetsAPI.list(), usersAPI.getDashboardStats()]).then(([assetsRes, statsRes]) => {
       const fetchedAssets = assetsRes.data.assets || [];
       setAssets(fetchedAssets);
+      setAssetBalances(statsRes.data.assetBalances || {});
       setAvailableBalances(statsRes.data.availableAssetBalances || {});
 
       if (typeof window !== 'undefined') {
@@ -87,25 +92,7 @@ export default function WithdrawPage() {
   const verifyOTP = async () => {
     setIsLoading(true);
     try {
-      const res = await withdrawalsAPI.verifyOTP(withdrawalId, { otp, totpCode: totpCode || undefined });
-      if (res.data.requiresTOTP) {
-        setStep('totp');
-        toast('Please enter your 2FA code', { icon: '🔐' });
-      } else {
-        setStep('success');
-      }
-    } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Invalid code';
-      toast.error(msg);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const verifyTOTP = async () => {
-    setIsLoading(true);
-    try {
-      await withdrawalsAPI.verifyOTP(withdrawalId, { otp, totpCode });
+      await withdrawalsAPI.verifyOTP(withdrawalId, { otp });
       setStep('success');
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Invalid code';
@@ -128,7 +115,7 @@ export default function WithdrawPage() {
             <p className="text-[var(--text-muted)] text-sm mb-6">
               Your withdrawal request has been verified and submitted. The admin will process it shortly.
             </p>
-            <Button onClick={() => { setStep('form'); setOtp(''); setTotpCode(''); }}>
+            <Button onClick={() => { setStep('form'); setOtp(''); }}>
               New Withdrawal
             </Button>
           </div>
@@ -148,12 +135,21 @@ export default function WithdrawPage() {
             <div>
               <p className="text-xs text-[var(--text-muted)] mb-1">Available to Withdraw</p>
               <p className="text-2xl font-semibold text-[var(--text-primary)]">
-                {selectedAssetId && assets.find(a => a.id === selectedAssetId) ? (
-                  `${(availableBalances[selectedAssetId] || 0).toLocaleString('en-US', { maximumFractionDigits: 6 })} ${assets.find(a => a.id === selectedAssetId)?.symbol}`
+                {selectedAsset ? (
+                  `${availableBalance.toLocaleString('en-US', { maximumFractionDigits: 8 })} ${selectedAsset.symbol}`
                 ) : (
                   'Select an asset'
                 )}
               </p>
+              {selectedAsset && (
+                <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[var(--text-muted)]">
+                  <span>Total: {totalBalance.toLocaleString('en-US', { maximumFractionDigits: 8 })} {selectedAsset.symbol}</span>
+                  <span className="inline-flex items-center gap-1">
+                    <LockKeyhole size={12} />
+                    Locked: {lockedBalance.toLocaleString('en-US', { maximumFractionDigits: 8 })} {selectedAsset.symbol}
+                  </span>
+                </div>
+              )}
             </div>
             <Shield size={28} className="text-brand-400 opacity-60" />
           </div>
@@ -166,9 +162,18 @@ export default function WithdrawPage() {
                   <p className="font-medium text-[var(--text-secondary)] mb-1">Withdrawal requires verification:</p>
                   <ul className="list-disc list-inside space-y-1">
                     <li>An OTP will be sent to your registered email</li>
-                    <li>2FA confirmation if enabled on your account</li>
                     <li>Admin review before funds are sent</li>
                   </ul>
+                </div>
+              </div>
+
+              <div className="glass rounded-2xl p-5 flex gap-3 border border-amber-400/30 bg-amber-500/10">
+                <TriangleAlert size={19} className="text-amber-500 flex-shrink-0 mt-0.5" />
+                <div className="text-sm text-[var(--text-muted)]">
+                  <p className="font-semibold text-[var(--text-secondary)] mb-1">Tax warning before withdrawal</p>
+                  <p>
+                    Crypto withdrawals may create reporting obligations or tax consequences depending on your activity and jurisdiction. Review this withdrawal with your tax professional before submitting.
+                  </p>
                 </div>
               </div>
 
@@ -220,51 +225,33 @@ export default function WithdrawPage() {
             </>
           )}
 
-          {(step === 'otp' || step === 'totp') && (
+          {step === 'otp' && (
             <div className="glass rounded-2xl p-7 space-y-5">
               <div className="text-center">
                 <div className="w-14 h-14 rounded-2xl bg-brand-600/20 border border-brand-500/30 flex items-center justify-center mx-auto mb-4">
                   <Shield size={24} className="text-brand-400" />
                 </div>
-                <h2 className="text-lg font-semibold text-[var(--text-primary)]">
-                  {step === 'otp' ? 'Email Verification' : '2FA Verification'}
-                </h2>
+                <h2 className="text-lg font-semibold text-[var(--text-primary)]">Email Verification</h2>
                 <p className="text-sm text-[var(--text-muted)] mt-1">
-                  {step === 'otp'
-                    ? 'Enter the 6-digit code sent to your email'
-                    : 'Enter your 2FA authenticator code'}
+                  Enter the 6-digit code sent to your email
                 </p>
               </div>
 
-              {step === 'otp' && (
-                <Input
-                  label="Email OTP"
-                  type="text"
-                  placeholder="000000"
-                  maxLength={6}
-                  inputMode="numeric"
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value)}
-                />
-              )}
-
-              {step === 'totp' && (
-                <Input
-                  label="2FA Code"
-                  type="text"
-                  placeholder="000000"
-                  maxLength={6}
-                  inputMode="numeric"
-                  value={totpCode}
-                  onChange={(e) => setTotpCode(e.target.value)}
-                />
-              )}
+              <Input
+                label="Email OTP"
+                type="text"
+                placeholder="000000"
+                maxLength={6}
+                inputMode="numeric"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+              />
 
               <Button
                 className="w-full"
                 size="lg"
                 loading={isLoading}
-                onClick={step === 'otp' ? verifyOTP : verifyTOTP}
+                onClick={verifyOTP}
               >
                 Verify
               </Button>

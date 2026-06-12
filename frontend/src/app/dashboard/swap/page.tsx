@@ -115,7 +115,7 @@ export default function SwapCryptoPage() {
     return (
       <>
         <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)}></div>
-        <div className="absolute top-full left-0 mt-2 w-[220px] bg-white dark:bg-[#2c2c2c] rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 max-h-[300px] overflow-y-auto z-50">
+        <div className="absolute top-full left-0 mt-2 w-[220px] bg-white dark:bg-[#101010] rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 max-h-[300px] overflow-y-auto z-50">
           {assets.map((asset) => (
             <button
               key={asset.id}
@@ -146,10 +146,10 @@ export default function SwapCryptoPage() {
   };
 
   return (
-    <div className="h-full min-h-[calc(100vh-64px)] flex flex-col bg-[#f4f5f8] dark:bg-[#181818] relative">
+    <div className="h-full min-h-[calc(100vh-64px)] flex flex-col bg-[#f4f5f8] dark:bg-[#050505] relative">
       
       {/* Header */}
-      <header className="flex items-center px-4 py-4 bg-white dark:bg-[#2c2c2c] border-b border-gray-100 dark:border-gray-800 sticky top-0 z-10">
+      <header className="flex items-center px-4 py-4 bg-white dark:bg-[#101010] border-b border-gray-100 dark:border-gray-800 sticky top-0 z-10">
         <button type="button" onClick={() => router.back()} className="text-[#2d68d8] dark:text-blue-500 absolute left-4">
           <ArrowLeft size={22} />
         </button>
@@ -178,7 +178,7 @@ export default function SwapCryptoPage() {
           </div>
         )}
 
-        <div className="bg-white dark:bg-[#2c2c2c] rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] border border-gray-100 dark:border-gray-700/50 p-4 pb-6 flex flex-col gap-4 relative">
+        <div className="bg-white dark:bg-[#101010] rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] border border-gray-100 dark:border-gray-700/50 p-4 pb-6 flex flex-col gap-4 relative">
           
           {/* FROM SECTION */}
           <div className="flex justify-between items-center px-1">
@@ -188,7 +188,7 @@ export default function SwapCryptoPage() {
             </span>
           </div>
           
-          <div className={`bg-[#f4f5f8] dark:bg-[#2c2c2c] rounded-xl p-4 flex flex-col gap-4 border border-gray-50/50 mb-8 relative ${fromDropdownOpen ? 'z-30' : 'z-10'}`}>
+          <div className={`bg-[#f4f5f8] dark:bg-[#101010] rounded-xl p-4 flex flex-col gap-4 border border-gray-50/50 mb-8 relative ${fromDropdownOpen ? 'z-30' : 'z-10'}`}>
             <div className="flex justify-between items-center">
               <div className="relative">
                 <button 
@@ -217,7 +217,7 @@ export default function SwapCryptoPage() {
                   <button 
                     key={pct} 
                     onClick={() => handlePercentage(pct)}
-                    className="bg-white dark:bg-[#2c2c2c] text-[#8e98bc] hover:text-[#2d68d8] dark:hover:text-blue-400 text-[11px] font-semibold px-3 py-1.5 rounded-[6px] shadow-sm border border-gray-100 dark:border-gray-700 transition"
+                    className="bg-white dark:bg-[#101010] text-[#8e98bc] hover:text-[#2d68d8] dark:hover:text-blue-400 text-[11px] font-semibold px-3 py-1.5 rounded-[6px] shadow-sm border border-gray-100 dark:border-gray-700 transition"
                   >
                     {pct === 100 ? 'MAX' : `${pct}%`}
                   </button>
@@ -245,7 +245,7 @@ export default function SwapCryptoPage() {
             </span>
           </div>
 
-          <div className={`bg-[#f4f5f8] dark:bg-[#2c2c2c] rounded-xl p-4 flex flex-col gap-2 border border-gray-50/50 relative ${toDropdownOpen ? 'z-30' : 'z-10'}`}>
+          <div className={`bg-[#f4f5f8] dark:bg-[#101010] rounded-xl p-4 flex flex-col gap-2 border border-gray-50/50 relative ${toDropdownOpen ? 'z-30' : 'z-10'}`}>
             <div className="flex justify-between items-center">
               <div className="relative">
                 <button 
@@ -276,7 +276,7 @@ export default function SwapCryptoPage() {
           </div>
 
           {/* EXCHANGE DETAILS */}
-          <div className="bg-[#f8f9fb] dark:bg-[#2c2c2c] rounded-xl p-4 mt-2 flex flex-col gap-3 border border-gray-50 dark:border-gray-800">
+          <div className="bg-[#f8f9fb] dark:bg-[#101010] rounded-xl p-4 mt-2 flex flex-col gap-3 border border-gray-50 dark:border-gray-800">
             <div className="flex items-start gap-8">
               <span className="text-[13px] text-[#8e98bc] font-medium w-16">Exchange<br/>Rate</span>
               <span className="text-[13px] font-semibold text-gray-900 dark:text-white pt-0.5">

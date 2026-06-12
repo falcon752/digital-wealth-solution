@@ -35,10 +35,10 @@ export default function SettingsPage() {
   const heldAssetsCount = stats?.assetBalances ? Object.values(stats.assetBalances).filter((v: any) => v > 0).length : 0;
 
   return (
-    <div className="min-h-full flex flex-col bg-[#f4f5f8] dark:bg-[#181818] pb-20">
+    <div className="min-h-full flex flex-col bg-[#f4f5f8] dark:bg-[#050505] pb-20">
       
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-4 bg-[#f4f5f8] dark:bg-[#181818] sticky top-0 z-10">
+      <header className="flex items-center justify-between px-4 py-4 bg-[#f4f5f8] dark:bg-[#050505] sticky top-0 z-10">
         <button onClick={() => router.back()} className="flex items-center gap-2 text-gray-500 dark:text-gray-400 font-medium">
           <ArrowLeft size={18} />
           Back
@@ -55,7 +55,7 @@ export default function SettingsPage() {
       <div className="flex-1 flex flex-col px-4 mt-2">
         
         {/* User Card */}
-        <div className="bg-white dark:bg-[#2c2c2c] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700/50 p-5 flex items-center gap-4 mb-4">
+        <div className="bg-white dark:bg-[#101010] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700/50 p-5 flex items-center gap-4 mb-4">
           <div className="w-14 h-14 rounded-full bg-orange-100 overflow-hidden flex items-center justify-center shrink-0">
             {previewImage ? (
               <Image src={previewImage} alt="Profile" width={56} height={56} className="w-full h-full object-cover" />
@@ -75,17 +75,17 @@ export default function SettingsPage() {
 
         {/* Stats Row */}
         <div className="grid grid-cols-3 gap-3 mb-8">
-          <div className="bg-white dark:bg-[#2c2c2c] rounded-2xl p-4 flex flex-col items-center justify-center shadow-sm border border-gray-100 dark:border-gray-700/50">
+          <div className="bg-white dark:bg-[#101010] rounded-2xl p-4 flex flex-col items-center justify-center shadow-sm border border-gray-100 dark:border-gray-700/50">
             <span className="text-[12px] text-gray-400 font-medium mb-1">Total Assets</span>
             <span className="text-[15px] font-semibold text-gray-900 dark:text-white">
               {heldAssetsCount}
             </span>
           </div>
-          <div className="bg-white dark:bg-[#2c2c2c] rounded-2xl p-4 flex flex-col items-center justify-center shadow-sm border border-gray-100 dark:border-gray-700/50">
+          <div className="bg-white dark:bg-[#101010] rounded-2xl p-4 flex flex-col items-center justify-center shadow-sm border border-gray-100 dark:border-gray-700/50">
             <span className="text-[12px] text-gray-400 font-medium mb-1">Trades</span>
             <span className="text-[15px] font-semibold text-gray-900 dark:text-white">{tradesCount}</span>
           </div>
-          <div className="bg-white dark:bg-[#2c2c2c] rounded-2xl p-4 flex flex-col items-center justify-center shadow-sm border border-gray-100 dark:border-gray-700/50">
+          <div className="bg-white dark:bg-[#101010] rounded-2xl p-4 flex flex-col items-center justify-center shadow-sm border border-gray-100 dark:border-gray-700/50">
             <span className="text-[12px] text-gray-400 font-medium mb-1">Referrals</span>
             <span className="text-[15px] font-semibold text-gray-900 dark:text-white">0</span>
           </div>
@@ -102,7 +102,7 @@ export default function SettingsPage() {
                 navigator.clipboard.writeText(user.referralCode);
                 toast.success('Referral code copied!');
               }
-            }} className="flex items-center justify-between bg-white dark:bg-[#2c2c2c] px-4 py-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700/50">
+            }} className="flex items-center justify-between bg-white dark:bg-[#101010] px-4 py-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700/50">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-xl bg-[#eaf1ff] dark:bg-blue-900/30 flex items-center justify-center text-[#2d68d8]">
                   <Handshake size={20} />
@@ -112,7 +112,7 @@ export default function SettingsPage() {
               <ChevronRight size={18} className="text-[#2d68d8]" />
             </Link>
 
-            <Link href="/dashboard/transactions" className="flex items-center justify-between bg-white dark:bg-[#2c2c2c] px-4 py-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700/50">
+            <Link href="/dashboard/transactions" className="flex items-center justify-between bg-white dark:bg-[#101010] px-4 py-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700/50">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-xl bg-[#eaf1ff] dark:bg-blue-900/30 flex items-center justify-center text-[#2d68d8]">
                   <ArrowRightLeft size={20} />
@@ -122,7 +122,7 @@ export default function SettingsPage() {
               <ChevronRight size={18} className="text-[#2d68d8]" />
             </Link>
 
-            <Link href="/dashboard/settings/addresses" className="flex items-center justify-between bg-white dark:bg-[#2c2c2c] px-4 py-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700/50">
+            <Link href="/dashboard/settings/addresses" className="flex items-center justify-between bg-white dark:bg-[#101010] px-4 py-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700/50">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-xl bg-[#eaf1ff] dark:bg-blue-900/30 flex items-center justify-center text-[#2d68d8]">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -138,7 +138,7 @@ export default function SettingsPage() {
               <ChevronRight size={18} className="text-[#2d68d8]" />
             </Link>
 
-            <Link href="/dashboard/settings/deposit-log" className="flex items-center justify-between bg-white dark:bg-[#2c2c2c] px-4 py-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700/50">
+            <Link href="/dashboard/settings/deposit-log" className="flex items-center justify-between bg-white dark:bg-[#101010] px-4 py-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700/50">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-xl bg-[#eaf1ff] dark:bg-blue-900/30 flex items-center justify-center text-[#2d68d8]">
                   <Download size={20} />
@@ -148,7 +148,7 @@ export default function SettingsPage() {
               <ChevronRight size={18} className="text-[#2d68d8]" />
             </Link>
 
-            <Link href="/dashboard/cards" className="flex items-center justify-between bg-white dark:bg-[#2c2c2c] px-4 py-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700/50">
+            <Link href="/dashboard/cards" className="flex items-center justify-between bg-white dark:bg-[#101010] px-4 py-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700/50">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-xl bg-[#eaf1ff] dark:bg-blue-900/30 flex items-center justify-center text-[#2d68d8]">
                   <CreditCard size={20} />
@@ -166,7 +166,7 @@ export default function SettingsPage() {
           <h3 className="text-[14px] font-medium text-gray-400 mb-3 px-1">Settings</h3>
           <div className="space-y-2">
             
-            <Link href="/dashboard/settings/profile" className="flex items-center justify-between bg-white dark:bg-[#2c2c2c] px-4 py-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700/50">
+            <Link href="/dashboard/settings/profile" className="flex items-center justify-between bg-white dark:bg-[#101010] px-4 py-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700/50">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-xl bg-[#eaf1ff] dark:bg-blue-900/30 flex items-center justify-center text-[#2d68d8]">
                   <User size={20} />
@@ -176,7 +176,7 @@ export default function SettingsPage() {
               <ChevronRight size={18} className="text-[#2d68d8]" />
             </Link>
 
-            <Link href="/dashboard/settings/security" className="flex items-center justify-between bg-white dark:bg-[#2c2c2c] px-4 py-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700/50">
+            <Link href="/dashboard/settings/security" className="flex items-center justify-between bg-white dark:bg-[#101010] px-4 py-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700/50">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-xl bg-[#eaf1ff] dark:bg-blue-900/30 flex items-center justify-center text-[#2d68d8]">
                   <Lock size={20} />
@@ -186,7 +186,7 @@ export default function SettingsPage() {
               <ChevronRight size={18} className="text-[#2d68d8]" />
             </Link>
 
-            <button onClick={logout} className="w-full flex items-center justify-between bg-white dark:bg-[#2c2c2c] px-4 py-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700/50">
+            <button onClick={logout} className="w-full flex items-center justify-between bg-white dark:bg-[#101010] px-4 py-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700/50">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-xl bg-[#eaf1ff] dark:bg-blue-900/30 flex items-center justify-center text-[#2d68d8]">
                   <LogOut size={20} />

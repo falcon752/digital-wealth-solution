@@ -97,10 +97,10 @@ export default function UserDashboard() {
     });
 
   return (
-    <div className="min-h-full flex flex-col bg-white dark:bg-[#181818] pb-10">
+    <div className="min-h-full flex flex-col bg-white dark:bg-[#050505] pb-10">
       
       {/* Header */}
-      <header className="flex justify-between items-center px-4 py-4 bg-white dark:bg-[#2c2c2c] sticky top-0 z-10">
+      <header className="flex justify-between items-center px-4 py-4 bg-white dark:bg-[#101010] sticky top-0 z-10">
         <div className="flex items-center gap-3">
           <button onClick={openSidebar} className="text-gray-900 dark:text-white hover:opacity-80 transition p-1 -ml-1 shrink-0">
             <Menu size={24} />
@@ -142,19 +142,19 @@ export default function UserDashboard() {
 
       {/* Action Buttons */}
       <div className="grid grid-cols-4 gap-3 px-4 mb-8">
-        <Link href="/dashboard/withdraw" className="flex flex-col items-center justify-center gap-1.5 bg-[#f4f5f8] dark:bg-[#2c2c2c] rounded-2xl text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 active:bg-[#2d68d8] active:text-white transition py-3.5">
+        <Link href="/dashboard/withdraw" className="flex flex-col items-center justify-center gap-1.5 bg-[#f4f5f8] dark:bg-[#101010] rounded-2xl text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 active:bg-[#2d68d8] active:text-white transition py-3.5">
           <ArrowUp size={22} />
           <span className="text-xs font-semibold">Transfer</span>
         </Link>
-        <Link href="/dashboard/deposit" className="flex flex-col items-center justify-center gap-1.5 bg-[#f4f5f8] dark:bg-[#2c2c2c] rounded-2xl text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 active:bg-[#2d68d8] active:text-white transition py-3.5">
+        <Link href="/dashboard/deposit" className="flex flex-col items-center justify-center gap-1.5 bg-[#f4f5f8] dark:bg-[#101010] rounded-2xl text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 active:bg-[#2d68d8] active:text-white transition py-3.5">
           <QrCode size={22} />
           <span className="text-xs font-semibold">Deposit</span>
         </Link>
-        <Link href="/dashboard/buy" className="flex flex-col items-center justify-center gap-1.5 bg-[#f4f5f8] dark:bg-[#2c2c2c] rounded-2xl text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 active:bg-[#2d68d8] active:text-white transition py-3.5">
+        <Link href="/dashboard/buy" className="flex flex-col items-center justify-center gap-1.5 bg-[#f4f5f8] dark:bg-[#101010] rounded-2xl text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 active:bg-[#2d68d8] active:text-white transition py-3.5">
           <Zap size={22} className="fill-current" />
           <span className="text-xs font-semibold">Buy</span>
         </Link>
-        <Link href="/dashboard/swap" className="flex flex-col items-center justify-center gap-1.5 bg-[#f4f5f8] dark:bg-[#2c2c2c] rounded-2xl text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 active:bg-[#2d68d8] active:text-white transition py-3.5">
+        <Link href="/dashboard/swap" className="flex flex-col items-center justify-center gap-1.5 bg-[#f4f5f8] dark:bg-[#101010] rounded-2xl text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 active:bg-[#2d68d8] active:text-white transition py-3.5">
           <ArrowLeftRight size={22} />
           <span className="text-xs font-semibold">Swap</span>
         </Link>
@@ -181,17 +181,17 @@ export default function UserDashboard() {
           <div className="flex flex-col" aria-label="Loading assets">
             {[0, 1, 2, 3].map((item) => (
               <div key={item} className="flex items-start gap-3 px-4 py-4 border-b border-gray-50 dark:border-gray-800/50">
-                <div className="w-[42px] h-[42px] rounded-full bg-gray-100 dark:bg-[#2c2c2c] animate-pulse shrink-0" />
+                <div className="w-[42px] h-[42px] rounded-full bg-gray-100 dark:bg-[#101010] animate-pulse shrink-0" />
                 <div className="flex-1 space-y-2.5">
                   <div className="flex justify-between gap-4">
-                    <div className="h-4 w-16 rounded bg-gray-100 dark:bg-[#2c2c2c] animate-pulse" />
-                    <div className="h-4 w-24 rounded bg-gray-100 dark:bg-[#2c2c2c] animate-pulse" />
+                    <div className="h-4 w-16 rounded bg-gray-100 dark:bg-[#101010] animate-pulse" />
+                    <div className="h-4 w-24 rounded bg-gray-100 dark:bg-[#101010] animate-pulse" />
                   </div>
                   <div className="flex justify-between gap-4">
-                    <div className="h-3 w-28 rounded bg-gray-100 dark:bg-[#2c2c2c] animate-pulse" />
-                    <div className="h-3 w-14 rounded bg-gray-100 dark:bg-[#2c2c2c] animate-pulse" />
+                    <div className="h-3 w-28 rounded bg-gray-100 dark:bg-[#101010] animate-pulse" />
+                    <div className="h-3 w-14 rounded bg-gray-100 dark:bg-[#101010] animate-pulse" />
                   </div>
-                  <div className="h-3 w-20 rounded bg-gray-100 dark:bg-[#2c2c2c] animate-pulse" />
+                  <div className="h-3 w-20 rounded bg-gray-100 dark:bg-[#101010] animate-pulse" />
                 </div>
               </div>
             ))}
@@ -202,7 +202,7 @@ export default function UserDashboard() {
             <img 
               src={`https://assets.coincap.io/assets/icons/${asset.symbol.toLowerCase()}@2x.png`} 
               alt={asset.symbol} 
-              className="w-[42px] h-[42px] rounded-full object-cover shadow-sm shrink-0 bg-white dark:bg-[#2c2c2c]"
+              className="w-[42px] h-[42px] rounded-full object-cover shadow-sm shrink-0 bg-white dark:bg-[#101010]"
               onError={(e) => {
                 e.currentTarget.onerror = null; 
                 e.currentTarget.src = `https://ui-avatars.com/api/?name=${asset.symbol[0]}&background=${asset.color.replace('#','')}&color=fff&rounded=true&bold=true`;

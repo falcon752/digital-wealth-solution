@@ -93,7 +93,7 @@ export default function DepositPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-full bg-white dark:bg-[#181818]">
+    <div className="flex flex-col min-h-full bg-white dark:bg-[#050505]">
       {/* Header */}
       <div className="flex items-center justify-between px-4 h-14 border-b border-gray-100 dark:border-gray-800 shrink-0">
         <button
@@ -108,7 +108,7 @@ export default function DepositPage() {
 
       <div className="flex-1 px-4 py-6 space-y-4">
         {/* Card */}
-        <div className="bg-white dark:bg-[#2c2c2c] rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+        <div className="bg-white dark:bg-[#101010] rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden">
           <p className="px-5 pt-5 pb-3 text-base font-semibold text-gray-900 dark:text-white">
             Create New Deposit
           </p>
@@ -118,7 +118,7 @@ export default function DepositPage() {
             <button
               type="button"
               onClick={() => setDropOpen((o) => !o)}
-              className="w-full flex items-center justify-between px-4 py-3.5 bg-gray-100 dark:bg-[#2c2c2c] rounded-xl text-sm font-medium text-gray-900 dark:text-white"
+              className="w-full flex items-center justify-between px-4 py-3.5 bg-gray-100 dark:bg-[#101010] rounded-xl text-sm font-medium text-gray-900 dark:text-white"
             >
               <span className="flex items-center gap-2.5">
                 {selected && <CoinIcon symbol={selected.symbol} size={22} />}
@@ -128,7 +128,7 @@ export default function DepositPage() {
             </button>
 
             {dropOpen && (
-              <div className="mt-1 bg-white dark:bg-[#2c2c2c] border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg overflow-hidden z-20 relative">
+              <div className="mt-1 bg-white dark:bg-[#101010] border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg overflow-hidden z-20 relative">
                 {assets.map((a) => (
                   <button
                     key={a.id}
@@ -146,7 +146,7 @@ export default function DepositPage() {
 
           {/* Amount input */}
           <div className="px-4 pb-5">
-            <div className="bg-gray-100 dark:bg-[#2c2c2c] rounded-xl px-4 py-3">
+            <div className="bg-gray-100 dark:bg-[#101010] rounded-xl px-4 py-3">
               <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">Amount</p>
               <div className="flex items-center justify-between gap-2">
                 <span className="text-gray-400 dark:text-gray-500 text-sm">$</span>

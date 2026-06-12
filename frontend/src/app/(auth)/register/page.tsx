@@ -238,7 +238,7 @@ export default function RegisterPage() {
         </div>
 
         {/* Form card */}
-        <div className="bg-white dark:bg-[#2c2c2c] border border-gray-200 dark:border-gray-700/50 rounded-2xl shadow-sm p-8">
+        <div className="bg-white dark:bg-[#101010] border border-gray-200 dark:border-gray-700/50 rounded-2xl shadow-sm p-8">
           <form onSubmit={handleSubmit(onSendOTP)} className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <Input
@@ -307,7 +307,7 @@ export default function RegisterPage() {
         </div>
 
         {/* Need Help */}
-        <div className="bg-white dark:bg-[#2c2c2c] border border-gray-200 dark:border-gray-700/50 rounded-2xl shadow-sm p-6 text-center">
+        <div className="bg-white dark:bg-[#101010] border border-gray-200 dark:border-gray-700/50 rounded-2xl shadow-sm p-6 text-center">
           <h3 className="font-semibold text-(--text-primary) mb-1">Need Help?</h3>
           <p className="text-sm text-(--text-muted) mb-4">
             Our customer support team is here to assist you with your account and investment questions.
@@ -341,7 +341,7 @@ export default function RegisterPage() {
       </div>
 
       {/* OTP card */}
-      <div className="bg-white dark:bg-[#2c2c2c] border border-gray-200 dark:border-gray-700/50 rounded-2xl shadow-sm p-8 space-y-6">
+      <div className="bg-white dark:bg-[#101010] border border-gray-200 dark:border-gray-700/50 rounded-2xl shadow-sm p-8 space-y-6">
 
         {/* Instruction */}
         <p className="text-sm text-center text-(--text-muted)">

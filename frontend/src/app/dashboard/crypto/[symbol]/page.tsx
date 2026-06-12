@@ -176,14 +176,14 @@ export default function CoinDetailPage() {
 
   if (pageLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-white dark:bg-[#181818]">
+      <div className="flex items-center justify-center min-h-screen bg-white dark:bg-[#050505]">
         <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col min-h-full bg-white dark:bg-[#181818]">
+    <div className="flex flex-col min-h-full bg-white dark:bg-[#050505]">
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between px-5 py-4 shrink-0">
         <button onClick={() => router.back()} className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
@@ -298,7 +298,7 @@ export default function CoinDetailPage() {
       </div>
 
       {/* ── Bottom navigation ──────────────────────────────────────────────── */}
-      <div className="border-t border-gray-100 dark:border-gray-800 grid grid-cols-5 shrink-0 bg-white dark:bg-[#2c2c2c]">
+      <div className="border-t border-gray-100 dark:border-gray-800 grid grid-cols-5 shrink-0 bg-white dark:bg-[#101010]">
         {([
           { key: 'send', Icon: ArrowUpFromLine, label: 'Send' },
           { key: 'receive', Icon: ArrowDownToLine, label: 'Receive' },
@@ -333,7 +333,7 @@ export default function CoinDetailPage() {
 
       {/* ── Send overlay ───────────────────────────────────────────────────── */}
       {bottomAction === 'send' && asset && (
-        <div className="fixed inset-0 z-50 bg-white dark:bg-[#2c2c2c] flex flex-col overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-white dark:bg-[#101010] flex flex-col overflow-y-auto">
           {/* Header */}
           <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
             <button onClick={closeSend} className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
@@ -387,7 +387,7 @@ export default function CoinDetailPage() {
                 )}
 
                 {/* Wallet address */}
-                <div className="flex items-center gap-3 bg-gray-50 dark:bg-[#2c2c2c] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3">
+                <div className="flex items-center gap-3 bg-gray-50 dark:bg-[#101010] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3">
                   <p className="flex-1 text-xs font-mono text-gray-700 dark:text-gray-300 break-all leading-relaxed">
                     {asset.walletAddress}
                   </p>
@@ -419,7 +419,7 @@ export default function CoinDetailPage() {
                     {sendMode === 'usd' ? `USD ↔ ${symbol}` : `${symbol} ↔ USD`}
                   </button>
                 </div>
-                <div className="flex items-center bg-gray-50 dark:bg-[#2c2c2c] border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+                <div className="flex items-center bg-gray-50 dark:bg-[#101010] border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
                   <input
                     type="number"
                     step="any"
@@ -457,7 +457,7 @@ export default function CoinDetailPage() {
       {/* ── Receive overlay ────────────────────────────────────────────────── */}
       {bottomAction === 'receive' && asset && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-0 sm:p-4">
-          <div className="bg-white dark:bg-[#2c2c2c] w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700">
+          <div className="bg-white dark:bg-[#101010] w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100 dark:border-gray-800">
               <p className="font-semibold text-gray-900 dark:text-white">Receive {symbol}</p>
               <button onClick={() => setBottomAction(null)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
@@ -476,7 +476,7 @@ export default function CoinDetailPage() {
                   />
                 </div>
               )}
-              <div className="bg-gray-50 dark:bg-[#2c2c2c] rounded-xl px-4 py-3 border border-gray-200 dark:border-gray-700">
+              <div className="bg-gray-50 dark:bg-[#101010] rounded-xl px-4 py-3 border border-gray-200 dark:border-gray-700">
                 <p className="text-xs font-mono text-gray-700 dark:text-gray-300 break-all">{asset.walletAddress}</p>
               </div>
               {asset.network && <p className="text-xs text-gray-400">Network: {asset.network}</p>}

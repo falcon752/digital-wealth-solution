@@ -158,7 +158,7 @@ export default function LendingPage() {
   );
 
   return (
-    <div className="flex flex-col min-h-full pb-20 bg-gray-50 dark:bg-[#181818]">
+    <div className="flex flex-col min-h-full pb-20 bg-gray-50 dark:bg-[#050505]">
       <DashboardHeader title={step === 1 ? (activeTab === 'borrow' ? "Crypto Lending" : "Crypto Saving") : (activeTab === 'borrow' ? "Confirm Loan" : "Confirm Saving")} />
 
       {/* STEP 1: CALCULATOR */}
@@ -168,23 +168,23 @@ export default function LendingPage() {
             Borrow, earn,<br />trade, <span className="font-light italic">save</span>
           </h1>
 
-          <div className="bg-white dark:bg-[#2c2c2c] rounded-[28px] p-2 shadow-sm border border-gray-100 dark:border-gray-700/50">
+          <div className="bg-white dark:bg-[#101010] rounded-[28px] p-2 shadow-sm border border-gray-100 dark:border-gray-700/50">
             {/* Tabs */}
-            <div className="flex bg-gray-50 dark:bg-[#2c2c2c] rounded-2xl p-1 mb-4">
+            <div className="flex bg-gray-50 dark:bg-[#101010] rounded-2xl p-1 mb-4">
               <button 
                 onClick={() => setActiveTab('borrow')}
-                className={`flex-1 py-2.5 rounded-xl shadow-sm text-sm font-semibold transition-colors ${activeTab === 'borrow' ? 'bg-white dark:bg-[#2c2c2c] text-gray-900 dark:text-white' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
+                className={`flex-1 py-2.5 rounded-xl shadow-sm text-sm font-semibold transition-colors ${activeTab === 'borrow' ? 'bg-white dark:bg-[#101010] text-gray-900 dark:text-white' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
               >Borrow</button>
               <button 
                 onClick={() => setActiveTab('earn')}
-                className={`flex-1 py-2.5 rounded-xl shadow-sm text-sm font-semibold transition-colors ${activeTab === 'earn' ? 'bg-white dark:bg-[#2c2c2c] text-gray-900 dark:text-white' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
+                className={`flex-1 py-2.5 rounded-xl shadow-sm text-sm font-semibold transition-colors ${activeTab === 'earn' ? 'bg-white dark:bg-[#101010] text-gray-900 dark:text-white' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
               >Earn</button>
             </div>
 
             {activeTab === 'borrow' ? (
               <>
                 {/* Collateral Input */}
-                <div className="bg-gray-50 dark:bg-[#2c2c2c] rounded-2xl p-4 mb-2">
+                <div className="bg-gray-50 dark:bg-[#101010] rounded-2xl p-4 mb-2">
                   <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Collateral</div>
                   <div className="flex items-center justify-between gap-4">
                     <input 
@@ -196,7 +196,7 @@ export default function LendingPage() {
                     />
                     <button 
                       onClick={() => setModalType('collateral')}
-                      className="flex items-center gap-2 bg-white dark:bg-[#2c2c2c] px-3 py-2 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 shrink-0 hover:bg-gray-50 transition-colors"
+                      className="flex items-center gap-2 bg-white dark:bg-[#101010] px-3 py-2 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 shrink-0 hover:bg-gray-50 transition-colors"
                     >
                       {collateralAsset && <AssetIcon symbol={collateralAsset.symbol} />}
                       <span className="font-semibold text-gray-900 dark:text-white">{collateralAsset?.symbol}</span>
@@ -210,13 +210,13 @@ export default function LendingPage() {
 
                 {/* Divider */}
                 <div className="relative flex justify-center -my-3 z-10">
-                  <div className="w-8 h-8 rounded-full bg-white dark:bg-[#2c2c2c] border border-gray-100 dark:border-gray-700 shadow-sm flex items-center justify-center text-gray-400">
+                  <div className="w-8 h-8 rounded-full bg-white dark:bg-[#101010] border border-gray-100 dark:border-gray-700 shadow-sm flex items-center justify-center text-gray-400">
                     <ArrowDown size={16} />
                   </div>
                 </div>
 
                 {/* Loan Output */}
-                <div className="bg-gray-50 dark:bg-[#2c2c2c] rounded-2xl p-4 mt-2 mb-4">
+                <div className="bg-gray-50 dark:bg-[#101010] rounded-2xl p-4 mt-2 mb-4">
                   <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Loan</div>
                   <div className="flex items-center justify-between gap-4">
                     <div className="text-[24px] font-semibold text-gray-900 dark:text-white truncate">
@@ -224,7 +224,7 @@ export default function LendingPage() {
                     </div>
                     <button 
                       onClick={() => setModalType('loan')}
-                      className="flex items-center gap-2 bg-white dark:bg-[#2c2c2c] px-3 py-2 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 shrink-0 hover:bg-gray-50 transition-colors"
+                      className="flex items-center gap-2 bg-white dark:bg-[#101010] px-3 py-2 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 shrink-0 hover:bg-gray-50 transition-colors"
                     >
                       {loanAsset && <AssetIcon symbol={loanAsset.symbol} />}
                       <span className="font-semibold text-gray-900 dark:text-white">{loanAsset?.symbol}</span>
@@ -240,7 +240,7 @@ export default function LendingPage() {
                 <div className="flex gap-2 mb-4">
                   <div 
                     onClick={() => setModalType('ltv')}
-                    className="flex-1 bg-gray-50 dark:bg-[#2c2c2c] rounded-xl p-3 flex justify-between items-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                    className="flex-1 bg-gray-50 dark:bg-[#101010] rounded-xl p-3 flex justify-between items-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                   >
                     <div className="flex items-center gap-1 text-sm font-medium text-gray-500">
                       LTV <Info size={14} />
@@ -251,7 +251,7 @@ export default function LendingPage() {
                   </div>
                   <div 
                     onClick={() => setModalType('apr')}
-                    className="flex-1 bg-gray-50 dark:bg-[#2c2c2c] rounded-xl p-3 flex justify-between items-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                    className="flex-1 bg-gray-50 dark:bg-[#101010] rounded-xl p-3 flex justify-between items-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                   >
                     <div className="flex items-center gap-1 text-sm font-medium text-gray-500">
                       APR <Info size={14} />
@@ -275,7 +275,7 @@ export default function LendingPage() {
             ) : (
               <>
                 {/* Earn Input */}
-                <div className="bg-gray-50 dark:bg-[#2c2c2c] rounded-2xl p-4 mb-4 mt-2">
+                <div className="bg-gray-50 dark:bg-[#101010] rounded-2xl p-4 mb-4 mt-2">
                   <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Your deposit</div>
                   <div className="flex items-center justify-between gap-4">
                     <input 
@@ -287,7 +287,7 @@ export default function LendingPage() {
                     />
                     <button 
                       onClick={() => setModalType('earn')}
-                      className="flex items-center gap-2 bg-white dark:bg-[#2c2c2c] px-3 py-2 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 shrink-0 hover:bg-gray-50 transition-colors"
+                      className="flex items-center gap-2 bg-white dark:bg-[#101010] px-3 py-2 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 shrink-0 hover:bg-gray-50 transition-colors"
                     >
                       {earnAsset && <AssetIcon symbol={earnAsset.symbol} />}
                       <span className="font-semibold text-gray-900 dark:text-white">{earnAsset?.symbol}</span>
@@ -506,13 +506,13 @@ export default function LendingPage() {
                     placeholder="example@domain.com" 
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="rounded-xl bg-gray-50 dark:bg-[#2c2c2c]"
+                    className="rounded-xl bg-gray-50 dark:bg-[#101010]"
                   />
                   <div className="mt-2 text-sm text-blue-600 cursor-pointer font-medium">Verify with Phone</div>
                 </div>
 
                 <Button 
-                  className="w-full py-4 text-[15px] font-medium rounded-2xl bg-white! dark:bg-[#2c2c2c]! text-gray-900! dark:text-white! border! border-gray-200! dark:border-gray-700! hover:bg-gray-50! dark:hover:bg-gray-700!"
+                  className="w-full py-4 text-[15px] font-medium rounded-2xl bg-white! dark:bg-[#101010]! text-gray-900! dark:text-white! border! border-gray-200! dark:border-gray-700! hover:bg-gray-50! dark:hover:bg-gray-700!"
                   onClick={() => toast.success('Verification link sent to email')}
                 >
                   Verify
@@ -546,15 +546,15 @@ export default function LendingPage() {
 
       {/* Asset Selector Modal */}
       {(modalType === 'collateral' || modalType === 'loan' || modalType === 'earn') && (
-        <div className="fixed inset-0 z-[100] flex flex-col bg-gray-100 dark:bg-[#181818] animate-in slide-in-from-bottom-full duration-300">
-          <div className="flex items-center justify-between p-4 bg-white dark:bg-[#2c2c2c] border-b border-gray-200 dark:border-gray-700 sticky top-0">
+        <div className="fixed inset-0 z-[100] flex flex-col bg-gray-100 dark:bg-[#050505] animate-in slide-in-from-bottom-full duration-300">
+          <div className="flex items-center justify-between p-4 bg-white dark:bg-[#101010] border-b border-gray-200 dark:border-gray-700 sticky top-0">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Choose asset</h2>
             <button onClick={() => setModalType(null)} className="p-2 -mr-2 text-gray-400 hover:text-gray-600">
               <X size={24} />
             </button>
           </div>
           
-          <div className="p-4 bg-white dark:bg-[#2c2c2c] border-b border-gray-200 dark:border-gray-700">
+          <div className="p-4 bg-white dark:bg-[#101010] border-b border-gray-200 dark:border-gray-700">
             <div className="relative">
               <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input 
@@ -562,13 +562,13 @@ export default function LendingPage() {
                 placeholder="Search crypto" 
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full bg-gray-50 dark:bg-[#2c2c2c] text-gray-900 dark:text-white placeholder:text-gray-400 text-[15px] py-3 pl-10 pr-4 rounded-xl focus:outline-none border border-gray-100 dark:border-gray-700"
+                className="w-full bg-gray-50 dark:bg-[#101010] text-gray-900 dark:text-white placeholder:text-gray-400 text-[15px] py-3 pl-10 pr-4 rounded-xl focus:outline-none border border-gray-100 dark:border-gray-700"
               />
             </div>
             <div className="text-sm font-medium text-gray-500 mt-4 px-1">Crypto assets</div>
           </div>
 
-          <div className="flex-1 overflow-y-auto bg-white dark:bg-[#2c2c2c] pb-safe">
+          <div className="flex-1 overflow-y-auto bg-white dark:bg-[#101010] pb-safe">
             {filteredAssets.map((asset) => {
               const isSelected = modalType === 'collateral' 
                 ? collateralAsset?.symbol === asset.symbol 
@@ -605,7 +605,7 @@ export default function LendingPage() {
       {(modalType === 'ltv' || modalType === 'apr') && (
         <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/40 animate-in fade-in duration-200" onClick={() => setModalType(null)}>
           <div 
-            className="w-full sm:max-w-md bg-white dark:bg-[#2c2c2c] rounded-t-[32px] sm:rounded-2xl flex flex-col animate-in slide-in-from-bottom-full duration-300 pb-safe"
+            className="w-full sm:max-w-md bg-white dark:bg-[#101010] rounded-t-[32px] sm:rounded-2xl flex flex-col animate-in slide-in-from-bottom-full duration-300 pb-safe"
             onClick={e => e.stopPropagation()}
           >
             {/* Header */}

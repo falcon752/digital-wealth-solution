@@ -37,10 +37,10 @@ export default function SecuritySettingsPage() {
   };
 
   return (
-    <div className="min-h-full flex flex-col bg-white dark:bg-[#181818] pb-20">
+    <div className="min-h-full flex flex-col bg-white dark:bg-[#050505] pb-20">
       
       {/* Header */}
-      <header className="flex items-center px-4 py-4 bg-white dark:bg-[#2c2c2c] sticky top-0 z-10">
+      <header className="flex items-center px-4 py-4 bg-white dark:bg-[#101010] sticky top-0 z-10">
         <button type="button" onClick={() => router.back()} className="text-gray-900 dark:text-white p-1 absolute left-4">
           <ArrowLeft size={22} />
         </button>
@@ -70,7 +70,7 @@ export default function SecuritySettingsPage() {
                 type={showCurrent ? "text" : "password"}
                 placeholder="Enter current password"
                 {...pwForm.register('currentPassword', { required: true })}
-                className="w-full bg-[#f4f5f8] dark:bg-[#2c2c2c] text-gray-900 dark:text-white placeholder:text-[#a0a8b9] font-medium text-[15px] py-4 pl-4 pr-12 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full bg-[#f4f5f8] dark:bg-[#101010] text-gray-900 dark:text-white placeholder:text-[#a0a8b9] font-medium text-[15px] py-4 pl-4 pr-12 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/20"
               />
               <button 
                 type="button" 
@@ -92,7 +92,7 @@ export default function SecuritySettingsPage() {
                 type={showNew ? "text" : "password"}
                 placeholder="Enter new password"
                 {...pwForm.register('newPassword', { required: true })}
-                className="w-full bg-[#f4f5f8] dark:bg-[#2c2c2c] text-gray-900 dark:text-white placeholder:text-[#a0a8b9] font-medium text-[15px] py-4 pl-4 pr-12 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full bg-[#f4f5f8] dark:bg-[#101010] text-gray-900 dark:text-white placeholder:text-[#a0a8b9] font-medium text-[15px] py-4 pl-4 pr-12 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/20"
               />
               <button 
                 type="button" 
@@ -114,7 +114,7 @@ export default function SecuritySettingsPage() {
                 type={showNew ? "text" : "password"}
                 placeholder="Confirm new password"
                 {...pwForm.register('confirmPassword', { required: true })}
-                className="w-full bg-[#f4f5f8] dark:bg-[#2c2c2c] text-gray-900 dark:text-white placeholder:text-[#a0a8b9] font-medium text-[15px] py-4 pl-4 pr-12 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full bg-[#f4f5f8] dark:bg-[#101010] text-gray-900 dark:text-white placeholder:text-[#a0a8b9] font-medium text-[15px] py-4 pl-4 pr-12 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/20"
               />
             </div>
           </div>

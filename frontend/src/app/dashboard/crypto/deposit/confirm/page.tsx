@@ -102,7 +102,7 @@ export default function DepositConfirmPage() {
     : null;
 
   return (
-    <div className="flex flex-col min-h-full bg-white dark:bg-[#181818]">
+    <div className="flex flex-col min-h-full bg-white dark:bg-[#050505]">
       {/* Header */}
       <div className="flex items-center justify-between px-4 h-14 border-b border-gray-100 dark:border-gray-800 shrink-0">
         <button
@@ -165,7 +165,7 @@ export default function DepositConfirmPage() {
         </div>
 
         {/* Wallet address + copy */}
-        <div className="flex items-center gap-2 bg-gray-50 dark:bg-[#2c2c2c] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3">
+        <div className="flex items-center gap-2 bg-gray-50 dark:bg-[#101010] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3">
           <p className="flex-1 text-sm text-gray-700 dark:text-gray-300 break-all font-mono">
             {walletAddress || 'No address configured'}
           </p>
@@ -185,7 +185,7 @@ export default function DepositConfirmPage() {
             <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Amount to deposit</p>
             <p className="text-xs text-gray-400">USD ↔ {symbol}</p>
           </div>
-          <div className="flex items-center bg-gray-50 dark:bg-[#2c2c2c] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3.5">
+          <div className="flex items-center bg-gray-50 dark:bg-[#101010] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3.5">
             <p className="flex-1 text-lg font-semibold text-[#2d5be3] tabular-nums">{cryptoAmount}</p>
             <span className="text-sm font-semibold text-gray-500 dark:text-gray-400">{symbol}</span>
           </div>
@@ -199,7 +199,7 @@ export default function DepositConfirmPage() {
             value={txHash}
             onChange={(e) => setTxHash(e.target.value)}
             placeholder="Enter transaction ID"
-            className="w-full bg-gray-50 dark:bg-[#2c2c2c] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2d5be3]/40"
+            className="w-full bg-gray-50 dark:bg-[#101010] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2d5be3]/40"
           />
         </div>
 
@@ -207,7 +207,7 @@ export default function DepositConfirmPage() {
         <div>
           <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Transaction ID</p>
           <div
-            className="w-full bg-gray-50 dark:bg-[#2c2c2c] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3.5 cursor-pointer"
+            className="w-full bg-gray-50 dark:bg-[#101010] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3.5 cursor-pointer"
             onClick={() => fileRef.current?.click()}
           >
             <input

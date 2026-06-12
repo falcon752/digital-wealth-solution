@@ -1,5 +1,4 @@
 const express = require('express');
-const speakeasy = require('speakeasy');
 const crypto = require('crypto');
 const { body, validationResult } = require('express-validator');
 const { Asset, User, Withdrawal } = require('../database');
@@ -84,29 +83,9 @@ router.post('/:id/verify-otp', authenticate, [
       return res.status(400).json({ error: 'Invalid OTP code' });
     }
 
-    const user = await User.findById(req.user.id).select('twoFactorEnabled twoFactorSecret firstName lastName email');
+    const user = await User.findById(req.user.id).select('firstName lastName email');
 
-    if (user.twoFactorEnabled) {
-      const { totpCode } = req.body;
-      if (!totpCode) {
-        return res.status(200).json({ requiresTOTP: true, message: 'Please provide your 2FA code' });
-      }
-      const verified = speakeasy.totp.verify({
-        secret: user.twoFactorSecret,
-        encoding: 'base32',
-        token: totpCode,
-        window: 1,
-      });
-      if (!verified) return res.status(400).json({ error: 'Invalid 2FA code' });
-
-      await Withdrawal.findByIdAndUpdate(req.params.id, {
-        otpCode: null,
-        otpExpiry: null,
-        twoFactorVerified: true,
-      });
-    } else {
-      await Withdrawal.findByIdAndUpdate(req.params.id, { otpCode: null, otpExpiry: null });
-    }
+    await Withdrawal.findByIdAndUpdate(req.params.id, { otpCode: null, otpExpiry: null });
 
 
     // Notify admin only after OTP is verified — withdrawal is user-confirmed

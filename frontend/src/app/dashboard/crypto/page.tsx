@@ -108,7 +108,7 @@ function BuyModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-0 sm:p-4">
-      <div className="bg-white dark:bg-[#2c2c2c] w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-[#101010] w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 max-h-[90vh] overflow-y-auto">
         {/* Modal header */}
         <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100 dark:border-gray-800">
           <div className="flex items-center gap-3">
@@ -127,7 +127,7 @@ function BuyModal({
           {/* Wallet address */}
           <div>
             <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Send {asset.symbol} to this address</p>
-            <div className="flex items-center gap-2 bg-gray-50 dark:bg-[#2c2c2c] rounded-xl px-3 py-3 border border-gray-200 dark:border-gray-700">
+            <div className="flex items-center gap-2 bg-gray-50 dark:bg-[#101010] rounded-xl px-3 py-3 border border-gray-200 dark:border-gray-700">
               <p className="flex-1 text-xs font-mono text-gray-700 dark:text-gray-300 break-all leading-relaxed">
                 {asset.walletAddress}
               </p>
@@ -150,7 +150,7 @@ function BuyModal({
               type="number"
               step="any"
               placeholder={`Min: ${asset.minDeposit || 0}`}
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#2c2c2c] text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#101010] text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             {errors.amount && <p className="text-xs text-red-500 mt-1">{errors.amount.message}</p>}
           </div>
@@ -165,7 +165,7 @@ function BuyModal({
               type="number"
               step="any"
               placeholder="e.g. 500"
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#2c2c2c] text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#101010] text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
@@ -178,7 +178,7 @@ function BuyModal({
               {...register('txHash')}
               type="text"
               placeholder="0x..."
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#2c2c2c] text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#101010] text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
@@ -227,7 +227,7 @@ function ReceiveModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-0 sm:p-4">
-      <div className="bg-white dark:bg-[#2c2c2c] w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700">
+      <div className="bg-white dark:bg-[#101010] w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100 dark:border-gray-800">
           <p className="font-semibold text-gray-900 dark:text-white">Receive {asset.symbol}</p>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
@@ -246,7 +246,7 @@ function ReceiveModal({
               />
             </div>
           )}
-          <div className="bg-gray-50 dark:bg-[#2c2c2c] rounded-xl px-4 py-3 border border-gray-200 dark:border-gray-700">
+          <div className="bg-gray-50 dark:bg-[#101010] rounded-xl px-4 py-3 border border-gray-200 dark:border-gray-700">
             <p className="text-xs font-mono text-gray-700 dark:text-gray-300 break-all">{asset.walletAddress}</p>
           </div>
           {asset.network && <p className="text-xs text-gray-400">Network: {asset.network}</p>}
@@ -284,7 +284,7 @@ function AssetPickerModal({
 }) {
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-0 sm:p-4">
-      <div className="bg-white dark:bg-[#2c2c2c] w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 max-h-[70vh] flex flex-col">
+      <div className="bg-white dark:bg-[#101010] w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 max-h-[70vh] flex flex-col">
         <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
           <p className="font-semibold text-gray-900 dark:text-white">
             {mode === 'buy' ? 'Buy — Select Asset' : mode === 'receive' ? 'Receive — Select Asset' : 'Send — Select Asset'}
@@ -406,7 +406,7 @@ function SendModal({
       {/* Validation error overlay */}
       {validationError && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/30 backdrop-blur-sm p-4">
-          <div className="bg-white dark:bg-[#2c2c2c] rounded-2xl shadow-2xl p-8 max-w-xs w-full text-center">
+          <div className="bg-white dark:bg-[#101010] rounded-2xl shadow-2xl p-8 max-w-xs w-full text-center">
             <div className="w-16 h-16 rounded-full border-2 border-red-400 flex items-center justify-center mx-auto mb-4">
               <X size={28} className="text-red-400" />
             </div>
@@ -423,7 +423,7 @@ function SendModal({
       )}
 
       <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-0 sm:p-4">
-        <div className="bg-white dark:bg-[#2c2c2c] w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 max-h-[90vh] overflow-y-auto">
+        <div className="bg-white dark:bg-[#101010] w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 max-h-[90vh] overflow-y-auto">
 
           {/* ── Step 1: Withdrawal form ── */}
           {step === 'form' && (
@@ -449,7 +449,7 @@ function SendModal({
                       {amountMode === 'usd' ? `USD ↔ ${asset.symbol}` : `${asset.symbol} ↔ USD`}
                     </button>
                   </div>
-                  <div className="flex items-center bg-gray-50 dark:bg-[#2c2c2c] border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+                  <div className="flex items-center bg-gray-50 dark:bg-[#101010] border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
                     <input
                       {...register('amount')}
                       type="number"
@@ -472,7 +472,7 @@ function SendModal({
                   <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
                     Your Destination Wallet Address
                   </label>
-                  <div className="bg-gray-50 dark:bg-[#2c2c2c] border border-gray-200 dark:border-gray-700 rounded-xl">
+                  <div className="bg-gray-50 dark:bg-[#101010] border border-gray-200 dark:border-gray-700 rounded-xl">
                     <input
                       {...register('destinationAddress')}
                       type="text"
@@ -525,7 +525,7 @@ function SendModal({
                   value={otp}
                   onChange={(e) => setOtp(e.target.value.slice(0, 6))}
                   placeholder="000000"
-                  className="w-full text-center text-2xl font-semibold tracking-widest px-4 py-4 rounded-2xl border-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#2c2c2c] text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 transition-colors"
+                  className="w-full text-center text-2xl font-semibold tracking-widest px-4 py-4 rounded-2xl border-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#101010] text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 transition-colors"
                 />
 
                 <button
@@ -599,7 +599,7 @@ export default function CryptoAssetsPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-full bg-white dark:bg-[#181818]">
+    <div className="flex flex-col min-h-full bg-white dark:bg-[#050505]">
       {/* Wallet header */}
       <div className="flex items-center justify-between px-5 h-14 border-b border-gray-100 dark:border-gray-800 shrink-0">
         <button onClick={openSidebar} className="w-9 h-9 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
@@ -634,7 +634,7 @@ export default function CryptoAssetsPage() {
           <button
             key={key}
             onClick={() => handleActionClick(key)}
-            className="flex flex-col items-center justify-center gap-2 py-4 rounded-2xl text-sm font-medium transition-all bg-gray-100 dark:bg-[#2c2c2c] text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 active:bg-[#2d5be3] active:text-white"
+            className="flex flex-col items-center justify-center gap-2 py-4 rounded-2xl text-sm font-medium transition-all bg-gray-100 dark:bg-[#101010] text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 active:bg-[#2d5be3] active:text-white"
           >
             <Icon size={20} />
             <span className="text-xs">{label}</span>

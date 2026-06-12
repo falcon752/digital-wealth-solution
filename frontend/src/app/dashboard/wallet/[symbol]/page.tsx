@@ -154,10 +154,10 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
   const tabs = ['Holdings', 'History', 'About'];
 
   return (
-    <div className="min-h-full flex flex-col bg-white dark:bg-[#181818]">
+    <div className="min-h-full flex flex-col bg-white dark:bg-[#050505]">
       
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3 bg-white dark:bg-[#2c2c2c] sticky top-0 z-10 border-b border-gray-100 dark:border-gray-800">
+      <header className="flex items-center justify-between px-4 py-3 bg-white dark:bg-[#101010] sticky top-0 z-10 border-b border-gray-100 dark:border-gray-800">
         <button type="button" onClick={() => router.back()} className="text-gray-900 dark:text-white p-1 -ml-1">
           <ArrowLeft size={24} />
         </button>
@@ -221,7 +221,7 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
               onClick={() => setTimeframe(tf)}
               className={`px-[14px] py-2 rounded-xl text-[13px] font-semibold transition-colors ${
                 isActive 
-                  ? 'bg-[#e6f0fa] dark:bg-[#2c2c2c] text-[#2d68d8] dark:text-white'
+                  ? 'bg-[#e6f0fa] dark:bg-[#101010] text-[#2d68d8] dark:text-white'
                   : 'text-[#8f9bb3] dark:text-gray-400 bg-transparent'
               }`}
             >
@@ -233,7 +233,7 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
 
       {/* Action Buttons removed per user request */}
 
-      <div className="w-full h-[1px] bg-gray-100 dark:bg-[#2c2c2c]"></div>
+      <div className="w-full h-[1px] bg-gray-100 dark:bg-[#101010]"></div>
 
       {/* Tabs */}
       <div className="flex px-4 pt-4 border-b border-gray-100 dark:border-gray-800">
@@ -332,7 +332,7 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
       {activeTab === 'About' && (
         <div className="flex flex-col mt-6 px-4 pb-8">
           <h2 className="text-[14px] font-semibold text-[#8f9bb3] dark:text-gray-400 mb-4">About {symbol}</h2>
-          <div className="bg-[#f8f9fa] dark:bg-[#2c2c2c] rounded-2xl p-5 border border-gray-100 dark:border-gray-700">
+          <div className="bg-[#f8f9fa] dark:bg-[#101010] rounded-2xl p-5 border border-gray-100 dark:border-gray-700">
             <h3 className="font-semibold text-[#1e2335] dark:text-white text-[17px] mb-2">{assetInfo?.name || symbol}</h3>
             <p className="text-[14px] text-gray-600 dark:text-gray-300 leading-relaxed font-medium">
               {assetInfo?.name || symbol} ({symbol}) is a digital asset available on the platform. It can be used for seamless borderless transactions, earning yields, and securing collateralized loans. The real-time pricing and historical charts are fetched via aggregations.

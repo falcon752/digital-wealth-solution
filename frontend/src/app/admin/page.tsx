@@ -21,7 +21,7 @@ export default function AdminDashboard() {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-full bg-[#f9f9fb] dark:bg-[#181818]">
+    <div className="flex flex-col min-h-full bg-[#f9f9fb] dark:bg-[#050505]">
       <DashboardHeader title="Admin Dashboard" subtitle="Platform overview" />
 
       <div className="flex-1 p-6 space-y-6">
@@ -41,7 +41,7 @@ export default function AdminDashboard() {
 
             {/* Pending Actions */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-white dark:bg-[#2c2c2c] border border-gray-200 dark:border-gray-700/50 rounded-2xl p-5">
+              <div className="bg-white dark:bg-[#101010] border border-gray-200 dark:border-gray-700/50 rounded-2xl p-5">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-lg bg-amber-500/15 flex items-center justify-center">
@@ -56,7 +56,7 @@ export default function AdminDashboard() {
                 </Link>
               </div>
 
-              <div className="bg-white dark:bg-[#2c2c2c] border border-gray-200 dark:border-gray-700/50 rounded-2xl p-5">
+              <div className="bg-white dark:bg-[#101010] border border-gray-200 dark:border-gray-700/50 rounded-2xl p-5">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-lg bg-blue-500/15 flex items-center justify-center">
@@ -73,7 +73,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Recent Activity */}
-            <div className="bg-white dark:bg-[#2c2c2c] border border-gray-200 dark:border-gray-700/50 rounded-2xl p-6">
+            <div className="bg-white dark:bg-[#101010] border border-gray-200 dark:border-gray-700/50 rounded-2xl p-6">
               <div className="flex items-center justify-between mb-5">
                 <h2 className="font-semibold text-[var(--text-primary)] flex items-center gap-2">
                   <Activity size={18} className="text-brand-400" /> Recent Activity

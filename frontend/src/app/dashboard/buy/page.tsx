@@ -99,12 +99,12 @@ export default function BuyCryptoPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen pb-20 bg-[#f4f5f8] dark:bg-[#181818]">
+    <div className="flex flex-col min-h-screen pb-20 bg-[#f4f5f8] dark:bg-[#050505]">
       <DashboardHeader title="Buy Crypto" backHref="/dashboard/wallet" />
 
       <div className="flex-1 p-4 mt-6">
         <div className="w-full max-w-md mx-auto">
-          <section className="bg-white dark:bg-[#2c2c2c] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700/50 p-5">
+          <section className="bg-white dark:bg-[#101010] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700/50 p-5">
             <div className="space-y-5">
               <div>
                 <p className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-2">Asset</p>
