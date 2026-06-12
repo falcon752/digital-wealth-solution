@@ -144,11 +144,11 @@ export default function UserDashboard() {
       <div className="grid grid-cols-4 gap-3 px-4 mb-8">
         <Link href="/dashboard/withdraw" className="flex flex-col items-center justify-center gap-1.5 bg-[#f4f5f8] dark:bg-[#2c2c2c] rounded-2xl text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 active:bg-[#2d68d8] active:text-white transition py-3.5">
           <ArrowUp size={22} />
-          <span className="text-xs font-semibold">Send</span>
+          <span className="text-xs font-semibold">Transfer</span>
         </Link>
         <Link href="/dashboard/deposit" className="flex flex-col items-center justify-center gap-1.5 bg-[#f4f5f8] dark:bg-[#2c2c2c] rounded-2xl text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 active:bg-[#2d68d8] active:text-white transition py-3.5">
           <QrCode size={22} />
-          <span className="text-xs font-semibold">Receive</span>
+          <span className="text-xs font-semibold">Deposit</span>
         </Link>
         <Link href="/dashboard/buy" className="flex flex-col items-center justify-center gap-1.5 bg-[#f4f5f8] dark:bg-[#2c2c2c] rounded-2xl text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 active:bg-[#2d68d8] active:text-white transition py-3.5">
           <Zap size={22} className="fill-current" />
