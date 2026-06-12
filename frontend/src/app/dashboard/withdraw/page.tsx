@@ -118,7 +118,7 @@ export default function WithdrawPage() {
   if (step === 'success') {
     return (
       <div className="flex flex-col min-h-full">
-        <DashboardHeader title="Withdraw" />
+        <DashboardHeader title="Withdraw" backHref="/dashboard/wallet" />
         <div className="flex-1 flex items-center justify-center p-6">
           <div className="glass rounded-2xl p-10 text-center max-w-md">
             <div className="w-16 h-16 rounded-2xl bg-emerald-500/15 flex items-center justify-center mx-auto mb-4">
@@ -139,7 +139,7 @@ export default function WithdrawPage() {
 
   return (
     <div className="flex flex-col min-h-full">
-      <DashboardHeader title="Withdraw" subtitle="Request a crypto withdrawal" />
+      <DashboardHeader title="Withdraw" subtitle="Request a crypto withdrawal" backHref="/dashboard/wallet" />
 
       <div className="flex-1 p-6">
         <div className="max-w-2xl mx-auto space-y-6">

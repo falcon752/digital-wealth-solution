@@ -149,7 +149,7 @@ export default function SwapCryptoPage() {
       
       {/* Header */}
       <header className="flex items-center px-4 py-4 bg-white dark:bg-[#2c2c2c] border-b border-gray-100 dark:border-gray-800 sticky top-0 z-10">
-        <Link href="/dashboard" className="text-[#2d68d8] dark:text-blue-500 absolute left-4">
+        <Link href="/dashboard/wallet" className="text-[#2d68d8] dark:text-blue-500 absolute left-4">
           <ArrowLeft size={22} />
         </Link>
         <h1 className="flex-1 text-center font-semibold text-gray-900 dark:text-white text-[17px]">

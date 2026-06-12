@@ -123,3 +123,7 @@ body {
   --bg-input:       #2c2c2c;
   --bg-card:        #2c2c2c;
 }
+
+.dark form label {
+  color: #ffffff;
+}

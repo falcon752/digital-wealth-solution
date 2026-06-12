@@ -87,7 +87,7 @@ export default function BuyCryptoPage() {
 
   return (
     <div className="flex flex-col min-h-screen pb-20 bg-[#f4f5f8] dark:bg-[#181818]">
-      <DashboardHeader title="Buy Crypto" />
+      <DashboardHeader title="Buy Crypto" backHref="/dashboard/wallet" />
 
       <div className="flex-1 p-4 mt-6">
         <div className="w-full max-w-md mx-auto">

@@ -3,7 +3,7 @@
 import { useAuth } from '@/context/AuthContext';
 import { useSidebar } from '@/context/SidebarContext';
 import ThemeToggle from './ThemeToggle';
-import { ChevronDown, LogOut, Menu } from 'lucide-react';
+import { ArrowLeft, ChevronDown, LogOut, Menu } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
@@ -19,9 +19,10 @@ interface DashboardHeaderProps {
   title: string;
   subtitle?: string;
   tabs?: Tab[];
+  backHref?: string;
 }
 
-export default function DashboardHeader({ title, subtitle, tabs }: DashboardHeaderProps) {
+export default function DashboardHeader({ title, subtitle, tabs, backHref }: DashboardHeaderProps) {
   const { user, logout } = useAuth();
   const { openSidebar } = useSidebar();
   const pathname = usePathname();
@@ -44,9 +45,18 @@ export default function DashboardHeader({ title, subtitle, tabs }: DashboardHead
 
         {/* Left: hamburger and title (or logo on mobile) */}
         <div className="flex items-center gap-2 min-w-0 md:min-w-[auto]">
+          {backHref && (
+            <Link
+              href={backHref}
+              className="p-2 -ml-1 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors shrink-0"
+              aria-label="Go back"
+            >
+              <ArrowLeft size={22} />
+            </Link>
+          )}
           <button
             onClick={openSidebar}
-            className="md:hidden p-2 -ml-1 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors shrink-0"
+            className={`${backHref ? 'hidden' : 'md:hidden'} p-2 -ml-1 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors shrink-0`}
             aria-label="Open menu"
           >
             <Menu size={24} />
