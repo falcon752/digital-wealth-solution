@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { assetsAPI } from '@/lib/api';
 import { Asset } from '@/types';
-import { ArrowUpRight, CheckCircle2, ChevronDown } from 'lucide-react';
+import { ArrowUpRight, CheckCircle2, ChevronDown, CreditCard } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 
@@ -28,9 +28,13 @@ const EXCHANGES: Array<{ id: ProviderId; type: ProviderType; url: string }> = [
 
 const ALL_PLATFORMS = [...PURCHASE_PROVIDERS, ...EXCHANGES];
 
-function MoonPayIcon(props: React.SVGProps<SVGSVGElement>) {
+interface IconProps extends React.SVGProps<SVGSVGElement> {
+  size?: number;
+}
+
+function MoonPayIcon({ size = 18, ...props }: IconProps) {
   return (
-    <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+    <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" width={size} height={size} {...props}>
       <path d="M16 2L6 7v18l10 5 10-5V7L16 2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
       <path d="M16 7v18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
       <path d="M6 7l10 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
@@ -39,54 +43,54 @@ function MoonPayIcon(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
-function TransakIcon(props: React.SVGProps<SVGSVGElement>) {
+function TransakIcon({ size = 18, ...props }: IconProps) {
   return (
-    <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+    <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" width={size} height={size} {...props}>
       <path d="M16 2C8.268 2 2 8.268 2 16s6.268 14 14 14 14-6.268 14-14S23.732 2 16 2zm0 26C10.477 28 6 23.523 6 18S10.477 8 16 8s10 4.477 10 10-4.477 10-10 10z" stroke="currentColor" strokeWidth="2"/>
       <path d="M10 16h12M16 10v12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
     </svg>
   );
 }
 
-function SimplexIcon(props: React.SVGProps<SVGSVGElement>) {
+function SimplexIcon({ size = 18, ...props }: IconProps) {
   return (
-    <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+    <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" width={size} height={size} {...props}>
       <path d="M16 2C8.268 2 2 8.268 2 16s6.268 14 14 14 14-6.268 14-14S23.732 2 16 2z" stroke="currentColor" strokeWidth="2"/>
       <path d="M16 8v16M8 16h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
     </svg>
   );
 }
 
-function RampIcon(props: React.SVGProps<SVGSVGElement>) {
+function RampIcon({ size = 18, ...props }: IconProps) {
   return (
-    <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+    <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" width={size} height={size} {...props}>
       <path d="M6 26L26 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
       <path d="M6 16h12v-10" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   );
 }
 
-function CoinbaseIcon(props: React.SVGProps<SVGSVGElement>) {
+function CoinbaseIcon({ size = 18, ...props }: IconProps) {
   return (
-    <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+    <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" width={size} height={size} {...props}>
       <circle cx="16" cy="16" r="14" stroke="currentColor" strokeWidth="2"/>
       <path d="M16 8v16M8 16h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
     </svg>
   );
 }
 
-function GeminiIcon(props: React.SVGProps<SVGSVGElement>) {
+function GeminiIcon({ size = 18, ...props }: IconProps) {
   return (
-    <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+    <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" width={size} height={size} {...props}>
       <path d="M6 26L16 6l10 20H6z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
       <path d="M16 6v20" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
     </svg>
   );
 }
 
-function UpholdIcon(props: React.SVGProps<SVGSVGElement>) {
+function UpholdIcon({ size = 18, ...props }: IconProps) {
   return (
-    <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+    <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" width={size} height={size} {...props}>
       <path d="M16 2L6 7v18l10 5 10-5V7L16 2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
       <path d="M16 7v18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
       <path d="M10 16h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
@@ -94,9 +98,9 @@ function UpholdIcon(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
-function KrakenIcon(props: React.SVGProps<SVGSVGElement>) {
+function KrakenIcon({ size = 18, ...props }: IconProps) {
   return (
-    <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+    <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" width={size} height={size} {...props}>
       <path d="M16 2C8.268 2 2 8.268 2 16s6.268 14 14 14 14-6.268 14-14S23.732 2 16 2z" stroke="currentColor" strokeWidth="2"/>
       <path d="M16 8a8 8 0 0 0 0 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
       <path d="M16 8v16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
