@@ -82,7 +82,7 @@ export default function SiteFooter() {
               guidance on digital assets and traditional wealth management. Based in Dallas, Texas.
             </p>
             <p className="text-[16px] font-semibold" style={{ color: '#BDBEC8' }}>
-              Contact us (307) 309-2027
+              Contact us: <a href="mailto:support@digitalwealthpartnersllc.net" style={{ color: '#AD7F4E' }}>support@digitalwealthpartnersllc.net</a>
             </p>
           </div>
 

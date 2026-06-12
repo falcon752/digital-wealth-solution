@@ -44,7 +44,6 @@ export default function ContactPage() {
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [confirmEmail, setConfirmEmail] = useState('');
-  const [phone, setPhone] = useState('');
   const [married, setMarried] = useState('No');
   const [children, setChildren] = useState('No');
   const [investableAssets, setInvestableAssets] = useState('');
@@ -75,7 +74,6 @@ export default function ContactPage() {
         firstName,
         lastName,
         email,
-        phone,
         married,
         children,
         investableAssets,
@@ -93,7 +91,6 @@ export default function ContactPage() {
       setLastName('');
       setEmail('');
       setConfirmEmail('');
-      setPhone('');
       setMarried('No');
       setChildren('No');
       setInvestableAssets('');
@@ -244,19 +241,14 @@ export default function ContactPage() {
                   </div>
                 </div>
 
-                {/* Phone */}
+                {/* Support Email */}
                 <div>
                   <label className="block text-sm font-medium mb-1" style={{ color: '#1a202c' }}>
-                    Phone <span style={{ color: '#c0392b' }}>*</span>
+                    Support Email
                   </label>
-                  <input
-                    type="tel"
-                    className="w-full border px-3 py-2 text-sm text-[var(--text-primary)]"
-                    style={{ borderColor: '#d1d5db', outline: 'none', maxWidth: '260px' }}
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    required
-                  />
+                  <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm font-medium" style={{ color: '#1e266d', maxWidth: '300px' }}>
+                    support@digitalwealthpartnersllc.net
+                  </div>
                 </div>
 
                 {/* Family Status */}

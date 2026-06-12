@@ -294,8 +294,7 @@ export default function PrivacyPolicyPage() {
               <div className="space-y-4">
                 <p>If you have any questions or concerns about this privacy notice, please contact DWP using the following contact information:</p>
                 <div className="space-y-2">
-                  <p><strong>Phone:</strong> (307) 214-0780</p>
-                  <p><strong>Email:</strong> support@digitalwealthpartners.net</p>
+                  <p><strong>Email:</strong> <a href="mailto:support@digitalwealthpartnersllc.net" style={{ color: '#1e266d' }}>support@digitalwealthpartnersllc.net</a></p>
                   <p><strong>Website:</strong> www.digitalwealthpartners.net</p>
                 </div>
               </div>
