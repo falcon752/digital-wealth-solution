@@ -11,59 +11,23 @@ import Modal from '@/components/ui/Modal';
 
 type ProviderType = 'provider' | 'exchange';
 type ProviderId = 'MoonPay' | 'Transak' | 'Simplex' | 'Ramp' | 'Coinbase' | 'Gemini' | 'Uphold' | 'Kraken';
+type Platform = { id: ProviderId; type: ProviderType; url: string; logoDomain: string; logoFallback: string };
 
-const PURCHASE_PROVIDERS: Array<{ id: ProviderId; type: ProviderType; url: string }> = [
-  { id: 'MoonPay', type: 'provider', url: 'https://www.moonpay.com/buy' },
-  { id: 'Transak', type: 'provider', url: 'https://global.transak.com/' },
-  { id: 'Simplex', type: 'provider', url: 'https://simplex.com/buy' },
-  { id: 'Ramp', type: 'provider', url: 'https://app.ramp.network/buy' },
+const PURCHASE_PROVIDERS: Platform[] = [
+  { id: 'MoonPay', type: 'provider', url: 'https://www.moonpay.com/buy', logoDomain: 'moonpay.com', logoFallback: '7c3aed' },
+  { id: 'Transak', type: 'provider', url: 'https://global.transak.com/', logoDomain: 'transak.com', logoFallback: '2563eb' },
+  { id: 'Simplex', type: 'provider', url: 'https://simplex.com/buy', logoDomain: 'simplex.com', logoFallback: '111827' },
+  { id: 'Ramp', type: 'provider', url: 'https://app.ramp.network/buy', logoDomain: 'ramp.network', logoFallback: '16a34a' },
 ];
 
-const EXCHANGES: Array<{ id: ProviderId; type: ProviderType; url: string }> = [
-  { id: 'Coinbase', type: 'exchange', url: 'https://www.coinbase.com/buy' },
-  { id: 'Gemini', type: 'exchange', url: 'https://exchange.gemini.com/deposit' },
-  { id: 'Uphold', type: 'exchange', url: 'https://wallet.uphold.com/dashboard' },
-  { id: 'Kraken', type: 'exchange', url: 'https://www.kraken.com/sign-in' },
+const EXCHANGES: Platform[] = [
+  { id: 'Coinbase', type: 'exchange', url: 'https://www.coinbase.com/buy', logoDomain: 'coinbase.com', logoFallback: '0052ff' },
+  { id: 'Gemini', type: 'exchange', url: 'https://exchange.gemini.com/deposit', logoDomain: 'gemini.com', logoFallback: '00dcfa' },
+  { id: 'Uphold', type: 'exchange', url: 'https://wallet.uphold.com/dashboard', logoDomain: 'uphold.com', logoFallback: '22c55e' },
+  { id: 'Kraken', type: 'exchange', url: 'https://www.kraken.com/sign-in', logoDomain: 'kraken.com', logoFallback: '7137ff' },
 ];
 
 const ALL_PLATFORMS = [...PURCHASE_PROVIDERS, ...EXCHANGES];
-
-const PROVIDER_LOGOS: Record<ProviderId, string> = {
-  MoonPay: 'https://logo.clearbit.com/moonpay.com',
-  Transak: 'https://logo.clearbit.com/transak.com',
-  Simplex: 'https://logo.clearbit.com/simplex.com',
-  Ramp: 'https://logo.clearbit.com/ramp.network',
-  Coinbase: 'https://logo.clearbit.com/coinbase.com',
-  Gemini: 'https://logo.clearbit.com/gemini.com',
-  Uphold: 'https://logo.clearbit.com/uphold.com',
-  Kraken: 'https://logo.clearbit.com/kraken.com',
-};
-
-function getProviderIcon(id: ProviderId) {
-  const logoUrl = PROVIDER_LOGOS[id];
-  if (!logoUrl) {
-    return (
-      <img
-        src={`https://ui-avatars.com/api/?name=${id}&background=3b82f6&color=fff&rounded=true&bold=true&size=32`}
-        alt={id}
-        className="w-5 h-5 rounded-lg object-contain"
-      />
-    );
-  }
-  
-  return (
-    <img
-      src={logoUrl}
-      alt={id}
-      className="w-5 h-5 rounded-lg object-contain"
-      style={{ filter: 'none' }}
-      onError={(e) => {
-        e.currentTarget.onerror = null;
-        e.currentTarget.src = `https://ui-avatars.com/api/?name=${id}&background=3b82f6&color=fff&rounded=true&bold=true&size=32`;
-      }}
-    />
-  );
-}
 
 function providerUrl(provider: ProviderId, asset: Asset, amount: string) {
   const symbol = asset.symbol.toUpperCase();
@@ -82,6 +46,22 @@ function providerUrl(provider: ProviderId, asset: Asset, amount: string) {
     return `https://app.ramp.network/buy?hostApiKey=default&cryptoAsset=${symbol}&fiatCurrency=USD&defaultAmount=${amount}&userAddress=${encodeURIComponent(walletAddress)}`;
   }
   return ALL_PLATFORMS.find((p) => p.id === provider)?.url || '#';
+}
+
+function PlatformLogo({ item }: { item: Platform }) {
+  return (
+    <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 bg-white dark:bg-[#1f1f1f] flex items-center justify-center border border-gray-100 dark:border-gray-700 shadow-sm">
+      <img
+        src={`https://logo.clearbit.com/${item.logoDomain}`}
+        alt={item.id}
+        className="w-full h-full object-contain p-1"
+        onError={(event) => {
+          event.currentTarget.onerror = null;
+          event.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(item.id[0])}&background=${item.logoFallback}&color=fff&rounded=true&bold=true`;
+        }}
+      />
+    </div>
+  );
 }
 
 export default function BuyCryptoPage() {
@@ -174,7 +154,7 @@ export default function BuyCryptoPage() {
                         }`}
                       >
                         <div className="flex items-center gap-2">
-                          {getProviderIcon(item.id)}
+                          <PlatformLogo item={item} />
                           <div>
                             <p className="text-sm font-semibold text-gray-900 dark:text-white">{item.id}</p>
                             <p className="text-[11px] capitalize text-gray-500 dark:text-gray-400">{item.type}</p>
@@ -201,7 +181,7 @@ export default function BuyCryptoPage() {
                         }`}
                       >
                         <div className="flex items-center gap-2">
-                          {getProviderIcon(item.id)}
+                          <PlatformLogo item={item} />
                           <div>
                             <p className="text-sm font-semibold text-gray-900 dark:text-white">{item.id}</p>
                             <p className="text-[11px] text-gray-500 dark:text-gray-400">Exchange login</p>
