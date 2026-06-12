@@ -1,8 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { ArrowLeft, Download } from 'lucide-react';
+import { Download } from 'lucide-react';
 import { usersAPI } from '@/lib/api';
 import { Transaction } from '@/types';
 import DashboardHeader from '@/components/layout/DashboardHeader';
@@ -31,7 +30,7 @@ export default function DepositLogPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-[#f4f5f8] dark:bg-[#181818] pb-20">
-      <DashboardHeader title="Deposit Log" />
+      <DashboardHeader title="Deposit Log" backHref="/dashboard/settings" />
 
       <div className="flex-1 p-4 flex flex-col space-y-4 mt-2">
         

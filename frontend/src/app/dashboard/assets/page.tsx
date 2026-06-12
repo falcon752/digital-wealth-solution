@@ -2,6 +2,7 @@
 
 import { ArrowLeft, Search, Square } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { assetsAPI, usersAPI } from '@/lib/api';
 import ThemeToggle from '@/components/layout/ThemeToggle';
@@ -17,6 +18,7 @@ function getAssetColor(symbol: string) {
 }
 
 export default function CryptoAssetsPage() {
+  const router = useRouter();
   const [search, setSearch] = useState('');
   const [dbAssets, setDbAssets] = useState<any[]>([]);
   const [assetBalances, setAssetBalances] = useState<Record<string, number>>({});
@@ -82,9 +84,9 @@ export default function CryptoAssetsPage() {
       
       {/* Header */}
       <header className="flex items-center px-4 py-4 bg-white dark:bg-[#2c2c2c] sticky top-0 z-10 border-b border-gray-50 dark:border-gray-800">
-        <Link href="/dashboard" className="text-[#2d68d8] dark:text-blue-500 absolute left-4">
+        <button type="button" onClick={() => router.back()} className="text-[#2d68d8] dark:text-blue-500 absolute left-4">
           <ArrowLeft size={22} />
-        </Link>
+        </button>
         <h1 className="flex-1 text-center font-semibold text-gray-900 dark:text-white text-[17px]">
           Crypto Assets
         </h1>

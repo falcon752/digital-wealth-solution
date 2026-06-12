@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { ArrowLeft, ChevronDown, ArrowRightLeft, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import ThemeToggle from '@/components/layout/ThemeToggle';
 import { assetsAPI, usersAPI } from '@/lib/api';
 
 export default function SwapCryptoPage() {
+  const router = useRouter();
   const [assets, setAssets] = useState<any[]>([]);
   const [prices, setPrices] = useState<Record<string, number>>({});
   const [assetBalances, setAssetBalances] = useState<Record<string, number>>({});
@@ -149,9 +150,9 @@ export default function SwapCryptoPage() {
       
       {/* Header */}
       <header className="flex items-center px-4 py-4 bg-white dark:bg-[#2c2c2c] border-b border-gray-100 dark:border-gray-800 sticky top-0 z-10">
-        <Link href="/dashboard/wallet" className="text-[#2d68d8] dark:text-blue-500 absolute left-4">
+        <button type="button" onClick={() => router.back()} className="text-[#2d68d8] dark:text-blue-500 absolute left-4">
           <ArrowLeft size={22} />
-        </Link>
+        </button>
         <h1 className="flex-1 text-center font-semibold text-gray-900 dark:text-white text-[17px]">
           Swap Crypto
         </h1>

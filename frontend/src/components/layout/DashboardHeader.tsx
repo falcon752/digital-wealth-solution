@@ -6,7 +6,7 @@ import ThemeToggle from './ThemeToggle';
 import { ArrowLeft, ChevronDown, LogOut, Menu } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useRef, useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 
@@ -26,6 +26,7 @@ export default function DashboardHeader({ title, subtitle, tabs, backHref }: Das
   const { user, logout } = useAuth();
   const { openSidebar } = useSidebar();
   const pathname = usePathname();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -46,13 +47,14 @@ export default function DashboardHeader({ title, subtitle, tabs, backHref }: Das
         {/* Left: hamburger and title (or logo on mobile) */}
         <div className="flex items-center gap-2 min-w-0 md:min-w-[auto]">
           {backHref && (
-            <Link
-              href={backHref}
+            <button
+              type="button"
+              onClick={() => router.back()}
               className="p-2 -ml-1 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors shrink-0"
               aria-label="Go back"
             >
               <ArrowLeft size={22} />
-            </Link>
+            </button>
           )}
           <button
             onClick={openSidebar}

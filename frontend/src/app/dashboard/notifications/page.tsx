@@ -1,12 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ArrowLeft, Bell, Eye, Trash2, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
 import ThemeToggle from '@/components/layout/ThemeToggle';
 import { usersAPI } from '@/lib/api';
 
 export default function NotificationsPage() {
+  const router = useRouter();
   const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -62,9 +63,9 @@ export default function NotificationsPage() {
       
       {/* Header */}
       <header className="flex items-center justify-between px-4 py-4 bg-white dark:bg-[#2c2c2c] sticky top-0 z-10 border-b border-gray-50 dark:border-gray-800">
-        <Link href="/dashboard/settings" className="text-gray-900 dark:text-white p-1">
+        <button type="button" onClick={() => router.back()} className="text-gray-900 dark:text-white p-1">
           <ArrowLeft size={22} />
-        </Link>
+        </button>
         <h1 className="text-[17px] font-semibold text-gray-900 dark:text-white">
           Notifications
         </h1>

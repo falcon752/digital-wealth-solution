@@ -6,7 +6,7 @@ import { assetsAPI, usersAPI } from '@/lib/api';
 import { formatCurrency } from '@/lib/utils';
 import { ArrowLeft, ArrowUpRight, ArrowDownLeft, Zap } from 'lucide-react';
 import { ArrowRightLeft } from 'lucide-react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ResponsiveContainer, LineChart, Line, YAxis } from 'recharts';
 import ThemeToggle from '@/components/layout/ThemeToggle';
 
@@ -53,6 +53,7 @@ const generateWavyChartData = (currentPrice: number, changePercent: number) => {
 };
 
 export default function SingleAssetWalletPage({ params }: { params: Promise<{ symbol: string }> | { symbol: string } }) {
+  const router = useRouter();
   const [symbol, setSymbol] = useState<string>('');
   
   useEffect(() => {
@@ -157,9 +158,9 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
       
       {/* Header */}
       <header className="flex items-center justify-between px-4 py-3 bg-white dark:bg-[#2c2c2c] sticky top-0 z-10 border-b border-gray-100 dark:border-gray-800">
-        <Link href="/dashboard/wallet" className="text-gray-900 dark:text-white p-1 -ml-1">
+        <button type="button" onClick={() => router.back()} className="text-gray-900 dark:text-white p-1 -ml-1">
           <ArrowLeft size={24} />
-        </Link>
+        </button>
         
         <div className="flex flex-col items-center">
           <span className="text-[17px] font-semibold text-[#1e2335] dark:text-white leading-tight">{symbol}</span>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { X, Search, Copy, QrCode } from 'lucide-react';
 import { assetsAPI, apiBase } from '@/lib/api';
 import toast from 'react-hot-toast';
@@ -23,6 +23,7 @@ function truncateAddress(address: string) {
 }
 
 export default function CryptoAddressesPage() {
+  const router = useRouter();
   const [search, setSearch] = useState('');
   const [assets, setAssets] = useState<any[]>([]);
   const [activeFilter, setActiveFilter] = useState('All');
@@ -60,9 +61,9 @@ export default function CryptoAddressesPage() {
       
       {/* Header */}
       <header className="flex items-center justify-between px-4 py-4 bg-white dark:bg-[#2c2c2c] sticky top-0 z-10 border-b border-gray-50 dark:border-gray-800">
-        <Link href="/dashboard/settings" className="text-gray-900 dark:text-white p-1">
+        <button type="button" onClick={() => router.back()} className="text-gray-900 dark:text-white p-1">
           <X size={22} />
-        </Link>
+        </button>
         <h1 className="text-[17px] font-semibold text-gray-900 dark:text-white">
           Receive
         </h1>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
@@ -9,6 +9,7 @@ import { usersAPI } from '@/lib/api';
 import ThemeToggle from '@/components/layout/ThemeToggle';
 
 export default function SecuritySettingsPage() {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   
   // Password visibility toggles
@@ -40,9 +41,9 @@ export default function SecuritySettingsPage() {
       
       {/* Header */}
       <header className="flex items-center px-4 py-4 bg-white dark:bg-[#2c2c2c] sticky top-0 z-10">
-        <Link href="/dashboard/settings" className="text-gray-900 dark:text-white p-1 absolute left-4">
+        <button type="button" onClick={() => router.back()} className="text-gray-900 dark:text-white p-1 absolute left-4">
           <ArrowLeft size={22} />
-        </Link>
+        </button>
         <h1 className="flex-1 text-center font-semibold text-gray-900 dark:text-white text-[17px]">
           Security Settings
         </h1>
