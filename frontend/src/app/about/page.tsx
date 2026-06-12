@@ -171,7 +171,7 @@ export default function AboutPage() {
             </h1>
 
             <p className="mb-10 leading-relaxed" style={{ color: '#4a5568', fontSize: '18px' }}>
-              Digital Wealth Partner (DWS) is a pioneering Registered Investment Advisor (RIA)
+              Digital Wealth Partners (DWP) is a pioneering Registered Investment Advisor (RIA)
               that specializes in digital assets and alternative investments, catering to Family
               Offices, High Net Worth Individuals (HNWI), and other RIAs. Leveraging a hedge fund
               type model and fee structure, DWS offers a unique blend of expertise in the

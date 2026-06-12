@@ -155,10 +155,10 @@ function NewLLCForm() {
         </div>
         <div className="flex items-center gap-6">
           <ThemeToggle />
-          <button className="flex items-center gap-2 text-[15px] font-medium text-gray-700 hover:text-black">
+          {/* <button className="flex items-center gap-2 text-[15px] font-medium text-gray-700 hover:text-black">
             <FeedbackIcon className="text-gray-500" />
             Feedback
-          </button>
+          </button> */}
           <button onClick={() => router.push('/dashboard')} className="text-[15px] font-semibold text-black dark:text-white hover:opacity-80">
             Login
           </button>
