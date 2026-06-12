@@ -84,8 +84,6 @@ const ENTITY_TYPES = [
 
 function NewLLCForm() {
   const router = useRouter();
-  const params = useSearchParams();
-  const companyType = (params.get('type') === 'existing' ? 'existing' : 'new') as 'new' | 'existing';
 
   const [form, setForm] = useState({
     companyName: '',
@@ -185,12 +183,12 @@ function NewLLCForm() {
           <h1 className="text-[34px] md:text-[40px] font-semibold text-black dark:text-white leading-[1.1] tracking-tight">
             Company<br/>Formation
           </h1>
-          <div className="text-[15px] text-[#2563eb] flex flex-col md:text-right pb-1">
+          {/* <div className="text-[15px] text-[#2563eb] flex flex-col md:text-right pb-1">
             <span className="font-medium">Existing company? Switch</span>
             <Link href="/dashboard/llc/new?type=existing" className="font-semibold underline underline-offset-4 decoration-2 hover:opacity-80">
               REGISTERED AGENTS to us →
             </Link>
-          </div>
+          </div> */}
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
