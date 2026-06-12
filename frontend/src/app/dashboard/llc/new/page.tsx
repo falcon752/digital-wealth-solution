@@ -132,7 +132,7 @@ function NewLLCForm() {
         companyName: form.companyName.trim(),
         entityType: form.entityType,
         state: form.state,
-        companyType,
+        companyType: 'new',
       });
       toast.success('LLC application submitted!');
       router.push('/dashboard/llc');
