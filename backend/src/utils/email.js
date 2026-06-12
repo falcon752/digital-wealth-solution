@@ -67,7 +67,6 @@ async function sendDepositNotificationEmail({
   txHash,
   sourceType,
   provider,
-  paymentMethod,
   providerReference,
   depositId,
 }) {
@@ -82,7 +81,7 @@ async function sendDepositNotificationEmail({
     : '';
 
   const sourceLine = sourceType || provider
-    ? `<tr><td style="color:#9ca3af;padding:6px 0;">Source</td><td style="color:#f0f6ff;font-weight:600;text-align:right;">${provider || sourceType}${paymentMethod ? ` via ${paymentMethod}` : ''}</td></tr>`
+    ? `<tr><td style="color:#9ca3af;padding:6px 0;">Source</td><td style="color:#f0f6ff;font-weight:600;text-align:right;">${provider || sourceType}</td></tr>`
     : '';
 
   const providerReferenceLine = providerReference

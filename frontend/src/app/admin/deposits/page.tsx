@@ -189,7 +189,7 @@ export default function AdminDepositsPage() {
                         </td>
                         <td className="px-4 py-3">
                           <div className="text-sm text-[var(--text-primary)]">{d.provider || (d.sourceType === 'exchange' ? 'Exchange' : d.sourceType === 'provider' ? 'Provider' : 'Wallet')}</div>
-                          <div className="text-xs text-[var(--text-muted)]">{d.paymentMethod || 'Direct transfer'}</div>
+                          <div className="text-xs text-[var(--text-muted)]">{d.sourceType === 'exchange' ? 'Exchange login' : d.sourceType === 'provider' ? 'Offsite provider' : 'Direct transfer'}</div>
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-1">
@@ -274,7 +274,6 @@ export default function AdminDepositsPage() {
                 <span className="text-[var(--text-muted)]">Source</span>
                 <span className="font-medium text-[var(--text-primary)] text-right">
                   {confirmTarget.provider || confirmTarget.sourceType || 'Wallet'}
-                  {confirmTarget.paymentMethod ? ` · ${confirmTarget.paymentMethod}` : ''}
                 </span>
               </div>
               {(confirmTarget.txHash || confirmTarget.providerReference) && (
