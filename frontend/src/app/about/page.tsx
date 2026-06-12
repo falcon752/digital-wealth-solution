@@ -11,7 +11,7 @@ const leadership = [
     name: 'Max Kahn',
     role: 'CEO',
     photo: '/team/max-kahn.jpg',
-    bio: 'Max Kahn is the Chief Executive Officer of Digital Wealth Partner, overseeing strategy and operations across the platform.',
+    bio: 'Max Kahn is the Chief Executive Officer of Digital Wealth Partners, overseeing strategy and operations across the platform.',
     linkedin: '#',
     showBadge: true,
   },
@@ -19,7 +19,7 @@ const leadership = [
     name: 'Erin Friez',
     role: 'Chairman and President',
     photo: '/team/erin-friez.jpg',
-    bio: 'Erin Friez is the President and Chairman of Digital Wealth Partner, a SEC-registered investment firm.',
+    bio: 'Erin Friez is the President and Chairman of Digital Wealth Partners, a SEC-registered investment firm.',
     linkedin: '#',
     showBadge: true,
   },
@@ -35,7 +35,7 @@ const leadership = [
     name: 'Ted Bean',
     role: 'Head of Operations',
     photo: '/team/ted-bean.jpg',
-    bio: "Ted Bean's role at Digital Wealth Partner centers around internal processes, compliance infrastructure and team coordination.",
+    bio: "Ted Bean's role at Digital Wealth Partners centers around internal processes, compliance infrastructure and team coordination.",
     linkedin: '#',
     showBadge: true,
   },
@@ -45,25 +45,25 @@ const advisors = [
   { name: 'Ashley Papa', role: 'Director of Wealth Management', photo: '/team/ashley-papa.jpg', bio: 'Ashley values becoming part of the family when she joins a client relationship.', linkedin: '#', showBadge: true },
   { name: 'Tom Teal', role: 'Head of Financial Planning', photo: '/team/tom-teal.jpg', bio: 'After graduating from Virginia Tech with a degree in Electrical Engineering, Tom built a career in financial services.', linkedin: '#', showBadge: true },
   { name: 'Stefan Griess', role: 'Technology Advisor', photo: '/team/stefan-griess.jpg', bio: 'Stefan Griess spent twelve years working as an IT Engineer before moving into investment advisory.', linkedin: '#' },
-  { name: 'Jose Amaro', role: 'Investment Advisor', photo: '/team/jose-amaro.png', bio: 'Jose Amaro is an Investment Advisor at Digital Wealth Partner, specialising in digital asset allocation.', linkedin: '#' },
+  { name: 'Jose Amaro', role: 'Investment Advisor', photo: '/team/jose-amaro.png', bio: 'Jose Amaro is an Investment Advisor at Digital Wealth Partners, specialising in digital asset allocation.', linkedin: '#' },
   { name: 'Josh Tessar', role: 'Investment Advisor', photo: '/team/josh-tessar.jpg', bio: 'Josh Tessar brings deep knowledge in structured products and alternative investments.', linkedin: '#' },
-  { name: 'Andrew Carnes', role: 'Financial Advisor', photo: '/team/andrew-carnes.jpg', bio: 'Andrew Carnes is a financial advisor at Digital Wealth Partner, focused on client portfolio growth.', linkedin: '#' },
-  { name: "Jen O'Hara", role: 'Investment Advisor', photo: '/team/jen-ohara.png', bio: "Jennifer O'Hara is an Investment Advisor at Digital Wealth Partner.", linkedin: '#' },
+  { name: 'Andrew Carnes', role: 'Financial Advisor', photo: '/team/andrew-carnes.jpg', bio: 'Andrew Carnes is a financial advisor at Digital Wealth Partners, focused on client portfolio growth.', linkedin: '#' },
+  { name: "Jen O'Hara", role: 'Investment Advisor', photo: '/team/jen-ohara.png', bio: "Jennifer O'Hara is an Investment Advisor at Digital Wealth Partners.", linkedin: '#' },
   { name: 'Matt VanBussum', role: 'Financial Advisor', photo: '/team/matt-vanbussum.png', bio: 'Matt VanBussum specialises in retirement planning and crypto portfolio construction.', linkedin: '#' },
   { name: 'Daniela Pernia', role: 'Financial Advisor', photo: '/team/daniela-pernia.jpg', bio: 'Daniela Pernia grew up watching her parents rebuild a life through disciplined investing.', linkedin: '#' },
-  { name: 'Nick Barnett', role: 'Financial Professional', photo: '/team/nick-barnett.jpg', bio: 'Nicholas Barnett is a financial professional at Digital Wealth Partner.', linkedin: '#' },
-  { name: 'PJ Braccia', role: 'Financial Advisor', photo: '/team/pj-braccia.jpg', bio: 'PJ Braccia is a financial advisor at Digital Wealth Partner.', linkedin: '#' },
-  { name: 'Connor McLaughlin', role: 'Financial Advisor', photo: '/team/connor-mclaughlin.jpg', bio: 'Connor McLaughlin is a financial advisor at Digital Wealth Partner.', linkedin: '#' },
+  { name: 'Nick Barnett', role: 'Financial Professional', photo: '/team/nick-barnett.jpg', bio: 'Nicholas Barnett is a financial professional at Digital Wealth Partners.', linkedin: '#' },
+  { name: 'PJ Braccia', role: 'Financial Advisor', photo: '/team/pj-braccia.jpg', bio: 'PJ Braccia is a financial advisor at Digital Wealth Partners.', linkedin: '#' },
+  { name: 'Connor McLaughlin', role: 'Financial Advisor', photo: '/team/connor-mclaughlin.jpg', bio: 'Connor McLaughlin is a financial advisor at Digital Wealth Partners.', linkedin: '#' },
   { name: 'Sebastian Jennings', role: 'Financial Advisor', photo: '/team/sebastian-jennings.jpg', bio: 'Sebastian Jennings came to be a financial advisor by joining a client-first culture.', linkedin: '#' },
   { name: 'Fred Weisbrod', role: 'Financial Advisor', photo: '/team/fred-weisbrod.png', bio: 'Fred Weisbrod spent the early part of his career as a senior analyst before moving to advisory.', linkedin: '#' },
-  { name: 'Brian Cobb', role: 'Investment Advisor', photo: '/team/brian-cobb.png', bio: 'Brian Cobb is an Investment Advisor at Digital Wealth Partner.', linkedin: '#' },
+  { name: 'Brian Cobb', role: 'Investment Advisor', photo: '/team/brian-cobb.png', bio: 'Brian Cobb is an Investment Advisor at Digital Wealth Partners.', linkedin: '#' },
   { name: 'Tim Githens', role: 'Investment Advisor', photo: '/team/tim-githens.jpg', bio: 'Tim Githens brings institutional experience to client digital asset strategies.', linkedin: '#' },
-  { name: 'Joe Slattery', role: 'Financial Advisor', photo: '/team/joe-slattery.jpg', bio: 'Joe Slattery works as a financial advisor at Digital Wealth Partner.', linkedin: '#' },
-  { name: 'Aaron Bailey', role: 'Investment Advisor', photo: '/team/aaron-bailey.png', bio: 'Aaron Bailey is an Investment Advisor at Digital Wealth Partner.', linkedin: '#' },
+  { name: 'Joe Slattery', role: 'Financial Advisor', photo: '/team/joe-slattery.jpg', bio: 'Joe Slattery works as a financial advisor at Digital Wealth Partners.', linkedin: '#' },
+  { name: 'Aaron Bailey', role: 'Investment Advisor', photo: '/team/aaron-bailey.png', bio: 'Aaron Bailey is an Investment Advisor at Digital Wealth Partners.', linkedin: '#' },
   { name: 'Ryan Atchley', role: 'Financial Advisor', photo: '/team/ryan-atchley.jpg', bio: 'Ryan grew up in Iowa and moved to Utah for his career in financial services.', linkedin: '#' },
-  { name: 'Tish Troutman', role: 'Financial Advisor', photo: '/team/tish-troutman.jpg', bio: 'Tish Troutman is a financial advisor at Digital Wealth Partner.', linkedin: '#' },
-  { name: 'Tyler Ochs', role: 'Financial Advisor', photo: '/team/tyler-ochs.png', bio: 'Tyler Ochs is a financial advisor at Digital Wealth Partner, based in the midwest.', linkedin: '#' },
-  { name: 'Dax Westlund, CBDA', role: 'Investment Advisor', photo: '/team/dax-westlund.jpg', bio: 'Dax Westlund is an Investment Advisor at Digital Wealth Partner.', linkedin: '#' },
+  { name: 'Tish Troutman', role: 'Financial Advisor', photo: '/team/tish-troutman.jpg', bio: 'Tish Troutman is a financial advisor at Digital Wealth Partners.', linkedin: '#' },
+  { name: 'Tyler Ochs', role: 'Financial Advisor', photo: '/team/tyler-ochs.png', bio: 'Tyler Ochs is a financial advisor at Digital Wealth Partners, based in the midwest.', linkedin: '#' },
+  { name: 'Dax Westlund, CBDA', role: 'Investment Advisor', photo: '/team/dax-westlund.jpg', bio: 'Dax Westlund is an Investment Advisor at Digital Wealth Partners.', linkedin: '#' },
   { name: 'Sam Syed', role: 'Wealth Management', photo: '/team/sam-syed.jpg', bio: 'Sam Syed brings over two decades of wealth management experience.', linkedin: '#' },
 ];
 
@@ -207,7 +207,7 @@ export default function AboutPage() {
             >
               <Image
                 src="/dallas-downtown.png"
-                alt="Digital Wealth Partner"
+                alt="Digital Wealth Partners"
                 fill
                 className="object-cover"
                 priority

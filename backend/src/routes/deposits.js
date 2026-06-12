@@ -14,11 +14,15 @@ router.post('/', authenticate, upload.single('proofImage'), [
   body('amount').isFloat({ min: 0.000001 }),
   body('txHash').optional().trim().isLength({ max: 200 }),
   body('usdValue').optional().isFloat({ min: 0 }),
+  body('sourceType').optional().isIn(['wallet', 'provider', 'exchange']),
+  body('provider').optional().trim().isLength({ max: 80 }),
+  body('paymentMethod').optional().trim().isLength({ max: 80 }),
+  body('providerReference').optional().trim().isLength({ max: 200 }),
 ], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-  const { assetId, amount, txHash, usdValue } = req.body;
+  const { assetId, amount, txHash, usdValue, sourceType, provider, paymentMethod, providerReference } = req.body;
   const proofImage = req.file ? req.file.filename : null;
 
   try {
@@ -32,6 +36,11 @@ router.post('/', authenticate, upload.single('proofImage'), [
       usdValue: usdValue ? parseFloat(usdValue) : null,
       txHash: txHash || null,
       proofImage,
+      sourceType: sourceType || 'wallet',
+      provider: provider || null,
+      paymentMethod: paymentMethod || null,
+      destinationWalletAddress: asset.walletAddress,
+      providerReference: providerReference || null,
       status: 'pending',
     });
 
@@ -57,6 +66,10 @@ router.post('/', authenticate, upload.single('proofImage'), [
         amount: parseFloat(amount),
         usdValue: usdValue ? parseFloat(usdValue) : null,
         txHash: txHash || null,
+        sourceType: sourceType || 'wallet',
+        provider: provider || null,
+        paymentMethod: paymentMethod || null,
+        providerReference: providerReference || null,
         depositId: deposit.id,
       }).catch((err) => console.error('Deposit notification email failed:', err.message));
     }

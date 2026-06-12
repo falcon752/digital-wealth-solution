@@ -157,7 +157,8 @@ export default function AdminDepositsPage() {
                   <tr className="border-b border-[var(--border)]">
                     <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">User</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Asset</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Tx Hash</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Source</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Tx / Ref</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Amount / USD</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Status</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider hidden md:table-cell">Date</th>
@@ -187,15 +188,19 @@ export default function AdminDepositsPage() {
                           <div className="text-xs text-[var(--text-muted)]">{d.assetSymbol}</div>
                         </td>
                         <td className="px-4 py-3">
+                          <div className="text-sm text-[var(--text-primary)]">{d.provider || (d.sourceType === 'exchange' ? 'Exchange' : d.sourceType === 'provider' ? 'Provider' : 'Wallet')}</div>
+                          <div className="text-xs text-[var(--text-muted)]">{d.paymentMethod || 'Direct transfer'}</div>
+                        </td>
+                        <td className="px-4 py-3">
                           <div className="flex items-center gap-1">
                             <code className="text-xs bg-brand-500/10 text-brand-300 px-2 py-0.5 rounded-lg">
-                              {d.txHash ? d.txHash.slice(0, 12) + '…' : '—'}
+                              {d.txHash ? d.txHash.slice(0, 12) + '…' : d.providerReference ? d.providerReference.slice(0, 12) + '…' : '—'}
                             </code>
-                            {d.txHash && (
+                            {(d.txHash || d.providerReference) && (
                               <button
-                                onClick={() => navigator.clipboard.writeText(d.txHash!)}
+                                onClick={() => navigator.clipboard.writeText(d.txHash || d.providerReference || '')}
                                 className="text-[var(--text-muted)] hover:text-brand-400 transition-colors"
-                                title="Copy tx hash"
+                                title="Copy tx hash or reference"
                               >
                                 <ExternalLink size={12} />
                               </button>
@@ -232,7 +237,7 @@ export default function AdminDepositsPage() {
                     );
                   })}
                   {deposits.length === 0 && (
-                    <tr><td colSpan={7} className="px-4 py-12 text-center text-[var(--text-muted)]">No deposits found.</td></tr>
+                    <tr><td colSpan={8} className="px-4 py-12 text-center text-[var(--text-muted)]">No deposits found.</td></tr>
                   )}
                 </tbody>
               </table>
@@ -265,6 +270,21 @@ export default function AdminDepositsPage() {
                   {confirmTarget.amount} {confirmTarget.assetSymbol}
                 </span>
               </div>
+              <div className="flex justify-between gap-4">
+                <span className="text-[var(--text-muted)]">Source</span>
+                <span className="font-medium text-[var(--text-primary)] text-right">
+                  {confirmTarget.provider || confirmTarget.sourceType || 'Wallet'}
+                  {confirmTarget.paymentMethod ? ` · ${confirmTarget.paymentMethod}` : ''}
+                </span>
+              </div>
+              {(confirmTarget.txHash || confirmTarget.providerReference) && (
+                <div className="flex justify-between gap-4">
+                  <span className="text-[var(--text-muted)]">Tx / Ref</span>
+                  <span className="font-mono text-xs text-[var(--text-primary)] text-right break-all">
+                    {confirmTarget.txHash || confirmTarget.providerReference}
+                  </span>
+                </div>
+              )}
             </div>
 
             <p className="text-sm text-[var(--text-secondary)]">

@@ -276,7 +276,7 @@ router.get('/me', authenticate, async (req, res) => {
 // POST /api/auth/setup-2fa
 router.post('/setup-2fa', authenticate, async (req, res) => {
   const secret = speakeasy.generateSecret({
-    name: `Digital Wealth Partner (${req.user.email})`,
+    name: `Digital Wealth Partners (${req.user.email})`,
     length: 20,
   });
 

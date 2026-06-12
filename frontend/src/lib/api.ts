@@ -84,7 +84,16 @@ export const assetsAPI = {
 
 // ─── Deposits ────────────────────────────────────────────────────────────
 export const depositsAPI = {
-  create: (data: { assetId: string; amount: number; txHash?: string; usdValue?: number }) =>
+  create: (data: {
+    assetId: string;
+    amount: number;
+    txHash?: string;
+    usdValue?: number;
+    sourceType?: 'wallet' | 'provider' | 'exchange';
+    provider?: string;
+    paymentMethod?: string;
+    providerReference?: string;
+  }) =>
     api.post('/deposits', data),
   list: (params?: { page?: number; limit?: number; status?: string }) =>
     api.get('/deposits', { params }),
@@ -132,7 +141,7 @@ export const llcAPI = {
   adminList: () => api.get('/llc/admin'),
   adminUpdate: (id: string, data: { status?: string; stateFee?: number; adminNote?: string }) =>
     api.put(`/llc/admin/${id}`, data),
-  updateLLCApplication: (id: string, data: any) => api.put(`/admin/llc/${id}`, data),
+  updateLLCApplication: (id: string, data: Record<string, unknown>) => api.put(`/admin/llc/${id}`, data),
 };
 
 // ─── Admin ────────────────────────────────────────────────────────────────

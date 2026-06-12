@@ -118,7 +118,7 @@ export default function LandingPage() {
                   >
                     <Image
                       src="/dallas-downtown.png"
-                      alt="Digital Wealth Partner"
+                      alt="Digital Wealth Partners"
                       fill
                       className="object-cover grayscale-[40%] brightness-95 contrast-105"
                       priority

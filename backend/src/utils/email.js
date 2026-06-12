@@ -30,7 +30,7 @@ async function sendSignupOTPEmail(to, firstName, otp) {
 
   const html = `
     <div style="font-family:sans-serif;max-width:480px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
-      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partner</h2>
+      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
       <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">Email Verification</p>
 
       <p>Hi <strong>${firstName}</strong>,</p>
@@ -45,20 +45,32 @@ async function sendSignupOTPEmail(to, firstName, otp) {
         If you did not attempt to register an account, please ignore this email.
       </p>
       <hr style="border-color:#0f2a4a;margin:24px 0;" />
-      <p style="color:#6b7280;font-size:12px;">© Digital Wealth Partner — do not reply to this email.</p>
+      <p style="color:#6b7280;font-size:12px;">© Digital Wealth Partners — do not reply to this email.</p>
     </div>
   `;
 
   await transporter.sendMail({
     from: FROM(),
     to,
-    subject: 'Verify your email — Digital Wealth Partner',
+    subject: 'Verify your email — Digital Wealth Partners',
     html,
   });
 }
 
 // ─── Admin deposit notification ───────────────────────────────────────────────
-async function sendDepositNotificationEmail({ adminEmail, user, asset, amount, usdValue, txHash, depositId }) {
+async function sendDepositNotificationEmail({
+  adminEmail,
+  user,
+  asset,
+  amount,
+  usdValue,
+  txHash,
+  sourceType,
+  provider,
+  paymentMethod,
+  providerReference,
+  depositId,
+}) {
   const transporter = createTransporter();
 
   const usdLine = usdValue
@@ -69,11 +81,19 @@ async function sendDepositNotificationEmail({ adminEmail, user, asset, amount, u
     ? `<tr><td style="color:#9ca3af;padding:6px 0;">Transaction Hash</td><td style="color:#60a5fa;font-weight:600;text-align:right;word-break:break-all;">${txHash}</td></tr>`
     : '';
 
+  const sourceLine = sourceType || provider
+    ? `<tr><td style="color:#9ca3af;padding:6px 0;">Source</td><td style="color:#f0f6ff;font-weight:600;text-align:right;">${provider || sourceType}${paymentMethod ? ` via ${paymentMethod}` : ''}</td></tr>`
+    : '';
+
+  const providerReferenceLine = providerReference
+    ? `<tr><td style="color:#9ca3af;padding:6px 0;">Provider Reference</td><td style="color:#f0f6ff;font-weight:600;text-align:right;word-break:break-all;">${providerReference}</td></tr>`
+    : '';
+
   const now = new Date().toLocaleString('en-US', { timeZone: 'UTC', dateStyle: 'medium', timeStyle: 'short' });
 
   const html = `
     <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
-      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partner</h2>
+      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
       <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">New Deposit Submitted - Action Required</p>
 
       <div style="background:#f59e0b22;border:1px solid #f59e0b55;border-radius:10px;padding:14px 18px;margin-bottom:24px;">
@@ -95,8 +115,10 @@ async function sendDepositNotificationEmail({ adminEmail, user, asset, amount, u
       <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
         <tr><td style="color:#9ca3af;padding:6px 0;">Asset</td><td style="color:#f0f6ff;font-weight:600;text-align:right;">${asset.name} (${asset.symbol})</td></tr>
         <tr><td style="color:#9ca3af;padding:6px 0;">Amount</td><td style="color:#f0f6ff;font-weight:600;text-align:right;">${amount} ${asset.symbol}</td></tr>
+        ${sourceLine}
         ${usdLine}
         ${txHashLine}
+        ${providerReferenceLine}
         <tr><td style="color:#9ca3af;padding:6px 0;">Deposit ID</td><td style="color:#6b7280;font-size:12px;text-align:right;">${depositId}</td></tr>
         <tr><td style="color:#9ca3af;padding:6px 0;">Submitted At</td><td style="color:#f0f6ff;text-align:right;">${now} UTC</td></tr>
       </table>
@@ -113,7 +135,7 @@ async function sendDepositNotificationEmail({ adminEmail, user, asset, amount, u
       </a>
 
       <hr style="border-color:#0f2a4a;margin:28px 0;" />
-      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partner. Do not reply.</p>
+      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners. Do not reply.</p>
     </div>
   `;
 
@@ -137,7 +159,7 @@ async function sendOTPEmail(to, firstName, otp, antiPhishingPhrase = null) {
 
   const html = `
     <div style="font-family:sans-serif;max-width:480px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
-      <h2 style="color:#2563eb;margin-bottom:8px;">Digital Wealth Partner</h2>
+      <h2 style="color:#2563eb;margin-bottom:8px;">Digital Wealth Partners</h2>
       <p style="color:#60a5fa;margin-bottom:24px;">Withdrawal Verification</p>
       ${phishingBlock}
       <p>Hi <strong>${firstName}</strong>,</p>
@@ -154,7 +176,7 @@ async function sendOTPEmail(to, firstName, otp, antiPhishingPhrase = null) {
   await transporter.sendMail({
     from: FROM(),
     to,
-    subject: 'Withdrawal OTP Verification - Digital Wealth Partner',
+    subject: 'Withdrawal OTP Verification - Digital Wealth Partners',
     html,
   });
 }
@@ -165,7 +187,7 @@ async function sendWelcomeEmail(to, firstName) {
 
   const html = `
     <div style="font-family:sans-serif;max-width:480px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
-      <h2 style="color:#2563eb;margin-bottom:8px;">Digital Wealth Partner</h2>
+      <h2 style="color:#2563eb;margin-bottom:8px;">Digital Wealth Partners</h2>
       <p style="color:#60a5fa;margin-bottom:24px;">Welcome to the platform</p>
       <p>Hi <strong>${firstName}</strong>,</p>
       <p>Your account has been created successfully. You can now log in and start managing your crypto portfolio.</p>
@@ -176,7 +198,7 @@ async function sendWelcomeEmail(to, firstName) {
   await transporter.sendMail({
     from: FROM(),
     to,
-    subject: 'Welcome to Digital Wealth Partner',
+    subject: 'Welcome to Digital Wealth Partners',
     html,
   });
 }
@@ -252,7 +274,7 @@ async function sendAdminRegistrationNotificationEmail({ adminEmail, user }) {
 
   const html = `
     <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
-      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partner</h2>
+      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
       <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">New User Registration - Info</p>
 
       <div style="background:#2563eb11;border:1px solid #2563eb44;border-radius:10px;padding:14px 18px;margin-bottom:24px;">
@@ -276,14 +298,14 @@ async function sendAdminRegistrationNotificationEmail({ adminEmail, user }) {
       </a>
 
       <hr style="border-color:#0f2a4a;margin:28px 0;" />
-      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partner. Do not reply.</p>
+      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners. Do not reply.</p>
     </div>
   `;
 
   await transporter.sendMail({
     from: FROM(),
     to: adminEmail,
-    subject: `[New User] ${user.firstName} ${user.lastName} - Digital Wealth Partner`,
+    subject: `[New User] ${user.firstName} ${user.lastName} - Digital Wealth Partners`,
     html,
   });
 }
@@ -294,7 +316,7 @@ async function sendPasswordResetEmail(to, firstName, otp) {
 
   const html = `
     <div style="font-family:sans-serif;max-width:480px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
-      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partner</h2>
+      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
       <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">Password Reset Request</p>
 
       <p>Hi <strong>${firstName}</strong>,</p>
@@ -308,14 +330,14 @@ async function sendPasswordResetEmail(to, firstName, otp) {
         This code expires in <strong style="color:#f0f6ff;">15 minutes</strong>. Do not share it with anyone.
       </p>
       <hr style="border-color:#0f2a4a;margin:24px 0;" />
-      <p style="color:#6b7280;font-size:12px;">© Digital Wealth Partner — do not reply to this email.</p>
+      <p style="color:#6b7280;font-size:12px;">© Digital Wealth Partners — do not reply to this email.</p>
     </div>
   `;
 
   await transporter.sendMail({
     from: FROM(),
     to,
-    subject: 'Reset your password — Digital Wealth Partner',
+    subject: 'Reset your password — Digital Wealth Partners',
     html,
   });
 }
@@ -328,7 +350,7 @@ async function sendOnboardingFeeNotificationEmail({ adminEmail, userEmail }) {
 
   const html = `
     <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#03101f;color:#f0f6ff;padding:40px;border-radius:16px;">
-      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partner</h2>
+      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
       <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">Onboarding Fee Confirmation - Action Required</p>
 
       <div style="background:#2563eb11;border:1px solid #2563eb44;border-radius:10px;padding:14px 18px;margin-bottom:24px;">
@@ -345,7 +367,7 @@ async function sendOnboardingFeeNotificationEmail({ adminEmail, userEmail }) {
       </table>
 
       <hr style="border-color:#0f2a4a;margin:28px 0;" />
-      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partner. Do not reply.</p>
+      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners. Do not reply.</p>
     </div>
   `;
 

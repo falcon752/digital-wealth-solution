@@ -45,6 +45,11 @@ export interface Deposit {
   amount: number;
   usdValue?: number | null;
   txHash?: string | null;
+  sourceType?: 'wallet' | 'provider' | 'exchange';
+  provider?: string | null;
+  paymentMethod?: string | null;
+  destinationWalletAddress?: string | null;
+  providerReference?: string | null;
   status: 'pending' | 'confirmed' | 'rejected';
   adminNote?: string | null;
   createdAt: string;
