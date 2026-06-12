@@ -137,7 +137,7 @@ export default function BuyCryptoPage() {
               </div>
 
               <div>
-                <p className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-2">Purchase Provider</p>
+                <p className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-2">Exchange Provider</p>
                 <div className="grid grid-cols-2 gap-2">
                   {PURCHASE_PROVIDERS.map((item) => {
                     const active = item.id === provider;
