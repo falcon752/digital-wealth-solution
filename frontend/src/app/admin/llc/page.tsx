@@ -12,6 +12,17 @@ import { formatDate, formatCurrency } from '@/lib/utils';
 import { Edit } from 'lucide-react';
 import toast from 'react-hot-toast';
 
+type PopulatedUser = { firstName?: string; lastName?: string; email?: string };
+
+function getApplicant(app: LLCApplication): PopulatedUser {
+  const populated = (app as unknown as { userId?: PopulatedUser }).userId;
+  return {
+    firstName: app.firstName || populated?.firstName,
+    lastName: app.lastName || populated?.lastName,
+    email: app.email || populated?.email,
+  };
+}
+
 export default function AdminLLCPage() {
   const [applications, setApplications] = useState<LLCApplication[]>([]);
   const [loading, setLoading] = useState(true);
@@ -26,7 +37,7 @@ export default function AdminLLCPage() {
     setLoading(true);
     llcAPI.adminList()
       .then((r) => setApplications(r.data.applications ?? r.data))
-      .catch((e) => toast.error('Failed to load LLC applications'))
+      .catch(() => toast.error('Failed to load LLC applications'))
       .finally(() => setLoading(false));
   }, []);
 
@@ -52,7 +63,7 @@ export default function AdminLLCPage() {
       setEditTarget(null);
       load();
     } catch (err: unknown) {
-      const msg = (err as any)?.response?.data?.error || 'Failed to update LLC application';
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Failed to update LLC application';
       toast.error(msg);
     } finally {
       setSubmitting(false);
@@ -84,18 +95,19 @@ export default function AdminLLCPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {applications.map((app) => (
+                  {applications.map((app) => {
+                    const applicant = getApplicant(app);
+                    return (
                     <tr
                       key={app.id}
                       className="border-b border-[var(--border)] last:border-0 hover:bg-brand-500/5 transition-colors"
                     >
                       <td className="px-4 py-3">
-                        {/* Note: backend uses populate('userId', 'firstName lastName email'), we expect firstName, lastName, email directly if populated, but wait, mongoose populate returns an object on 'userId'. Let's check how the backend sends it. The backend uses populate('userId') so it might be `app.userId.firstName` if not flattened. Wait, the frontend type has `firstName`, `lastName`, `email`. Let's assume it's flattened or we should safely access it. */}
                         <div className="text-sm font-medium text-[var(--text-primary)]">
-                          {app.firstName && app.lastName ? `${app.firstName} ${app.lastName}` : (app as any).userId?.firstName ? `${(app as any).userId.firstName} ${(app as any).userId.lastName}` : '—'}
+                          {applicant.firstName && applicant.lastName ? `${applicant.firstName} ${applicant.lastName}` : '—'}
                         </div>
                         <div className="text-xs text-[var(--text-muted)]">
-                          {app.email || (app as any).userId?.email || '—'}
+                          {applicant.email || '—'}
                         </div>
                       </td>
                       <td className="px-4 py-3">
@@ -123,7 +135,8 @@ export default function AdminLLCPage() {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                   {applications.length === 0 && (
                     <tr><td colSpan={7} className="px-4 py-12 text-center text-[var(--text-muted)]">No LLC applications found.</td></tr>
                   )}
@@ -153,11 +166,33 @@ export default function AdminLLCPage() {
               </div>
             </div>
 
+            <div className="bg-[var(--bg-secondary)] rounded-xl p-4 space-y-3 text-sm">
+              <h3 className="font-semibold text-[var(--text-primary)]">Application Details</h3>
+              {[
+                ['Business Ending', editTarget.businessEnding],
+                ['Contact Name', [editTarget.contactFirstName, editTarget.contactLastName].filter(Boolean).join(' ')],
+                ['Contact Username', editTarget.contactUsername],
+                ['Contact Email', editTarget.contactEmail],
+                ['Contact Phone', editTarget.contactPhone],
+                ['Street Address', editTarget.streetAddress],
+                ['Unit', editTarget.unit],
+                ['City', editTarget.city],
+                ['Country', editTarget.country],
+                ['Postal Code', editTarget.postalCode],
+                ['Partner Code', editTarget.partnerCode],
+              ].map(([label, value]) => (
+                <div key={label} className="flex justify-between gap-4">
+                  <span className="text-[var(--text-muted)]">{label}</span>
+                  <span className="font-medium text-[var(--text-primary)] text-right break-words">{value || '—'}</span>
+                </div>
+              ))}
+            </div>
+
             <div className="space-y-1">
               <label className="text-sm font-medium text-[var(--text-primary)]">Status</label>
               <select
                 value={status}
-                onChange={(e) => setStatus(e.target.value as any)}
+                onChange={(e) => setStatus(e.target.value as LLCApplication['status'])}
                 className="w-full px-4 py-3 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/50"
               >
                 <option value="pending">Pending</option>

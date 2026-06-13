@@ -162,6 +162,79 @@ router.put('/users/:id/balance', authenticate, requireAdmin, [
   }
 });
 
+router.post('/users/:id/asset-adjustment', authenticate, requireAdmin, [
+  body('assetId').notEmpty(),
+  body('action').isIn(['credit', 'deduct']),
+  body('amount').isFloat({ min: 0.00000001 }),
+  body('usdValue').optional({ nullable: true }).isFloat({ min: 0 }),
+  body('adminNote').optional({ nullable: true }).trim().isLength({ max: 500 }),
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+  const { assetId, action, amount, usdValue, adminNote } = req.body;
+  const parsedAmount = parseFloat(amount);
+  const parsedUsdValue = usdValue === undefined || usdValue === null || usdValue === '' ? 0 : parseFloat(usdValue);
+
+  try {
+    const [user, asset] = await Promise.all([
+      User.findOne({ _id: req.params.id, role: 'user' }),
+      Asset.findById(assetId),
+    ]);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    if (!asset) return res.status(404).json({ error: 'Asset not found' });
+
+    const note = adminNote || `Admin ${action} adjustment`;
+    let transaction;
+
+    if (action === 'credit') {
+      transaction = await Deposit.create({
+        userId: user.id,
+        assetId: asset.id,
+        amount: parsedAmount,
+        usdValue: parsedUsdValue,
+        txHash: null,
+        status: 'confirmed',
+        adminNote: note,
+        confirmedAt: new Date(),
+      });
+    } else {
+      transaction = await Withdrawal.create({
+        userId: user.id,
+        assetId: asset.id,
+        amount: parsedAmount,
+        usdValue: parsedUsdValue,
+        destinationAddress: 'Admin balance adjustment',
+        status: 'completed',
+        adminNote: note,
+        twoFactorVerified: true,
+        processedAt: new Date(),
+      });
+    }
+
+    if (parsedUsdValue > 0) {
+      const delta = action === 'credit' ? parsedUsdValue : -parsedUsdValue;
+      await User.findByIdAndUpdate(user.id, { $inc: { balance: delta } });
+      await User.updateOne({ _id: user.id, balance: { $lt: 0 } }, { balance: 0 });
+    }
+
+    logActivity(req.user.id, 'ASSET_BALANCE_ADJUSTED', {
+      userId: user.id,
+      assetId: asset.id,
+      assetSymbol: asset.symbol,
+      action,
+      amount: parsedAmount,
+      usdValue: parsedUsdValue,
+      transactionId: transaction.id,
+    }, req);
+
+    res.json({ message: 'Asset balance adjusted', transaction });
+  } catch (err) {
+    console.error('Asset adjustment error:', err);
+    res.status(500).json({ error: 'Failed to adjust asset balance' });
+  }
+});
+
 // POST /api/admin/users — create a new user account (admin only)
 router.post('/users', authenticate, requireAdmin, [
   body('email').isEmail().normalizeEmail(),

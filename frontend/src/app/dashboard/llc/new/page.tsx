@@ -1,16 +1,16 @@
 'use client';
 
 import { Suspense, useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import type { SVGProps } from 'react';
+import { useRouter } from 'next/navigation';
 import { X, Lock } from 'lucide-react';
 import { llcAPI } from '@/lib/api';
 import toast from 'react-hot-toast';
-import Link from 'next/link';
 import ThemeToggle from '@/components/layout/ThemeToggle';
 
 // --- Custom Icons matching the screenshots ---
 
-function BuildingIcon(props: any) {
+function BuildingIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
       <path d="M6 21V5C6 4.46957 6.21071 3.96086 6.58579 3.58579C6.96086 3.21071 7.46957 3 8 3H16C16.5304 3 17.0391 3.21071 17.4142 3.58579C17.7893 3.96086 18 4.46957 18 5V21M3 21H21M10 7H14M10 11H14M10 15H14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -18,19 +18,11 @@ function BuildingIcon(props: any) {
   );
 }
 
-function ChevronDown(props: any) {
-  return <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="m6 9 6 6 6-6"/></svg>;
+function ChevronDown({ size = 20, ...props }: SVGProps<SVGSVGElement> & { size?: number }) {
+  return <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="m6 9 6 6 6-6"/></svg>;
 }
 
-function FeedbackIcon(props: any) {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-    </svg>
-  );
-}
-
-function InfoCircleIcon(props: any) {
+function InfoCircleIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
       <circle cx="12" cy="12" r="10" fill="#3b82f6"/>
@@ -39,7 +31,7 @@ function InfoCircleIcon(props: any) {
   );
 }
 
-function TagIcon(props: any) {
+function TagIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
       <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
@@ -131,6 +123,18 @@ function NewLLCForm() {
         entityType: form.entityType,
         state: form.state,
         companyType: 'new',
+        businessEnding: form.businessEnding,
+        contactFirstName: form.firstName.trim(),
+        contactLastName: form.lastName.trim(),
+        contactUsername: form.username.trim(),
+        contactEmail: form.email.trim(),
+        contactPhone: form.phone.trim(),
+        streetAddress: form.streetAddress.trim(),
+        unit: form.unit.trim(),
+        city: form.city.trim(),
+        country: form.country,
+        postalCode: form.postalCode.trim(),
+        partnerCode: form.partnerCode.trim(),
       });
       toast.success('LLC application submitted!');
       router.push('/dashboard/llc');
@@ -168,7 +172,7 @@ function NewLLCForm() {
       {/* Banner */}
       {showBanner && (
         <div className="bg-[#5c50f6] text-white px-4 py-3.5 relative text-center text-[15px] leading-relaxed shrink-0">
-          Welcome to our new intake experience! Be the <strong className="font-semibold">first to report a validated bug</strong> and we'll refund your entire formation fee!
+          Welcome to our new intake experience! Be the <strong className="font-semibold">first to report a validated bug</strong> and we&apos;ll refund your entire formation fee!
           <button onClick={() => setShowBanner(false)} className="absolute right-3 top-1/2 -translate-y-1/2 p-2 hover:bg-white/20 rounded-full transition-colors">
             <X size={20} />
           </button>

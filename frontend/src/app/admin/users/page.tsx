@@ -1,14 +1,15 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { adminAPI } from '@/lib/api';
+import { adminAPI, assetsAPI } from '@/lib/api';
+import { Asset } from '@/types';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import { formatDate, formatCurrency } from '@/lib/utils';
-import { Search, ToggleLeft, ToggleRight, DollarSign, UserPlus, Eye, EyeOff, CheckCircle, Clock } from 'lucide-react';
+import { Search, ToggleLeft, ToggleRight, DollarSign, CheckCircle, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface UserRow {
@@ -32,7 +33,12 @@ export default function AdminUsersPage() {
 
   // Balance modal
   const [balanceTarget, setBalanceTarget] = useState<UserRow | null>(null);
-  const [newBalance, setNewBalance] = useState('');
+  const [assets, setAssets] = useState<Asset[]>([]);
+  const [adjustmentAction, setAdjustmentAction] = useState<'credit' | 'deduct'>('credit');
+  const [selectedAssetId, setSelectedAssetId] = useState('');
+  const [assetAmount, setAssetAmount] = useState('');
+  const [usdValue, setUsdValue] = useState('');
+  const [adminNote, setAdminNote] = useState('');
   const [submittingBalance, setSubmittingBalance] = useState(false);
 
 
@@ -49,6 +55,12 @@ export default function AdminUsersPage() {
   }, [debouncedSearch]);
 
   useEffect(load, [load]);
+
+  useEffect(() => {
+    assetsAPI.list()
+      .then((res) => setAssets(res.data.assets ?? []))
+      .catch(() => toast.error('Failed to load assets'));
+  }, []);
 
   const toggleStatus = async (u: UserRow) => {
     try {
@@ -70,13 +82,34 @@ export default function AdminUsersPage() {
     }
   };
 
-  const openBalance = (u: UserRow) => { setBalanceTarget(u); setNewBalance(String(u.balance || 0)); };
+  const openBalance = (u: UserRow) => {
+    setBalanceTarget(u);
+    setAdjustmentAction('credit');
+    setSelectedAssetId('');
+    setAssetAmount('');
+    setUsdValue('');
+    setAdminNote('');
+  };
 
   const handleSetBalance = async () => {
     if (!balanceTarget) return;
+    if (!selectedAssetId) {
+      toast.error('Select an asset');
+      return;
+    }
+    if (!assetAmount || Number(assetAmount) <= 0) {
+      toast.error('Enter an asset amount');
+      return;
+    }
     setSubmittingBalance(true);
     try {
-      await adminAPI.setUserBalance(String(balanceTarget.id), parseFloat(newBalance));
+      await adminAPI.adjustUserAssetBalance(String(balanceTarget.id), {
+        assetId: selectedAssetId,
+        action: adjustmentAction,
+        amount: parseFloat(assetAmount),
+        usdValue: usdValue ? parseFloat(usdValue) : undefined,
+        adminNote: adminNote || undefined,
+      });
       toast.success('Balance updated');
       setBalanceTarget(null);
       load();
@@ -184,9 +217,44 @@ export default function AdminUsersPage() {
       {/* ── Balance Modal ─────────────────────────────────────────────────────── */}
       <Modal isOpen={!!balanceTarget} onClose={() => setBalanceTarget(null)} title="Edit Balance" size="sm">
         <p className="text-sm text-[var(--text-secondary)] mb-4">
-          Set the total USD portfolio balance for <strong className="text-[var(--text-primary)]">{balanceTarget?.email}</strong>.
+          Credit or deduct a selected asset for <strong className="text-[var(--text-primary)]">{balanceTarget?.email}</strong>.
         </p>
-        <Input label="New Balance (USD)" type="number" step="0.01" value={newBalance} onChange={(e) => setNewBalance(e.target.value)} leftIcon={<DollarSign size={15} />} />
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-2 rounded-xl bg-[var(--bg-secondary)] p-1">
+            {(['credit', 'deduct'] as const).map((action) => (
+              <button
+                key={action}
+                type="button"
+                onClick={() => setAdjustmentAction(action)}
+                className={`rounded-lg px-3 py-2 text-sm font-semibold capitalize transition-colors ${
+                  adjustmentAction === action
+                    ? 'bg-brand-600 text-white'
+                    : 'text-[var(--text-secondary)] hover:bg-white/5'
+                }`}
+              >
+                {action}
+              </button>
+            ))}
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-[var(--text-primary)]">Select Asset</label>
+            <select
+              value={selectedAssetId}
+              onChange={(e) => setSelectedAssetId(e.target.value)}
+              className="w-full px-4 py-3 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-xl text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-brand-500/50"
+            >
+              <option value="">Select asset...</option>
+              {assets.map((asset) => (
+                <option key={asset.id} value={asset.id}>{asset.name} ({asset.symbol})</option>
+              ))}
+            </select>
+          </div>
+
+          <Input label="Asset Amount" type="number" step="any" value={assetAmount} onChange={(e) => setAssetAmount(e.target.value)} />
+          <Input label="USD Value" type="number" step="0.01" value={usdValue} onChange={(e) => setUsdValue(e.target.value)} leftIcon={<DollarSign size={15} />} />
+          <Input label="Admin Note (optional)" value={adminNote} onChange={(e) => setAdminNote(e.target.value)} />
+        </div>
         <div className="flex gap-3 mt-5">
           <Button variant="outline" className="flex-1" onClick={() => setBalanceTarget(null)}>Cancel</Button>
           <Button className="flex-1" onClick={handleSetBalance} loading={submittingBalance}>Update Balance</Button>

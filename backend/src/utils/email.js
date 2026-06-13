@@ -781,6 +781,57 @@ async function sendUserLLCStatusEmail({ userEmail, firstName, companyName, statu
   });
 }
 
+async function sendLLCNotificationEmail({ adminEmail, user, application }) {
+  const transporter = createTransporter();
+
+  const rows = [
+    ['Company', application.companyName],
+    ['Entity Type', application.entityType],
+    ['Business Ending', application.businessEnding],
+    ['Formation State', application.state],
+    ['Contact Name', [application.contactFirstName, application.contactLastName].filter(Boolean).join(' ')],
+    ['Contact Email', application.contactEmail],
+    ['Contact Phone', application.contactPhone],
+    ['Address', [application.streetAddress, application.unit, application.city, application.state, application.postalCode, application.country].filter(Boolean).join(', ')],
+    ['Partner Code', application.partnerCode],
+    ['Application ID', application.id || application._id?.toString()],
+  ].filter(([, value]) => value);
+
+  const detailRows = rows.map(([label, value]) => (
+    `<tr><td style="color:#9ca3af;padding:7px 0;">${label}</td><td style="color:#111827;font-weight:600;text-align:right;word-break:break-word;">${value}</td></tr>`
+  )).join('');
+
+  const html = `
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
+      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
+      <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">New LLC Application Submitted</p>
+
+      <h3 style="color:#60a5fa;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Platform User</h3>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
+        <tr><td style="color:#9ca3af;padding:6px 0;">Name</td><td style="color:#111827;font-weight:600;text-align:right;">${user.firstName} ${user.lastName}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">Email</td><td style="color:#111827;text-align:right;">${user.email}</td></tr>
+      </table>
+
+      <h3 style="color:#60a5fa;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Application Details</h3>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:28px;">
+        ${detailRows}
+      </table>
+
+      <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/admin/llc"
+         style="display:inline-block;background:#2563eb;color:#ffffff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">
+        Review LLC Application
+      </a>
+    </div>
+  `;
+
+  await transporter.sendMail({
+    from: FROM(),
+    to: adminEmail,
+    subject: `[LLC Application] ${application.companyName}`,
+    html: themedEmail(html),
+  });
+}
+
 module.exports = {
   sendSignupOTPEmail,
   sendDepositNotificationEmail,
@@ -798,4 +849,5 @@ module.exports = {
   sendUserLoanStatusEmail,
   sendUserEarnStatusEmail,
   sendUserLLCStatusEmail,
+  sendLLCNotificationEmail,
 };

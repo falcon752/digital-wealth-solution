@@ -11,7 +11,7 @@ import { Asset } from '@/types';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
-import { formatCurrency } from '@/lib/utils';
+import Link from 'next/link';
 
 const withdrawSchema = z.object({
   assetId: z.string().min(1, 'Select an asset'),
@@ -33,7 +33,7 @@ export default function WithdrawPage() {
   const [otp, setOtp] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm<WithdrawForm>({
+  const { register, handleSubmit, formState: { errors }, setValue, watch, reset } = useForm<WithdrawForm>({
     resolver: zodResolver(withdrawSchema),
   });
 
@@ -102,23 +102,40 @@ export default function WithdrawPage() {
     }
   };
 
+  const resetFlow = () => {
+    setStep('form');
+    setOtp('');
+    setWithdrawalId('');
+    reset();
+  };
+
   if (step === 'success') {
     return (
-      <div className="flex flex-col min-h-full">
-        <DashboardHeader title="Withdraw" backHref="/dashboard/wallet" />
-        <div className="flex-1 flex items-center justify-center p-6">
-          <div className="glass rounded-2xl p-10 text-center max-w-md">
-            <div className="w-16 h-16 rounded-2xl bg-emerald-500/15 flex items-center justify-center mx-auto mb-4">
-              <Check size={28} className="text-emerald-400" />
+      <div className="fixed inset-0 z-[100] flex flex-col bg-white dark:bg-[#050505] pb-8 animate-in fade-in zoom-in-95 duration-300">
+        <div className="flex-1 flex flex-col items-center justify-center p-6">
+          <div className="w-24 h-24 rounded-full bg-green-50 dark:bg-green-900/20 flex items-center justify-center mx-auto mb-6">
+            <div className="w-16 h-16 rounded-full bg-green-500 text-white flex items-center justify-center shadow-lg shadow-green-500/30">
+              <Check size={36} strokeWidth={3} />
             </div>
-            <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-2">Withdrawal Submitted</h2>
-            <p className="text-[var(--text-muted)] text-sm mb-6">
-              Your withdrawal request has been verified and submitted. The admin will process it shortly.
-            </p>
-            <Button onClick={() => { setStep('form'); setOtp(''); }}>
-              New Withdrawal
-            </Button>
           </div>
+          <h2 className="text-[28px] font-semibold text-gray-900 dark:text-white mb-3 tracking-tight">Withdrawal Submitted</h2>
+          <p className="text-gray-500 dark:text-gray-400 text-[15px] text-center max-w-[280px] font-medium leading-relaxed">
+            Your withdrawal request has been verified and submitted. The admin will process it shortly.
+          </p>
+        </div>
+
+        <div className="px-6 flex flex-col gap-3 w-full max-w-md mx-auto">
+          <Link href="/dashboard/assets" className="w-full">
+            <Button className="w-full bg-[#2d68d8] text-white hover:bg-blue-700 h-[52px] text-[16px] font-semibold rounded-2xl border-none">
+              Done
+            </Button>
+          </Link>
+          <Button
+            onClick={resetFlow}
+            className="w-full bg-[#f4f5f8] dark:bg-[#101010] text-gray-900 dark:text-white h-[52px] text-[16px] font-semibold rounded-2xl hover:bg-gray-200 dark:hover:bg-gray-700 border-none"
+          >
+            New Withdrawal
+          </Button>
         </div>
       </div>
     );

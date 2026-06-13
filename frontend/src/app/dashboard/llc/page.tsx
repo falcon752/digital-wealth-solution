@@ -18,8 +18,7 @@ export default function LLCManagementPage() {
   const [loading, setLoading] = useState(true);
   const [bannerVisible, setBannerVisible] = useState(true);
 
-  const load = () => {
-    setLoading(true);
+  useEffect(() => {
     Promise.all([llcAPI.list(), llcAPI.stats()])
       .then(([listRes, statsRes]) => {
         setApplications(listRes.data.applications);
@@ -27,9 +26,7 @@ export default function LLCManagementPage() {
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  };
-
-  useEffect(() => { load(); }, []);
+  }, []);
 
   return (
     <div className="flex flex-col min-h-full pb-20 bg-white dark:bg-[#050505]">
@@ -122,7 +119,7 @@ export default function LLCManagementPage() {
 
               {applications.length === 0 ? (
                 <div className="text-center py-6 text-gray-400 dark:text-gray-500 text-[14px] font-medium border border-gray-100 dark:border-gray-700 rounded-[16px]">
-                  No LLC applications yet.<br/>Click "Form New LLC" to get started.
+                  No LLC applications yet.<br/>Click &quot;Form New LLC&quot; to get started.
                 </div>
               ) : (
                 <div className="overflow-x-auto pb-4">
@@ -140,7 +137,8 @@ export default function LLCManagementPage() {
                       {applications.map((app) => (
                         <tr 
                           key={app.id} 
-                          className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                          onClick={() => router.push(`/dashboard/llc/${app.id}`)}
+                          className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer"
                         >
                           <td className="py-4 px-2 font-semibold text-gray-900 dark:text-white">{app.companyName}</td>
                           <td className="py-4 px-2 text-gray-600 dark:text-gray-400">{app.entityType}</td>

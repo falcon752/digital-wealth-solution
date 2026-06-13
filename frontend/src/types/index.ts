@@ -136,6 +136,18 @@ export interface LLCApplication {
   entityType: string;
   companyType: 'new' | 'existing';
   state: string;
+  businessEnding?: string | null;
+  contactFirstName?: string | null;
+  contactLastName?: string | null;
+  contactUsername?: string | null;
+  contactEmail?: string | null;
+  contactPhone?: string | null;
+  streetAddress?: string | null;
+  unit?: string | null;
+  city?: string | null;
+  country?: string | null;
+  postalCode?: string | null;
+  partnerCode?: string | null;
   status: 'pending' | 'approved' | 'processing' | 'rejected';
   stateFee: number;
   adminNote?: string | null;

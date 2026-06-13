@@ -135,7 +135,26 @@ export const withdrawalsAPI = {
 export const llcAPI = {
   list: () => api.get('/llc'),
   stats: () => api.get('/llc/stats'),
-  create: (data: { companyName: string; entityType: string; state: string; companyType?: 'new' | 'existing'; stateFee?: number }) =>
+  get: (id: string) => api.get(`/llc/${id}`),
+  create: (data: {
+    companyName: string;
+    entityType: string;
+    state: string;
+    companyType?: 'new' | 'existing';
+    stateFee?: number;
+    businessEnding?: string;
+    contactFirstName?: string;
+    contactLastName?: string;
+    contactUsername?: string;
+    contactEmail?: string;
+    contactPhone?: string;
+    streetAddress?: string;
+    unit?: string;
+    city?: string;
+    country?: string;
+    postalCode?: string;
+    partnerCode?: string;
+  }) =>
     api.post('/llc', data),
   // admin
   adminList: () => api.get('/llc/admin'),
@@ -157,6 +176,8 @@ export const adminAPI = {
     api.put(`/admin/users/${id}/status`, { isActive }),
   setUserBalance: (id: string, balance: number) =>
     api.put(`/admin/users/${id}/balance`, { balance }),
+  adjustUserAssetBalance: (id: string, data: { assetId: string; action: 'credit' | 'deduct'; amount: number; usdValue?: number; adminNote?: string }) =>
+    api.post(`/admin/users/${id}/asset-adjustment`, data),
   verifyUserPayment: (id: string, onboardingFeePaid: boolean) =>
     api.put(`/admin/users/${id}/verify-payment`, { onboardingFeePaid }),
   getActivityLogs: (params?: { page?: number; limit?: number }) =>
