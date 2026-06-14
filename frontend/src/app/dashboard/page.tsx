@@ -6,9 +6,8 @@ import { llcAPI } from '@/lib/api';
 import { LLCApplication, LLCStats } from '@/types';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import Badge from '@/components/ui/Badge';
-import { formatDate } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
-import { CheckCircle2, Clock, AlertTriangle, X, Building2 } from 'lucide-react';
+import { CheckCircle2, Clock, X, Building2 } from 'lucide-react';
 
 export default function LLCManagementPage() {
   const { user } = useAuth();
@@ -18,8 +17,7 @@ export default function LLCManagementPage() {
   const [loading, setLoading] = useState(true);
   const [bannerVisible, setBannerVisible] = useState(true);
 
-  const load = () => {
-    setLoading(true);
+  useEffect(() => {
     Promise.all([llcAPI.list(), llcAPI.stats()])
       .then(([listRes, statsRes]) => {
         setApplications(listRes.data.applications);
@@ -27,9 +25,7 @@ export default function LLCManagementPage() {
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  };
-
-  useEffect(() => { load(); }, []);
+  }, []);
 
   const totalLLCs = stats.approved + stats.pending + stats.processing + stats.rejected;
 
@@ -57,7 +53,7 @@ export default function LLCManagementPage() {
             Welcome back, {user?.firstName || ''}!
           </h1>
           <p className="text-[15px] font-medium text-[#4b5563] dark:text-gray-400">
-            Here's your LLC portfolio overview.
+            Here&apos;s your LLC portfolio overview.
           </p>
         </div>
 
@@ -120,7 +116,7 @@ export default function LLCManagementPage() {
               
               {applications.length === 0 ? (
                 <div className="text-center py-6 text-gray-400 dark:text-gray-500 text-[14px] font-medium">
-                  No LLC applications yet.<br/>Click "Form New LLC" to get started.
+                  No LLC applications yet.<br/>Click &quot;Form New LLC&quot; to get started.
                 </div>
               ) : (
                 <div className="w-full">
@@ -131,7 +127,7 @@ export default function LLCManagementPage() {
                   
                   <div className="space-y-4">
                     {applications.map((app) => (
-                      <div key={app.id} className="flex justify-between items-start px-1 group cursor-pointer border-b border-gray-50 dark:border-gray-800/50 pb-3 last:border-0 last:pb-0" onClick={() => router.push(`/dashboard/llc/${app.id}`)}>
+                      <div key={app.id || app._id} className="flex justify-between items-start px-1 group cursor-pointer border-b border-gray-50 dark:border-gray-800/50 pb-3 last:border-0 last:pb-0" onClick={() => router.push(`/dashboard/llc/${app.id || app._id}`)}>
                         <div className="flex flex-col flex-1 min-w-0 pr-4">
                           <span className="font-semibold text-[15px] text-gray-900 dark:text-white truncate group-hover:text-[#2d68d8] transition-colors">{app.companyName}</span>
                           <span className="text-[13px] font-medium text-[#6b7280] dark:text-gray-500 mt-0.5">{app.companyName} • {app.state}</span>

@@ -8,13 +8,24 @@ const { User } = require('../database');
 
 const router = express.Router();
 
+function mapApplication(application) {
+  if (!application) return application;
+  const id = application._id?.toString?.() || application.id;
+  return {
+    ...application,
+    id,
+    _id: undefined,
+    __v: undefined,
+  };
+}
+
 // GET /api/llc  — list user's LLC applications
 router.get('/', authenticate, async (req, res) => {
   try {
     const applications = await LLCApplication.find({ userId: req.user.id })
       .sort({ createdAt: -1 })
       .lean();
-    res.json({ applications });
+    res.json({ applications: applications.map(mapApplication) });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch LLC applications' });
   }
@@ -115,8 +126,9 @@ router.get('/admin', authenticate, requireAdmin, async (req, res) => {
   try {
     const applications = await LLCApplication.find()
       .populate('userId', 'firstName lastName email')
-      .sort({ createdAt: -1 });
-    res.json({ applications });
+      .sort({ createdAt: -1 })
+      .lean();
+    res.json({ applications: applications.map(mapApplication) });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch applications' });
   }
@@ -176,7 +188,7 @@ router.get('/:id', authenticate, async (req, res) => {
       .lean();
     if (!application) return res.status(404).json({ error: 'Application not found' });
 
-    res.json({ application });
+    res.json({ application: mapApplication(application) });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch application' });
   }

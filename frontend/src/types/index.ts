@@ -131,6 +131,7 @@ export interface AdminStats {
 
 export interface LLCApplication {
   id: string;
+  _id?: string;
   userId?: string;
   companyName: string;
   entityType: string;
