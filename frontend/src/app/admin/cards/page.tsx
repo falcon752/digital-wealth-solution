@@ -46,7 +46,7 @@ export default function AdminCardsPage() {
 
   return (
     <div className="flex flex-col min-h-full">
-      <DashboardHeader title="Manage Cards" />
+      <DashboardHeader title="Manage Cards" logo="dwp" />
 
       <div className="flex-1 p-6">
         <div className="glass rounded-2xl overflow-hidden">

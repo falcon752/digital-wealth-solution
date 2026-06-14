@@ -64,7 +64,7 @@ export default function AdminActivityPage() {
 
   return (
     <div className="flex flex-col min-h-full">
-      <DashboardHeader title="Activity Log" subtitle="All user and system activity events" />
+      <DashboardHeader title="Activity Log" subtitle="All user and system activity events" logo="dwp" />
 
       <div className="flex-1 p-6 space-y-5">
         {loading ? (

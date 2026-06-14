@@ -106,8 +106,8 @@ export default function UserDashboard() {
             <Menu size={24} />
           </button>
           <div className="flex items-center">
-            <Image src="/wyoming-light.png" alt="Logo" width={110} height={30} className="h-7 w-auto dark:hidden" priority />
-            <Image src="/wyoming-dark.png" alt="Logo" width={110} height={30} className="h-7 w-auto hidden dark:block" priority />
+            <Image src="/anchorage-light.png" alt="Anchorage" width={110} height={30} className="h-7 w-auto dark:hidden" priority />
+            <Image src="/anchorage-dark.png" alt="Anchorage" width={110} height={30} className="h-7 w-auto hidden dark:block" priority />
           </div>
         </div>
         <div className="flex items-center gap-3">

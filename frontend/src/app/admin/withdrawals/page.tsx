@@ -88,7 +88,7 @@ export default function AdminWithdrawalsPage() {
 
   return (
     <div className="flex flex-col min-h-full">
-      <DashboardHeader title="Withdrawals" subtitle="Approve and process user withdrawals" />
+      <DashboardHeader title="Withdrawals" subtitle="Approve and process user withdrawals" logo="dwp" />
 
       <div className="flex-1 p-6 space-y-5">
         {/* Tabs */}

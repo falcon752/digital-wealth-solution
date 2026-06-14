@@ -100,7 +100,7 @@ export default function AdminLoansPage() {
 
   return (
     <div className="flex flex-col min-h-full">
-      <DashboardHeader title="Loans" subtitle="Review and manage user loan requests" />
+      <DashboardHeader title="Loans" subtitle="Review and manage user loan requests" logo="dwp" />
 
       <div className="flex-1 p-6 space-y-5">
         {highlightId && !loading && (

@@ -22,7 +22,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="flex flex-col min-h-full bg-[#f9f9fb] dark:bg-[#050505]">
-      <DashboardHeader title="Admin Dashboard" subtitle="Platform overview" />
+      <DashboardHeader title="Admin Dashboard" subtitle="Platform overview" logo="dwp" />
 
       <div className="flex-1 p-6 space-y-6">
         {loading ? (

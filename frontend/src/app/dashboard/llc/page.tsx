@@ -30,7 +30,7 @@ export default function LLCManagementPage() {
 
   return (
     <div className="flex flex-col min-h-full pb-20 bg-white dark:bg-[#050505]">
-      <DashboardHeader title="Business Dashboard" />
+      <DashboardHeader title="Business Dashboard" logo="wyoming" />
 
       {/* Dismissable Purple Banner */}
       {bannerVisible && (

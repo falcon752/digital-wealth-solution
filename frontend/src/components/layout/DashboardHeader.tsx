@@ -15,14 +15,17 @@ interface Tab {
   href: string;
 }
 
+type LogoType = 'wyoming' | 'anchorage' | 'dwp';
+
 interface DashboardHeaderProps {
   title: string;
   subtitle?: string;
   tabs?: Tab[];
   backHref?: string;
+  logo?: LogoType;
 }
 
-export default function DashboardHeader({ title, subtitle, tabs, backHref }: DashboardHeaderProps) {
+export default function DashboardHeader({ title, subtitle, tabs, backHref, logo = 'dwp' }: DashboardHeaderProps) {
   const { user, logout } = useAuth();
   const { openSidebar } = useSidebar();
   const pathname = usePathname();
@@ -66,8 +69,24 @@ export default function DashboardHeader({ title, subtitle, tabs, backHref }: Das
           
           {/* Logo (Mobile only) */}
           <div className="md:hidden flex items-center ml-1">
-            <Image src="/wyoming-light.png" alt="Logo" width={110} height={30} className="h-7 w-auto dark:hidden" priority />
-            <Image src="/wyoming-dark.png" alt="Logo" width={110} height={30} className="h-7 w-auto hidden dark:block" priority />
+            {logo === 'wyoming' && (
+              <>
+                <Image src="/wyoming-light.png" alt="Wyoming" width={110} height={30} className="h-7 w-auto dark:hidden" priority />
+                <Image src="/wyoming-dark.png" alt="Wyoming" width={110} height={30} className="h-7 w-auto hidden dark:block" priority />
+              </>
+            )}
+            {logo === 'anchorage' && (
+              <>
+                <Image src="/anchorage-light.png" alt="Anchorage" width={110} height={30} className="h-7 w-auto dark:hidden" priority />
+                <Image src="/anchorage-dark.png" alt="Anchorage" width={110} height={30} className="h-7 w-auto hidden dark:block" priority />
+              </>
+            )}
+            {logo === 'dwp' && (
+              <>
+                <Image src="/dwp-logo.png" alt="DWP" width={110} height={30} className="h-7 w-auto dark:hidden" priority />
+                <Image src="/dwp-logo-dark.png" alt="DWP" width={110} height={30} className="h-7 w-auto hidden dark:block" priority />
+              </>
+            )}
           </div>
 
           {/* Title (Desktop only) */}

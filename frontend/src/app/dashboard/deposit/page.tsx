@@ -129,7 +129,7 @@ export default function DepositPage() {
     <div className="flex flex-col min-h-full pb-20">
       {!selectedAsset ? (
         <>
-          <DashboardHeader title="Receive Crypto" subtitle="Select an asset to receive" backHref="/dashboard/wallet" />
+          <DashboardHeader title="Receive Crypto" subtitle="Select an asset to receive" backHref="/dashboard/wallet" logo="dwp" />
           <div className="flex-1 p-5">
             <h2 className="text-[18px] font-semibold text-gray-900 dark:text-white mb-4 px-1">Available Assets</h2>
             <div className="space-y-3">

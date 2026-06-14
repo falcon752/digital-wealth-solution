@@ -121,7 +121,7 @@ export default function AdminUsersPage() {
 
   return (
     <div className="flex flex-col min-h-full">
-      <DashboardHeader title="Users" subtitle="Manage platform users" />
+      <DashboardHeader title="Users" subtitle="Manage platform users" logo="dwp" />
 
       <div className="flex-1 p-6 space-y-5">
 

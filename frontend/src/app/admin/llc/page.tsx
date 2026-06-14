@@ -72,7 +72,7 @@ export default function AdminLLCPage() {
 
   return (
     <div className="flex flex-col min-h-full">
-      <DashboardHeader title="LLC Applications" subtitle="Manage and approve user LLC applications" />
+      <DashboardHeader title="LLC Applications" subtitle="Manage and approve user LLC applications" logo="dwp" />
 
       <div className="flex-1 p-6 space-y-5">
         {loading ? (

@@ -143,7 +143,7 @@ export default function WithdrawPage() {
 
   return (
     <div className="flex flex-col min-h-full">
-      <DashboardHeader title="Withdraw" subtitle="Request a crypto withdrawal" backHref="/dashboard/wallet" />
+      <DashboardHeader title="Withdraw" subtitle="Request a crypto withdrawal" backHref="/dashboard/wallet" logo="dwp" />
 
       <div className="flex-1 p-6">
         <div className="max-w-2xl mx-auto space-y-6">

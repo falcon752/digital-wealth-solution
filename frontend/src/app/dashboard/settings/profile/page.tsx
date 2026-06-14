@@ -90,7 +90,7 @@ export default function EditProfilePage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-[#f4f5f8] dark:bg-[#050505] pb-20">
-      <DashboardHeader title="Edit Profile" backHref="/dashboard/settings" />
+      <DashboardHeader title="Edit Profile" backHref="/dashboard/settings" logo="dwp" />
 
       <form onSubmit={handleSubmit} className="p-4 flex-1">
         

@@ -60,7 +60,7 @@ export default function FinanceDashboardPage() {
 
   return (
     <div className="flex flex-col min-h-full pb-20 bg-white dark:bg-[#050505]">
-      <DashboardHeader title="Finance Dashboard" />
+      <DashboardHeader title="Finance Dashboard" logo="dwp" />
 
       {/* Dismissable Purple Banner */}
       {bannerVisible && (

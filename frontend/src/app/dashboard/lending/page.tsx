@@ -159,7 +159,7 @@ export default function LendingPage() {
 
   return (
     <div className="flex flex-col min-h-full pb-20 bg-gray-50 dark:bg-[#050505]">
-      <DashboardHeader title={step === 1 ? (activeTab === 'borrow' ? "Crypto Lending" : "Crypto Saving") : (activeTab === 'borrow' ? "Confirm Loan" : "Confirm Saving")} />
+      <DashboardHeader title={step === 1 ? (activeTab === 'borrow' ? "Crypto Lending" : "Crypto Saving") : (activeTab === 'borrow' ? "Confirm Loan" : "Confirm Saving")} logo="dwp" />
 
       {/* STEP 1: CALCULATOR */}
       {step === 1 && (

@@ -32,7 +32,7 @@ export default function TransactionsPage() {
 
   return (
     <div className="flex flex-col min-h-full">
-      <DashboardHeader title="Transactions" subtitle="Your complete transaction history" />
+      <DashboardHeader title="Transactions" subtitle="Your complete transaction history" logo="dwp" />
 
       <div className="flex-1 p-6 space-y-5">
         {/* Filter */}

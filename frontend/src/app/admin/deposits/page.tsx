@@ -114,7 +114,7 @@ export default function AdminDepositsPage() {
 
   return (
     <div className="flex flex-col min-h-full">
-      <DashboardHeader title="Deposits" subtitle="Review and confirm user deposits" />
+      <DashboardHeader title="Deposits" subtitle="Review and confirm user deposits" logo="dwp" />
 
       <div className="flex-1 p-6 space-y-5">
 

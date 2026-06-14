@@ -91,6 +91,7 @@ export default function AdminOnboardingPaymentsPage() {
       <DashboardHeader 
         title="Onboarding Fee Approvals" 
         subtitle="Verify XRP onboarding payments and authorize user dashboard access" 
+        logo="dwp"
       />
 
       <div className="flex-1 p-6 space-y-6">

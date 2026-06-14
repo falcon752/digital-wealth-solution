@@ -36,7 +36,7 @@ export default function LLCProfilePage() {
   if (loading) {
     return (
       <div className="flex flex-col min-h-full bg-[#f9f9fb] dark:bg-[#050505]">
-        <DashboardHeader title="LLC Profile" backHref="/dashboard/llc" />
+        <DashboardHeader title="LLC Profile" backHref="/dashboard/llc" logo="wyoming" />
         <div className="flex items-center justify-center h-64">
           <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
         </div>
@@ -47,7 +47,7 @@ export default function LLCProfilePage() {
   if (!application) {
     return (
       <div className="flex flex-col min-h-full bg-[#f9f9fb] dark:bg-[#050505]">
-        <DashboardHeader title="LLC Profile" backHref="/dashboard/llc" />
+        <DashboardHeader title="LLC Profile" backHref="/dashboard/llc" logo="wyoming" />
         <div className="p-6 text-center text-gray-500 dark:text-gray-400">LLC application not found.</div>
       </div>
     );
@@ -65,7 +65,7 @@ export default function LLCProfilePage() {
 
   return (
     <div className="flex flex-col min-h-full pb-20 bg-[#f9f9fb] dark:bg-[#050505]">
-      <DashboardHeader title="LLC Profile" backHref="/dashboard/llc" />
+      <DashboardHeader title="LLC Profile" backHref="/dashboard/llc" logo="wyoming" />
 
       <div className="flex-1 p-5 max-w-3xl w-full mx-auto space-y-5">
         <section className="bg-white dark:bg-[#101010] rounded-[20px] p-5 shadow-[0_2px_15px_-4px_rgba(0,0,0,0.05)]">

@@ -105,7 +105,7 @@ export default function AdminAssetsPage() {
 
   return (
     <div className="flex flex-col min-h-full">
-      <DashboardHeader title="Crypto Assets" subtitle="Manage deposit wallets" />
+      <DashboardHeader title="Crypto Assets" subtitle="Manage deposit wallets" logo="dwp" />
 
       <div className="flex-1 p-6">
         <div className="flex justify-end mb-5">

@@ -30,7 +30,7 @@ export default function DepositLogPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-[#f4f5f8] dark:bg-[#050505] pb-20">
-      <DashboardHeader title="Deposit Log" backHref="/dashboard/settings" />
+      <DashboardHeader title="Deposit Log" backHref="/dashboard/settings" logo="dwp" />
 
       <div className="flex-1 p-4 flex flex-col space-y-4 mt-2">
         
