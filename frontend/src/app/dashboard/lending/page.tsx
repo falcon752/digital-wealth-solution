@@ -620,13 +620,13 @@ export default function LendingPage() {
             
             {/* List */}
             <div className="flex flex-col pb-8 px-2">
-              {modalType === 'ltv' && [0.5, 0.65, 0.8, 0.9].map((val) => (
+              {modalType === 'ltv' && [0.35, 0.60, 0.80, 0.90].map((val) => (
                 <div 
                   key={val}
                   onClick={() => { setLtv(val); setModalType(null); }}
                   className="flex items-center justify-between px-6 py-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                 >
-                  <span className="text-[17px] italic text-gray-900 dark:text-white">{val * 100}%</span>
+                  <span className="text-[17px] italic text-gray-900 dark:text-white">{Math.round(val * 100)}%</span>
                   {ltv === val && <Check size={20} className="text-blue-600" />}
                 </div>
               ))}

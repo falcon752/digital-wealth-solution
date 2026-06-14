@@ -87,13 +87,20 @@ export default function DashboardSidebar() {
                 href={href}
                 onClick={closeSidebar}
                 className={cn(
-                  'flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all duration-200 text-[15px] font-semibold',
+                  'group flex items-center gap-4 px-3 py-2.5 rounded-xl transition-all duration-200 text-[15px] font-semibold',
                   active
                     ? 'bg-[#f4f8ff] border border-blue-100 dark:bg-blue-900/20 dark:border-blue-900 text-[#2d68d8] dark:text-blue-400'
                     : 'bg-white border border-transparent dark:bg-[#101010] text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
                 )}
               >
-                <Icon size={20} className={cn("shrink-0", active ? "text-[#2d68d8] dark:text-blue-400" : "text-gray-400 dark:text-gray-500")} />
+                <div className={cn(
+                  "w-[38px] h-[38px] rounded-xl flex items-center justify-center shrink-0 border transition-colors",
+                  active 
+                    ? "bg-[#2d68d8] border-[#2d68d8] text-white shadow-md shadow-blue-500/20" 
+                    : "bg-[#f4f5f8] dark:bg-[#1a1a1a] border-gray-100 dark:border-gray-800 text-gray-500 dark:text-gray-400 group-hover:bg-[#eaf1ff] dark:group-hover:bg-blue-900/30 group-hover:text-[#2d68d8] dark:group-hover:text-blue-400 group-hover:border-blue-200 dark:group-hover:border-blue-800"
+                )}>
+                  <Icon size={20} className="shrink-0" />
+                </div>
                 <span>{label}</span>
               </Link>
             );
