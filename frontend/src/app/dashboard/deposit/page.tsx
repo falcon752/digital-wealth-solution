@@ -109,7 +109,7 @@ export default function DepositPage() {
         </div>
         
         <div className="px-6 flex flex-col gap-3 w-full max-w-md mx-auto">
-          <Link href="/dashboard/assets" className="w-full">
+          <Link href="/dashboard/wallet" className="w-full">
             <Button className="w-full bg-[#2d68d8] text-white hover:bg-blue-700 h-[52px] text-[16px] font-semibold rounded-2xl border-none">
               Done
             </Button>
