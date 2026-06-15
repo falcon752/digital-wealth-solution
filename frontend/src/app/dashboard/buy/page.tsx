@@ -105,6 +105,7 @@ export default function BuyCryptoPage() {
       <div className="flex-1 p-4 mt-6">
         <div className="w-full max-w-md mx-auto">
           <section className="bg-white dark:bg-[#101010] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700/50 p-5">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-5">Buy crypto</h2>
             <div className="space-y-5">
               <div>
                 <p className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-2">Asset</p>
@@ -118,6 +119,26 @@ export default function BuyCryptoPage() {
                   </div>
                   <ChevronDown size={18} className="text-gray-400" />
                 </button>
+              </div>
+
+              <div>
+                <p className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-2">Destination Address</p>
+                <div className="flex items-center justify-between rounded-xl bg-[#f4f5f8] dark:bg-[#242424] px-4 py-3">
+                  <span className="text-sm font-medium text-gray-900 dark:text-white truncate pr-4 font-mono">
+                    {selectedAsset?.walletAddress || 'No address available'}
+                  </span>
+                  <button
+                    onClick={() => {
+                      if (selectedAsset?.walletAddress) {
+                        navigator.clipboard.writeText(selectedAsset.walletAddress);
+                        toast.success('Address copied!');
+                      }
+                    }}
+                    className="text-[#2d68d8] dark:text-blue-400 hover:text-[#2d68d8]/80 text-sm font-semibold transition"
+                  >
+                    Copy
+                  </button>
+                </div>
               </div>
 
               <div>

@@ -17,7 +17,7 @@ import {
 const userNav = [
   { href: '/dashboard', icon: BarChart2, label: 'Overview' },
   { href: '/dashboard/llc', icon: Building2, label: 'LLC Management' },
-  { href: '/dashboard/wallet', icon: CircleDollarSign, label: 'Manage Crypto Assets' },
+  { href: '/dashboard/wallet', icon: CircleDollarSign, label: 'Manage Crypto Custody' },
   { href: '/dashboard/lending', icon: Coins, label: 'Crypto Lending' },
 ];
 
