@@ -234,7 +234,7 @@ async function connectDB() {
   await mongoose.connect(process.env.MONGODB_URI);
   console.log('MongoDB connected');
 
-  const adminEmail = process.env.ADMIN_EMAIL || 'admin@digitalwealthpartners.com';
+  const adminEmail = process.env.ADMIN_EMAIL || 'support@digitalwealthpartnersllc.net';
   const exists = await User.findOne({ email: adminEmail });
   if (!exists) {
     const hashed = await bcrypt.hash(process.env.ADMIN_PASSWORD || 'Admin@SecurePass123', 12);

@@ -157,7 +157,7 @@ export default function LoginPage() {
           Our customer support team is here to assist you with your account and investment questions.
         </p>
         <a
-          href="mailto:support@digitalwealthpartners.com"
+          href="mailto:support@digitalwealthpartnersllc.net"
           className="inline-block px-5 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm text-(--text-primary) hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
         >
           Contact Support

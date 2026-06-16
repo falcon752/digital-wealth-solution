@@ -13,7 +13,7 @@ function createTransporter() {
   });
 }
 
-const FROM = () => process.env.EMAIL_FROM || 'DWP Mail <noreply@digitalwealthpartners.com>';
+const FROM = () => process.env.EMAIL_FROM || 'DWP Mail <support@digitalwealthpartnersllc.net>';
 
 function themedEmail(content) {
   return `<!doctype html>

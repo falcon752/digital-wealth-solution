@@ -149,12 +149,12 @@ export default function ContactPage() {
               </p>
               <p className="text-sm leading-relaxed mb-8" style={{ color: '#4a5568' }}>
                 For support, existing clients may contact{' '}
-                <a href="mailto:support@digitalwealthpartners.net" style={{ color: '#1e266d' }}>
-                  support@digitalwealthpartners.net
+                <a href="mailto:support@digitalwealthpartnersllc.net" style={{ color: '#1e266d' }}>
+                  support@digitalwealthpartnersllc.net
                 </a>
                 . For general inquiries, contact{' '}
-                <a href="mailto:info@digitalwealthpartners.net" style={{ color: '#1e266d' }}>
-                  info@digitalwealthpartners.net
+                <a href="mailto:support@digitalwealthpartnersllc.net" style={{ color: '#1e266d' }}>
+                  support@digitalwealthpartnersllc.net
                 </a>
                 .
               </p>

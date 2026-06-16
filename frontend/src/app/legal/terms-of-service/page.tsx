@@ -209,7 +209,7 @@ export default function TermsOfServicePage() {
                 </p>
                 <ul className="space-y-3 mb-6">
                   {[
-                    <>You may opt out at any time by contacting us at <Link href="mailto:info@digitalwealthpartners.net" className="text-[#AD7F4E] hover:underline">info@digitalwealthpartners.net</Link> or through your account settings, if applicable.</>,
+                    <>You may opt out at any time by contacting us at <Link href="mailto:support@digitalwealthpartnersllc.net" className="text-[#AD7F4E] hover:underline">support@digitalwealthpartnersllc.net</Link> or through your account settings, if applicable.</>,
                     'Upon opting out, we will cease sharing your information for the purpose of referrals but may continue to share your information as required to provide core services or comply with legal obligations.',
                   ].map((item, idx) => (
                     <li key={idx} className="flex items-start gap-3">
@@ -266,7 +266,7 @@ export default function TermsOfServicePage() {
                   You must not access or use for any commercial purposes any part of the Platform or any services or materials available through the Platform.
                 </p>
                 <p className="mb-6">
-                  If you wish to make any use of material on the Platform other than that set out in this section, please address your request to: <Link href="mailto:info@digitalfamilyoffice.net" className="text-[#AD7F4E] hover:underline">info@digitalfamilyoffice.net</Link>
+                  If you wish to make any use of material on the Platform other than that set out in this section, please address your request to: <Link href="mailto:support@digitalwealthpartnersllc.net" className="text-[#AD7F4E] hover:underline">support@digitalwealthpartnersllc.net</Link>
                 </p>
                 <p>
                   If you print, copy, modify, download, or otherwise use or provide any other person with access to any part of the Platform in breach of the Terms of Service, your right to use the Platform will stop immediately and you must, at our option, return or destroy any copies of the materials you have made. No right, title, or interest in or to the Platform or any content on the Platform is transferred to you, and all rights not expressly granted are reserved by the Company. Any use of the Platform not expressly permitted by these Terms of Service is a breach of these Terms of Service and may violate copyright, trademark, and other laws.
@@ -597,7 +597,7 @@ export default function TermsOfServicePage() {
                 <h2 className="font-semibold mb-4 uppercase" style={{ color: '#1e266d', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Your Comments and Concerns</h2>
                 <p className="mb-4">All notices of copyright infringement claims should be sent in the manner and by the means set out therein.</p>
                 <p>
-                  All other feedback, comments, requests for technical support, and other communications relating to the Platform should be directed to: <Link href="mailto:info@digitalwealthpartners.net" className="text-[#AD7F4E] hover:underline">info@digitalwealthpartners.net</Link>
+                  All other feedback, comments, requests for technical support, and other communications relating to the Platform should be directed to: <Link href="mailto:support@digitalwealthpartnersllc.net" className="text-[#AD7F4E] hover:underline">support@digitalwealthpartnersllc.net</Link>
                 </p>
               </div>
             </div>

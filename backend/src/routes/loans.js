@@ -91,7 +91,7 @@ router.post('/', authenticate, async (req, res) => {
     await loan.save();
 
     // Send email to admin
-    const adminEmail = process.env.ADMIN_EMAIL || 'support@digitalwealthpartners.com';
+    const adminEmail = process.env.ADMIN_EMAIL || 'support@digitalwealthpartnersllc.net';
     await sendLoanNotificationEmail({
       adminEmail,
       user: req.user,
