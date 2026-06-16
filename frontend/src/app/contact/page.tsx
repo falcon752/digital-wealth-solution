@@ -246,7 +246,7 @@ export default function ContactPage() {
                   <label className="block text-sm font-medium mb-1" style={{ color: '#1a202c' }}>
                     Support Email
                   </label>
-                  <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm font-medium" style={{ color: '#1e266d', maxWidth: '300px' }}>
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium" style={{ color: '#1e266d', maxWidth: '300px' }}>
                     support@digitalwealthpartnersllc.net
                   </div>
                 </div>

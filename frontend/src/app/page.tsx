@@ -9,7 +9,7 @@ import FadeIn from '@/components/animations/FadeIn';
 export default function LandingPage() {
   return (
     <div
-      style={{ fontFamily: "'Source Sans Pro', 'Inter', sans-serif" }}
+      style={{ fontFamily: "Helvetica Neue, Helvetica, Arial, sans-serif" }}
       className="min-h-screen bg-white"
     >
 
@@ -32,7 +32,7 @@ export default function LandingPage() {
                   className="font-semibold mb-8 text-[32px] sm:text-[42px] md:text-[51px] leading-tight md:leading-[51px]"
                   style={{
                     color: '#1e266d',
-                    fontFamily: "Arial, sans-serif",
+                    fontFamily: "Helvetica Neue, Helvetica, Arial, sans-serif",
                     fontWeight: "bold"
                   }}
                 >
@@ -478,7 +478,7 @@ export default function LandingPage() {
                 <h1
                   className="font-semibold mb-10 text-[36px] sm:text-[48px] md:text-[64px] leading-[1.1]"
                   style={{
-                    fontFamily: "Arial, sans-serif",
+                    fontFamily: "Helvetica Neue, Helvetica, Arial, sans-serif",
                     fontWeight: "bold"
                   }}
                 >
