@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import Navbar from '@/components/layout/Navbar';
 import SiteFooter from '@/components/layout/SiteFooter';
 import ContactForm from '@/components/ContactForm';
@@ -19,84 +18,105 @@ export default function BitcoinSMAPage() {
 
       {/* ── Hero Section ── */}
       <div
-        className="relative flex items-center justify-center pt-24 pb-16"
-        style={{ minHeight: '80vh', backgroundColor: '#1a1f2e' }}
+        className="relative flex items-center justify-center pt-32 pb-24"
+        style={{ minHeight: '80vh', backgroundColor: '#000000' }}
       >
-        <Image
-          src="/service-1.webp"
-          alt="Bitcoin SMA"
-          fill
-          className="object-cover opacity-20 mix-blend-overlay"
-          unoptimized
-        />
         <div className="relative z-10 max-w-4xl mx-auto px-6 text-center text-white">
-          <h1 className="text-5xl md:text-7xl font-bold mb-8 leading-tight tracking-tight">
-            Put Your Bitcoin <br/><span className="text-[#AD7F4E]">to Work.</span>
+          <div className="text-[#AD7F4E] text-[11px] md:text-sm font-semibold tracking-[0.15em] mb-12 uppercase">
+            Live · Accepting Allocations · $500K Minimum
+          </div>
+          <h1 className="text-5xl md:text-7xl font-bold mb-10 leading-[1.1] tracking-tight">
+            Put Your Bitcoin to <br />
+            <span className="text-[#AD7F4E] italic font-serif font-normal">Work.</span>
           </h1>
-          <p className="text-lg md:text-xl text-gray-300 mb-6 max-w-3xl mx-auto leading-relaxed">
-            Digital Wealth Partners has partnered with Two Prime to offer qualified investors an actively managed Bitcoin SMA.
-          </p>
-          <p className="text-lg md:text-xl text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed">
-            The Core Plus strategy provides the structure of a qualified custodian alongside the ability to capture funding yield and tactically manage risk via options.
+          <p className="text-[17px] md:text-xl text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed">
+            Core Plus is an actively managed strategy for bitcoin holders, run by an SEC-registered advisor in partnership with Two Prime. The strategy seeks BTC-denominated returns and is designed for investors who want their bitcoin position actively managed rather than sitting idle. Specific return objectives, performance history, and detailed strategy materials are reviewed with qualified investors in a private conversation with our team.
           </p>
           <button
             onClick={scrollToContact}
-            className="px-8 py-4 text-base font-semibold text-white transition-opacity hover:opacity-90 rounded-sm"
+            className="px-8 py-4 text-[15px] font-semibold text-white transition-opacity hover:opacity-90 rounded-sm inline-flex items-center justify-center gap-2"
             style={{ backgroundColor: '#AD7F4E' }}
           >
-            Request a Conversation
+            Request a Conversation <span className="text-lg leading-none">→</span>
           </button>
+          <p className="text-gray-500 text-[11px] md:text-xs mt-10 max-w-2xl mx-auto leading-relaxed text-center">
+            The Core Plus strategy involves a high degree of risk including loss of principal. Bitcoin is a volatile asset. Any return objectives, projections, or historical performance figures discussed in private materials or conversations with our team are objectives, not guarantees. Past performance, including simulated and backtested performance, does not predict future results. Available to accredited investors only.
+          </p>
         </div>
       </div>
 
-      {/* ── Stats Section ── */}
+      {/* ── Halvings Section ── */}
       <div className="py-24 px-6 bg-white">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl md:text-5xl font-bold text-center mb-20" style={{ color: '#1e266d' }}>
-            You held through four halvings.<br/>
-            <span className="text-gray-400 font-normal">Your bitcoin sat there.</span>
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-4xl md:text-5xl font-bold text-left mb-12 tracking-tight" style={{ color: '#1e266d' }}>
+            You held through <br/>
+            four halvings. <span className="text-[#AD7F4E] font-serif italic font-normal">Your <br className="md:hidden" />
+            bitcoin sat there.</span>
           </h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 text-center border-t border-b border-gray-100 py-12">
-            <div>
-              <div className="text-5xl font-bold mb-4" style={{ color: '#AD7F4E' }}>~42%</div>
-              <p className="text-sm text-gray-600 leading-relaxed max-w-xs mx-auto">
-                Historical average annualized funding rate (2020-2023).
-              </p>
-            </div>
-            <div>
-              <div className="text-5xl font-bold mb-4" style={{ color: '#AD7F4E' }}>0</div>
-              <p className="text-sm text-gray-600 leading-relaxed max-w-xs mx-auto">
-                Number of forced liquidations in Two Prime&apos;s history.
-              </p>
-            </div>
-            <div>
-              <div className="text-5xl font-bold mb-4" style={{ color: '#AD7F4E' }}>2</div>
-              <p className="text-sm text-gray-600 leading-relaxed max-w-xs mx-auto">
-                Years the Core Plus framework has been tested in live markets.
-              </p>
-            </div>
-            <div>
-              <div className="text-5xl font-bold mb-4" style={{ color: '#AD7F4E' }}>Daily</div>
-              <p className="text-sm text-gray-600 leading-relaxed max-w-xs mx-auto">
-                Liquidity for funding positions. Monthly for options.
-              </p>
-            </div>
+          <div className="space-y-6 text-[17px] text-gray-600 leading-relaxed text-left">
+            <p>
+              You watched BlockFi collapse. Celsius. Genesis. Every yield product asked you to make the same trade: hand your bitcoin to a single counterparty, hope they didn't rehypothecate it, and check every morning that they were still solvent.
+            </p>
+            <p>
+              That kind of dependence on a single counterparty is the risk most BTC holders we work with have tried to avoid for years. The result, for many, was leaving large positions completely idle through multiple cycles because the alternatives weren't worth the operational and counterparty exposure.
+            </p>
+            <p>
+              Core Plus is what an actively managed bitcoin strategy looks like when an SEC-registered advisor sits on top of it, when custody is spread across institutional venues, and when the trading team came out of Goldman Sachs derivatives and convertibles.
+            </p>
+            <p>
+              The strategy doesn't remove risk. It changes the risks you're taking.
+            </p>
           </div>
         </div>
       </div>
 
+      {/* ── Stats Section (BTC-Denominated) ── */}
+      <div className="py-24 px-6 border-t border-gray-100" style={{ backgroundColor: '#fdfdfd' }}>
+        <div className="max-w-4xl mx-auto">
+          <div className="flex flex-col items-center gap-16">
+            <div className="text-center">
+              <div className="text-3xl md:text-4xl font-normal mb-3" style={{ color: '#AD7F4E' }}>BTC-Denominated</div>
+              <p className="text-sm text-gray-400 font-light">
+                Returns measured in bitcoin, not dollars.
+              </p>
+            </div>
+
+            <div className="flex flex-col md:flex-row gap-16 md:justify-center md:items-start w-full">
+              <div className="relative pl-6 md:pl-0 border-l-2 md:border-l-0 border-gray-300 md:text-center w-full">
+                <div className="text-4xl font-normal mb-2" style={{ color: '#AD7F4E' }}>$500K</div>
+                <p className="text-sm text-gray-400 font-light">Minimum investment.</p>
+              </div>
+              <div className="relative pl-6 md:pl-0 border-l-2 md:border-l-0 border-gray-300 md:text-center w-full">
+                <div className="text-3xl md:text-3xl font-normal mb-2 tracking-tight" style={{ color: '#AD7F4E' }}>40 bps + 2%/20%</div>
+                <p className="text-sm text-gray-400 font-light max-w-[200px] md:mx-auto">DWP Advisory + Two Prime Management/Performance. High watermark applies to performance fee.</p>
+              </div>
+              <div className="relative pl-6 md:pl-0 border-l-2 md:border-l-0 border-gray-300 md:text-center w-full">
+                <div className="text-4xl font-normal mb-2" style={{ color: '#AD7F4E' }}>7</div>
+                <p className="text-sm text-gray-400 font-light max-w-[200px] md:mx-auto">Institutional custody and trading partners.</p>
+              </div>
+            </div>
+          </div>
+          
+          <p className="text-[12px] text-gray-400 mt-20 text-center max-w-xl mx-auto leading-relaxed">
+            The strategy can produce losses. Bitcoin returns can also produce losses when measured in U.S. dollars. Past performance does not guarantee future results.
+          </p>
+        </div>
+      </div>
+
       {/* ── Strategies Section ── */}
-      <div className="py-24 px-6" style={{ backgroundColor: '#f9fafb' }}>
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-4xl md:text-5xl font-bold mb-16" style={{ color: '#1e266d' }}>
-            Two strategies,<br/>
-            <span className="text-[#AD7F4E]">run together.</span>
+      <div className="py-24 px-6" style={{ backgroundColor: '#fdfdfd' }}>
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-4xl md:text-5xl font-bold mb-8 text-left" style={{ color: '#1e266d' }}>
+            Two strategies, <span className="text-[#AD7F4E] font-serif italic font-normal">run <br/> together.</span>
           </h2>
+          <p className="text-[17px] text-gray-600 leading-relaxed text-left mb-16">
+            Core Plus combines Two Prime's funding-arbitrage book with their tactical options and futures book. The combination is designed to seek yield from inefficiencies in the bitcoin options and funding markets rather than from spot price appreciation. The strategy can still lose money, including principal.
+          </p>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
             {/* Card 1 */}
-            <div className="bg-white p-10 rounded-xl shadow-[0_4px_24px_rgba(0,0,0,0.04)]">
+            <div className="bg-white p-10 rounded-xl shadow-[0_4px_24px_rgba(0,0,0,0.04)] border border-gray-50 text-left">
               <h3 className="text-xl font-bold mb-4" style={{ color: '#1e266d' }}>
                 Funding arbitrage component.
               </h3>
@@ -106,7 +126,7 @@ export default function BitcoinSMAPage() {
             </div>
             
             {/* Card 2 */}
-            <div className="bg-white p-10 rounded-xl shadow-[0_4px_24px_rgba(0,0,0,0.04)]">
+            <div className="bg-white p-10 rounded-xl shadow-[0_4px_24px_rgba(0,0,0,0.04)] border border-gray-50 text-left">
               <h3 className="text-xl font-bold mb-4" style={{ color: '#1e266d' }}>
                 Tactical options overlay.
               </h3>
@@ -116,7 +136,7 @@ export default function BitcoinSMAPage() {
             </div>
             
             {/* Card 3 */}
-            <div className="bg-white p-10 rounded-xl shadow-[0_4px_24px_rgba(0,0,0,0.04)]">
+            <div className="bg-white p-10 rounded-xl shadow-[0_4px_24px_rgba(0,0,0,0.04)] border border-gray-50 text-left">
               <h3 className="text-xl font-bold mb-4" style={{ color: '#1e266d' }}>
                 BTC-denominated returns.
               </h3>
@@ -126,8 +146,8 @@ export default function BitcoinSMAPage() {
             </div>
           </div>
           
-          <p className="text-sm text-gray-500 italic">
-            * Core book historical results referenced above are provided by Two Prime. Past performance does not guarantee future results.
+          <p className="text-[13px] text-gray-400 mt-12 text-center md:text-left">
+            Core book historical results referenced above are provided by Two Prime. Past performance does not guarantee future results.
           </p>
         </div>
       </div>
