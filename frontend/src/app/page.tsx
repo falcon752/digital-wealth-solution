@@ -167,7 +167,7 @@ export default function LandingPage() {
                 ),
                 desc: 'You want exposure to digital assets without it becoming a second job. We run model portfolios and separately managed accounts with periodic rebalancing, proper documentation, and the kind of reporting your accountant expects. Cost basis tracking and year-end tax packages included.',
                 icon: (
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-8 h-8">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-full h-full">
                     <rect x="2" y="7" width="20" height="14" rx="2" />
                     <path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2" />
                     <line x1="12" y1="12" x2="12" y2="16" />
@@ -179,7 +179,7 @@ export default function LandingPage() {
                 title: 'Institutional Crypto Custody',
                 desc: 'We place your digital assets with qualified custodians using cold storage, multi-signature controls, and insurance coverage. Get access to segregated accounts and retain legal ownership at all times.',
                 icon: (
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-8 h-8">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-full h-full">
                     <circle cx="12" cy="9" r="4" />
                     <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
                     <circle cx="17" cy="7" r="3" stroke="currentColor" strokeWidth="1.5" />
@@ -190,7 +190,7 @@ export default function LandingPage() {
                 title: 'Coordinated Financial Planning',
                 desc: "Digital assets create tax events, complicate estate plans, and change your risk profile. We coordinate with your CPA and attorney to make sure the crypto piece fits into everything else. Tax timing, Roth strategies, estate planning, and a written investment policy that updates as life changes.",
                 icon: (
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-8 h-8">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-full h-full">
                     <rect x="3" y="3" width="18" height="18" rx="2" />
                     <path d="M3 9h18M9 21V9" />
                   </svg>
@@ -199,25 +199,28 @@ export default function LandingPage() {
             ].map(({ icon, title, desc }, idx) => (
               <FadeIn key={idx} direction="up" delay={idx * 0.1}>
                 <div
-                  className="flex gap-7 bg-white rounded-lg p-8"
+                  className="flex flex-col md:flex-row gap-4 md:gap-7 bg-white rounded-lg p-6 md:p-8"
                   style={{ boxShadow: '0 4px 24px rgba(44,51,66,0.10)' }}
                 >
                   <div
-                    className="shrink-0 mt-1"
-                    style={{ color: '#A87A49' }}
+                    className="shrink-0 mb-2 md:mb-0 md:mt-1"
+                    style={{ color: '#1E266D' }}
                   >
-                    {icon}
+                    {/* Render the icon, ensuring it scales correctly on mobile */}
+                    <div className="w-[25px] h-[25px] md:w-8 md:h-8">
+                      {icon}
+                    </div>
                   </div>
                   <div>
                     <h3
-                      className="font-semibold mb-3"
-                      style={{ color: '#1e266d', fontSize: '20px' }}
+                      className="font-semibold mb-[15px]"
+                      style={{ color: '#1e266d', fontSize: '18px' }}
                     >
                       {title}
                     </h3>
                     <p
                       className="leading-relaxed"
-                      style={{ color: '#4a5568', fontSize: '16px' }}
+                      style={{ color: '#696969', fontSize: '18px' }}
                     >
                       {desc}
                     </p>
