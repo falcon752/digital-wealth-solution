@@ -324,24 +324,24 @@ export default function LandingPage() {
                   ].map(({ title, desc, icon }, idx) => (
                     <FadeIn key={title} direction="up" delay={idx * 0.1}>
                       <div
-                        className="bg-white rounded-[5px] p-[40px_35px] h-full transition-all hover:translate-y-[-5px] duration-300"
+                        className="bg-white rounded-[5px] p-[30px_20px] md:p-[40px_35px] h-full transition-all hover:translate-y-[-5px] duration-300"
                         style={{ boxShadow: 'rgba(38, 42, 76, 0.1) 0px 5px 70px 0px' }}
                       >
                         <div
-                          className="flex items-center justify-center rounded-[5px] mb-8"
+                          className="flex items-center justify-center rounded-[5px] mb-[30px]"
                           style={{ width: '70px', height: '70px', backgroundColor: '#E3C5A4', color: '#A87A49' }}
                         >
                           {icon}
                         </div>
                         <h4
-                          className="font-semibold mb-4 leading-tight"
-                          style={{ color: '#1e266d', fontSize: '16px' }}
+                          className="font-semibold mb-[15px] leading-tight"
+                          style={{ color: '#1e266d', fontSize: '20px' }}
                         >
                           {title}
                         </h4>
                         <p
-                          className="mb-8 leading-relaxed text-[16px]"
-                          style={{ color: '#000000', opacity: 0.9 }}
+                          className="mb-[30px] leading-relaxed text-[16px]"
+                          style={{ color: '#696969' }}
                         >
                           {desc}
                         </p>
@@ -384,24 +384,24 @@ export default function LandingPage() {
                   ].map(({ title, desc, icon }, idx) => (
                     <FadeIn key={title} direction="up" delay={idx * 0.1 + 0.2}>
                       <div
-                        className="bg-white rounded-[5px] p-[40px_35px] h-full transition-all hover:translate-y-[-5px] duration-300"
+                        className="bg-white rounded-[5px] p-[30px_20px] md:p-[40px_35px] h-full transition-all hover:translate-y-[-5px] duration-300"
                         style={{ boxShadow: 'rgba(38, 42, 76, 0.1) 0px 5px 70px 0px' }}
                       >
                         <div
-                          className="flex items-center justify-center rounded-[5px] mb-8"
+                          className="flex items-center justify-center rounded-[5px] mb-[30px]"
                           style={{ width: '70px', height: '70px', backgroundColor: '#E3C5A4', color: '#A87A49' }}
                         >
                           {icon}
                         </div>
                         <h4
-                          className="font-semibold mb-4 leading-tight"
-                          style={{ color: '#1e266d', fontSize: '16px' }}
+                          className="font-semibold mb-[15px] leading-tight"
+                          style={{ color: '#1e266d', fontSize: '20px' }}
                         >
                           {title}
                         </h4>
                         <p
-                          className="mb-8 leading-relaxed text-[16px]"
-                          style={{ color: '#000000', opacity: 0.9 }}
+                          className="mb-[30px] leading-relaxed text-[16px]"
+                          style={{ color: '#696969' }}
                         >
                           {desc}
                         </p>
