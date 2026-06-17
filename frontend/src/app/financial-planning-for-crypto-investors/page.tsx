@@ -41,10 +41,10 @@ export default function FinancialPlanningPage() {
           <div className="text-[#AD7F4E] text-[11px] md:text-xs font-semibold tracking-[0.15em] mb-10 uppercase">
             FINANCIAL PLANNING FOR CRYPTO INVESTORS
           </div>
-          <h1 className="text-4xl md:text-6xl font-bold mb-8 leading-tight tracking-tight relative">
-            You know how to build wealth. Do <br className="hidden md:block" />
-            you know <span className="text-[#AD7F4E] italic font-serif font-normal">where you actually stand?</span>
-            <div className="w-16 h-1 bg-[#AD7F4E] mx-auto mt-6"></div>
+          <h1 className="text-[48px] md:text-6xl font-bold mb-8 leading-[1.1] tracking-tight relative">
+            You know how to build wealth. <br className="md:hidden" />Do <br className="hidden md:block" />
+            you know <br className="md:hidden" /><span className="text-[#AD7F4E] italic font-serif font-normal">where you <br className="md:hidden" />actually stand?</span>
+            <div className="hidden md:block w-16 h-1 bg-[#AD7F4E] mx-auto mt-6"></div>
           </h1>
           <p className="text-[17px] md:text-xl text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed">
             Crypto has created real wealth for a lot of people. Most of those people have no idea what their full financial picture looks like, now or ten years from now. That is worth fixing.
@@ -57,8 +57,8 @@ export default function FinancialPlanningPage() {
             >
               See if you qualify <span className="text-lg">→</span>
             </button>
-            <button onClick={scrollToContact} className="text-[#AD7F4E] text-sm hover:underline flex items-center gap-1 transition-all">
-              See how planning works <span>→</span>
+            <button onClick={scrollToContact} className="text-[#AD7F4E] text-[15px] font-semibold border-b border-[#AD7F4E] pb-0.5 hover:opacity-80 transition-opacity">
+              See how planning works →
             </button>
           </div>
           
@@ -187,13 +187,13 @@ export default function FinancialPlanningPage() {
               </div>
             </div>
 
-            <div className="bg-[#242938] text-white p-10 md:p-14 rounded-lg shadow-lg relative">
+            <div className="bg-[#1e266d] text-white p-10 md:p-14 rounded-lg shadow-lg relative text-left">
               <div className="text-[#AD7F4E] text-4xl font-serif leading-none absolute top-10 left-10">"</div>
-              <p className="text-xl md:text-2xl font-serif italic mb-8 relative z-10 pt-4 leading-snug">
+              <p className="text-[16.5px] md:text-2xl font-serif italic mb-8 relative z-10 pt-4 leading-snug font-light">
                 Most people do not get a financial plan because they think they need to have everything figured out first. It works the other way around.
               </p>
               <div className="w-12 h-[2px] bg-[#AD7F4E] mb-4"></div>
-              <div className="text-xs font-semibold tracking-[0.15em] text-gray-400 uppercase">
+              <div className="text-[11px] font-semibold tracking-[0.15em] text-gray-400 uppercase">
                 Digital Wealth Partners
               </div>
             </div>
@@ -302,7 +302,7 @@ export default function FinancialPlanningPage() {
             Three steps from where you are now to a financial plan built around your actual life.
           </p>
 
-          <div className="flex flex-col md:flex-row justify-between items-center md:items-start gap-8 relative mb-16">
+          <div className="flex flex-col md:flex-row justify-between items-center md:items-start gap-16 md:gap-8 relative mb-16">
             {[
               {
                 num: '01',
@@ -320,14 +320,14 @@ export default function FinancialPlanningPage() {
                 desc: 'A written financial plan and an ongoing advisor relationship. Not a one-time document that sits in a drawer. Something that gets updated as your situation evolves.'
               }
             ].map((step, idx) => (
-              <div key={idx} className="flex-1 relative bg-transparent px-4">
-                <div className="text-5xl md:text-6xl font-normal text-[#1e266d] mb-6">
+              <div key={idx} className="flex-1 relative bg-transparent px-4 flex flex-col items-center">
+                <div className="text-6xl font-normal text-[#1e266d] mb-4">
                   {step.num}
                 </div>
                 <h3 className="text-lg font-bold text-[#1e266d] mb-4">
                   {step.title}
                 </h3>
-                <p className="text-sm text-gray-500 leading-relaxed">
+                <p className="text-[14px] text-gray-500 leading-relaxed text-center">
                   {step.desc}
                 </p>
                 {/* Arrow icon between steps (desktop only) */}
