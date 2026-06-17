@@ -47,11 +47,11 @@ export default function Navbar({ transparent = false }: NavbarProps) {
 
   return (
     <nav
-      className="w-full fixed top-0 left-0 right-0 z-50 transition-all duration-300"
-      style={{
-        backgroundColor: alwaysWhite ? '#ffffff' : 'transparent',
-        boxShadow: alwaysWhite ? '0 2px 12px rgba(0,0,0,0.07)' : 'none',
-      }}
+      className={`w-full fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        alwaysWhite
+          ? 'bg-white shadow-[0_2px_12px_rgba(0,0,0,0.07)]'
+          : 'bg-white lg:bg-transparent shadow-[0_2px_12px_rgba(0,0,0,0.07)] lg:shadow-none'
+      }`}
     >
       {/* ── Main bar ── */}
       <div
