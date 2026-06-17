@@ -31,7 +31,7 @@ export default function LandingPage() {
                 <h1
                   className="font-semibold mb-8 text-[32px] sm:text-[42px] md:text-[51px] leading-tight md:leading-[51px]"
                   style={{
-                    color: '#1e266d',
+                    color: '#2C3342',
                     fontFamily: "Helvetica Neue, Helvetica, Arial, sans-serif",
                     fontWeight: "bold"
                   }}
@@ -41,7 +41,7 @@ export default function LandingPage() {
 
                 <p
                   className="mb-12 leading-relaxed max-w-2xl text-[16px] md:text-[18px]"
-                  style={{ color: '#000000', opacity: 0.8 }}
+                  style={{ color: '#2C3342', opacity: 0.9 }}
                 >
                   Digital Wealth Partners brings institutional custody, active portfolio management,
                   and coordinated financial planning together under one fiduciary roof. For individuals,
