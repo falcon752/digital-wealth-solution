@@ -14,7 +14,7 @@ const NAV_ITEMS = [
       { label: 'Crypto Wealth Management', href: '/what-we-do/what-we-do-investment-services/wealth-portfolio-management/full-service-crypto-wealth-management' },
       { label: 'Digital Asset Custody', href: '/digital-asset-custody' },
       { label: 'Bitcoin SMA', href: '/bitcoin-returns-sma' },
-      { label: 'Financial Planning', href: '/services' },
+      { label: 'Financial Planning', href: '/financial-planning-for-crypto-investors' },
       { label: 'Sub Advisory Service', href: '/services' },
     ]
   },
