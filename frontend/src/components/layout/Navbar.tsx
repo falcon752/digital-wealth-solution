@@ -15,7 +15,6 @@ const NAV_ITEMS = [
       { label: 'Digital Asset Custody', href: '/digital-asset-custody' },
       { label: 'Bitcoin SMA', href: '/bitcoin-returns-sma' },
       { label: 'Financial Planning', href: '/financial-planning-for-crypto-investors' },
-      { label: 'Sub Advisory Service', href: '/services' },
     ]
   },
   { label: 'About Digital Wealth Partners', href: '/about' },
