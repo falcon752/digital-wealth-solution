@@ -13,7 +13,7 @@ const NAV_ITEMS = [
     dropdown: [
       { label: 'Crypto Wealth Management', href: '/what-we-do/what-we-do-investment-services/wealth-portfolio-management/full-service-crypto-wealth-management' },
       { label: 'Digital Asset Custody', href: '/digital-asset-custody' },
-      { label: 'Bitcoin SMA', href: '/services' },
+      { label: 'Bitcoin SMA', href: '/bitcoin-returns-sma' },
       { label: 'Financial Planning', href: '/services' },
       { label: 'Sub Advisory Service', href: '/services' },
     ]
@@ -31,6 +31,11 @@ interface NavbarProps {
 export default function Navbar({ transparent = false }: NavbarProps) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({});
+
+  const toggleDropdown = (label: string) => {
+    setOpenDropdowns((prev) => ({ ...prev, [label]: !prev[label] }));
+  };
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -178,10 +183,19 @@ export default function Navbar({ transparent = false }: NavbarProps) {
             <div key={item.label} className="flex flex-col border-b last:border-0" style={{ borderColor: '#f0f0f0' }}>
               {item.dropdown ? (
                 <div className="flex flex-col py-1">
-                  <span className="text-sm font-semibold py-2" style={{ color: '#1e266d' }}>
-                    {item.label}
-                  </span>
-                  <div className="flex flex-col pl-4 gap-1">
+                  <div 
+                    className="flex justify-between items-center py-2 cursor-pointer"
+                    onClick={() => toggleDropdown(item.label)}
+                  >
+                    <span className="text-sm font-semibold" style={{ color: '#1e266d' }}>
+                      {item.label}
+                    </span>
+                    <ChevronDown size={14} className={`transition-transform duration-300 text-gray-400 ${openDropdowns[item.label] ? 'rotate-180' : ''}`} />
+                  </div>
+                  <div 
+                    className="flex flex-col pl-4 gap-1 overflow-hidden transition-all duration-300"
+                    style={{ maxHeight: openDropdowns[item.label] ? '500px' : '0' }}
+                  >
                     {item.dropdown.map((sub) => (
                       <Link
                         key={sub.label}
