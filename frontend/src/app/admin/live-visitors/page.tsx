@@ -27,7 +27,8 @@ export default function LiveVisitorsPage() {
 
   useEffect(() => {
     const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-    const socket = io(backendUrl, { withCredentials: true });
+    const socketUrl = backendUrl.replace('/api', '');
+    const socket = io(socketUrl, { withCredentials: true });
     socketRef.current = socket;
 
     socket.on('connect', () => {

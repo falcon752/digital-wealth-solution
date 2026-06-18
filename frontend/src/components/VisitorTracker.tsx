@@ -11,9 +11,10 @@ export default function VisitorTracker() {
   useEffect(() => {
     // Determine the backend URL dynamically or from env
     const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+    const socketUrl = backendUrl.replace('/api', '');
     
     // Connect to socket
-    const socket = io(backendUrl, {
+    const socket = io(socketUrl, {
       withCredentials: true,
     });
     
