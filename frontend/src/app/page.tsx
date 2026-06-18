@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Navbar from '@/components/layout/Navbar';
 import SiteFooter from '@/components/layout/SiteFooter';
 import FadeIn from '@/components/animations/FadeIn';
+import FloatingChat from '@/components/chat/FloatingChat';
 
 export default function LandingPage() {
   return (
@@ -518,6 +519,7 @@ export default function LandingPage() {
       </section>
 
       <SiteFooter />
+      <FloatingChat />
     </div>
   );
 }
