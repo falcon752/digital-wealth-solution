@@ -6,6 +6,7 @@ import Navbar from '@/components/layout/Navbar';
 import SiteFooter from '@/components/layout/SiteFooter';
 import FadeIn from '@/components/animations/FadeIn';
 import Script from 'next/script';
+import FloatingChat from '@/components/chat/FloatingChat';
 
 export default function LandingPage() {
   return (
@@ -519,9 +520,18 @@ export default function LandingPage() {
       </section>
 
       <SiteFooter />
+      <FloatingChat />
       <Script id="tawk" strategy="afterInteractive">
         {`
           var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+          
+          Tawk_API.onLoad = function(){
+              Tawk_API.hideWidget();
+          };
+          Tawk_API.onChatMinimized = function(){
+              Tawk_API.hideWidget();
+          };
+          
           (function(){
           var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
           s1.async=true;
