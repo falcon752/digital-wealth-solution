@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Navbar from '@/components/layout/Navbar';
 import SiteFooter from '@/components/layout/SiteFooter';
 import FadeIn from '@/components/animations/FadeIn';
-import FloatingChat from '@/components/chat/FloatingChat';
+import Script from 'next/script';
 
 export default function LandingPage() {
   return (
@@ -519,7 +519,19 @@ export default function LandingPage() {
       </section>
 
       <SiteFooter />
-      <FloatingChat />
+      <Script id="tawk" strategy="afterInteractive">
+        {`
+          var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+          (function(){
+          var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+          s1.async=true;
+          s1.src='https://embed.tawk.to/6a36bdde47d57f1d4d486ed9/default';
+          s1.charset='UTF-8';
+          s1.setAttribute('crossorigin','*');
+          s0.parentNode.insertBefore(s1,s0);
+          })();
+        `}
+      </Script>
     </div>
   );
 }
