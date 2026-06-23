@@ -377,7 +377,7 @@ function NewLLCForm() {
                   <select className="bg-gray-50 dark:bg-[#101010] border-r border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white text-[15px] font-semibold px-3 py-3.5 focus:outline-none appearance-none pr-8 relative">
                     <option>🇺🇸 +1</option>
                   </select>
-                  <input type="text" placeholder="(XXX) XXX-XXXX" value={form.phone} onChange={(e) => setForm({...form, phone: e.target.value})} className="flex-1 bg-white dark:bg-[#101010] text-black dark:text-white text-[16px] px-4 py-3.5 focus:outline-none placeholder:text-gray-400"/>
+                  <input type="tel" autoComplete="tel" placeholder="(XXX) XXX-XXXX" value={form.phone} onChange={(e) => setForm({...form, phone: e.target.value})} className="flex-1 bg-white dark:bg-[#101010] text-black dark:text-white text-[16px] px-4 py-3.5 focus:outline-none placeholder:text-gray-400"/>
                 </div>
               </div>
               <div className="space-y-1.5">
