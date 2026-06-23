@@ -288,9 +288,9 @@ function NewLLCForm() {
           {/* Privacy Protection */}
           <div className="pt-2 space-y-3">
             <h2 className="text-[22px] font-semibold text-black dark:text-white tracking-tight">Privacy Protection</h2>
-            <div className="bg-[#f0f5ff] rounded-[16px] p-5 flex items-start gap-3">
+            <div className="bg-[#f0f5ff] dark:bg-blue-900/20 rounded-[16px] p-5 flex items-start gap-3">
               <div className="mt-0.5 shrink-0"><InfoCircleIcon /></div>
-              <p className="text-[15px] font-medium text-[#1e40af] leading-relaxed">
+              <p className="text-[15px] font-medium text-[#1e40af] dark:text-blue-300 leading-relaxed">
                 Your registered agent address will appear on public records instead of your personal address.
               </p>
             </div>
