@@ -422,6 +422,33 @@ function NewLLCForm() {
             </div>
           </div>
 
+          {/* Order Summary / Fee */}
+          <div className="pt-6">
+            <h2 className="text-[22px] font-semibold text-black dark:text-white tracking-tight mb-4">Order Summary</h2>
+            <div className="bg-gray-50 dark:bg-[#101010] border border-gray-200 dark:border-gray-800 rounded-2xl p-5 space-y-4 shadow-sm">
+              <div className="flex items-center justify-between text-[15px] text-gray-600 dark:text-gray-400 font-medium">
+                <span>State Filing Fee (Estimated)</span>
+                <span className="text-gray-900 dark:text-white">$100.00</span>
+              </div>
+              <div className="flex items-center justify-between text-[15px] text-gray-600 dark:text-gray-400 font-medium">
+                <span>Registered Agent Service (1st Year)</span>
+                <span className="text-gray-900 dark:text-white">$149.00</span>
+              </div>
+              <div className="flex items-center justify-between text-[15px] text-gray-600 dark:text-gray-400 font-medium">
+                <span>Platform Processing Fee</span>
+                <span className="text-gray-900 dark:text-white">$50.00</span>
+              </div>
+              <div className="h-px bg-gray-200 dark:bg-gray-800 w-full" />
+              <div className="flex items-center justify-between">
+                <span className="text-[17px] font-bold text-black dark:text-white">Total Formation Fee</span>
+                <span className="text-[20px] font-bold text-[#3b82f6]">$299.00</span>
+              </div>
+            </div>
+            <p className="text-[13px] text-gray-500 font-medium mt-3 text-center">
+              You will be redirected to complete your payment securely after submitting your application.
+            </p>
+          </div>
+
           {/* Submit */}
           <div className="pt-6 pb-4">
             <button

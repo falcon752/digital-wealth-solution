@@ -235,6 +235,27 @@ export default function WithdrawPage() {
                   {...register('destinationAddress')}
                 />
 
+                <div className="bg-[var(--bg-input)] rounded-xl p-4 border border-[var(--border-color)]">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-[var(--text-muted)]">Withdrawal Amount</span>
+                    <span className="text-sm font-semibold text-[var(--text-primary)]">
+                      {watch('amount') ? `${watch('amount')} ${selectedAsset?.symbol || ''}` : '0.00'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between mb-3 pb-3 border-b border-[var(--border-color)]">
+                    <span className="text-sm font-medium text-[var(--text-muted)]">Network & Processing Fee</span>
+                    <span className="text-sm font-semibold text-brand-500">1%</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[15px] font-semibold text-[var(--text-primary)]">You Will Receive (Est.)</span>
+                    <span className="text-[15px] font-bold text-[var(--text-primary)]">
+                      {watch('amount') && !isNaN(Number(watch('amount'))) 
+                        ? `${(Number(watch('amount')) * 0.99).toLocaleString('en-US', { maximumFractionDigits: 8 })} ${selectedAsset?.symbol || ''}`
+                        : '0.00'}
+                    </span>
+                  </div>
+                </div>
+
                 <Button type="submit" className="w-full" size="lg" loading={isLoading}>
                   Request Withdrawal
                 </Button>
