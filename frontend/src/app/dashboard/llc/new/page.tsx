@@ -3,10 +3,11 @@
 import { Suspense, useState, useEffect } from 'react';
 import type { SVGProps } from 'react';
 import { useRouter } from 'next/navigation';
-import { X, Lock } from 'lucide-react';
+import { X, Lock, Copy } from 'lucide-react';
 import { llcAPI } from '@/lib/api';
 import toast from 'react-hot-toast';
 import ThemeToggle from '@/components/layout/ThemeToggle';
+import Modal from '@/components/ui/Modal';
 
 // --- Custom Icons matching the screenshots ---
 
@@ -99,6 +100,9 @@ function NewLLCForm() {
   const [submitting, setSubmitting] = useState(false);
   const [showBanner, setShowBanner] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+
+  const TRC20_WALLET = 'TXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'; // Replace with actual address
 
   useEffect(() => {
     // Check if body has dark class to render correct logo
@@ -116,6 +120,11 @@ function NewLLCForm() {
       toast.error('Company name is required');
       return;
     }
+    // Form is valid, open payment modal instead of immediate submission
+    setShowPaymentModal(true);
+  }
+
+  async function confirmPayment() {
     setSubmitting(true);
     try {
       await llcAPI.create({
@@ -142,8 +151,14 @@ function NewLLCForm() {
       toast.error('Failed to submit application. Please try again.');
     } finally {
       setSubmitting(false);
+      setShowPaymentModal(false);
     }
   }
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success('Wallet address copied!');
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-white dark:bg-[#050505] text-black dark:text-white font-sans">
@@ -422,33 +437,6 @@ function NewLLCForm() {
             </div>
           </div>
 
-          {/* Order Summary / Fee */}
-          <div className="pt-6">
-            <h2 className="text-[22px] font-semibold text-black dark:text-white tracking-tight mb-4">Order Summary</h2>
-            <div className="bg-gray-50 dark:bg-[#101010] border border-gray-200 dark:border-gray-800 rounded-2xl p-5 space-y-4 shadow-sm">
-              <div className="flex items-center justify-between text-[15px] text-gray-600 dark:text-gray-400 font-medium">
-                <span>State Filing Fee (Estimated)</span>
-                <span className="text-gray-900 dark:text-white">$100.00</span>
-              </div>
-              <div className="flex items-center justify-between text-[15px] text-gray-600 dark:text-gray-400 font-medium">
-                <span>Registered Agent Service (1st Year)</span>
-                <span className="text-gray-900 dark:text-white">$149.00</span>
-              </div>
-              <div className="flex items-center justify-between text-[15px] text-gray-600 dark:text-gray-400 font-medium">
-                <span>Platform Processing Fee</span>
-                <span className="text-gray-900 dark:text-white">$50.00</span>
-              </div>
-              <div className="h-px bg-gray-200 dark:bg-gray-800 w-full" />
-              <div className="flex items-center justify-between">
-                <span className="text-[17px] font-bold text-black dark:text-white">Total Formation Fee</span>
-                <span className="text-[20px] font-bold text-[#3b82f6]">$299.00</span>
-              </div>
-            </div>
-            <p className="text-[13px] text-gray-500 font-medium mt-3 text-center">
-              You will be redirected to complete your payment securely after submitting your application.
-            </p>
-          </div>
-
           {/* Submit */}
           <div className="pt-6 pb-4">
             <button
@@ -465,6 +453,85 @@ function NewLLCForm() {
           </div>
 
         </form>
+
+        <Modal isOpen={showPaymentModal} onClose={() => !submitting && setShowPaymentModal(false)} title="Legal Fee Payment" size="md">
+          <div className="space-y-6">
+            <div className="text-[15px] text-gray-600 dark:text-gray-300">
+              To proceed with your LLC formation, please complete the payment for the legal and consultation fees.
+            </div>
+            
+            <div className="bg-gray-50 dark:bg-[#101010] border border-gray-200 dark:border-gray-800 rounded-xl p-5 space-y-3">
+              <div className="flex justify-between items-center text-[15px]">
+                <span className="text-gray-600 dark:text-gray-400">Legal Filing Fee</span>
+                <span className="font-semibold text-gray-900 dark:text-white">$2,000</span>
+              </div>
+              <div className="flex justify-between items-center text-[15px]">
+                <span className="text-gray-600 dark:text-gray-400">Consultation Fee</span>
+                <span className="font-semibold text-gray-900 dark:text-white">$1,000</span>
+              </div>
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-3 flex justify-between items-center">
+                <span className="font-semibold text-gray-900 dark:text-white">Total Amount</span>
+                <span className="text-lg font-bold text-green-600 dark:text-green-500">$3,000</span>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <h3 className="font-semibold text-gray-900 dark:text-white text-[16px]">Payment Method</h3>
+              <p className="text-[14px] text-gray-600 dark:text-gray-400">
+                Payment is only accepted via <strong className="text-gray-900 dark:text-white">USDT</strong> on the <strong className="text-gray-900 dark:text-white">TRC20 network</strong>. Sending any other coin or using a different network may result in loss of funds.
+              </p>
+              
+              <div className="mt-2">
+                <label className="block text-[13px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Company USDT TRC20 Address</label>
+                <div className="flex items-center gap-2">
+                  <input 
+                    type="text" 
+                    readOnly 
+                    value={TRC20_WALLET}
+                    className="flex-1 bg-gray-100 dark:bg-[#101010] border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-300 text-[14px] rounded-lg px-4 py-3 focus:outline-none"
+                  />
+                  <button 
+                    onClick={() => copyToClipboard(TRC20_WALLET)}
+                    className="p-3 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-colors"
+                  >
+                    <Copy size={18} />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20 rounded-xl p-4 flex gap-3">
+              <div className="mt-0.5 text-blue-600 dark:text-blue-400"><InfoCircleIcon /></div>
+              <p className="text-[14px] text-blue-800 dark:text-blue-300 font-medium">
+                Your legal filing will be processed within 24–48 hours after payment confirmation.
+              </p>
+            </div>
+
+            <div className="pt-2 flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowPaymentModal(false)}
+                disabled={submitting}
+                className="flex-1 px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-700 font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmPayment}
+                disabled={submitting}
+                className="flex-[2] bg-green-600 hover:bg-green-700 disabled:opacity-70 text-white font-semibold py-3 rounded-xl transition-colors flex justify-center items-center gap-2"
+              >
+                {submitting ? (
+                  <span className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                ) : (
+                  'Confirm Payment'
+                )}
+              </button>
+            </div>
+          </div>
+        </Modal>
+
       </main>
 
       {/* Footer */}
