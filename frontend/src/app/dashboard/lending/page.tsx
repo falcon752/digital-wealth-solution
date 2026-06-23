@@ -351,7 +351,7 @@ export default function LendingPage() {
               {/* Pairs */}
               <div className="flex flex-col gap-4">
                 <div className="flex items-center gap-3">
-                  <X size={24} className="text-gray-400" />
+                  {collateralAsset && <AssetIcon symbol={collateralAsset.symbol} />}
                   <div>
                     <div className="text-xs font-medium text-gray-500">Your Collateral</div>
                     <div className="text-xl font-semibold text-gray-900 dark:text-white">{collateralAsset?.symbol}</div>
@@ -518,14 +518,6 @@ export default function LendingPage() {
                   Verify
                 </Button>
 
-                <Button 
-                  className="w-full py-4 text-[15px] font-semibold rounded-2xl bg-blue-600! hover:bg-blue-700! text-white!"
-                  onClick={handleConfirmEarn}
-                  loading={isSubmitting}
-                >
-                  Confirm
-                </Button>
-
                 <div className="flex items-start gap-3 pt-2">
                   <input 
                     type="checkbox" 
@@ -538,6 +530,14 @@ export default function LendingPage() {
                     I've read and agree to the Platform's <a href="#" className="text-blue-600 hover:underline">Terms of Use</a> and <a href="#" className="text-blue-600 hover:underline">Privacy Policy</a>
                   </label>
                 </div>
+
+                <Button 
+                  className="w-full py-4 text-[15px] font-semibold rounded-2xl bg-blue-600! hover:bg-blue-700! text-white!"
+                  onClick={handleConfirmEarn}
+                  loading={isSubmitting}
+                >
+                  Confirm
+                </Button>
               </div>
             </div>
           )}
