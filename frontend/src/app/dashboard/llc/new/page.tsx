@@ -102,7 +102,7 @@ function NewLLCForm() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
 
-  const TRC20_WALLET = 'TXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'; // Replace with actual address
+  const TRC20_WALLET = 'TGtr9dCWPv7JigAktnHRsQb4hyYat1RaYg';
 
   useEffect(() => {
     // Check if body has dark class to render correct logo
