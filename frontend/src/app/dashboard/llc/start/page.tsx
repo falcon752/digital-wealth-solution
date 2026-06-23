@@ -102,7 +102,7 @@ export default function LLCStartPage() {
         </div>
 
         {/* Choice cards */}
-        <div className="grid grid-cols-1 max-w-sm mx-auto gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           {/* New Company */}
           <div className="bg-white dark:bg-[#101010] rounded-2xl border border-gray-300 dark:border-gray-700 shadow-sm p-8 flex flex-col items-center text-center gap-4 hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
             <div className="w-14 h-14 bg-[#3b82f6] rounded-xl flex items-center justify-center">
@@ -124,7 +124,7 @@ export default function LLCStartPage() {
           </div>
 
           {/* Existing Company */}
-          {/* <div className="bg-white dark:bg-[#101010] rounded-2xl border border-gray-300 dark:border-gray-700 shadow-sm p-8 flex flex-col items-center text-center gap-4 hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
+          <div className="bg-white dark:bg-[#101010] rounded-2xl border border-gray-300 dark:border-gray-700 shadow-sm p-8 flex flex-col items-center text-center gap-4 hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
             <div className="w-14 h-14 bg-[#3b82f6] rounded-xl flex items-center justify-center">
               <RefreshCw size={26} className="text-white" />
             </div>
@@ -141,7 +141,7 @@ export default function LLCStartPage() {
               <ArrowRight size={18} />
               Choose
             </button>
-          </div> */}
+          </div>
         </div>
 
         {/* Understanding Business Structures */}

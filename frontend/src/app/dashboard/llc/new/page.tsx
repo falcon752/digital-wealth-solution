@@ -2,9 +2,10 @@
 
 import { Suspense, useState, useEffect } from 'react';
 import type { SVGProps } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { X, Lock, Copy } from 'lucide-react';
 import { llcAPI } from '@/lib/api';
+import { useAuth } from '@/context/AuthContext';
 import toast from 'react-hot-toast';
 import ThemeToggle from '@/components/layout/ThemeToggle';
 import Modal from '@/components/ui/Modal';
@@ -77,6 +78,8 @@ const ENTITY_TYPES = [
 
 function NewLLCForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isExisting = searchParams.get('type') === 'existing';
 
   const [form, setForm] = useState({
     companyName: '',
@@ -97,6 +100,7 @@ function NewLLCForm() {
     postalCode: '',
     partnerCode: ''
   });
+  const { user } = useAuth();
   const [submitting, setSubmitting] = useState(false);
   const [showBanner, setShowBanner] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -113,6 +117,18 @@ function NewLLCForm() {
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     return () => observer.disconnect();
   }, []);
+
+  useEffect(() => {
+    if (user && isExisting) {
+      setForm(prev => ({
+        ...prev,
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        username: user.username || '',
+        email: user.email || ''
+      }));
+    }
+  }, [user, isExisting]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -131,7 +147,7 @@ function NewLLCForm() {
         companyName: form.companyName.trim(),
         entityType: form.entityType,
         state: form.state,
-        companyType: 'new',
+        companyType: isExisting ? 'existing' : 'new',
         businessEnding: form.businessEnding,
         contactFirstName: form.firstName.trim(),
         contactLastName: form.lastName.trim(),
@@ -200,7 +216,11 @@ function NewLLCForm() {
         {/* Title Section */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
           <h1 className="text-[34px] md:text-[40px] font-semibold text-black dark:text-white leading-[1.1] tracking-tight">
-            Company<br/>Formation
+            {isExisting ? (
+              <>Register Existing<br/>Company</>
+            ) : (
+              <>Company<br/>Formation</>
+            )}
           </h1>
           {/* <div className="text-[15px] text-[#2563eb] flex flex-col md:text-right pb-1">
             <span className="font-medium">Existing company? Switch</span>
@@ -465,13 +485,15 @@ function NewLLCForm() {
                 <span className="text-gray-600 dark:text-gray-400">Legal Filing Fee</span>
                 <span className="font-semibold text-gray-900 dark:text-white">$2,000</span>
               </div>
-              <div className="flex justify-between items-center text-[15px]">
-                <span className="text-gray-600 dark:text-gray-400">Consultation Fee</span>
-                <span className="font-semibold text-gray-900 dark:text-white">$1,000</span>
-              </div>
+              {!isExisting && (
+                <div className="flex justify-between items-center text-[15px]">
+                  <span className="text-gray-600 dark:text-gray-400">Consultation Fee</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">$1,000</span>
+                </div>
+              )}
               <div className="border-t border-gray-200 dark:border-gray-700 pt-3 flex justify-between items-center">
                 <span className="font-semibold text-gray-900 dark:text-white">Total Amount</span>
-                <span className="text-lg font-bold text-green-600 dark:text-green-500">$3,000</span>
+                <span className="text-lg font-bold text-green-600 dark:text-green-500">{isExisting ? '$2,000' : '$3,000'}</span>
               </div>
             </div>
 
