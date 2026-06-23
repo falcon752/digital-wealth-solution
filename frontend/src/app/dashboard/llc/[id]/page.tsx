@@ -88,7 +88,7 @@ export default function LLCProfilePage() {
         <section className="bg-white dark:bg-[#101010] rounded-[20px] p-5 shadow-[0_2px_15px_-4px_rgba(0,0,0,0.05)]">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Formation Details</h2>
           <DetailRow label="Application Type" value={application.companyType === 'existing' ? 'Existing Company' : 'New Company'} />
-          <DetailRow label="Entity Type" value={application.entityType} />
+          <DetailRow label="Company Type" value={application.entityType} />
           <DetailRow label="Business Ending" value={application.businessEnding} />
           <DetailRow label="Total Fee" value={application.companyType === 'existing' ? '$2,000' : '$3,000'} />
           <DetailRow label="Submitted" value={formatDate(application.createdAt)} />
