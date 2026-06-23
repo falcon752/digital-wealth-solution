@@ -120,13 +120,48 @@ function NewLLCForm() {
 
   useEffect(() => {
     if (user && isExisting) {
-      setForm(prev => ({
-        ...prev,
-        firstName: user.firstName || '',
-        lastName: user.lastName || '',
-        username: user.username || '',
-        email: user.email || ''
-      }));
+      llcAPI.list()
+        .then(res => {
+          const apps = res.data.applications;
+          if (apps && apps.length > 0) {
+            const lastApp = apps.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+            setForm(prev => ({
+              ...prev,
+              companyName: lastApp.companyName || '',
+              entityType: lastApp.entityType || 'llc',
+              state: lastApp.state || 'Wyoming',
+              businessEnding: lastApp.businessEnding || 'Prefer No Ending',
+              firstName: lastApp.contactFirstName || user.firstName || '',
+              lastName: lastApp.contactLastName || user.lastName || '',
+              username: lastApp.contactUsername || user.username || '',
+              email: lastApp.contactEmail || user.email || '',
+              phone: lastApp.contactPhone || '',
+              streetAddress: lastApp.streetAddress || '',
+              unit: lastApp.unit || '',
+              city: lastApp.city || '',
+              country: lastApp.country || 'United States',
+              postalCode: lastApp.postalCode || '',
+              partnerCode: lastApp.partnerCode || ''
+            }));
+          } else {
+            setForm(prev => ({
+              ...prev,
+              firstName: user.firstName || '',
+              lastName: user.lastName || '',
+              username: user.username || '',
+              email: user.email || ''
+            }));
+          }
+        })
+        .catch(() => {
+          setForm(prev => ({
+            ...prev,
+            firstName: user.firstName || '',
+            lastName: user.lastName || '',
+            username: user.username || '',
+            email: user.email || ''
+          }));
+        });
     }
   }, [user, isExisting]);
 
