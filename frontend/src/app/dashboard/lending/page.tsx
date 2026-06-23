@@ -363,7 +363,6 @@ export default function LendingPage() {
                     <div className="text-xs font-medium text-gray-500">Your loan</div>
                     <div className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                       {loanAsset?.symbol}
-                      <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-red-500 text-white leading-none">TRX</span>
                     </div>
                   </div>
                 </div>
@@ -460,7 +459,6 @@ export default function LendingPage() {
                   <div className="text-xs font-medium text-gray-500">Your deposit</div>
                   <div className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                     {earnAmount} {earnAsset?.symbol}
-                    <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-red-500 text-white leading-none">TRX</span>
                   </div>
                 </div>
               </div>
@@ -475,14 +473,12 @@ export default function LendingPage() {
                   <span className="text-gray-500">Monthly Reward</span>
                   <span className="font-semibold text-gray-900 dark:text-white flex items-center gap-1">
                     {earnMonthlyReward.toFixed(2)} {earnAsset?.symbol}
-                    <span className="px-1 py-0.5 rounded text-[8px] font-semibold bg-red-500 text-white leading-none">TRX</span>
                   </span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-gray-500">Yearly Reward</span>
                   <span className="font-semibold text-gray-900 dark:text-white flex items-center gap-1">
                     {earnYearlyReward.toFixed(2)} {earnAsset?.symbol}
-                    <span className="px-1 py-0.5 rounded text-[8px] font-semibold bg-red-500 text-white leading-none">TRX</span>
                   </span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
