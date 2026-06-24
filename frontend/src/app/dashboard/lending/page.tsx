@@ -56,7 +56,7 @@ export default function LendingPage() {
   const [earnAsset, setEarnAsset] = useState<Asset | null>(null);
   const [earnAmount, setEarnAmount] = useState('9800');
 
-  const earnApy = 0.05; // 5%
+  const earnApy = 0.25; // 25%
   
   const [modalType, setModalType] = useState<'collateral' | 'loan' | 'earn' | 'ltv' | 'apr' | null>(null);
   const [search, setSearch] = useState('');
@@ -302,7 +302,7 @@ export default function LendingPage() {
                 {/* Earn Stats */}
                 <div className="space-y-4 px-2 mb-6">
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-gray-500 border-b border-dashed border-gray-400 pb-0.5">5% APY</span>
+                    <span className="text-gray-500 border-b border-dashed border-gray-400 pb-0.5">25% APY</span>
                     <span className="font-medium text-gray-900 dark:text-white">{earnTotal1Year.toFixed(2)} {earnAsset?.symbol} in 1 year</span>
                   </div>
                   <div className="flex justify-between items-center text-sm">
@@ -467,7 +467,7 @@ export default function LendingPage() {
               <div className="space-y-4 py-4 border-y border-gray-100 dark:border-gray-800">
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-gray-500">Annual percentage yield</span>
-                  <span className="font-semibold text-gray-900 dark:text-white">5%</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">25%</span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-gray-500">Monthly Reward</span>
