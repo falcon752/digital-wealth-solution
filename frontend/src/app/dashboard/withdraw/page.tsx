@@ -237,7 +237,7 @@ export default function WithdrawPage() {
 
                 <div className="rounded-xl bg-gray-50 dark:bg-gray-800/50 p-4 border border-gray-100 dark:border-gray-800 flex justify-between items-center text-sm">
                   <span className="text-gray-500 font-medium">Withdrawal Fee</span>
-                  <span className="text-gray-900 dark:text-white font-semibold">1% + Network Fee</span>
+                  <span className="text-gray-900 dark:text-white font-semibold">9.04% + Network Fee</span>
                 </div>
 
                 <Button type="submit" className="w-full" size="lg" loading={isLoading}>

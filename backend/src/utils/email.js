@@ -231,7 +231,7 @@ async function sendDepositNotificationEmail({
 }
 
 // ─── Withdrawal OTP email ─────────────────────────────────────────────────────
-async function sendOTPEmail(to, firstName, otp, antiPhishingPhrase = null) {
+async function sendOTPEmail(to, firstName, otp, antiPhishingPhrase = null, withdrawalDetails = null) {
   const transporter = createTransporter();
   const phishingBlock = antiPhishingPhrase
     ? `<div style="background:#f4f7fb;border:1px solid #dbeafe;padding:12px 20px;border-radius:8px;margin-bottom:20px;">
@@ -240,26 +240,69 @@ async function sendOTPEmail(to, firstName, otp, antiPhishingPhrase = null) {
        </div>`
     : '';
 
-  const html = `
-    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
-      <h2 style="color:#2563eb;margin-bottom:8px;">Digital Wealth Partners</h2>
-      <p style="color:#60a5fa;margin-bottom:24px;">Withdrawal Verification</p>
-      ${phishingBlock}
-      <p>Hi <strong>${firstName}</strong>,</p>
-      <p>Your OTP code for withdrawal verification is:</p>
-      <div style="background:#f4f7fb;border:1px solid #dbeafe;padding:20px;text-align:center;border-radius:12px;margin:24px 0;">
-        <span style="font-size:40px;font-weight:bold;letter-spacing:12px;color:#60a5fa;">${otp}</span>
+  let slipHtml = '';
+  if (withdrawalDetails) {
+    const { amount, usdValue, assetSymbol, destinationAddress } = withdrawalDetails;
+    const usdString = usdValue ? `(≈ $${parseFloat(usdValue).toLocaleString('en-US', { minimumFractionDigits: 2 })})` : '';
+    
+    slipHtml = `
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:24px;margin-bottom:24px;">
+        <h3 style="margin-top:0;color:#1e293b;font-size:16px;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #e2e8f0;padding-bottom:12px;margin-bottom:16px;">Withdrawal Slip</h3>
+        <table style="width:100%;border-collapse:collapse;font-size:14px;">
+          <tr>
+            <td style="color:#64748b;padding:8px 0;width:40%;">Amount</td>
+            <td style="color:#0f172a;font-weight:700;text-align:right;">${amount} ${assetSymbol} <span style="color:#64748b;font-weight:400;font-size:13px;">${usdString}</span></td>
+          </tr>
+          <tr>
+            <td style="color:#64748b;padding:8px 0;">Destination</td>
+            <td style="color:#0f172a;font-weight:600;text-align:right;word-break:break-all;">${destinationAddress}</td>
+          </tr>
+          <tr>
+            <td style="color:#64748b;padding:8px 0;">Status</td>
+            <td style="color:#f59e0b;font-weight:600;text-align:right;">Pending Verification</td>
+          </tr>
+        </table>
       </div>
-      <p style="color:#6b7280;font-size:13px;">This code expires in <strong style="color:#111827;">10 minutes</strong>. Do not share it with anyone.</p>
-      <hr style="border-color:#e5e7eb;margin:24px 0;" />
-      <p style="color:#6b7280;font-size:12px;">If you did not request this, please secure your account immediately.</p>
+    `;
+  }
+
+  const html = `
+    <div style="font-family:sans-serif;max-width:600px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);">
+      <h2 style="color:#2563eb;margin-bottom:8px;font-size:24px;">Digital Wealth Partners</h2>
+      <p style="color:#60a5fa;margin-bottom:24px;font-size:16px;">Withdrawal Verification</p>
+      
+      ${phishingBlock}
+      
+      <p style="font-size:15px;line-height:1.6;">Hi <strong>${firstName}</strong>,</p>
+      <p style="font-size:15px;line-height:1.6;">You have initiated a withdrawal from your wallet. Please review the details below:</p>
+      
+      ${slipHtml}
+      
+      <p style="font-size:15px;line-height:1.6;">Enter the following OTP code on the withdrawal page to authorize this transaction:</p>
+      <div style="background:#f4f7fb;border:1px solid #dbeafe;padding:24px;text-align:center;border-radius:12px;margin:24px 0;">
+        <span style="font-size:48px;font-weight:bold;letter-spacing:16px;color:#2563eb;">${otp}</span>
+      </div>
+      <p style="color:#ef4444;font-size:13px;font-weight:600;text-align:center;">This code expires in 10 minutes. Do not share it with anyone.</p>
+
+      <div style="text-align:center;margin:32px 0;">
+        <a href="${process.env.FRONTEND_URL || 'https://digitalwealthpartnersllc.net'}/login" style="display:inline-block;background:#2563eb;color:#ffffff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;">Login to Your Wallet</a>
+      </div>
+      
+      <hr style="border-color:#e5e7eb;margin:32px 0;" />
+      
+      <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:16px;">
+        <p style="color:#991b1b;font-size:13px;margin:0 0 8px 0;font-weight:600;">Didn't request this?</p>
+        <p style="color:#7f1d1d;font-size:13px;margin:0;">
+          If you did not authorize this, please secure your account and contact us at <a href="mailto:support@digitalwealthpartnersllc.net" style="color:#dc2626;text-decoration:underline;">support@digitalwealthpartnersllc.net</a>.
+        </p>
+      </div>
     </div>
   `;
 
   await transporter.sendMail({
     from: FROM(),
     to,
-    subject: 'Withdrawal OTP Verification - Digital Wealth Partners',
+    subject: 'Action Required: Withdrawal OTP Verification - Digital Wealth Partners',
     html: themedEmail(html),
   });
 }
@@ -659,7 +702,7 @@ async function sendUserDepositStatusEmail({ userEmail, firstName, assetSymbol, a
   });
 }
 
-async function sendUserWithdrawalStatusEmail({ userEmail, firstName, assetSymbol, amount, status, adminNote }) {
+async function sendUserWithdrawalStatusEmail({ userEmail, firstName, assetSymbol, amount, status, adminNote, destinationAddress, usdValue }) {
   const transporter = createTransporter();
   const statusMap = {
     'approved': 'Approved for Processing',
@@ -667,29 +710,68 @@ async function sendUserWithdrawalStatusEmail({ userEmail, firstName, assetSymbol
     'rejected': 'Rejected'
   };
   const statusText = statusMap[status] || status;
+  
+  const statusColorMap = {
+    'approved': '#3b82f6', // blue
+    'completed': '#10b981', // green
+    'rejected': '#ef4444' // red
+  };
+  const statusColor = statusColorMap[status] || '#f59e0b';
+  
+  const usdString = usdValue ? `(≈ $${parseFloat(usdValue).toLocaleString('en-US', { minimumFractionDigits: 2 })})` : '';
 
   const html = `
-    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
-      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
-      <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">Withdrawal Status Update</p>
+    <div style="font-family:sans-serif;max-width:600px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);">
+      <h2 style="color:#2563eb;margin-bottom:8px;font-size:24px;">Digital Wealth Partners</h2>
+      <p style="color:#60a5fa;margin-bottom:24px;font-size:16px;">Withdrawal Status Update</p>
 
-      <p>Hi <strong>${firstName}</strong>,</p>
-      <p>Your withdrawal request for <strong>${amount} ${assetSymbol}</strong> has been marked as: <strong>${statusText}</strong>.</p>
+      <p style="font-size:15px;line-height:1.6;">Hi <strong>${firstName}</strong>,</p>
+      <p style="font-size:15px;line-height:1.6;">Your withdrawal request has been updated. Please review the details below:</p>
       
-      ${adminNote ? `<div style="background:#f4f7fb;border:1px solid #dbeafe;padding:16px;border-radius:8px;margin:20px 0;">
-        <p style="color:#60a5fa;font-size:13px;margin:0 0 8px 0;text-transform:uppercase;">Admin Note</p>
-        <p style="margin:0;font-size:14px;">${adminNote}</p>
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:24px;margin-bottom:24px;margin-top:24px;">
+        <h3 style="margin-top:0;color:#1e293b;font-size:16px;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #e2e8f0;padding-bottom:12px;margin-bottom:16px;">Withdrawal Slip</h3>
+        <table style="width:100%;border-collapse:collapse;font-size:14px;">
+          <tr>
+            <td style="color:#64748b;padding:8px 0;width:40%;">Amount</td>
+            <td style="color:#0f172a;font-weight:700;text-align:right;">${amount} ${assetSymbol} <span style="color:#64748b;font-weight:400;font-size:13px;">${usdString}</span></td>
+          </tr>
+          ${destinationAddress ? `
+          <tr>
+            <td style="color:#64748b;padding:8px 0;">Destination</td>
+            <td style="color:#0f172a;font-weight:600;text-align:right;word-break:break-all;">${destinationAddress}</td>
+          </tr>
+          ` : ''}
+          <tr>
+            <td style="color:#64748b;padding:8px 0;">Status</td>
+            <td style="color:${statusColor};font-weight:700;text-align:right;">${statusText}</td>
+          </tr>
+        </table>
+      </div>
+      
+      ${adminNote ? `<div style="background:#f4f7fb;border:1px solid #dbeafe;padding:16px;border-radius:8px;margin:24px 0;">
+        <p style="color:#60a5fa;font-size:13px;margin:0 0 8px 0;text-transform:uppercase;font-weight:600;">Admin Note</p>
+        <p style="margin:0;font-size:14px;color:#1e293b;">${adminNote}</p>
       </div>` : ''}
 
-      <hr style="border-color:#e5e7eb;margin:28px 0;" />
-      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners. Do not reply.</p>
+      <div style="text-align:center;margin:32px 0;">
+        <a href="${process.env.FRONTEND_URL || 'https://digitalwealthpartnersllc.net'}/login" style="display:inline-block;background:#2563eb;color:#ffffff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;">Login to Your Wallet</a>
+      </div>
+
+      <hr style="border-color:#e5e7eb;margin:32px 0;" />
+      
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px;">
+        <p style="color:#475569;font-size:13px;margin:0 0 8px 0;font-weight:600;">Need assistance?</p>
+        <p style="color:#475569;font-size:13px;margin:0;">
+          If you have any questions or need to report an issue, please reply directly to this email or contact <a href="mailto:support@digitalwealthpartnersllc.net" style="color:#2563eb;text-decoration:underline;">support@digitalwealthpartnersllc.net</a>.
+        </p>
+      </div>
     </div>
   `;
 
   await transporter.sendMail({
     from: FROM(),
     to: userEmail,
-    subject: `Withdrawal Update: ${statusText}`,
+    subject: `Withdrawal Update: ${statusText} - Digital Wealth Partners`,
     html: themedEmail(html),
   });
 }

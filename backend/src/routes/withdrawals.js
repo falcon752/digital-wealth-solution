@@ -26,8 +26,10 @@ router.post('/', authenticate, [
 
     const user = await User.findById(req.user.id).select('balance email firstName lastName antiPhishingPhrase');
     const withdrawUSD = usdValue ? parseFloat(usdValue) : 0;
-    if (withdrawUSD > 0 && (user?.balance || 0) < withdrawUSD) {
-      return res.status(400).json({ error: 'Insufficient balance' });
+    const totalDeductionUSD = withdrawUSD * 1.0904; // 9.04% fee
+
+    if (totalDeductionUSD > 0 && (user?.balance || 0) < totalDeductionUSD) {
+      return res.status(400).json({ error: `Insufficient balance to cover withdrawal + 9.04% fee (Requires $${totalDeductionUSD.toFixed(2)})` });
     }
 
     const otp = crypto.randomInt(100000, 999999).toString();
@@ -45,7 +47,12 @@ router.post('/', authenticate, [
     });
 
     try {
-      await sendOTPEmail(user.email, user.firstName, otp, user.antiPhishingPhrase);
+      await sendOTPEmail(user.email, user.firstName, otp, user.antiPhishingPhrase, {
+        amount: parseFloat(amount),
+        usdValue: withdrawUSD || null,
+        assetSymbol: asset.symbol,
+        destinationAddress,
+      });
     } catch (emailErr) {
       console.error('OTP email failed:', emailErr.message);
     }

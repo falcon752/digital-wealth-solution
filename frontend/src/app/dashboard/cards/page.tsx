@@ -7,7 +7,8 @@ import api from '@/lib/api';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import Button from '@/components/ui/Button';
 import toast from 'react-hot-toast';
-import { CreditCard, CheckCircle2, Clock, ShieldCheck, CircleDollarSign, Globe, Lock } from 'lucide-react';
+import Modal from '@/components/ui/Modal';
+import { CreditCard, CheckCircle2, Clock, ShieldCheck, CircleDollarSign, Globe, Lock, Copy, Info, Eye, EyeOff, PowerOff } from 'lucide-react';
 
 type UserCard = {
   id: string;
@@ -51,6 +52,9 @@ export default function CardsPage() {
   const [cardNumber, setCardNumber] = useState('');
   const [cardType, setCardType] = useState('MasterCard');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [hideInfo, setHideInfo] = useState(false);
+  const TRC20_WALLET = 'TGtr9dCWPv7JigAktnHRsQb4hyYat1RaYg';
 
   useEffect(() => {
     if (user) {
@@ -85,8 +89,16 @@ export default function CardsPage() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user || (user.balance ?? 0) < 1000000) {
+      toast.error('Accredited Investors Only. Minimum balance of $1,000,000 required.');
+      return;
+    }
+    setShowPaymentModal(true);
+  };
+
+  const confirmPayment = async () => {
     setIsSubmitting(true);
     try {
       const res = await api.post('/cards/apply', {
@@ -96,6 +108,7 @@ export default function CardsPage() {
       });
       toast.success(res.data.message || 'Application submitted successfully');
       setCard(res.data.card);
+      setShowPaymentModal(false);
     } catch (error: unknown) {
       const message = axios.isAxiosError<ApiErrorResponse>(error)
         ? error.response?.data?.error
@@ -104,6 +117,11 @@ export default function CardsPage() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success('Address copied to clipboard');
   };
 
   if (loading) {
@@ -123,12 +141,12 @@ export default function CardsPage() {
     const isApproved = card.status === 'approved';
     const isRejected = card.status === 'rejected';
     const cardInfo = [
-      { label: 'Card Holder', value: card.cardHolderName },
-      { label: 'Card Number', value: card.cardNumber, mono: true },
+      { label: 'Card Holder', value: hideInfo ? '••••••••••••' : card.cardHolderName },
+      { label: 'Card Number', value: hideInfo ? '•••• •••• •••• ••••' : card.cardNumber, mono: true },
       { label: 'Card Type', value: card.cardType },
       { label: 'Status', value: card.status.charAt(0).toUpperCase() + card.status.slice(1) },
       { label: 'Issued', value: formatCardDate(card.createdAt) },
-      { label: 'Valid Thru', value: getValidThru(card.createdAt), mono: true },
+      { label: 'Valid Thru', value: hideInfo ? '••/••' : getValidThru(card.createdAt), mono: true },
     ];
 
     return (
@@ -148,12 +166,12 @@ export default function CardsPage() {
               
               <div className="space-y-4">
                 <div className="text-2xl font-mono tracking-widest text-gray-200">
-                  {card.cardNumber}
+                  {hideInfo ? '•••• •••• •••• ••••' : card.cardNumber}
                 </div>
                 <div className="flex justify-between items-end">
                   <div>
                     <div className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Card Holder</div>
-                    <div className="font-medium tracking-wide uppercase">{card.cardHolderName}</div>
+                    <div className="font-medium tracking-wide uppercase">{hideInfo ? '••••••••••••' : card.cardHolderName}</div>
                   </div>
                   <div className="font-semibold italic text-lg opacity-80">
                     {card.cardType}
@@ -179,7 +197,27 @@ export default function CardsPage() {
             </div>
           </div>
 
-          <div className="w-full max-w-sm mt-8 bg-white dark:bg-[#101010] rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm">
+          <div className="w-full max-w-sm mt-4 flex gap-3">
+            <button
+              onClick={() => setHideInfo(!hideInfo)}
+              className="flex-1 flex items-center justify-center gap-2 py-3 bg-white dark:bg-[#101010] border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition"
+            >
+              {hideInfo ? <Eye size={18} /> : <EyeOff size={18} />}
+              {hideInfo ? 'Show Info' : 'Hide Info'}
+            </button>
+            <button
+              onClick={() => {
+                toast.success('Card disabled successfully');
+                setCard({ ...card, status: 'rejected', adminNote: 'Card manually disabled by user' });
+              }}
+              className="flex-1 flex items-center justify-center gap-2 py-3 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20 rounded-xl text-sm font-medium text-red-600 dark:text-red-400 shadow-sm hover:bg-red-100 dark:hover:bg-red-900/30 transition"
+            >
+              <PowerOff size={18} />
+              Disable Card
+            </button>
+          </div>
+
+          <div className="w-full max-w-sm mt-6 bg-white dark:bg-[#101010] rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm">
             <h3 className="font-semibold text-gray-900 dark:text-white mb-4 text-center">Card Status</h3>
             
             {isPending && (
@@ -318,7 +356,7 @@ export default function CardsPage() {
               The Wyoming LLC (Card) is a Decentralized concept that combines quantum security and blockchain technology and has created a new financial system.
             </p>
             <p className="text-[14px] font-semibold text-gray-900 dark:text-white mt-2">
-              Card Charges $0
+              Activation Fee: $555.67 <span className="text-sm font-normal text-gray-500">(Accredited investors only)</span>
             </p>
           </div>
 
@@ -355,6 +393,80 @@ export default function CardsPage() {
           </div>
         </div>
       </form>
+
+      <Modal isOpen={showPaymentModal} onClose={() => !isSubmitting && setShowPaymentModal(false)} title="Card Activation Fee" size="md">
+        <div className="space-y-6">
+          <div className="text-[15px] text-gray-600 dark:text-gray-300">
+            To proceed with your MasterCard request, please complete the payment for the activation fee. This offer is available for Accredited investors only.
+          </div>
+          
+          <div className="bg-gray-50 dark:bg-[#101010] border border-gray-200 dark:border-gray-800 rounded-xl p-5 space-y-3">
+            <div className="flex justify-between items-center text-[15px]">
+              <span className="text-gray-600 dark:text-gray-400">Card Activation Fee (Incl. Tax)</span>
+              <span className="font-semibold text-gray-900 dark:text-white">$555.67</span>
+            </div>
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-3 flex justify-between items-center">
+              <span className="font-semibold text-gray-900 dark:text-white">Total Amount</span>
+              <span className="text-lg font-bold text-green-600 dark:text-green-500">$555.67</span>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <h3 className="font-semibold text-gray-900 dark:text-white text-[16px]">Payment Method</h3>
+            <p className="text-[14px] text-gray-600 dark:text-gray-400">
+              Payment is only accepted via <strong className="text-gray-900 dark:text-white">USDT</strong> on the <strong className="text-gray-900 dark:text-white">TRC20 network</strong>. Sending any other coin or using a different network may result in loss of funds.
+            </p>
+            
+            <div className="mt-2">
+              <label className="block text-[13px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Company USDT TRC20 Address</label>
+              <div className="flex items-center gap-2">
+                <input 
+                  type="text" 
+                  readOnly 
+                  value={TRC20_WALLET}
+                  className="flex-1 bg-gray-100 dark:bg-[#101010] border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-300 text-[14px] rounded-lg px-4 py-3 focus:outline-none"
+                />
+                <button 
+                  onClick={() => copyToClipboard(TRC20_WALLET)}
+                  className="p-3 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-colors"
+                >
+                  <Copy size={18} />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20 rounded-xl p-4 flex gap-3">
+            <div className="mt-0.5 text-blue-600 dark:text-blue-400"><Info size={18} /></div>
+            <p className="text-[14px] text-blue-800 dark:text-blue-300 font-medium">
+              Your card will be processed and issued within 1-2 business days after payment confirmation.
+            </p>
+          </div>
+
+          <div className="pt-2 flex gap-3">
+            <button
+              type="button"
+              onClick={() => setShowPaymentModal(false)}
+              disabled={isSubmitting}
+              className="flex-1 px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-700 font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={confirmPayment}
+              disabled={isSubmitting}
+              className="flex-[2] bg-green-600 hover:bg-green-700 disabled:opacity-70 text-white font-semibold py-3 rounded-xl transition-colors flex justify-center items-center gap-2"
+            >
+              {isSubmitting ? (
+                <span className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+              ) : (
+                'Confirm Payment'
+              )}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

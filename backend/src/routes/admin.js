@@ -446,7 +446,7 @@ router.put('/withdrawals/:id/approve', authenticate, requireAdmin, [
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
   try {
-    const w = await Withdrawal.findById(req.params.id);
+    const w = await Withdrawal.findById(req.params.id).populate('assetId', 'symbol name');
     if (!w) return res.status(404).json({ error: 'Withdrawal not found' });
     if (w.status !== 'pending') return res.status(400).json({ error: 'Withdrawal is not pending' });
 
@@ -463,8 +463,10 @@ router.put('/withdrawals/:id/approve', authenticate, requireAdmin, [
       sendUserWithdrawalStatusEmail({
         userEmail: user.email,
         firstName: user.firstName,
-        assetSymbol: w.assetSymbol,
+        assetSymbol: w.assetId?.symbol || 'Crypto',
         amount: w.amount,
+        usdValue: w.usdValue,
+        destinationAddress: w.destinationAddress,
         status: 'approved',
         adminNote: req.body.adminNote || null,
       }).catch(e => console.error('Failed to send withdrawal email:', e));
@@ -483,7 +485,7 @@ router.put('/withdrawals/:id/complete', authenticate, requireAdmin, [
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
   try {
-    const w = await Withdrawal.findById(req.params.id);
+    const w = await Withdrawal.findById(req.params.id).populate('assetId', 'symbol name');
     if (!w) return res.status(404).json({ error: 'Withdrawal not found' });
     if (w.status !== 'approved') return res.status(400).json({ error: 'Withdrawal must be approved first' });
 
@@ -496,9 +498,10 @@ router.put('/withdrawals/:id/complete', authenticate, requireAdmin, [
     });
 
     if (w.usdValue > 0) {
+      const totalDeductionUSD = w.usdValue * 1.0904;
       const result = await User.findByIdAndUpdate(
         w.userId,
-        { $inc: { balance: -w.usdValue } },
+        { $inc: { balance: -totalDeductionUSD } },
         { new: true }
       ).select('balance email');
       // Ensure balance never goes negative
@@ -516,8 +519,10 @@ router.put('/withdrawals/:id/complete', authenticate, requireAdmin, [
       sendUserWithdrawalStatusEmail({
         userEmail: user.email,
         firstName: user.firstName,
-        assetSymbol: w.assetSymbol,
+        assetSymbol: w.assetId?.symbol || 'Crypto',
         amount: w.amount,
+        usdValue: w.usdValue,
+        destinationAddress: w.destinationAddress,
         status: 'completed',
         adminNote: req.body.adminNote || null,
       }).catch(e => console.error('Failed to send withdrawal email:', e));
@@ -537,7 +542,7 @@ router.put('/withdrawals/:id/reject', authenticate, requireAdmin, [
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
   try {
-    const w = await Withdrawal.findById(req.params.id);
+    const w = await Withdrawal.findById(req.params.id).populate('assetId', 'symbol name');
     if (!w) return res.status(404).json({ error: 'Withdrawal not found' });
     if (!['pending', 'approved'].includes(w.status)) {
       return res.status(400).json({ error: 'Cannot reject this withdrawal' });
@@ -556,8 +561,10 @@ router.put('/withdrawals/:id/reject', authenticate, requireAdmin, [
       sendUserWithdrawalStatusEmail({
         userEmail: user.email,
         firstName: user.firstName,
-        assetSymbol: w.assetSymbol,
+        assetSymbol: w.assetId?.symbol || 'Crypto',
         amount: w.amount,
+        usdValue: w.usdValue,
+        destinationAddress: w.destinationAddress,
         status: 'rejected',
         adminNote: req.body.adminNote || null,
       }).catch(e => console.error('Failed to send withdrawal email:', e));
