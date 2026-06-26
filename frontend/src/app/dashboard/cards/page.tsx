@@ -127,7 +127,8 @@ export default function CardsPage() {
   const handleDisableCard = async () => {
     if (!card) return;
     try {
-      const res = await api.put(`/cards/${card.id}/disable`);
+      const cardId = (card as any)._id || card.id;
+      const res = await api.put(`/cards/${cardId}/disable`);
       toast.success('Your card has been disabled successfully');
       setCard(res.data.card);
     } catch (error) {
@@ -139,7 +140,8 @@ export default function CardsPage() {
     if (!card) return;
     if (!window.confirm('Are you sure you want to permanently delete your card? You can apply for a new one after.')) return;
     try {
-      await api.delete(`/cards/${card.id}`);
+      const cardId = (card as any)._id || card.id;
+      await api.delete(`/cards/${cardId}`);
       toast.success('Card deleted successfully');
       setCard(null);
     } catch (error) {

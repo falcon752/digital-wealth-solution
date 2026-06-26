@@ -108,7 +108,7 @@ export default function AdminCardsPage() {
                           </Button>
                         )}
                         <button
-                          onClick={() => handleDelete(card.id)}
+                          onClick={() => handleDelete(card._id || card.id)}
                           className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition"
                           title="Delete Card"
                         >
