@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
+import DashboardHeader from '@/components/layout/DashboardHeader';
+import Button from '@/components/ui/Button';
+import toast from 'react-hot-toast';
 import Modal from '@/components/ui/Modal';
 import { CreditCard, CheckCircle2, Clock, ShieldCheck, CircleDollarSign, Globe, Lock, Copy, Info, Eye, EyeOff, PowerOff, Trash2 } from 'lucide-react';
 
