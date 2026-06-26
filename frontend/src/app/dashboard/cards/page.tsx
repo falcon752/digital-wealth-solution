@@ -417,10 +417,9 @@ export default function CardsPage() {
                 <span>Activation Fee: <span className="text-blue-600 dark:text-blue-400">$555.67</span></span>
                 <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider bg-gray-200 dark:bg-gray-700 px-2 py-0.5 rounded-full">Accredited Only</span>
               </p>
-              <ul className="text-[11px] text-gray-500 dark:text-gray-400 space-y-1.5 list-disc pl-3.5 marker:text-gray-400">
-                <li><strong>Individuals:</strong> Net worth &gt;$1M (excl. home) OR income &gt;$200k (&gt;$300k joint) for 2 years.</li>
-                <li><strong>Entities:</strong> Total assets &gt;$5M OR all equity owners are accredited.</li>
-              </ul>
+              <div className="text-[11.5px] text-gray-500 dark:text-gray-400">
+                <p><strong>Eligibility Rule:</strong> To qualify as an accredited investor, you must hold a social capital or investment portfolio exceeding <strong>$1,000,000</strong>.</p>
+              </div>
             </div>
           </div>
 
