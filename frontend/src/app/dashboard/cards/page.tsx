@@ -409,12 +409,19 @@ export default function CardsPage() {
           </button>
 
           <div className="pt-4 border-t border-gray-100 dark:border-gray-700/50">
-            <p className="text-[13px] text-gray-500 dark:text-gray-400 leading-relaxed">
+            <p className="text-[13px] text-gray-500 dark:text-gray-400 leading-relaxed mb-3">
               The Wyoming LLC (Card) is a Decentralized concept that combines quantum security and blockchain technology and has created a new financial system.
             </p>
-            <p className="text-[14px] font-semibold text-gray-900 dark:text-white mt-2">
-              Activation Fee: $555.67 <span className="text-sm font-normal text-gray-500">(Accredited investors only)</span>
-            </p>
+            <div className="bg-gray-50 dark:bg-gray-800/30 p-3 rounded-xl border border-gray-100 dark:border-gray-700/50">
+              <p className="text-[14px] font-semibold text-gray-900 dark:text-white mb-2 flex items-center justify-between">
+                <span>Activation Fee: <span className="text-blue-600 dark:text-blue-400">$555.67</span></span>
+                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider bg-gray-200 dark:bg-gray-700 px-2 py-0.5 rounded-full">Accredited Only</span>
+              </p>
+              <ul className="text-[11px] text-gray-500 dark:text-gray-400 space-y-1.5 list-disc pl-3.5 marker:text-gray-400">
+                <li><strong>Individuals:</strong> Net worth &gt;$1M (excl. home) OR income &gt;$200k (&gt;$300k joint) for 2 years.</li>
+                <li><strong>Entities:</strong> Total assets &gt;$5M OR all equity owners are accredited.</li>
+              </ul>
+            </div>
           </div>
 
           <Button
