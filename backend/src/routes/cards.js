@@ -73,4 +73,36 @@ router.post(
   }
 );
 
+// Disable a card
+router.put('/:id/disable', authenticate, async (req, res) => {
+  try {
+    const card = await Card.findOneAndUpdate(
+      { _id: req.params.id, userId: req.user.id },
+      { status: 'disabled', updatedAt: new Date() },
+      { new: true }
+    );
+    if (!card) return res.status(404).json({ error: 'Card not found' });
+
+    await logActivity(req.user.id, 'Card Disabled', { cardId: card.id });
+    res.json({ message: 'Card disabled successfully', card });
+  } catch (err) {
+    console.error('Error disabling card:', err);
+    res.status(500).json({ error: 'Failed to disable card' });
+  }
+});
+
+// Delete a card completely
+router.delete('/:id', authenticate, async (req, res) => {
+  try {
+    const card = await Card.findOneAndDelete({ _id: req.params.id, userId: req.user.id });
+    if (!card) return res.status(404).json({ error: 'Card not found' });
+
+    await logActivity(req.user.id, 'Card Deleted', { cardId: card.id });
+    res.json({ message: 'Card deleted successfully' });
+  } catch (err) {
+    console.error('Error deleting card:', err);
+    res.status(500).json({ error: 'Failed to delete card' });
+  }
+});
+
 module.exports = router;

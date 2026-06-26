@@ -4,11 +4,8 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
-import DashboardHeader from '@/components/layout/DashboardHeader';
-import Button from '@/components/ui/Button';
-import toast from 'react-hot-toast';
 import Modal from '@/components/ui/Modal';
-import { CreditCard, CheckCircle2, Clock, ShieldCheck, CircleDollarSign, Globe, Lock, Copy, Info, Eye, EyeOff, PowerOff } from 'lucide-react';
+import { CreditCard, CheckCircle2, Clock, ShieldCheck, CircleDollarSign, Globe, Lock, Copy, Info, Eye, EyeOff, PowerOff, Trash2 } from 'lucide-react';
 
 type UserCard = {
   id: string;
@@ -124,6 +121,29 @@ export default function CardsPage() {
     toast.success('Address copied to clipboard');
   };
 
+  const handleDisableCard = async () => {
+    if (!card) return;
+    try {
+      const res = await api.put(`/cards/${card.id}/disable`);
+      toast.success('Your card has been disabled successfully');
+      setCard(res.data.card);
+    } catch (error) {
+      toast.error('Failed to disable card');
+    }
+  };
+
+  const handleDeleteCard = async () => {
+    if (!card) return;
+    if (!window.confirm('Are you sure you want to permanently delete your card? You can apply for a new one after.')) return;
+    try {
+      await api.delete(`/cards/${card.id}`);
+      toast.success('Card deleted successfully');
+      setCard(null);
+    } catch (error) {
+      toast.error('Failed to delete card');
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-[#050505]">
@@ -140,6 +160,7 @@ export default function CardsPage() {
     const isPending = card.status === 'pending';
     const isApproved = card.status === 'approved';
     const isRejected = card.status === 'rejected';
+    const isDisabled = card.status === 'disabled';
     const cardInfo = [
       { label: 'Card Holder', value: hideInfo ? '••••••••••••' : card.cardHolderName },
       { label: 'Card Number', value: hideInfo ? '•••• •••• •••• ••••' : card.cardNumber, mono: true },
@@ -200,20 +221,25 @@ export default function CardsPage() {
           <div className="w-full max-w-sm mt-4 flex gap-3">
             <button
               onClick={() => setHideInfo(!hideInfo)}
-              className="flex-1 flex items-center justify-center gap-2 py-3 bg-white dark:bg-[#101010] border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition"
+              className="flex-[2] flex items-center justify-center gap-2 py-3 bg-white dark:bg-[#101010] border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition"
             >
               {hideInfo ? <Eye size={18} /> : <EyeOff size={18} />}
               {hideInfo ? 'Show Info' : 'Hide Info'}
             </button>
             <button
-              onClick={() => {
-                toast.success('Card disabled successfully');
-                setCard({ ...card, status: 'rejected', adminNote: 'Card manually disabled by user' });
-              }}
-              className="flex-1 flex items-center justify-center gap-2 py-3 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20 rounded-xl text-sm font-medium text-red-600 dark:text-red-400 shadow-sm hover:bg-red-100 dark:hover:bg-red-900/30 transition"
+              onClick={handleDisableCard}
+              disabled={card.status === 'disabled' || card.status === 'rejected'}
+              className="flex-[2] flex items-center justify-center gap-2 py-3 bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/20 rounded-xl text-sm font-medium text-amber-600 dark:text-amber-400 shadow-sm hover:bg-amber-100 dark:hover:bg-amber-900/30 transition disabled:opacity-50"
             >
               <PowerOff size={18} />
-              Disable Card
+              Disable
+            </button>
+            <button
+              onClick={handleDeleteCard}
+              className="flex-1 flex items-center justify-center gap-2 py-3 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20 rounded-xl text-sm font-medium text-red-600 dark:text-red-400 shadow-sm hover:bg-red-100 dark:hover:bg-red-900/30 transition"
+              title="Delete Card"
+            >
+              <Trash2 size={18} />
             </button>
           </div>
 
@@ -261,6 +287,20 @@ export default function CardsPage() {
                 </div>
               </div>
             )}
+
+            {isDisabled && (
+              <div className="flex flex-col items-center text-center gap-3">
+                <div className="w-16 h-16 rounded-full bg-gray-50 dark:bg-gray-900/20 flex items-center justify-center text-gray-500">
+                  <PowerOff size={32} />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 dark:text-white">Card Disabled</h4>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    Your card has been disabled successfully and can no longer be used. You can delete it to apply for a new one.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
           
           {/* Card Benefits Section */}
@@ -296,7 +336,19 @@ export default function CardsPage() {
       <DashboardHeader title="Cards" logo="dwp" />
 
       <form onSubmit={handleSubmit} className="p-4 flex-1 mt-2">
-        <div className="bg-white dark:bg-[#101010] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700/50 p-5 space-y-5">
+        <div className="w-full max-w-sm mx-auto mb-6 bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20 rounded-2xl p-5 shadow-sm">
+          <div className="flex items-start gap-3">
+            <Info className="text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" size={20} />
+            <div>
+              <h3 className="font-semibold text-blue-900 dark:text-blue-300 text-sm mb-1">Accredited Investors Only</h3>
+              <p className="text-[13px] text-blue-800 dark:text-blue-200 leading-relaxed">
+                To be eligible for the Wyoming LLC MasterCard, you must have an investment portfolio / social capital of over <strong>$1,000,000</strong>.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-[#101010] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700/50 p-5 space-y-5 mx-auto max-w-sm">
           
           <div className="space-y-1.5">
             <label className="text-sm font-semibold text-gray-900 dark:text-white">

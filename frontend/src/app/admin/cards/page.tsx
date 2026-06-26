@@ -6,7 +6,7 @@ import DashboardHeader from '@/components/layout/DashboardHeader';
 import Button from '@/components/ui/Button';
 import toast from 'react-hot-toast';
 import { formatDate } from '@/lib/utils';
-import { Check, X, CreditCard } from 'lucide-react';
+import { Check, X, CreditCard, Trash2 } from 'lucide-react';
 import Modal from '@/components/ui/Modal';
 
 export default function AdminCardsPage() {
@@ -41,6 +41,17 @@ export default function AdminCardsPage() {
       toast.error('Failed to update card');
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Are you sure you want to completely delete this card application?')) return;
+    try {
+      await api.delete(`/admin/cards/${id}`);
+      toast.success('Card deleted successfully');
+      fetchCards();
+    } catch (error) {
+      toast.error('Failed to delete card');
     }
   };
 
@@ -79,22 +90,31 @@ export default function AdminCardsPage() {
                     <td className="px-6 py-4">
                       <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
                         card.status === 'approved' ? 'bg-green-500/10 text-green-500' :
-                        card.status === 'rejected' ? 'bg-red-500/10 text-red-500' :
+                        (card.status === 'rejected' || card.status === 'disabled') ? 'bg-red-500/10 text-red-500' :
                         'bg-amber-500/10 text-amber-500'
                       }`}>
                         {card.status.toUpperCase()}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      {card.status === 'pending' && (
-                        <Button 
-                          size="sm" 
-                          variant="secondary"
-                          onClick={() => setSelectedCard(card)}
+                      <div className="flex items-center justify-end gap-2">
+                        {card.status === 'pending' && (
+                          <Button 
+                            size="sm" 
+                            variant="secondary"
+                            onClick={() => setSelectedCard(card)}
+                          >
+                            Review
+                          </Button>
+                        )}
+                        <button
+                          onClick={() => handleDelete(card.id)}
+                          className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition"
+                          title="Delete Card"
                         >
-                          Review
-                        </Button>
-                      )}
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

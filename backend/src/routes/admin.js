@@ -713,4 +713,15 @@ router.put('/cards/:id', authenticate, requireAdmin, async (req, res) => {
   }
 });
 
+router.delete('/cards/:id', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const card = await Card.findByIdAndDelete(req.params.id);
+    if (!card) return res.status(404).json({ error: 'Card not found' });
+    
+    res.json({ message: 'Card deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete card' });
+  }
+});
+
 module.exports = router;
