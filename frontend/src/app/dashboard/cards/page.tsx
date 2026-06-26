@@ -15,7 +15,7 @@ type UserCard = {
   cardHolderName: string;
   cardNumber: string;
   cardType: string;
-  status: 'pending' | 'approved' | 'rejected';
+  status: 'pending' | 'approved' | 'rejected' | 'disabled';
   adminNote?: string | null;
   createdAt?: string;
 };
