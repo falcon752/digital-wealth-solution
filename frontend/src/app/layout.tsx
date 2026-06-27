@@ -5,6 +5,8 @@ import { ThemeProvider } from "@/components/layout/ThemeProvider";
 import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "@/context/AuthContext";
 import VisitorTracker from "@/components/VisitorTracker";
+import Script from "next/script";
+import FloatingChat from "@/components/chat/FloatingChat";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -43,6 +45,28 @@ export default function RootLayout({
           <AuthProvider>
             <VisitorTracker />
             {children}
+            <FloatingChat />
+            <Script id="tawk" strategy="afterInteractive">
+              {`
+                var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+                
+                Tawk_API.onLoad = function(){
+                    Tawk_API.hideWidget();
+                };
+                Tawk_API.onChatMinimized = function(){
+                    Tawk_API.hideWidget();
+                };
+                
+                (function(){
+                var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+                s1.async=true;
+                s1.src='https://embed.tawk.to/6a36bdde47d57f1d4d486ed9/default';
+                s1.charset='UTF-8';
+                s1.setAttribute('crossorigin','*');
+                s0.parentNode.insertBefore(s1,s0);
+                })();
+              `}
+            </Script>
             <Toaster
               position="top-right"
               toastOptions={{
