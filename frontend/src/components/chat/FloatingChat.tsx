@@ -3,10 +3,14 @@
 import { useState, useEffect } from 'react';
 import { MessageSquare, X } from 'lucide-react';
 import FadeIn from '@/components/animations/FadeIn';
+import { usePathname } from 'next/navigation';
+import { cn } from '@/lib/utils';
 
 export default function FloatingChat() {
   const [showPopup, setShowPopup] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(false);
+  const pathname = usePathname();
+  const isDashboard = pathname?.startsWith('/dashboard') || pathname?.startsWith('/admin');
 
   useEffect(() => {
     // Show the popup after 3 seconds if they haven't opened chat yet
@@ -45,7 +49,10 @@ export default function FloatingChat() {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-[9990] flex flex-col items-end">
+    <div className={cn(
+      "fixed right-4 md:right-6 z-[9990] flex flex-col items-end",
+      isDashboard ? "bottom-[90px] md:bottom-6" : "bottom-6"
+    )}>
       
       {/* Proactive Popup */}
       {showPopup && (
