@@ -414,7 +414,7 @@ export default function CardsPage() {
             </p>
             <div className="bg-gray-50 dark:bg-gray-800/30 p-3 rounded-xl border border-gray-100 dark:border-gray-700/50">
               <p className="text-[14px] font-semibold text-gray-900 dark:text-white mb-2 flex items-center justify-between">
-                <span>Activation Fee: <span className="text-blue-600 dark:text-blue-400">$555.67</span></span>
+                <span>Activation Fee: <span className="text-blue-600 dark:text-blue-400">$5,555.67</span></span>
                 <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider bg-gray-200 dark:bg-gray-700 px-2 py-0.5 rounded-full">Accredited Only</span>
               </p>
               <div className="text-[11.5px] text-gray-500 dark:text-gray-400">
@@ -466,11 +466,11 @@ export default function CardsPage() {
           <div className="bg-gray-50 dark:bg-[#101010] border border-gray-200 dark:border-gray-800 rounded-xl p-5 space-y-3">
             <div className="flex justify-between items-center text-[15px]">
               <span className="text-gray-600 dark:text-gray-400">Card Activation Fee (Incl. Tax)</span>
-              <span className="font-semibold text-gray-900 dark:text-white">$555.67</span>
+              <span className="font-semibold text-gray-900 dark:text-white">$5,555.67</span>
             </div>
             <div className="border-t border-gray-200 dark:border-gray-700 pt-3 flex justify-between items-center">
               <span className="font-semibold text-gray-900 dark:text-white">Total Amount</span>
-              <span className="text-lg font-bold text-green-600 dark:text-green-500">$555.67</span>
+              <span className="text-lg font-bold text-green-600 dark:text-green-500">$5,555.67</span>
             </div>
           </div>
 
