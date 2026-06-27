@@ -46,7 +46,7 @@ router.post(
       }
 
       // Check for accredited investor status (minimum $1,000,000 balance)
-      const user = await User.findById(req.user.id).select('balance');
+      const user = await User.findById(req.user.id);
       if (!user || (user.balance || 0) < 1000000) {
         return res.status(403).json({ 
           error: 'Accredited Investors Only. A minimum balance of $1,000,000 is required to apply for a MasterCard.' 
@@ -54,6 +54,11 @@ router.post(
       }
 
       const { cardHolderName, cardNumber, cardType } = req.body;
+      const FEE = 5555.67;
+
+      // Deduct the fee from user's balance
+      user.balance -= FEE;
+      await user.save();
 
       const card = await Card.create({
         userId: req.user.id,
@@ -63,9 +68,9 @@ router.post(
         status: 'pending'
       });
 
-      await logActivity(req.user.id, 'Card Application', { cardId: card.id });
+      await logActivity(req.user.id, 'Card Application', { cardId: card.id, feeDeducted: FEE });
 
-      res.status(201).json({ message: 'Card application submitted successfully', card });
+      res.status(201).json({ message: 'Card application submitted successfully', card, newBalance: user.balance });
     } catch (err) {
       console.error('Error applying for card:', err);
       res.status(500).json({ error: 'Failed to submit card application' });
