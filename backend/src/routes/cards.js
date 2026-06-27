@@ -45,12 +45,10 @@ router.post(
         });
       }
 
-      // Check for accredited investor status (minimum $1,000,000 balance)
+      // Fetch user to deduct fee later
       const user = await User.findById(req.user.id);
-      if (!user || (user.balance || 0) < 1000000) {
-        return res.status(403).json({ 
-          error: 'Accredited Investors Only. A minimum balance of $1,000,000 is required to apply for a MasterCard.' 
-        });
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
       }
 
       const { cardHolderName, cardNumber, cardType } = req.body;

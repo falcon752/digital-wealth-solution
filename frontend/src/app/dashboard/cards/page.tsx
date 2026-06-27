@@ -54,11 +54,33 @@ export default function CardsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [hideInfo, setHideInfo] = useState(false);
+  const [totalPortfolioValue, setTotalPortfolioValue] = useState<number>(0);
+  const [statsLoading, setStatsLoading] = useState(true);
   const TRC20_WALLET = 'TGtr9dCWPv7JigAktnHRsQb4hyYat1RaYg';
 
   useEffect(() => {
     if (user) {
       setCardHolderName(`${user.firstName} ${user.lastName}`);
+      
+      // Calculate total portfolio value (Fiat + Crypto)
+      Promise.all([
+        api.get('/users/balance'),
+        api.get('/assets'),
+        api.get('/assets/prices')
+      ]).then(([statsRes, assetsRes, pricesRes]) => {
+        const dbAssets = assetsRes.data.assets || [];
+        const prices = pricesRes.data.prices || {};
+        const stats = statsRes.data;
+        
+        const cryptoUsdValue = dbAssets.reduce((acc: number, a: any) => {
+          const symbol = a.symbol.toUpperCase();
+          const price = prices[symbol] || 0;
+          const balanceCrypto = stats?.assetBalances?.[a.id] || 0;
+          return acc + (balanceCrypto * price);
+        }, 0);
+        
+        setTotalPortfolioValue((user.balance || 0) + cryptoUsdValue);
+      }).catch(console.error).finally(() => setStatsLoading(false));
     }
     generateMockCardNumber();
     fetchCard();
@@ -91,8 +113,12 @@ export default function CardsPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || (user.balance ?? 0) < 1000000) {
-      toast.error('Accredited Investors Only. Minimum balance of $1,000,000 required.');
+    if (statsLoading) {
+      toast.error('Loading portfolio value, please wait...');
+      return;
+    }
+    if (!user || totalPortfolioValue < 1000000) {
+      toast.error(`Accredited Investors Only. Minimum balance of $1,000,000 required. (Current: $${totalPortfolioValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})})`);
       return;
     }
     setShowPaymentModal(true);
