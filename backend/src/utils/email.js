@@ -728,10 +728,41 @@ async function sendUserWithdrawalStatusEmail({ userEmail, firstName, assetSymbol
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="color-scheme" content="light dark">
+      <meta name="supported-color-schemes" content="light dark">
+      <style>
+        :root {
+          color-scheme: light dark;
+          supported-color-schemes: light dark;
+        }
+        .bg-main { background-color: #f4f7fb; }
+        .bg-card { background-color: #ffffff; border-color: #e5e7eb; }
+        .bg-slip { background-color: #f8fafc; border-color: #e2e8f0; }
+        .bg-footer { background-color: #f8fafc; border-color: #e5e7eb; }
+        .bg-note { background-color: #eff6ff; }
+        
+        .text-main { color: #111827; }
+        .text-muted { color: #64748b; }
+        .text-accent { color: #2563eb; }
+        .border-line { border-color: #e2e8f0; }
+        
+        @media (prefers-color-scheme: dark) {
+          .bg-main { background-color: #050505 !important; }
+          .bg-card { background-color: #101010 !important; border-color: #222222 !important; box-shadow: none !important; }
+          .bg-slip { background-color: #0a0a0a !important; border-color: #222222 !important; }
+          .bg-footer { background-color: #0a0a0a !important; border-color: #222222 !important; }
+          .bg-note { background-color: #1e293b !important; }
+          
+          .text-main { color: #f8fafc !important; }
+          .text-muted { color: #9ca3af !important; }
+          .text-accent { color: #60a5fa !important; }
+          .border-line { border-color: #1a1a1a !important; }
+        }
+      </style>
     </head>
-    <body style="margin: 0; padding: 0; background-color: #050505; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
-      <div style="background-color: #050505; padding: 40px 20px; width: 100%; box-sizing: border-box;">
-        <div style="max-width: 800px; margin: 0 auto; background-color: #101010; border: 1px solid #222222; border-radius: 20px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+    <body class="bg-main" style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+      <div class="bg-main" style="padding: 40px 20px; width: 100%; box-sizing: border-box;">
+        <div class="bg-card" style="max-width: 800px; margin: 0 auto; border: 1px solid; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);">
           
           <!-- Header Area -->
           <div style="background: linear-gradient(135deg, #1e3a8a 0%, #172554 100%); padding: 40px; text-align: center; border-bottom: 1px solid #1e40af;">
@@ -741,51 +772,51 @@ async function sendUserWithdrawalStatusEmail({ userEmail, firstName, assetSymbol
 
           <!-- Body Content -->
           <div style="padding: 40px 40px 20px 40px;">
-            <p style="font-size: 16px; line-height: 1.6; color: #d1d5db; margin-top: 0;">Hi <strong style="color: #ffffff;">${firstName}</strong>,</p>
-            <p style="font-size: 16px; line-height: 1.6; color: #d1d5db; margin-bottom: 32px;">Your withdrawal request has been updated. Please review your official transaction slip below.</p>
+            <p class="text-muted" style="font-size: 16px; line-height: 1.6; margin-top: 0;">Hi <strong class="text-main">${firstName}</strong>,</p>
+            <p class="text-muted" style="font-size: 16px; line-height: 1.6; margin-bottom: 32px;">Your withdrawal request has been updated. Please review your official transaction slip below.</p>
             
             <!-- Receipt Box -->
-            <div style="background-color: #0a0a0a; border: 1px solid #222222; border-radius: 12px; padding: 32px; position: relative;">
+            <div class="bg-slip border-line" style="border: 1px solid; border-radius: 12px; padding: 32px; position: relative;">
               <div style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background-color: ${statusColor}; border-top-left-radius: 12px; border-top-right-radius: 12px;"></div>
               
-              <h3 style="margin: 0 0 24px 0; color: #f8fafc; font-size: 18px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #222222; padding-bottom: 16px;">Withdrawal Slip</h3>
+              <h3 class="text-main border-line" style="margin: 0 0 24px 0; font-size: 18px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid; padding-bottom: 16px;">Withdrawal Slip</h3>
               
               <table style="width: 100%; border-collapse: collapse; font-size: 15px;">
                 <tr>
-                  <td style="color: #9ca3af; padding: 12px 0; width: 35%; border-bottom: 1px solid #1a1a1a;">Date & Time</td>
-                  <td style="color: #f8fafc; font-weight: 600; text-align: right; border-bottom: 1px solid #1a1a1a;">${now} UTC</td>
+                  <td class="text-muted border-line" style="padding: 12px 0; width: 35%; border-bottom: 1px solid;">Date & Time</td>
+                  <td class="text-main border-line" style="font-weight: 600; text-align: right; border-bottom: 1px solid;">${now} UTC</td>
                 </tr>
                 <tr>
-                  <td style="color: #9ca3af; padding: 12px 0; border-bottom: 1px solid #1a1a1a;">Asset Withdrawn</td>
-                  <td style="color: #f8fafc; font-weight: 700; text-align: right; border-bottom: 1px solid #1a1a1a;">${assetSymbol}</td>
+                  <td class="text-muted border-line" style="padding: 12px 0; border-bottom: 1px solid;">Asset Withdrawn</td>
+                  <td class="text-main border-line" style="font-weight: 700; text-align: right; border-bottom: 1px solid;">${assetSymbol}</td>
                 </tr>
                 <tr>
-                  <td style="color: #9ca3af; padding: 12px 0; border-bottom: 1px solid #1a1a1a;">Amount (Crypto)</td>
-                  <td style="color: #60a5fa; font-weight: 700; font-size: 18px; text-align: right; border-bottom: 1px solid #1a1a1a;">${amount} ${assetSymbol}</td>
+                  <td class="text-muted border-line" style="padding: 12px 0; border-bottom: 1px solid;">Amount (Crypto)</td>
+                  <td class="text-accent border-line" style="font-weight: 700; font-size: 18px; text-align: right; border-bottom: 1px solid;">${amount} ${assetSymbol}</td>
                 </tr>
                 ${usdString ? `
                 <tr>
-                  <td style="color: #9ca3af; padding: 12px 0; border-bottom: 1px solid #1a1a1a;">Amount (USD)</td>
-                  <td style="color: #f8fafc; font-weight: 600; text-align: right; border-bottom: 1px solid #1a1a1a;">${usdString}</td>
+                  <td class="text-muted border-line" style="padding: 12px 0; border-bottom: 1px solid;">Amount (USD)</td>
+                  <td class="text-main border-line" style="font-weight: 600; text-align: right; border-bottom: 1px solid;">${usdString}</td>
                 </tr>
                 ` : ''}
                 ${destinationAddress ? `
                 <tr>
-                  <td style="color: #9ca3af; padding: 16px 0 12px 0; border-bottom: 1px solid #1a1a1a; vertical-align: top;">Destination Address</td>
-                  <td style="color: #f8fafc; font-weight: 600; font-family: monospace; font-size: 14px; text-align: right; word-break: break-all; border-bottom: 1px solid #1a1a1a; padding: 16px 0 12px 0;">${destinationAddress}</td>
+                  <td class="text-muted border-line" style="padding: 16px 0 12px 0; border-bottom: 1px solid; vertical-align: top;">Destination Address</td>
+                  <td class="text-main border-line" style="font-weight: 600; font-family: monospace; font-size: 14px; text-align: right; word-break: break-all; border-bottom: 1px solid; padding: 16px 0 12px 0;">${destinationAddress}</td>
                 </tr>
                 ` : ''}
                 <tr>
-                  <td style="color: #9ca3af; padding: 16px 0 4px 0;">Final Status</td>
+                  <td class="text-muted" style="padding: 16px 0 4px 0;">Final Status</td>
                   <td style="color: ${statusColor}; font-weight: 700; text-align: right; padding: 16px 0 4px 0; text-transform: uppercase; letter-spacing: 1px;">${statusText}</td>
                 </tr>
               </table>
             </div>
             
             ${adminNote ? `
-            <div style="background-color: #1e293b; border-left: 4px solid #3b82f6; padding: 20px; border-radius: 0 8px 8px 0; margin: 32px 0;">
-              <p style="color: #93c5fd; font-size: 12px; margin: 0 0 8px 0; text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">Administrator Note</p>
-              <p style="margin: 0; font-size: 15px; color: #f8fafc; line-height: 1.5;">${adminNote}</p>
+            <div class="bg-note" style="border-left: 4px solid #3b82f6; padding: 20px; border-radius: 0 8px 8px 0; margin: 32px 0;">
+              <p class="text-accent" style="font-size: 12px; margin: 0 0 8px 0; text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">Administrator Note</p>
+              <p class="text-main" style="margin: 0; font-size: 15px; line-height: 1.5;">${adminNote}</p>
             </div>
             ` : ''}
 
@@ -798,16 +829,16 @@ async function sendUserWithdrawalStatusEmail({ userEmail, firstName, assetSymbol
           </div>
 
           <!-- Footer Area -->
-          <div style="background-color: #0a0a0a; padding: 40px; border-top: 1px solid #222222; text-align: center;">
-            <h4 style="color: #f8fafc; font-size: 16px; margin: 0 0 12px 0;">Need Assistance?</h4>
-            <p style="color: #9ca3af; font-size: 14px; line-height: 1.6; margin: 0 0 16px 0;">
+          <div class="bg-footer border-line" style="padding: 40px; border-top: 1px solid; text-align: center;">
+            <h4 class="text-main" style="font-size: 16px; margin: 0 0 12px 0;">Need Assistance?</h4>
+            <p class="text-muted" style="font-size: 14px; line-height: 1.6; margin: 0 0 16px 0;">
               If you have any questions or need to report an issue with this transaction, please reply directly to this email or contact our support team.
             </p>
-            <a href="mailto:support@digitalwealthpartnersllc.net" style="color: #60a5fa; font-weight: 600; text-decoration: none; font-size: 15px;">
+            <a class="text-accent" href="mailto:support@digitalwealthpartnersllc.net" style="font-weight: 600; text-decoration: none; font-size: 15px;">
               support@digitalwealthpartnersllc.net
             </a>
-            <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #222222;">
-              <p style="color: #4b5563; font-size: 12px; margin: 0;">&copy; ${new Date().getFullYear()} Digital Wealth Partners. All rights reserved.</p>
+            <div class="border-line" style="margin-top: 32px; padding-top: 24px; border-top: 1px solid;">
+              <p style="color: #6b7280; font-size: 12px; margin: 0;">&copy; ${new Date().getFullYear()} Digital Wealth Partners. All rights reserved.</p>
             </div>
           </div>
           
