@@ -1,19 +1,18 @@
 require('dotenv').config();
-const { sendUserWithdrawalStatusEmail } = require('./src/utils/email');
+const { sendUserDepositStatusEmail } = require('./src/utils/email');
 
 async function test() {
   try {
-    await sendUserWithdrawalStatusEmail({
+    await sendUserDepositStatusEmail({
       userEmail: 'atikuquadrisegun@gmail.com',
       firstName: 'Quadri',
-      assetSymbol: 'XRP',
-      amount: 45000,
-      status: 'approved',
-      adminNote: 'Your withdrawal has been approved by our finance team and is currently broadcasting on the Ripple network.',
-      destinationAddress: 'rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh',
-      usdValue: 27500.50
+      assetSymbol: 'USDC',
+      amount: 150000,
+      status: 'confirmed',
+      adminNote: 'Your deposit has been successfully credited to your digital wealth portfolio.',
+      usdValue: 150000.00
     });
-    console.log('Test email sent successfully!');
+    console.log('Test deposit email sent successfully!');
   } catch (err) {
     console.error('Error sending test email:', err);
   }
