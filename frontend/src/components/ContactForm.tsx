@@ -136,8 +136,8 @@ export default function ContactForm() {
             <div>
               <input
                 type="text"
-                className="w-full border px-3 py-2 text-sm text-[var(--text-primary)]"
-                style={{ borderColor: '#d1d5db', outline: 'none' }}
+                className="w-full border px-3 py-2 text-sm"
+                style={{ borderColor: '#d1d5db', outline: 'none', color: '#1a202c' }}
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 required
@@ -147,8 +147,8 @@ export default function ContactForm() {
             <div>
               <input
                 type="text"
-                className="w-full border px-3 py-2 text-sm text-[var(--text-primary)]"
-                style={{ borderColor: '#d1d5db', outline: 'none' }}
+                className="w-full border px-3 py-2 text-sm"
+                style={{ borderColor: '#d1d5db', outline: 'none', color: '#1a202c' }}
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 required
@@ -167,8 +167,8 @@ export default function ContactForm() {
             <div>
               <input
                 type="email"
-                className="w-full border px-3 py-2 text-sm text-[var(--text-primary)]"
-                style={{ borderColor: '#d1d5db', outline: 'none' }}
+                className="w-full border px-3 py-2 text-sm"
+                style={{ borderColor: '#d1d5db', outline: 'none', color: '#1a202c' }}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -178,8 +178,8 @@ export default function ContactForm() {
             <div>
               <input
                 type="email"
-                className="w-full border px-3 py-2 text-sm text-[var(--text-primary)]"
-                style={{ borderColor: '#d1d5db', outline: 'none' }}
+                className="w-full border px-3 py-2 text-sm"
+                style={{ borderColor: '#d1d5db', outline: 'none', color: '#1a202c' }}
                 value={confirmEmail}
                 onChange={(e) => setConfirmEmail(e.target.value)}
                 required
@@ -338,8 +338,8 @@ export default function ContactForm() {
             maxLength={750}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            className="w-full border px-3 py-2 text-sm resize-y text-[var(--text-primary)]"
-            style={{ borderColor: '#d1d5db', outline: 'none' }}
+            className="w-full border px-3 py-2 text-sm resize-y"
+            style={{ borderColor: '#d1d5db', outline: 'none', color: '#1a202c' }}
             required
           />
           <p className="text-xs mt-1" style={{ color: '#718096' }}>
