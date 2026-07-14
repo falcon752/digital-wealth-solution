@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import toast from 'react-hot-toast';
 import axios from 'axios';
+import { Check } from 'lucide-react';
 
 const radioStyle = `
   .custom-radio {
@@ -41,6 +43,7 @@ export default function ContactForm() {
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [confirmEmail, setConfirmEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [married, setMarried] = useState('No');
   const [children, setChildren] = useState('No');
   const [investableAssets, setInvestableAssets] = useState('');
@@ -50,6 +53,7 @@ export default function ContactForm() {
   const [message, setMessage] = useState('');
   const [acknowledged, setAcknowledged] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,11 +70,12 @@ export default function ContactForm() {
 
     setIsSubmitting(true);
     try {
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/contact/general`, {
+      await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/contact/general`, {
         topic,
         firstName,
         lastName,
         email,
+        phone,
         married,
         children,
         investableAssets,
@@ -80,22 +85,7 @@ export default function ContactForm() {
         message,
       });
 
-      toast.success(response.data.message || 'Message submitted successfully!');
-      
-      // Reset form
-      setTopic('General Question');
-      setFirstName('');
-      setLastName('');
-      setEmail('');
-      setConfirmEmail('');
-      setMarried('No');
-      setChildren('No');
-      setInvestableAssets('');
-      setDigitalAllocation('');
-      setHoldsXRP('No');
-      setExistingClient('Not Currently a DWP Client');
-      setMessage('');
-      setAcknowledged(false);
+      setSubmitted(true);
     } catch (error: any) {
       console.error('Submit contact form error:', error);
       toast.error(error.response?.data?.error || 'Failed to submit contact form. Please try again later.');
@@ -103,6 +93,61 @@ export default function ContactForm() {
       setIsSubmitting(false);
     }
   };
+
+  const resetForm = () => {
+    setSubmitted(false);
+    setTopic('General Question');
+    setFirstName('');
+    setLastName('');
+    setEmail('');
+    setConfirmEmail('');
+    setPhone('');
+    setMarried('No');
+    setChildren('No');
+    setInvestableAssets('');
+    setDigitalAllocation('');
+    setHoldsXRP('No');
+    setExistingClient('Not Currently a DWP Client');
+    setMessage('');
+    setAcknowledged(false);
+  };
+
+  if (submitted) {
+    return (
+      <div className="flex flex-col items-center justify-center text-center py-12 animate-in fade-in zoom-in-95 duration-300">
+        <div className="w-20 h-20 rounded-full bg-green-50 flex items-center justify-center mb-6">
+          <div className="w-14 h-14 rounded-full bg-green-500 text-white flex items-center justify-center shadow-lg shadow-green-500/30">
+            <Check size={30} strokeWidth={3} />
+          </div>
+        </div>
+        <h2 className="text-2xl font-semibold mb-3" style={{ color: '#1a202c' }}>
+          Message Sent
+        </h2>
+        <p className="text-sm max-w-[320px] leading-relaxed mb-8" style={{ color: '#4a5568' }}>
+          Thank you for reaching out. Our team has received your message and will get back to you shortly.
+        </p>
+        <div className="flex flex-col gap-3 w-full max-w-[280px]">
+          <Link href="/" className="w-full">
+            <button
+              type="button"
+              className="w-full px-8 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+              style={{ backgroundColor: '#AD7F4E' }}
+            >
+              Done
+            </button>
+          </Link>
+          <button
+            type="button"
+            onClick={resetForm}
+            className="w-full px-8 py-3 text-sm font-semibold border transition-colors hover:bg-gray-50"
+            style={{ borderColor: '#d1d5db', color: '#1a202c' }}
+          >
+            Send Another Message
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -187,6 +232,21 @@ export default function ContactForm() {
               <p className="text-xs mt-1" style={{ color: '#718096' }}>Confirm Email Address</p>
             </div>
           </div>
+        </div>
+
+        {/* Phone */}
+        <div>
+          <label className="block text-sm font-medium mb-1" style={{ color: '#1a202c' }}>
+            Phone Number <span style={{ color: '#c0392b' }}>*</span>
+          </label>
+          <input
+            type="tel"
+            className="w-full border px-3 py-2 text-sm"
+            style={{ borderColor: '#d1d5db', outline: 'none', color: '#1a202c' }}
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            required
+          />
         </div>
 
         {/* Support Email */}
