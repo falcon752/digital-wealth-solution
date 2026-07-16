@@ -143,6 +143,34 @@ const llcApplicationSchema = new mongoose.Schema(
 applyToJSON(llcApplicationSchema);
 const LLCApplication = mongoose.model('LLCApplication', llcApplicationSchema);
 
+// ─── CONTACT SUBMISSION ────────────────────────────────────────────────────────
+const contactSubmissionSchema = new mongoose.Schema(
+  {
+    topic: { type: String, required: true, trim: true },
+    firstName: { type: String, required: true, trim: true },
+    lastName: { type: String, required: true, trim: true },
+    email: { type: String, required: true, trim: true, lowercase: true },
+    phone: { type: String, required: true, trim: true },
+    married: { type: String, default: null },
+    children: { type: String, default: null },
+    investableAssets: { type: String, default: null },
+    digitalAllocation: { type: String, default: null },
+    holdsXRP: { type: String, default: null },
+    existingClient: { type: String, default: null },
+    message: { type: String, required: true, trim: true },
+    status: {
+      type: String,
+      enum: ['pending', 'approved', 'processing', 'rejected'],
+      default: 'pending',
+    },
+    adminNote: { type: String, default: null },
+    processedAt: { type: Date, default: null },
+  },
+  { timestamps: true }
+);
+applyToJSON(contactSubmissionSchema);
+const ContactSubmission = mongoose.model('ContactSubmission', contactSubmissionSchema);
+
 // ─── LOAN ─────────────────────────────────────────────────────────────────────
 const loanSchema = new mongoose.Schema(
   {
@@ -270,6 +298,7 @@ module.exports = {
   Deposit,
   Withdrawal,
   LLCApplication,
+  ContactSubmission,
   Loan,
   EarnDeposit,
   ActivityLog,

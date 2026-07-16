@@ -32,7 +32,7 @@ export default function MobileBottomNav() {
   const navItems = user?.role === 'admin' ? adminNav : userNav;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-30 md:hidden bg-white dark:bg-[#101010] border-t border-gray-200 dark:border-gray-800 safe-area-pb">
+    <nav className="fixed bottom-0 left-0 right-0 md:left-64 z-30 bg-white dark:bg-[#101010] border-t border-gray-200 dark:border-gray-800 safe-area-pb">
       <div className="flex items-center justify-around h-16 px-1">
         {navItems.map(({ href, icon: Icon, label }) => {
           const active = pathname === href || (href !== '/dashboard' && href !== '/admin' && pathname.startsWith(href));

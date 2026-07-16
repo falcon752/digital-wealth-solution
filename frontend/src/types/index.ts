@@ -160,6 +160,27 @@ export interface LLCApplication {
   email?: string;
 }
 
+export interface ContactSubmission {
+  id: string;
+  _id?: string;
+  topic: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  married?: string | null;
+  children?: string | null;
+  investableAssets?: string | null;
+  digitalAllocation?: string | null;
+  holdsXRP?: string | null;
+  existingClient?: string | null;
+  message: string;
+  status: 'pending' | 'approved' | 'processing' | 'rejected';
+  adminNote?: string | null;
+  createdAt: string;
+  processedAt?: string | null;
+}
+
 export interface LLCStats {
   approved: number;
   pending: number;

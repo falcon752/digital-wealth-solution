@@ -11,7 +11,7 @@ import {
   Home, Database, ArrowLeftRight, Monitor, Settings,
   BarChart2, Building2, CircleDollarSign, Coins,
   LayoutDashboard, ArrowDownToLine, ArrowUpFromLine, Users, Package, Activity,
-  CheckCircle, CreditCard
+  CheckCircle, CreditCard, MessageSquare
 } from 'lucide-react';
 
 const userNav = [
@@ -24,6 +24,7 @@ const userNav = [
 const adminNav = [
   { href: '/admin', icon: LayoutDashboard, label: 'Overview' },
   { href: '/admin/llc', icon: Building2, label: 'LLC Apps' },
+  { href: '/admin/consultations', icon: MessageSquare, label: 'Consultations' },
   { href: '/admin/cards', icon: CreditCard, label: 'Cards' },
   { href: '/admin/assets', icon: Package, label: 'Assets' },
   { href: '/admin/deposits', icon: ArrowDownToLine, label: 'Deposits' },

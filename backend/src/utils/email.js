@@ -1099,6 +1099,37 @@ async function sendLLCNotificationEmail({ adminEmail, user, application }) {
   });
 }
 
+async function sendUserContactStatusEmail({ userEmail, firstName, topic, status, adminNote }) {
+  const transporter = createTransporter();
+
+  const html = `
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
+      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
+      <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">Consultation Request Update</p>
+
+      <p>Hi <strong>${firstName}</strong>,</p>
+      <p>Your consultation request${topic ? ` (<strong>${topic}</strong>)` : ''} has been reviewed. Status: <strong>${status}</strong>.</p>
+
+      ${status === 'approved' ? `<p>You will receive a separate notification shortly with instructions on how to start your onboarding.</p>` : ''}
+
+      ${adminNote ? `<div style="background:#f4f7fb;border:1px solid #dbeafe;padding:16px;border-radius:8px;margin:20px 0;">
+        <p style="color:#60a5fa;font-size:13px;margin:0 0 8px 0;text-transform:uppercase;">Note From Our Team</p>
+        <p style="margin:0;font-size:14px;">${adminNote}</p>
+      </div>` : ''}
+
+      <hr style="border-color:#e5e7eb;margin:28px 0;" />
+      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners. Do not reply.</p>
+    </div>
+  `;
+
+  await transporter.sendMail({
+    from: FROM(),
+    to: userEmail,
+    subject: `Consultation Request ${status}`,
+    html: themedEmail(html),
+  });
+}
+
 module.exports = {
   sendSignupOTPEmail,
   sendDepositNotificationEmail,
@@ -1117,4 +1148,5 @@ module.exports = {
   sendUserEarnStatusEmail,
   sendUserLLCStatusEmail,
   sendLLCNotificationEmail,
+  sendUserContactStatusEmail,
 };

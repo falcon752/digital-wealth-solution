@@ -163,6 +163,14 @@ export const llcAPI = {
   updateLLCApplication: (id: string, data: Record<string, unknown>) => api.put(`/admin/llc/${id}`, data),
 };
 
+// ─── Contact / Consultation ─────────────────────────────────────────────────
+export const contactAPI = {
+  // admin
+  adminList: () => api.get('/contact/admin'),
+  adminUpdate: (id: string, data: { status?: string; adminNote?: string }) =>
+    api.put(`/contact/admin/${id}`, data),
+};
+
 // ─── Admin ────────────────────────────────────────────────────────────────
 export const adminAPI = {
   getDashboardStats: () => api.get('/admin/dashboard-stats'),

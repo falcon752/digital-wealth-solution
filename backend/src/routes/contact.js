@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const { body, validationResult } = require('express-validator');
-const { sendOnboardingFeeNotificationEmail, sendGeneralContactEmail } = require('../utils/email');
-const { User } = require('../database');
+const { sendOnboardingFeeNotificationEmail, sendGeneralContactEmail, sendUserContactStatusEmail } = require('../utils/email');
+const { User, ContactSubmission } = require('../database');
+const { authenticate, requireAdmin } = require('../middleware/auth');
 const { logActivity } = require('../utils/activity');
 
 // POST /api/contact/onboarding-fee
@@ -57,6 +58,17 @@ router.post('/general', [
   const adminEmail = process.env.ADMIN_NOTIFY_EMAIL || process.env.SMTP_USER;
 
   try {
+    const {
+      topic, firstName, lastName, email, phone, married, children,
+      investableAssets, digitalAllocation, holdsXRP, existingClient, message,
+    } = req.body;
+
+    await ContactSubmission.create({
+      topic, firstName, lastName, email, phone, married, children,
+      investableAssets, digitalAllocation, holdsXRP, existingClient, message,
+      status: 'pending',
+    });
+
     await sendGeneralContactEmail({
       adminEmail,
       contactData: req.body,
@@ -74,6 +86,69 @@ router.post('/general', [
   } catch (error) {
     console.error('General contact email error:', error);
     res.status(500).json({ error: 'Failed to submit contact form. Please try again later.' });
+  }
+});
+
+// ─── Admin routes ──────────────────────────────────────────────────────────
+
+function mapSubmission(submission) {
+  if (!submission) return submission;
+  const id = submission._id?.toString?.() || submission.id;
+  return {
+    ...submission,
+    id,
+    _id: undefined,
+    __v: undefined,
+  };
+}
+
+// GET /api/contact/admin  — all consultation submissions
+router.get('/admin', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const submissions = await ContactSubmission.find()
+      .sort({ createdAt: -1 })
+      .lean();
+    res.json({ submissions: submissions.map(mapSubmission) });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch consultation submissions' });
+  }
+});
+
+// PUT /api/contact/admin/:id  — approve / decline / update a submission
+router.put('/admin/:id', authenticate, requireAdmin, [
+  body('status').optional().isIn(['pending', 'approved', 'processing', 'rejected']),
+  body('adminNote').optional().trim().isLength({ max: 500 }),
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+  const { status, adminNote } = req.body;
+  const update = {};
+  if (status !== undefined) {
+    update.status = status;
+    if (status === 'approved' || status === 'rejected') update.processedAt = new Date();
+  }
+  if (adminNote !== undefined) update.adminNote = adminNote;
+
+  try {
+    const submission = await ContactSubmission.findByIdAndUpdate(req.params.id, update, { new: true }).lean();
+    if (!submission) return res.status(404).json({ error: 'Submission not found' });
+
+    await logActivity(req.user.id, 'CONSULTATION_STATUS_UPDATED', { id: req.params.id, status }, req);
+
+    if (status !== undefined) {
+      sendUserContactStatusEmail({
+        userEmail: submission.email,
+        firstName: submission.firstName,
+        topic: submission.topic,
+        status,
+        adminNote: submission.adminNote || null,
+      }).catch((err) => console.error('Failed to send consultation status email:', err.message));
+    }
+
+    res.json({ submission: mapSubmission(submission) });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update submission' });
   }
 });
 
