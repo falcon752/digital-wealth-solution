@@ -94,24 +94,6 @@ export default function ContactForm() {
     }
   };
 
-  const resetForm = () => {
-    setSubmitted(false);
-    setTopic('General Question');
-    setFirstName('');
-    setLastName('');
-    setEmail('');
-    setConfirmEmail('');
-    setPhone('');
-    setMarried('No');
-    setChildren('No');
-    setInvestableAssets('');
-    setDigitalAllocation('');
-    setHoldsXRP('No');
-    setExistingClient('Not Currently a DWP Client');
-    setMessage('');
-    setAcknowledged(false);
-  };
-
   if (submitted) {
     return (
       <div className="flex flex-col items-center justify-center text-center py-12 animate-in fade-in zoom-in-95 duration-300">
@@ -121,13 +103,14 @@ export default function ContactForm() {
           </div>
         </div>
         <h2 className="text-2xl font-semibold mb-3" style={{ color: '#1a202c' }}>
-          Message Sent
+          Submission Received
         </h2>
         <p className="text-sm max-w-[320px] leading-relaxed mb-8" style={{ color: '#4a5568' }}>
-          Thank you for reaching out. Our team has received your message and will get back to you shortly.
+          Your submission is under review. Once approved, you&apos;ll receive a notification with
+          instructions on how to start your onboarding.
         </p>
-        <div className="flex flex-col gap-3 w-full max-w-[280px]">
-          <Link href="/" className="w-full">
+        <div className="w-full max-w-[280px]">
+          <Link href="/login" className="w-full">
             <button
               type="button"
               className="w-full px-8 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"
@@ -136,14 +119,6 @@ export default function ContactForm() {
               Done
             </button>
           </Link>
-          <button
-            type="button"
-            onClick={resetForm}
-            className="w-full px-8 py-3 text-sm font-semibold border transition-colors hover:bg-gray-50"
-            style={{ borderColor: '#d1d5db', color: '#1a202c' }}
-          >
-            Send Another Message
-          </button>
         </div>
       </div>
     );
@@ -247,16 +222,6 @@ export default function ContactForm() {
             onChange={(e) => setPhone(e.target.value)}
             required
           />
-        </div>
-
-        {/* Support Email */}
-        <div>
-          <label className="block text-sm font-medium mb-1" style={{ color: '#1a202c' }}>
-            Support Email
-          </label>
-          <div className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium" style={{ color: '#1e266d', maxWidth: '300px' }}>
-            support@digitalwealthpartnersllc.net
-          </div>
         </div>
 
         {/* Family Status */}

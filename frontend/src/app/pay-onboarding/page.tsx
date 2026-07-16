@@ -6,11 +6,11 @@ import Navbar from '@/components/layout/Navbar';
 import SiteFooter from '@/components/layout/SiteFooter';
 import FadeIn from '@/components/animations/FadeIn';
 import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
 import toast from 'react-hot-toast';
 import axios from 'axios';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { authAPI } from '@/lib/api';
 import { Hourglass } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
@@ -18,7 +18,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 function PayOnboardingPageContent() {
   const searchParams = useSearchParams();
   const isPending = searchParams.get('status') === 'pending';
-  const { user, refreshUser } = useAuth();
+  const { user, token, login } = useAuth();
   const router = useRouter();
 
   const [showForm, setShowForm] = useState(false);
@@ -37,8 +37,11 @@ function PayOnboardingPageContent() {
   const handleCheckStatus = async () => {
     setIsChecking(true);
     try {
-      const updatedUser = await refreshUser();
-      if (updatedUser && updatedUser.onboardingFeePaid) {
+      const res = await authAPI.me();
+      const updatedUser = res.data.user;
+
+      if (updatedUser.onboardingFeePaid) {
+        if (token) login(token, updatedUser);
         toast.success('Payment verified! Redirecting to dashboard...');
       } else {
         toast.error('Verification Status: Pending. Admin has not approved this account yet.', {
@@ -214,14 +217,20 @@ function PayOnboardingPageContent() {
                   ) : (
                     <FadeIn direction="up">
                       <form onSubmit={handleSubmit} className="space-y-4 pt-4 border-t border-gray-100">
-                        <Input 
-                          label="Your Email Address"
-                          placeholder="Enter the email associated with your account"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          type="email"
-                          required
-                        />
+                        <div>
+                          <label htmlFor="pay-onboarding-email" className="block text-sm font-semibold text-gray-500 mb-1.5">
+                            Your Email Address
+                          </label>
+                          <input
+                            id="pay-onboarding-email"
+                            type="email"
+                            placeholder="Enter the email associated with your account"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                            className="w-full rounded-xl px-4 py-2.5 text-sm bg-white text-gray-900 placeholder:text-gray-400 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500/50 transition-all duration-200"
+                          />
+                        </div>
                         <div className="flex gap-3">
                           <Button 
                             type="button" 
