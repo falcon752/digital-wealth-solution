@@ -110,7 +110,7 @@ export default function ContactForm() {
           instructions on how to start your onboarding.
         </p>
         <div className="w-full max-w-[280px]">
-          <Link href="/login" className="w-full">
+          <Link href="/contact" className="w-full">
             <button
               type="button"
               className="w-full px-8 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"
