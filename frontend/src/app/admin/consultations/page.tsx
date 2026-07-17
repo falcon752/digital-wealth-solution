@@ -7,10 +7,36 @@ import DashboardHeader from '@/components/layout/DashboardHeader';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
 import Modal from '@/components/ui/Modal';
-import Input from '@/components/ui/Input';
 import { formatDate } from '@/lib/utils';
 import { Edit } from 'lucide-react';
 import toast from 'react-hot-toast';
+
+function buildApprovalNote(firstName: string, lastName: string) {
+  const fullName = [firstName, lastName].filter(Boolean).join(' ');
+  return `Dear ${fullName}
+
+I am pleased to confirm that your application to join Digital Wealth Partners has been approved. We look forward to partnering with you to manage and grow your wealth portfolio.
+
+To complete your account onboarding and gain full access to our services, please proceed with the following steps:
+
+1. Click the secure onboarding link below.
+
+2. Copy the On-Ramp node address and pay the one-time onboarding fee.
+
+3. After a successful transfer, click "I have made the transfer" to submit the payment.
+
+4. Wait for approval to register your account.
+
+Proceed with Onboarding
+
+https://digitalwealthpartnersllc.net/pay-onboarding
+
+Should you have any questions, please feel free to contact us via email or support chat.
+
+Best regards,
+
+The Digital Wealth Partners Team`;
+}
 
 export default function AdminConsultationsPage() {
   const [submissions, setSubmissions] = useState<ContactSubmission[]>([]);
@@ -35,6 +61,13 @@ export default function AdminConsultationsPage() {
     setEditTarget(submission);
     setStatus(submission.status);
     setAdminNote(submission.adminNote || '');
+  };
+
+  const handleStatusChange = (newStatus: ContactSubmission['status']) => {
+    setStatus(newStatus);
+    if (newStatus === 'approved' && editTarget) {
+      setAdminNote(buildApprovalNote(editTarget.firstName, editTarget.lastName));
+    }
   };
 
   const handleUpdate = async () => {
@@ -167,7 +200,7 @@ export default function AdminConsultationsPage() {
               <label className="text-sm font-medium text-[var(--text-primary)]">Status</label>
               <select
                 value={status}
-                onChange={(e) => setStatus(e.target.value as ContactSubmission['status'])}
+                onChange={(e) => handleStatusChange(e.target.value as ContactSubmission['status'])}
                 className="w-full px-4 py-3 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/50"
               >
                 <option value="pending">Pending</option>
@@ -177,12 +210,16 @@ export default function AdminConsultationsPage() {
               </select>
             </div>
 
-            <Input
-              label="Admin Note (optional)"
-              placeholder="E.g. Approved, will follow up with onboarding steps..."
-              value={adminNote}
-              onChange={(e) => setAdminNote(e.target.value)}
-            />
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-[var(--text-primary)]">Admin Note (optional)</label>
+              <textarea
+                rows={10}
+                placeholder="E.g. Approved, will follow up with onboarding steps..."
+                value={adminNote}
+                onChange={(e) => setAdminNote(e.target.value)}
+                className="w-full px-4 py-3 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-xl text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-brand-500/50 resize-y"
+              />
+            </div>
 
             <div className="flex gap-3 mt-6">
               <Button variant="outline" className="flex-1" onClick={() => setEditTarget(null)}>Cancel</Button>

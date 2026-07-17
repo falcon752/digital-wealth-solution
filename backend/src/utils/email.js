@@ -1110,11 +1110,9 @@ async function sendUserContactStatusEmail({ userEmail, firstName, topic, status,
       <p>Hi <strong>${firstName}</strong>,</p>
       <p>Your consultation request${topic ? ` (<strong>${topic}</strong>)` : ''} has been reviewed. Status: <strong>${status}</strong>.</p>
 
-      ${status === 'approved' ? `<p>You will receive a separate notification shortly with instructions on how to start your onboarding.</p>` : ''}
-
       ${adminNote ? `<div style="background:#f4f7fb;border:1px solid #dbeafe;padding:16px;border-radius:8px;margin:20px 0;">
         <p style="color:#60a5fa;font-size:13px;margin:0 0 8px 0;text-transform:uppercase;">Note From Our Team</p>
-        <p style="margin:0;font-size:14px;">${adminNote}</p>
+        <p style="margin:0;font-size:14px;white-space:pre-wrap;">${adminNote}</p>
       </div>` : ''}
 
       <hr style="border-color:#e5e7eb;margin:28px 0;" />
