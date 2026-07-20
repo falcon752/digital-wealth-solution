@@ -1105,7 +1105,6 @@ async function sendUserContactStatusEmail({ userEmail, firstName, topic, status,
   const html = `
     <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
       <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
-      <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">Consultation Request Update</p>
 
       <p>Hi <strong>${firstName}</strong>,</p>
       <p>Your consultation request${topic ? ` (<strong>${topic}</strong>)` : ''} has been reviewed. Status: <strong>${status}</strong>.</p>

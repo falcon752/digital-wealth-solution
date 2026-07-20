@@ -78,7 +78,7 @@ export default function FinanceDashboardPage() {
         
         {/* Page heading */}
         <div className="pt-2">
-          <h2 className="text-[22px] font-semibold text-gray-900 dark:text-white leading-tight mb-1">Loan & Earn Overview</h2>
+          <h2 className="text-[22px] font-semibold text-gray-900 dark:text-white leading-tight mb-1">Loan & Invest Overview</h2>
           <p className="text-[14px] font-medium text-gray-600 dark:text-gray-400 leading-relaxed">
             Track your borrowed assets and passive income deposits.
           </p>
@@ -141,7 +141,7 @@ export default function FinanceDashboardPage() {
                 className="w-full h-14 text-[16px] font-semibold rounded-2xl flex items-center justify-center gap-2"
               >
                 <Plus size={20} />
-                New Loan or Earn
+                New Loan or Invest
               </Button>
             </div>
           </div>

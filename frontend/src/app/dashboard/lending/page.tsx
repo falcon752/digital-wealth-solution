@@ -159,7 +159,7 @@ export default function LendingPage() {
 
   return (
     <div className="flex flex-col min-h-full pb-20 bg-gray-50 dark:bg-[#050505]">
-      <DashboardHeader title={step === 1 ? (activeTab === 'borrow' ? "Crypto Lending" : "Crypto Saving") : (activeTab === 'borrow' ? "Confirm Loan" : "Confirm Saving")} logo="dwp" />
+      <DashboardHeader title={step === 1 ? (activeTab === 'borrow' ? "Crypto Lending" : "Crypto Invest") : (activeTab === 'borrow' ? "Confirm Loan" : "Confirm Invest")} logo="dwp" />
 
       {/* STEP 1: CALCULATOR */}
       {step === 1 && (
@@ -181,7 +181,7 @@ export default function LendingPage() {
               <button 
                 onClick={() => setActiveTab('earn')}
                 className={`flex-1 py-2.5 rounded-xl shadow-sm text-sm font-semibold transition-colors ${activeTab === 'earn' ? 'bg-white dark:bg-[#101010] text-gray-900 dark:text-white' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
-              >Earn</button>
+              >Invest</button>
             </div>
 
             {activeTab === 'borrow' ? (

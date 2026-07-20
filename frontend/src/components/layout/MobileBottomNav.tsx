@@ -13,7 +13,7 @@ import {
 const userNav = [
   { href: '/dashboard/wallet', icon: Home, label: 'Home' },
   { href: '/dashboard/assets', icon: Database, label: 'Assets' },
-  { href: '/dashboard/finance', icon: CircleDollarSign, label: 'Loan & Earn' },
+  { href: '/dashboard/finance', icon: CircleDollarSign, label: 'Loan & Invest' },
   { href: '/dashboard/settings', icon: Settings, label: 'Me' },
 ];
 
