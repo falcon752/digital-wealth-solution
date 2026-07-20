@@ -39,13 +39,32 @@ export default function UserDashboard() {
   const [changes24h, setChanges24h] = useState<Record<string, number>>({});
   const [isBalanceHidden, setIsBalanceHidden] = useState(true);
   const [assetsLoading, setAssetsLoading] = useState(true);
+  const [assetsError, setAssetsError] = useState(false);
+
+  const loadAssets = (retriesLeft = 2) => {
+    if (retriesLeft === 2) {
+      setAssetsLoading(true);
+      setAssetsError(false);
+    }
+    assetsAPI.list()
+      .then(res => {
+        setDbAssets(res.data.assets || []);
+        setAssetsLoading(false);
+      })
+      .catch((err) => {
+        if (retriesLeft > 0) {
+          setTimeout(() => loadAssets(retriesLeft - 1), 1000);
+          return;
+        }
+        console.error(err);
+        setAssetsError(true);
+        setAssetsLoading(false);
+      });
+  };
 
   useEffect(() => {
     usersAPI.getDashboardStats().then((res) => setStats(res.data)).catch(console.error);
-    assetsAPI.list()
-      .then(res => setDbAssets(res.data.assets || []))
-      .catch(console.error)
-      .finally(() => setAssetsLoading(false));
+    loadAssets();
     assetsAPI.prices().then(res => {
       setPrices(res.data.prices || {});
       setChanges24h(res.data.changes24h || {});
@@ -232,7 +251,19 @@ export default function UserDashboard() {
             </div>
           </div>
         ))}
-        {!assetsLoading && activeAssets.length === 0 && (
+        {!assetsLoading && assetsError && (
+          <div className="py-10 text-center text-gray-400 font-medium">
+            <p>Failed to load assets.</p>
+            <button
+              type="button"
+              onClick={() => loadAssets()}
+              className="mt-2 text-[#2d68d8] dark:text-blue-400 font-semibold hover:underline"
+            >
+              Try again
+            </button>
+          </div>
+        )}
+        {!assetsLoading && !assetsError && activeAssets.length === 0 && (
           <div className="py-10 text-center text-gray-400 font-medium">
             No assets available
           </div>

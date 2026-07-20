@@ -254,6 +254,7 @@ router.post('/login', [
         antiPhishingPhrase: user.antiPhishingPhrase,
         onboardingFeePaid: user.onboardingFeePaid,
         referralCode: user.referralCode,
+        hiddenAssets: user.hiddenAssets,
       },
     });
   } catch (err) {
