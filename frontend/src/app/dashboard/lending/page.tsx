@@ -164,9 +164,12 @@ export default function LendingPage() {
       {/* STEP 1: CALCULATOR */}
       {step === 1 && (
         <div className="flex-1 p-4 md:p-6 max-w-2xl mx-auto w-full">
-          <h1 className="text-[32px] md:text-[40px] font-semibold text-gray-900 dark:text-white leading-tight mb-8">
-            Borrow, earn,<br />trade, <span className="font-light italic">save</span>
+          <h1 className="text-[32px] md:text-[40px] font-semibold text-gray-900 dark:text-white leading-tight mb-4">
+            Borrow, Earn, Invest. Build Wealth with Confidence.
           </h1>
+          <p className="text-gray-500 dark:text-gray-400 text-[15px] leading-relaxed mb-8">
+            Access flexible crypto-backed loans, earn competitive yields, and grow your digital assets all on Digital Wealth Partners.
+          </p>
 
           <div className="bg-white dark:bg-[#101010] rounded-[28px] p-2 shadow-sm border border-gray-100 dark:border-gray-700/50">
             {/* Tabs */}
