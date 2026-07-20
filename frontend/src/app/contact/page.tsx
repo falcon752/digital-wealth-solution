@@ -1,11 +1,35 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import Navbar from '@/components/layout/Navbar';
 import SiteFooter from '@/components/layout/SiteFooter';
 import ContactForm from '@/components/ContactForm';
 
 export default function ContactPage() {
+  const [submitted, setSubmitted] = useState(false);
+
+  const introBlock = (
+    <>
+      <p className="text-sm leading-relaxed mb-6" style={{ color: '#4a5568' }}>
+        Thank you for your interest in becoming a Digital Wealth Partners&apos; client. Please
+        complete the form below. Your submission will go through a normal review process, and
+        once approved, you&apos;ll receive a notification with instructions on how to start
+        your onboarding.
+      </p>
+      <p className="text-sm leading-relaxed mb-8" style={{ color: '#4a5568' }}>
+        For support, existing clients may contact{' '}
+        <a href="mailto:support@digitalwealthpartnersllc.net" style={{ color: '#1e266d' }}>
+          support@digitalwealthpartnersllc.net
+        </a>
+        . For legal inquiries, reach out to our legal advisor at{' '}
+        <a href="tel:+12144446111" style={{ color: '#1e266d' }}>
+          (214) 444-6111
+        </a>
+        .
+      </p>
+    </>
+  );
 
   return (
     <div style={{ fontFamily: "'Source Sans Pro', 'Inter', sans-serif" }} className="min-h-screen bg-white">
@@ -42,25 +66,9 @@ export default function ContactPage() {
 
             {/* ── Left: form ── */}
             <div>
-              <p className="text-sm leading-relaxed mb-6" style={{ color: '#4a5568' }}>
-                Thank you for your interest in becoming a Digital Wealth Partners&apos; client. Please
-                complete the form below. Your submission will go through a normal review process, and
-                once approved, you&apos;ll receive a notification with instructions on how to start
-                your onboarding.
-              </p>
-              <p className="text-sm leading-relaxed mb-8" style={{ color: '#4a5568' }}>
-                For support, existing clients may contact{' '}
-                <a href="mailto:support@digitalwealthpartnersllc.net" style={{ color: '#1e266d' }}>
-                  support@digitalwealthpartnersllc.net
-                </a>
-                . For legal inquiries, reach out to our legal advisor at{' '}
-                <a href="tel:+12144446111" style={{ color: '#1e266d' }}>
-                  (214) 444-6111
-                </a>
-                .
-              </p>
-
-              <ContactForm />
+              {!submitted && introBlock}
+              <ContactForm onSubmitted={() => setSubmitted(true)} />
+              {submitted && introBlock}
             </div>
 
             {/* ── Right: image with dot decoration ── */}

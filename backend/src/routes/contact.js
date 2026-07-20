@@ -117,7 +117,7 @@ router.get('/admin', authenticate, requireAdmin, async (req, res) => {
 // PUT /api/contact/admin/:id  — approve / decline / update a submission
 router.put('/admin/:id', authenticate, requireAdmin, [
   body('status').optional().isIn(['pending', 'approved', 'processing', 'rejected']),
-  body('adminNote').optional().trim().isLength({ max: 500 }),
+  body('adminNote').optional().trim().isLength({ max: 5000 }),
 ], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });

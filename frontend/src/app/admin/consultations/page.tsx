@@ -79,7 +79,8 @@ export default function AdminConsultationsPage() {
       setEditTarget(null);
       load();
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Failed to update submission';
+      const data = (err as { response?: { data?: { error?: string; errors?: { msg: string }[] } } })?.response?.data;
+      const msg = data?.error || data?.errors?.map((e) => e.msg).join(', ') || 'Failed to update submission';
       toast.error(msg);
     } finally {
       setSubmitting(false);

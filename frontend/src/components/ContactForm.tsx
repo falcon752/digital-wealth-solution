@@ -37,7 +37,7 @@ const radioStyle = `
   }
 `;
 
-export default function ContactForm() {
+export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void }) {
   const [topic, setTopic] = useState('General Question');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -86,6 +86,7 @@ export default function ContactForm() {
       });
 
       setSubmitted(true);
+      onSubmitted?.();
     } catch (error: any) {
       console.error('Submit contact form error:', error);
       toast.error(error.response?.data?.error || 'Failed to submit contact form. Please try again later.');
