@@ -87,6 +87,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
 
       setSubmitted(true);
       onSubmitted?.();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (error: any) {
       console.error('Submit contact form error:', error);
       toast.error(error.response?.data?.error || 'Failed to submit contact form. Please try again later.');
