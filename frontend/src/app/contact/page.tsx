@@ -11,12 +11,12 @@ export default function ContactPage() {
 
   const introBlock = (
     <>
-      <p className="text-sm leading-relaxed mb-6" style={{ color: '#4a5568' }}>
+      {/* <p className="text-sm leading-relaxed mb-6" style={{ color: '#4a5568' }}>
         Thank you for your interest in becoming a Digital Wealth Partners&apos; client. Please
         complete the form below. Your submission will go through a normal review process, and
         once approved, you&apos;ll receive a notification with instructions on how to start
         your onboarding.
-      </p>
+      </p> */}
       <p className="text-sm leading-relaxed mb-8" style={{ color: '#4a5568' }}>
         For support, existing clients may contact{' '}
         <a href="mailto:support@digitalwealthpartnersllc.net" style={{ color: '#1e266d' }}>
