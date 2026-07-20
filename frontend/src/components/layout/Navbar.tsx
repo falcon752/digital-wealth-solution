@@ -99,7 +99,8 @@ export default function Navbar({ transparent = false }: NavbarProps) {
                       <Link
                         key={sub.label}
                         href={sub.href}
-                        className="px-4 py-2.5 text-[13px] text-gray-700 hover:bg-gray-50 hover:text-[#AD7F4E] transition-colors font-semibold border-b border-gray-50 last:border-0"
+                        className="px-4 py-2.5 text-[13px] hover:bg-gray-50 hover:text-[#AD7F4E] transition-colors font-semibold border-b border-gray-50 last:border-0"
+                        style={{ color: '#1e266d' }}
                       >
                         {sub.label}
                       </Link>
@@ -200,7 +201,8 @@ export default function Navbar({ transparent = false }: NavbarProps) {
                         key={sub.label}
                         href={sub.href}
                         onClick={() => setMenuOpen(false)}
-                        className="text-[13px] font-medium py-2 text-gray-500 hover:text-[#AD7F4E] transition-colors"
+                        className="text-[13px] font-semibold py-2 hover:text-[#AD7F4E] transition-colors"
+                        style={{ color: '#1e266d' }}
                       >
                         {sub.label}
                       </Link>
