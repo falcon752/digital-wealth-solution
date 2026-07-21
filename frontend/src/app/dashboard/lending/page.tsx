@@ -91,10 +91,14 @@ export default function LendingPage() {
   const marginCallPrice = colPrice > 0 ? (loanUsd / 0.8) / (Number(collateralAmount) || 1) : 0; // Margin call if LTV hits 80%
 
   // Earn calculations
-  const earnPriceValue = earnAsset ? (prices[earnAsset.symbol] || 1) : 1;
+  const STABLECOINS = ['USDT', 'USDC'];
+  const earnPriceValue = earnAsset
+    ? (STABLECOINS.includes(earnAsset.symbol.toUpperCase()) ? 1 : (prices[earnAsset.symbol] || 1))
+    : 1;
   const earnUsd = (Number(earnAmount) || 0) * earnPriceValue;
   const earnYearlyReward = (Number(earnAmount) || 0) * earnApy;
   const earnMonthlyReward = earnYearlyReward / 12;
+  const earnDailyReward = earnYearlyReward / 365;
   const earnTotal1Year = (Number(earnAmount) || 0) + earnYearlyReward;
 
   const handleConfirmBorrow = async () => {
@@ -165,7 +169,7 @@ export default function LendingPage() {
       {step === 1 && (
         <div className="flex-1 p-4 md:p-6 max-w-2xl mx-auto w-full">
           <h1 className="text-[32px] md:text-[40px] font-bold text-gray-900 dark:text-white leading-tight mb-4">
-            Borrow, Earn, Invest. Build Wealth with Confidence.
+            Borrow, Invest, Earn. Build Wealth with Confidence.
           </h1>
           <p className="text-gray-500 dark:text-gray-400 text-[15px] leading-relaxed mb-8">
             Access flexible crypto-backed loans, earn competitive yields, and grow your digital assets all on Digital Wealth Partners.
@@ -320,9 +324,13 @@ export default function LendingPage() {
                     <span className="text-gray-500 border-b border-dashed border-gray-400 pb-0.5">Monthly reward</span>
                     <span className="font-medium text-gray-900 dark:text-white">{earnMonthlyReward.toFixed(2)} {earnAsset?.symbol}</span>
                   </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-500 border-b border-dashed border-gray-400 pb-0.5">Daily reward</span>
+                    <span className="font-medium text-gray-900 dark:text-white">{earnDailyReward.toFixed(2)} {earnAsset?.symbol}</span>
+                  </div>
                 </div>
 
-                <Button 
+                <Button
                   className="w-full mt-2 py-4 text-lg rounded-2xl bg-blue-600! hover:bg-blue-700! text-white! shadow-lg shadow-blue-600/30!"
                   onClick={() => {
                     if (Number(earnAmount) > 0) setStep(2);
@@ -471,6 +479,12 @@ export default function LendingPage() {
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-gray-500">Annual percentage yield</span>
                   <span className="font-semibold text-gray-900 dark:text-white">25%</span>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-500">Daily Reward</span>
+                  <span className="font-semibold text-gray-900 dark:text-white flex items-center gap-1">
+                    {earnDailyReward.toFixed(2)} {earnAsset?.symbol}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-gray-500">Monthly Reward</span>
