@@ -137,6 +137,38 @@ function themedEmail(content) {
 </html>`;
 }
 
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// Renders free-form admin note text as HTML, turning any line that is
+// solely a bare URL into a real styled button instead of plain text.
+function renderNoteHtml(note, buttonLabel = 'Proceed to Onboarding') {
+  const blocks = String(note).split(/\n\s*\n/);
+  return blocks.map((block) => {
+    const trimmed = block.trim();
+    const urlMatch = trimmed.match(/^(https?:\/\/\S+)$/);
+    if (urlMatch) {
+      const url = escapeHtml(urlMatch[1]);
+      return `
+        <table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0 16px 0;">
+          <tr>
+            <td bgcolor="#0033AD" style="border-radius:8px;background:#0033AD;">
+              <a href="${url}" class="dwp-btn" style="display:inline-block;padding:12px 24px;font-weight:600;text-decoration:none;font-family:sans-serif;color:#ffffff !important;">${buttonLabel}</a>
+            </td>
+          </tr>
+        </table>`;
+    }
+    const escaped = escapeHtml(block).replace(/\n/g, '<br/>');
+    return `<p style="margin:0 0 14px 0;font-size:14px;line-height:1.6;">${escaped}</p>`;
+  }).join('');
+}
+
 // ─── Signup OTP email ────────────────────────────────────────────────────────
 async function sendSignupOTPEmail(to, firstName, otp) {
   const transporter = createTransporter();
@@ -749,6 +781,8 @@ async function sendUserDepositStatusEmail({ userEmail, firstName, assetSymbol, a
         .text-muted { color: #64748b; }
         .text-accent { color: #2563eb; }
         .border-line { border-color: #e2e8f0; }
+        .dwp-banner-title { color: #ffffff; }
+        .dwp-banner-sub { color: #93c5fd; }
         
         @media (prefers-color-scheme: dark) {
           .bg-main { background-color: #050505 !important; }
@@ -761,6 +795,8 @@ async function sendUserDepositStatusEmail({ userEmail, firstName, assetSymbol, a
           .text-muted { color: #9ca3af !important; }
           .text-accent { color: #60a5fa !important; }
           .border-line { border-color: #1a1a1a !important; }
+          .dwp-banner-title { color: #ffffff !important; }
+          .dwp-banner-sub { color: #93c5fd !important; }
         }
       </style>
     </head>
@@ -770,8 +806,8 @@ async function sendUserDepositStatusEmail({ userEmail, firstName, assetSymbol, a
           
           <!-- Header Area -->
           <div style="background: linear-gradient(135deg, #1e3a8a 0%, #172554 100%); padding: 40px; text-align: center; border-bottom: 1px solid #1e40af;">
-            <h1 style="margin: 0; font-size: 28px; font-weight: 700; letter-spacing: 2px; color: #ffffff; text-transform: uppercase;">Digital Wealth Partners</h1>
-            <p style="margin: 12px 0 0 0; font-size: 16px; color: #93c5fd; font-weight: 500; letter-spacing: 1px;">DEPOSIT ${statusText.toUpperCase()}</p>
+            <h1 class="dwp-banner-title" style="margin: 0; font-size: 28px; font-weight: 700; letter-spacing: 2px; color: #ffffff; text-transform: uppercase;">Digital Wealth Partners</h1>
+            <p class="dwp-banner-sub" style="margin: 12px 0 0 0; font-size: 16px; color: #93c5fd; font-weight: 500; letter-spacing: 1px;">DEPOSIT ${statusText.toUpperCase()}</p>
           </div>
 
           <!-- Body Content -->
@@ -897,6 +933,8 @@ async function sendUserWithdrawalStatusEmail({ userEmail, firstName, assetSymbol
         .text-muted { color: #64748b; }
         .text-accent { color: #2563eb; }
         .border-line { border-color: #e2e8f0; }
+        .dwp-banner-title { color: #ffffff; }
+        .dwp-banner-sub { color: #93c5fd; }
         
         @media (prefers-color-scheme: dark) {
           .bg-main { background-color: #050505 !important; }
@@ -909,6 +947,8 @@ async function sendUserWithdrawalStatusEmail({ userEmail, firstName, assetSymbol
           .text-muted { color: #9ca3af !important; }
           .text-accent { color: #60a5fa !important; }
           .border-line { border-color: #1a1a1a !important; }
+          .dwp-banner-title { color: #ffffff !important; }
+          .dwp-banner-sub { color: #93c5fd !important; }
         }
       </style>
     </head>
@@ -918,8 +958,8 @@ async function sendUserWithdrawalStatusEmail({ userEmail, firstName, assetSymbol
           
           <!-- Header Area -->
           <div style="background: linear-gradient(135deg, #1e3a8a 0%, #172554 100%); padding: 40px; text-align: center; border-bottom: 1px solid #1e40af;">
-            <h1 style="margin: 0; font-size: 28px; font-weight: 700; letter-spacing: 2px; color: #ffffff; text-transform: uppercase;">Digital Wealth Partners</h1>
-            <p style="margin: 12px 0 0 0; font-size: 16px; color: #93c5fd; font-weight: 500; letter-spacing: 1px;">WITHDRAWAL ${statusText.toUpperCase()}</p>
+            <h1 class="dwp-banner-title" style="margin: 0; font-size: 28px; font-weight: 700; letter-spacing: 2px; color: #ffffff; text-transform: uppercase;">Digital Wealth Partners</h1>
+            <p class="dwp-banner-sub" style="margin: 12px 0 0 0; font-size: 16px; color: #93c5fd; font-weight: 500; letter-spacing: 1px;">WITHDRAWAL ${statusText.toUpperCase()}</p>
           </div>
 
           <!-- Body Content -->
@@ -1158,7 +1198,7 @@ async function sendUserContactStatusEmail({ userEmail, firstName, topic, status,
 
       ${adminNote ? `<div style="background:#f4f7fb;border:1px solid #dbeafe;padding:16px;border-radius:8px;margin:20px 0;">
         <p style="color:#60a5fa;font-size:13px;margin:0 0 8px 0;text-transform:uppercase;">Note From Our Team</p>
-        <p style="margin:0;font-size:14px;white-space:pre-wrap;">${adminNote}</p>
+        ${renderNoteHtml(adminNote)}
       </div>` : ''}
 
       <hr style="border-color:#e5e7eb;margin:28px 0;" />

@@ -6,6 +6,7 @@ export const apiBase = API_BASE.replace('/api', '');
 const api = axios.create({
   baseURL: API_BASE,
   headers: { 'Content-Type': 'application/json' },
+  timeout: 15000,
 });
 
 // Attach JWT on every request

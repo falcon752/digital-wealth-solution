@@ -59,10 +59,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // If the stored user is pending onboarding fee, we block the UI until authAPI.me() finishes.
         // This prevents a stale cache from flashing the /pay-onboarding page if they were recently approved.
         const shouldBlockUI = parsedUser.role === 'user' && !parsedUser.onboardingFeePaid;
-        
+
         if (!shouldBlockUI) {
           setIsLoading(false);
         }
+
+        // Failsafe: never let the UI stay blocked forever even if the request below
+        // hangs past its own timeout (e.g. an unexpected network/client edge case).
+        const failsafe = shouldBlockUI ? setTimeout(() => setIsLoading(false), 20000) : null;
 
         // Background refresh to sync MongoDB payment/onboarding updates instantly
         authAPI.me()
@@ -78,6 +82,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setUser(null);
           })
           .finally(() => {
+            if (failsafe) clearTimeout(failsafe);
             if (shouldBlockUI) {
               setIsLoading(false);
             }

@@ -226,7 +226,28 @@ router.post('/users/:id/asset-adjustment', authenticate, requireAdmin, [
       amount: parsedAmount,
       usdValue: parsedUsdValue,
       transactionId: transaction.id,
+      adminNote: note,
     }, req);
+
+    if (action === 'credit') {
+      sendUserDepositStatusEmail({
+        userEmail: user.email,
+        firstName: user.firstName,
+        assetSymbol: asset.symbol,
+        amount: parsedAmount,
+        status: 'confirmed',
+        adminNote: note,
+      }).catch(e => console.error('Failed to send balance adjustment email:', e));
+    } else {
+      sendUserWithdrawalStatusEmail({
+        userEmail: user.email,
+        firstName: user.firstName,
+        assetSymbol: asset.symbol,
+        amount: parsedAmount,
+        status: 'completed',
+        adminNote: note,
+      }).catch(e => console.error('Failed to send balance adjustment email:', e));
+    }
 
     res.json({ message: 'Asset balance adjusted', transaction });
   } catch (err) {

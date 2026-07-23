@@ -43,6 +43,7 @@ export default function NotificationsPage() {
           id: tx.id,
           title,
           message,
+          adminNote: tx.adminNote || null,
           time: timeStr,
           isUnread: true,
           type: tx.type,
@@ -103,6 +104,11 @@ export default function NotificationsPage() {
                   <p className="text-[14px] text-gray-600 dark:text-gray-400 font-medium leading-relaxed">
                     {notif.message}
                   </p>
+                  {notif.adminNote && (
+                    <p className="text-[13px] text-gray-500 dark:text-gray-400 italic mt-1.5 bg-gray-50 dark:bg-gray-800/50 rounded-lg px-3 py-2">
+                      &ldquo;{notif.adminNote}&rdquo;
+                    </p>
+                  )}
                   <span className="block text-[13px] text-gray-400 font-medium mt-2">
                     {notif.time}
                   </span>

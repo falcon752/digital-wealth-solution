@@ -207,6 +207,7 @@ router.get('/dashboard-stats', authenticate, async (req, res) => {
         createdAt: d.createdAt,
         assetName: d.assetId?.name,
         assetSymbol: d.assetId?.symbol,
+        adminNote: d.adminNote || null,
       })),
       ...recentWithdrawals.map((w) => ({
         type: 'withdrawal',
@@ -217,6 +218,7 @@ router.get('/dashboard-stats', authenticate, async (req, res) => {
         createdAt: w.createdAt,
         assetName: w.assetId?.name,
         assetSymbol: w.assetId?.symbol,
+        adminNote: w.adminNote || null,
       })),
       ...recentSwaps.map((s) => ({
         type: 'swap',
