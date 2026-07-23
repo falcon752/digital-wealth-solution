@@ -10,7 +10,7 @@ import toast from 'react-hot-toast';
 import axios from 'axios';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { authAPI } from '@/lib/api';
+import { authAPI, contactAPI } from '@/lib/api';
 import { Hourglass } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
@@ -35,14 +35,46 @@ function PayOnboardingPageContent() {
   }, [user, router]);
 
   const handleCheckStatus = async () => {
+    const storedToken = token || (typeof window !== 'undefined' ? localStorage.getItem('dws_token') : null);
+
+    // Not logged in — check status by email instead of a session
+    if (!storedToken) {
+      if (!email) {
+        toast.error('Please enter the email you used to submit your confirmation.');
+        return;
+      }
+      setIsChecking(true);
+      try {
+        const res = await contactAPI.onboardingStatus(email);
+        if (res.data.onboardingFeePaid) {
+          toast.success('Payment verified! Please log in to access your dashboard.');
+          router.push('/login');
+        } else {
+          toast.error('Verification Status: Pending. Admin has not approved this account yet.', {
+            icon: <Hourglass className="w-5 h-5 text-amber-500 animate-spin" style={{ animationDuration: '3s' }} />,
+          });
+        }
+      } catch (err: any) {
+        if (err.response?.status === 404) {
+          toast.error('No account found for this email. Please create an account first.');
+          router.push('/register');
+        } else {
+          toast.error('Failed to verify status. Please try again.');
+        }
+      } finally {
+        setIsChecking(false);
+      }
+      return;
+    }
+
+    // Logged in — check status via the authenticated session
     setIsChecking(true);
     try {
       const res = await authAPI.me();
       const updatedUser = res.data.user;
 
       if (updatedUser.onboardingFeePaid) {
-        const storedToken = token || (typeof window !== 'undefined' ? localStorage.getItem('dws_token') : null);
-        if (storedToken) login(storedToken, updatedUser);
+        login(storedToken, updatedUser);
         toast.success('Payment verified! Redirecting to dashboard...');
         router.replace('/dashboard');
       } else {
@@ -187,7 +219,23 @@ function PayOnboardingPageContent() {
                         </p>
                       </div>
 
-                      <Button 
+                      {!token && (
+                        <div>
+                          <label htmlFor="check-status-email" className="block text-sm font-semibold text-gray-500 mb-1.5">
+                            Your Email Address
+                          </label>
+                          <input
+                            id="check-status-email"
+                            type="email"
+                            placeholder="Enter the email you used to submit your confirmation"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className="w-full rounded-xl px-4 py-2.5 text-sm mb-3 bg-white text-gray-900 placeholder:text-gray-400 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500/50 transition-all duration-200"
+                          />
+                        </div>
+                      )}
+
+                      <Button
                         onClick={handleCheckStatus}
                         loading={isChecking}
                         className="w-full bg-blue-600! hover:bg-blue-700! text-white font-semibold py-3 rounded-lg shadow-lg hover:translate-y-[-1px] transition-all"
@@ -195,10 +243,10 @@ function PayOnboardingPageContent() {
                         Check Approval Status
                       </Button>
 
-                      <Button 
+                      <Button
                         onClick={() => window.location.href = '/login'}
                         variant="outline"
-                        className="w-full py-3"
+                        className="w-full py-3 text-gray-900 border-gray-300 hover:bg-gray-50"
                       >
                         Back to Login
                       </Button>

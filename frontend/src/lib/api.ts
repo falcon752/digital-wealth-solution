@@ -165,6 +165,7 @@ export const llcAPI = {
 
 // ─── Contact / Consultation ─────────────────────────────────────────────────
 export const contactAPI = {
+  onboardingStatus: (email: string) => api.get('/contact/onboarding-status', { params: { email } }),
   // admin
   adminList: () => api.get('/contact/admin'),
   adminUpdate: (id: string, data: { status?: string; adminNote?: string }) =>

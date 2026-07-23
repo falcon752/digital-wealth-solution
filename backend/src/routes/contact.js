@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { body, validationResult } = require('express-validator');
+const { body, query, validationResult } = require('express-validator');
 const { sendOnboardingFeeNotificationEmail, sendGeneralContactEmail, sendUserContactStatusEmail } = require('../utils/email');
 const { User, ContactSubmission } = require('../database');
 const { authenticate, requireAdmin } = require('../middleware/auth');
@@ -34,6 +34,28 @@ router.post('/onboarding-fee', [
   } catch (error) {
     console.error('Onboarding fee email error:', error);
     res.status(500).json({ error: 'Failed to send notification. Please try again later.' });
+  }
+});
+
+// GET /api/contact/onboarding-status?email=... — public status check, no session required
+router.get('/onboarding-status', [
+  query('email').isEmail().withMessage('Enter a valid email address'),
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+  try {
+    const user = await User.findOne({ email: req.query.email.toLowerCase() })
+      .select('onboardingFeePaid onboardingFeeSubmitted');
+    if (!user) return res.status(404).json({ error: 'No account found for this email' });
+
+    res.json({
+      onboardingFeePaid: user.onboardingFeePaid,
+      onboardingFeeSubmitted: user.onboardingFeeSubmitted,
+    });
+  } catch (error) {
+    console.error('Onboarding status check error:', error);
+    res.status(500).json({ error: 'Failed to check status. Please try again later.' });
   }
 });
 
