@@ -9,7 +9,7 @@ import Badge from '@/components/ui/Badge';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import { formatDate } from '@/lib/utils';
-import { CheckCircle, XCircle, Zap } from 'lucide-react';
+import { CheckCircle, XCircle, Zap, ChevronLeft, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const TABS = ['all', 'pending', 'approved', 'rejected'] as const;
@@ -30,6 +30,8 @@ export default function AdminLoansPage() {
 
   const rowRefs = useRef<Record<string, HTMLTableRowElement | null>>({});
   const didAutoOpen = useRef(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 10;
 
   const load = useCallback(() => {
     setLoading(true);
@@ -38,6 +40,7 @@ export default function AdminLoansPage() {
         const data = r.data.loans ?? [];
         if (activeTab === 'all') setLoans(data);
         else setLoans(data.filter((d: any) => d.status === activeTab));
+        setCurrentPage(1);
       })
       .finally(() => setLoading(false));
   }, [activeTab]);
@@ -47,11 +50,19 @@ export default function AdminLoansPage() {
   useEffect(() => {
     if (!highlightId || loading || didAutoOpen.current) return;
 
-    const loan = loans.find((d) => d.id === highlightId || d._id === highlightId);
-    if (!loan) return;
+    const index = loans.findIndex((d) => d.id === highlightId || d._id === highlightId);
+    if (index === -1) return;
+    const loan = loans[index];
 
     if (activeTab !== 'all' && loan.status !== activeTab) {
       setActiveTab('all');
+      return;
+    }
+
+    // Jump to the page containing this loan before scrolling to it
+    const targetPage = Math.floor(index / PAGE_SIZE) + 1;
+    if (currentPage !== targetPage) {
+      setCurrentPage(targetPage);
       return;
     }
 
@@ -65,7 +76,7 @@ export default function AdminLoansPage() {
       setConfirmTarget(loan);
       setAdminNote('');
     }
-  }, [loans, loading, highlightId, activeTab]);
+  }, [loans, loading, highlightId, activeTab, currentPage]);
 
   const openConfirm = (l: any) => { setConfirmTarget(l); setAdminNote(''); };
   const openReject = (l: any) => { setRejectTarget(l); setAdminNote(''); };
@@ -97,6 +108,9 @@ export default function AdminLoansPage() {
       toast.error(err.response?.data?.error || 'Failed to reject loan');
     } finally { setSubmitting(false); }
   };
+
+  const totalPages = Math.max(1, Math.ceil(loans.length / PAGE_SIZE));
+  const paginatedLoans = loans.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   return (
     <div className="flex flex-col min-h-full">
@@ -155,7 +169,7 @@ export default function AdminLoansPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--border-color)]">
-                {loans.map((l) => {
+                {paginatedLoans.map((l) => {
                   const id = l.id || l._id;
                   const isHighlighted = highlightId === id;
                   return (
@@ -206,6 +220,35 @@ export default function AdminLoansPage() {
                 })}
               </tbody>
             </table>
+
+            {loans.length > 0 && (
+              <div className="flex items-center justify-between gap-4 px-4 py-4 border-t border-[var(--border-color)]">
+                <p className="text-xs text-[var(--text-muted)]">
+                  Showing {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, loans.length)} of {loans.length}
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="p-2 rounded-lg border border-[var(--border-color)] text-[var(--text-muted)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[var(--bg-secondary)]/40 transition-colors"
+                    aria-label="Previous page"
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
+                  <span className="text-xs font-medium text-[var(--text-primary)]">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="p-2 rounded-lg border border-[var(--border-color)] text-[var(--text-muted)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[var(--bg-secondary)]/40 transition-colors"
+                    aria-label="Next page"
+                  >
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

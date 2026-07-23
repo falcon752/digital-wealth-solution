@@ -10,7 +10,7 @@ import Badge from '@/components/ui/Badge';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import { formatDate, formatCurrency } from '@/lib/utils';
-import { CheckCircle, ArrowRight, XCircle } from 'lucide-react';
+import { CheckCircle, ArrowRight, XCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const TABS = ['all', 'pending', 'approved', 'completed', 'rejected'] as const;
@@ -34,11 +34,16 @@ export default function AdminWithdrawalsPage() {
 
   const rowRefs = useRef<Record<string, HTMLTableRowElement | null>>({});
   const didAutoOpen = useRef(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 10;
 
   const load = useCallback(() => {
     setLoading(true);
-    const params = activeTab !== 'all' ? { status: activeTab } : {};
-    withdrawalsAPI.adminList(params).then((r) => setWithdrawals(Array.isArray(r.data) ? r.data : (r.data.withdrawals ?? []))).finally(() => setLoading(false));
+    const params = { limit: 1000, ...(activeTab !== 'all' ? { status: activeTab } : {}) };
+    withdrawalsAPI.adminList(params).then((r) => {
+      setWithdrawals(Array.isArray(r.data) ? r.data : (r.data.withdrawals ?? []));
+      setCurrentPage(1);
+    }).finally(() => setLoading(false));
   }, [activeTab]);
 
   useEffect(load, [load]);
@@ -46,8 +51,17 @@ export default function AdminWithdrawalsPage() {
   // Deep-link: auto-scroll, highlight and open modal for ?highlight=id
   useEffect(() => {
     if (!highlightId || loading || didAutoOpen.current) return;
-    const target = withdrawals.find((w) => w.id === highlightId);
-    if (!target) return;
+    const index = withdrawals.findIndex((w) => w.id === highlightId);
+    if (index === -1) return;
+    const target = withdrawals[index];
+
+    // Jump to the page containing this withdrawal before scrolling to it
+    const targetPage = Math.floor(index / PAGE_SIZE) + 1;
+    if (currentPage !== targetPage) {
+      setCurrentPage(targetPage);
+      return;
+    }
+
     didAutoOpen.current = true;
     setHighlightedId(highlightId);
     setTimeout(() => {
@@ -58,7 +72,7 @@ export default function AdminWithdrawalsPage() {
       setActionType('approve');
       setAdminNote('');
     }
-  }, [highlightId, loading, withdrawals]);
+  }, [highlightId, loading, withdrawals, currentPage]);
 
   const openAction = (w: Withdrawal, type: ActionType) => {
     setActionTarget(w);
@@ -85,6 +99,9 @@ export default function AdminWithdrawalsPage() {
 
   const actionLabel = actionType === 'approve' ? 'Approve' : actionType === 'complete' ? 'Mark Complete' : 'Reject';
   const actionColor = actionType === 'reject' ? 'danger' : 'primary';
+
+  const totalPages = Math.max(1, Math.ceil(withdrawals.length / PAGE_SIZE));
+  const paginatedWithdrawals = withdrawals.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   return (
     <div className="flex flex-col min-h-full">
@@ -125,7 +142,7 @@ export default function AdminWithdrawalsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {withdrawals.map((w) => (
+                  {paginatedWithdrawals.map((w) => (
                     <tr
                         key={w.id}
                         ref={(el) => { rowRefs.current[w.id] = el; }}
@@ -176,6 +193,35 @@ export default function AdminWithdrawalsPage() {
                 </tbody>
               </table>
             </div>
+
+            {withdrawals.length > 0 && (
+              <div className="flex items-center justify-between gap-4 px-4 py-4 border-t border-[var(--border)]">
+                <p className="text-xs text-[var(--text-muted)]">
+                  Showing {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, withdrawals.length)} of {withdrawals.length}
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-muted)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-brand-500/5 transition-colors"
+                    aria-label="Previous page"
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
+                  <span className="text-xs font-medium text-[var(--text-secondary)]">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-muted)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-brand-500/5 transition-colors"
+                    aria-label="Next page"
+                  >
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

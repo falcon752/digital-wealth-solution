@@ -5,7 +5,7 @@ import { adminAPI } from '@/lib/api';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import Button from '@/components/ui/Button';
 import { formatDate } from '@/lib/utils';
-import { Search, CheckCircle, Clock, ShieldAlert, UserCheck, CreditCard } from 'lucide-react';
+import { Search, CheckCircle, Clock, ShieldAlert, UserCheck, CreditCard, ChevronLeft, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface UserRow {
@@ -27,11 +27,18 @@ export default function AdminOnboardingPaymentsPage() {
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [filter, setFilter] = useState<'pending' | 'approved' | 'all'>('pending');
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 10;
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search), 350);
     return () => clearTimeout(t);
   }, [search]);
+
+  // Reset to page 1 whenever the visible set changes (new search, tab switch, or reload)
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch, filter]);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -86,6 +93,9 @@ export default function AdminOnboardingPaymentsPage() {
     if (filter === 'approved') return u.onboardingFeePaid;
     return true;
   });
+
+  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / PAGE_SIZE));
+  const paginatedUsers = filteredUsers.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   return (
     <div className="flex flex-col min-h-full bg-gray-50/50 dark:bg-gray-900/50">
@@ -193,7 +203,7 @@ export default function AdminOnboardingPaymentsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredUsers.map((u) => (
+                  {paginatedUsers.map((u) => (
                     <tr key={u.id} className="border-b border-gray-100 dark:border-gray-700/50 last:border-0 hover:bg-gray-50/30 dark:hover:bg-gray-700/10 transition-colors">
                       <td className="px-6 py-4">
                         <div className="font-semibold text-sm text-gray-800 dark:text-gray-200">{u.firstName} {u.lastName}</div>
@@ -255,6 +265,35 @@ export default function AdminOnboardingPaymentsPage() {
                 </tbody>
               </table>
             </div>
+
+            {filteredUsers.length > 0 && (
+              <div className="flex items-center justify-between gap-4 px-6 py-4 border-t border-gray-100 dark:border-gray-700/50">
+                <p className="text-xs text-gray-400">
+                  Showing {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, filteredUsers.length)} of {filteredUsers.length}
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="p-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors"
+                    aria-label="Previous page"
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
+                  <span className="text-xs font-medium text-gray-600 dark:text-gray-300">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="p-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors"
+                    aria-label="Next page"
+                  >
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

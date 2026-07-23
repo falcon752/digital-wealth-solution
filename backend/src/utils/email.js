@@ -53,15 +53,14 @@ function themedEmail(content) {
       .email-shell span {
         color: #2563eb !important;
       }
+      .email-shell a.dwp-btn {
+        color: #ffffff !important;
+      }
       .email-shell hr {
         border-color: #e5e7eb !important;
       }
       .email-shell div {
         border-color: #dbeafe !important;
-      }
-      .email-shell a[style*="background"] {
-        background: #2563eb !important;
-        color: #ffffff !important;
       }
       @media (prefers-color-scheme: dark) {
         .email-shell {
@@ -89,15 +88,14 @@ function themedEmail(content) {
         .email-shell span {
           color: #60a5fa !important;
         }
+        .email-shell a.dwp-btn {
+          color: #ffffff !important;
+        }
         .email-shell hr {
           border-color: #2f3542 !important;
         }
         .email-shell div {
           border-color: #334155 !important;
-        }
-        .email-shell a[style*="background"] {
-          background: #2563eb !important;
-          color: #ffffff !important;
         }
       }
     </style>
@@ -213,7 +211,7 @@ async function sendDepositNotificationEmail({
       </div>
 
       <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/admin/deposits?highlight=${depositId}"
-         style="display:inline-block;background:#2563eb;color:#ffffff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">
+         class="dwp-btn" style="display:inline-block;background:#2563eb;color:#ffffff !important;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">
         Review &amp; Approve Deposit →
       </a>
 
@@ -285,7 +283,7 @@ async function sendOTPEmail(to, firstName, otp, antiPhishingPhrase = null, withd
       <p style="color:#ef4444;font-size:13px;font-weight:600;text-align:center;">This code expires in 10 minutes. Do not share it with anyone.</p>
 
       <div style="text-align:center;margin:32px 0;">
-        <a href="${process.env.FRONTEND_URL || 'https://digitalwealthpartnersllc.net'}/login" style="display:inline-block;background:#2563eb;color:#ffffff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;">Login to Your Wallet</a>
+        <a href="${process.env.FRONTEND_URL || 'https://digitalwealthpartnersllc.net'}/login" class="dwp-btn" style="display:inline-block;background:#2563eb;color:#ffffff !important;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;">Login to Your Wallet</a>
       </div>
       
       <hr style="border-color:#e5e7eb;margin:32px 0;" />
@@ -317,6 +315,24 @@ async function sendWelcomeEmail(to, firstName) {
       <p style="color:#60a5fa;margin-bottom:24px;">Welcome to the platform</p>
       <p>Hi <strong>${firstName}</strong>,</p>
       <p>Your account has been created successfully. You can now log in and start managing your crypto portfolio.</p>
+
+      <table role="presentation" cellpadding="0" cellspacing="0" style="margin:20px 0;">
+        <tr>
+          <td bgcolor="#0033AD" style="border-radius:8px;background:#0033AD;">
+            <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/login"
+               class="dwp-btn"
+               style="display:inline-block;padding:12px 24px;font-weight:600;text-decoration:none;font-family:sans-serif;color:#ffffff !important;">
+              Log In to Your Account
+            </a>
+          </td>
+        </tr>
+      </table>
+
+      <hr style="border-color:#e5e7eb;margin:28px 0;" />
+      <p style="color:#6b7280;font-size:12px;">
+        Need help or have a concern? Contact us anytime at
+        <a href="mailto:support@digitalwealthpartnersllc.net" style="color:#2563eb;">support@digitalwealthpartnersllc.net</a>.
+      </p>
     </div>
   `;
 
@@ -374,7 +390,7 @@ async function sendWithdrawalNotificationEmail({ adminEmail, user, asset, amount
       </div>
 
       <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/admin/withdrawals?highlight=${withdrawalId}"
-         style="display:inline-block;background:#2563eb;color:#ffffff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">
+         class="dwp-btn" style="display:inline-block;background:#2563eb;color:#ffffff !important;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">
         Review &amp; Approve Withdrawal →
       </a>
 
@@ -418,7 +434,7 @@ async function sendAdminRegistrationNotificationEmail({ adminEmail, user }) {
       </table>
 
       <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/admin/users?highlight=${user.id}"
-         style="display:inline-block;background:#2563eb;color:#ffffff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">
+         class="dwp-btn" style="display:inline-block;background:#2563eb;color:#ffffff !important;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">
         View User Profile →
       </a>
 
@@ -604,7 +620,7 @@ async function sendLoanNotificationEmail({ adminEmail, user, loanData }) {
       </table>
 
       <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/admin/loans?highlight=${loanData._id}"
-         style="display:inline-block;background:#2563eb;color:#ffffff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">
+         class="dwp-btn" style="display:inline-block;background:#2563eb;color:#ffffff !important;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">
         Review &amp; Manage Loan →
       </a>
 
@@ -1085,7 +1101,7 @@ async function sendLLCNotificationEmail({ adminEmail, user, application }) {
       </table>
 
       <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/admin/llc"
-         style="display:inline-block;background:#2563eb;color:#ffffff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">
+         class="dwp-btn" style="display:inline-block;background:#2563eb;color:#ffffff !important;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">
         Review LLC Application
       </a>
     </div>

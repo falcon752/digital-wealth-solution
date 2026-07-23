@@ -9,7 +9,7 @@ import Badge from '@/components/ui/Badge';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import { formatDate, formatCurrency } from '@/lib/utils';
-import { Edit } from 'lucide-react';
+import { Edit, ChevronLeft, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 type PopulatedUser = { firstName?: string; lastName?: string; email?: string };
@@ -32,11 +32,16 @@ export default function AdminLLCPage() {
   const [stateFee, setStateFee] = useState('');
   const [adminNote, setAdminNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 10;
 
   const load = useCallback(() => {
     setLoading(true);
     llcAPI.adminList()
-      .then((r) => setApplications(r.data.applications ?? r.data))
+      .then((r) => {
+        setApplications(r.data.applications ?? r.data);
+        setCurrentPage(1);
+      })
       .catch(() => toast.error('Failed to load LLC applications'))
       .finally(() => setLoading(false));
   }, []);
@@ -70,6 +75,9 @@ export default function AdminLLCPage() {
     }
   };
 
+  const totalPages = Math.max(1, Math.ceil(applications.length / PAGE_SIZE));
+  const paginatedApplications = applications.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
   return (
     <div className="flex flex-col min-h-full">
       <DashboardHeader title="LLC Applications" subtitle="Manage and approve user LLC applications" logo="dwp" />
@@ -95,7 +103,7 @@ export default function AdminLLCPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {applications.map((app) => {
+                  {paginatedApplications.map((app) => {
                     const applicant = getApplicant(app);
                     return (
                     <tr
@@ -143,6 +151,35 @@ export default function AdminLLCPage() {
                 </tbody>
               </table>
             </div>
+
+            {applications.length > 0 && (
+              <div className="flex items-center justify-between gap-4 px-4 py-4 border-t border-[var(--border)]">
+                <p className="text-xs text-[var(--text-muted)]">
+                  Showing {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, applications.length)} of {applications.length}
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-muted)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-brand-500/5 transition-colors"
+                    aria-label="Previous page"
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
+                  <span className="text-xs font-medium text-[var(--text-secondary)]">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-muted)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-brand-500/5 transition-colors"
+                    aria-label="Next page"
+                  >
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

@@ -8,7 +8,7 @@ import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
 import Modal from '@/components/ui/Modal';
 import { formatDate } from '@/lib/utils';
-import { Edit } from 'lucide-react';
+import { Edit, ChevronLeft, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 function buildApprovalNote(firstName: string, lastName: string) {
@@ -46,11 +46,16 @@ export default function AdminConsultationsPage() {
   const [status, setStatus] = useState<ContactSubmission['status']>('pending');
   const [adminNote, setAdminNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 10;
 
   const load = useCallback(() => {
     setLoading(true);
     contactAPI.adminList()
-      .then((r) => setSubmissions(r.data.submissions ?? r.data))
+      .then((r) => {
+        setSubmissions(r.data.submissions ?? r.data);
+        setCurrentPage(1);
+      })
       .catch(() => toast.error('Failed to load consultation submissions'))
       .finally(() => setLoading(false));
   }, []);
@@ -87,6 +92,9 @@ export default function AdminConsultationsPage() {
     }
   };
 
+  const totalPages = Math.max(1, Math.ceil(submissions.length / PAGE_SIZE));
+  const paginatedSubmissions = submissions.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
   return (
     <div className="flex flex-col min-h-full">
       <DashboardHeader title="Consultations" subtitle="Review and approve consultation requests" logo="dwp" />
@@ -111,7 +119,7 @@ export default function AdminConsultationsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {submissions.map((s) => (
+                  {paginatedSubmissions.map((s) => (
                     <tr
                       key={s.id}
                       className="border-b border-[var(--border)] last:border-0 hover:bg-brand-500/5 transition-colors"
@@ -149,6 +157,35 @@ export default function AdminConsultationsPage() {
                 </tbody>
               </table>
             </div>
+
+            {submissions.length > 0 && (
+              <div className="flex items-center justify-between gap-4 px-4 py-4 border-t border-[var(--border)]">
+                <p className="text-xs text-[var(--text-muted)]">
+                  Showing {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, submissions.length)} of {submissions.length}
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-muted)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-brand-500/5 transition-colors"
+                    aria-label="Previous page"
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
+                  <span className="text-xs font-medium text-[var(--text-secondary)]">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-muted)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-brand-500/5 transition-colors"
+                    aria-label="Next page"
+                  >
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

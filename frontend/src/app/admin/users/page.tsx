@@ -9,7 +9,7 @@ import Badge from '@/components/ui/Badge';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import { formatDate, formatCurrency } from '@/lib/utils';
-import { Search, ToggleLeft, ToggleRight, DollarSign, CheckCircle, Clock } from 'lucide-react';
+import { Search, ToggleLeft, ToggleRight, DollarSign, CheckCircle, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface UserRow {
@@ -30,6 +30,8 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 10;
 
   // Balance modal
   const [balanceTarget, setBalanceTarget] = useState<UserRow | null>(null);
@@ -49,8 +51,11 @@ export default function AdminUsersPage() {
 
   const load = useCallback(() => {
     setLoading(true);
-    adminAPI.getUsers(debouncedSearch ? { search: debouncedSearch } : {})
-      .then((r) => setUsers(Array.isArray(r.data) ? r.data : (r.data.users ?? [])))
+    adminAPI.getUsers({ limit: 1000, ...(debouncedSearch ? { search: debouncedSearch } : {}) })
+      .then((r) => {
+        setUsers(Array.isArray(r.data) ? r.data : (r.data.users ?? []));
+        setCurrentPage(1);
+      })
       .finally(() => setLoading(false));
   }, [debouncedSearch]);
 
@@ -119,6 +124,9 @@ export default function AdminUsersPage() {
   };
 
 
+  const totalPages = Math.max(1, Math.ceil(users.length / PAGE_SIZE));
+  const paginatedUsers = users.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
   return (
     <div className="flex flex-col min-h-full">
       <DashboardHeader title="Users" subtitle="Manage platform users" logo="dwp" />
@@ -161,7 +169,7 @@ export default function AdminUsersPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {users.map((u) => (
+                  {paginatedUsers.map((u) => (
                     <tr key={u.id} className="border-b border-[var(--border)] last:border-0 hover:bg-brand-500/5 transition-colors">
                       <td className="px-4 py-3">
                         <div className="font-medium text-sm text-[var(--text-primary)]">{u.firstName} {u.lastName}</div>
@@ -210,6 +218,35 @@ export default function AdminUsersPage() {
                 </tbody>
               </table>
             </div>
+
+            {users.length > 0 && (
+              <div className="flex items-center justify-between gap-4 px-4 py-4 border-t border-[var(--border)]">
+                <p className="text-xs text-[var(--text-muted)]">
+                  Showing {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, users.length)} of {users.length}
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-muted)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-brand-500/5 transition-colors"
+                    aria-label="Previous page"
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
+                  <span className="text-xs font-medium text-[var(--text-secondary)]">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-muted)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-brand-500/5 transition-colors"
+                    aria-label="Next page"
+                  >
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

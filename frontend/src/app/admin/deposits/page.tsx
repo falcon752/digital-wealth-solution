@@ -10,7 +10,7 @@ import Badge from '@/components/ui/Badge';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import { formatDate, formatCurrency } from '@/lib/utils';
-import { CheckCircle, XCircle, ExternalLink, Zap } from 'lucide-react';
+import { CheckCircle, XCircle, ExternalLink, Zap, ChevronLeft, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const TABS = ['all', 'pending', 'confirmed', 'rejected'] as const;
@@ -34,12 +34,17 @@ export default function AdminDepositsPage() {
   const rowRefs = useRef<Record<string, HTMLTableRowElement | null>>({});
   // Track whether we've already auto-opened the modal for this highlight
   const didAutoOpen = useRef(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 10;
 
   const load = useCallback(() => {
     setLoading(true);
-    const params = activeTab !== 'all' ? { status: activeTab } : {};
+    const params = { limit: 1000, ...(activeTab !== 'all' ? { status: activeTab } : {}) };
     depositsAPI.adminList(params)
-      .then((r) => setDeposits(r.data.deposits ?? r.data))
+      .then((r) => {
+        setDeposits(r.data.deposits ?? r.data);
+        setCurrentPage(1);
+      })
       .finally(() => setLoading(false));
   }, [activeTab]);
 
@@ -49,12 +54,20 @@ export default function AdminDepositsPage() {
   useEffect(() => {
     if (!highlightId || loading || didAutoOpen.current) return;
 
-    const deposit = deposits.find((d) => d.id === highlightId);
-    if (!deposit) return;
+    const index = deposits.findIndex((d) => d.id === highlightId);
+    if (index === -1) return;
+    const deposit = deposits[index];
 
     // If on "all" tab but deposit isn't visible, switch to its status tab
     if (activeTab !== 'all' && deposit.status !== activeTab) {
       setActiveTab('all');
+      return;
+    }
+
+    // Jump to the page containing this deposit before scrolling to it
+    const targetPage = Math.floor(index / PAGE_SIZE) + 1;
+    if (currentPage !== targetPage) {
+      setCurrentPage(targetPage);
       return;
     }
 
@@ -71,7 +84,7 @@ export default function AdminDepositsPage() {
       setUsdValue(deposit.usdValue ? String(deposit.usdValue) : '');
       setAdminNote('');
     }
-  }, [deposits, loading, highlightId, activeTab]);
+  }, [deposits, loading, highlightId, activeTab, currentPage]);
 
   const openConfirm = (d: Deposit) => {
     setConfirmTarget(d);
@@ -111,6 +124,9 @@ export default function AdminDepositsPage() {
       toast.error(msg);
     } finally { setSubmitting(false); }
   };
+
+  const totalPages = Math.max(1, Math.ceil(deposits.length / PAGE_SIZE));
+  const paginatedDeposits = deposits.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   return (
     <div className="flex flex-col min-h-full">
@@ -166,7 +182,7 @@ export default function AdminDepositsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {deposits.map((d) => {
+                  {paginatedDeposits.map((d) => {
                     const isHighlighted = d.id === highlightId;
                     return (
                       <tr
@@ -242,6 +258,35 @@ export default function AdminDepositsPage() {
                 </tbody>
               </table>
             </div>
+
+            {deposits.length > 0 && (
+              <div className="flex items-center justify-between gap-4 px-4 py-4 border-t border-[var(--border)]">
+                <p className="text-xs text-[var(--text-muted)]">
+                  Showing {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, deposits.length)} of {deposits.length}
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-muted)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-brand-500/5 transition-colors"
+                    aria-label="Previous page"
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
+                  <span className="text-xs font-medium text-[var(--text-secondary)]">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-muted)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-brand-500/5 transition-colors"
+                    aria-label="Next page"
+                  >
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
