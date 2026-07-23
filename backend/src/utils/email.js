@@ -97,6 +97,37 @@ function themedEmail(content) {
         .email-shell div {
           border-color: #334155 !important;
         }
+        /* Neutral info / code / wallet-address / admin-note boxes */
+        .email-shell div[style*="background:#f4f7fb"],
+        .email-shell div[style*="background:#f8fafc"] {
+          background: #1e293b !important;
+          border-color: #334155 !important;
+        }
+        /* Amber warning boxes */
+        .email-shell div[style*="background:#f59e0b22"] {
+          background: #451a03 !important;
+          border-color: #92400e !important;
+        }
+        /* Blue highlight boxes */
+        .email-shell div[style*="background:#2563eb11"] {
+          background: #1e3a5f !important;
+          border-color: #1d4ed8 !important;
+        }
+        /* Brand-orange accent boxes */
+        .email-shell div[style*="background:#d9770611"] {
+          background: #431407 !important;
+          border-color: #c2410c !important;
+        }
+        /* Green success boxes */
+        .email-shell div[style*="background:#10b98122"] {
+          background: #064e3b !important;
+          border-color: #059669 !important;
+        }
+        /* Red danger boxes */
+        .email-shell div[style*="background:#fef2f2"] {
+          background: #450a0a !important;
+          border-color: #991b1b !important;
+        }
       }
     </style>
   </head>
@@ -568,7 +599,7 @@ async function sendGeneralContactEmail({ adminEmail, contactData }) {
       </table>
 
       <h3 style="color:#fbbf24;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Message</h3>
-      <div style="background:#f4f7fb;border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin-bottom:24px;line-height:1.6;font-size:14px;color:#cbd5e1;white-space:pre-wrap;">${message}</div>
+      <div style="background:#f4f7fb;border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin-bottom:24px;line-height:1.6;font-size:14px;white-space:pre-wrap;">${message}</div>
 
       <hr style="border-color:#e5e7eb;margin:28px 0;" />
       <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners. Do not reply.</p>
