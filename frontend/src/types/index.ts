@@ -16,6 +16,7 @@ export interface User {
   antiPhishingPhrase?: string | null;
   balance?: number;
   onboardingFeePaid?: boolean;
+  onboardingFeeSubmitted?: boolean;
   referralCode?: string;
   hiddenAssets?: string[];
   createdAt: string;

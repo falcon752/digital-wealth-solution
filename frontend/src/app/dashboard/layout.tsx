@@ -20,7 +20,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     if (!isLoading && !user) router.replace('/login');
     if (!isLoading && user?.role === 'admin') router.replace('/admin');
     if (!isLoading && user?.role === 'user' && !user.onboardingFeePaid) {
-      router.replace('/pay-onboarding?status=pending');
+      router.replace(user.onboardingFeeSubmitted ? '/pay-onboarding?status=pending' : '/pay-onboarding');
     }
   }, [user, isLoading, router]);
 

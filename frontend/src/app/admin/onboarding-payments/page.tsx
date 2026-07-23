@@ -35,12 +35,13 @@ export default function AdminOnboardingPaymentsPage() {
 
   const load = useCallback(() => {
     setLoading(true);
-    adminAPI.getUsers(debouncedSearch ? { search: debouncedSearch } : {})
+    adminAPI.getUsers({ limit: 1000, ...(debouncedSearch ? { search: debouncedSearch } : {}) })
       .then((r) => {
         const allUsers = Array.isArray(r.data) ? r.data : (r.data.users ?? []);
         // Only show actual users, filter out admin roles
         setUsers(allUsers.filter((u: UserRow) => u.role === 'user'));
       })
+      .catch(() => toast.error('Failed to load users. Please try again.'))
       .finally(() => setLoading(false));
   }, [debouncedSearch]);
 

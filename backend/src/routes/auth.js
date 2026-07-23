@@ -214,9 +214,10 @@ router.post('/login', [
     }
 
     if (user.role === 'user' && !user.onboardingFeePaid) {
-      return res.status(403).json({ 
+      return res.status(403).json({
         error: 'Onboarding fee verification pending',
-        code: 'PAYMENT_REQUIRED'
+        code: 'PAYMENT_REQUIRED',
+        onboardingFeeSubmitted: user.onboardingFeeSubmitted,
       });
     }
 

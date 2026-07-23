@@ -41,8 +41,10 @@ function PayOnboardingPageContent() {
       const updatedUser = res.data.user;
 
       if (updatedUser.onboardingFeePaid) {
-        if (token) login(token, updatedUser);
+        const storedToken = token || (typeof window !== 'undefined' ? localStorage.getItem('dws_token') : null);
+        if (storedToken) login(storedToken, updatedUser);
         toast.success('Payment verified! Redirecting to dashboard...');
+        router.replace('/dashboard');
       } else {
         toast.error('Verification Status: Pending. Admin has not approved this account yet.', {
           icon: <Hourglass className="w-5 h-5 text-amber-500 animate-spin" style={{ animationDuration: '3s' }} />,

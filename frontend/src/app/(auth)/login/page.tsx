@@ -53,7 +53,7 @@ export default function LoginPage() {
     } catch (err: any) {
       const data = err.response?.data;
       if (data?.code === 'PAYMENT_REQUIRED') {
-        router.push('/pay-onboarding?status=pending');
+        router.push(data?.onboardingFeeSubmitted ? '/pay-onboarding?status=pending' : '/pay-onboarding');
         return;
       }
       const msg = data?.error || 'Login failed';
