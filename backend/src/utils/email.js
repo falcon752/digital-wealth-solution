@@ -750,11 +750,21 @@ async function sendEarnNotificationEmail({ adminEmail, user, earnData }) {
 
 // === USER NOTIFICATION EMAILS (STATUS UPDATES) ===
 
-async function sendUserDepositStatusEmail({ userEmail, firstName, assetSymbol, amount, status, adminNote, usdValue }) {
+async function sendUserDepositStatusEmail({ userEmail, firstName, assetSymbol, amount, status, adminNote, usdValue, isManual }) {
   const transporter = createTransporter();
   const statusColor = status === 'confirmed' ? '#10b981' : '#ef4444';
-  const statusText = status === 'confirmed' ? 'Approved' : 'Rejected';
-  
+  const statusText = status === 'confirmed' ? 'Confirmed' : 'Rejected';
+
+  let introText;
+  if (isManual && status === 'confirmed') {
+    introText = 'Our team has credited your account directly. Please see the reason for this credit below.';
+  } else if (status === 'confirmed') {
+    introText = 'Your deposit has been confirmed and credited to your account. Please review your official transaction slip below.';
+  } else {
+    introText = 'Your deposit has been processed. Please review your official transaction slip below.';
+  }
+  const noteLabel = isManual ? 'Reason For Credit' : 'Administrator Note';
+
   const usdString = usdValue ? `≈ $${parseFloat(usdValue).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '';
   const now = new Date().toLocaleString('en-US', { timeZone: 'UTC', dateStyle: 'medium', timeStyle: 'short' });
 
@@ -805,20 +815,24 @@ async function sendUserDepositStatusEmail({ userEmail, firstName, assetSymbol, a
         <div class="bg-card" style="max-width: 800px; margin: 0 auto; border: 1px solid; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);">
           
           <!-- Header Area -->
-          <div style="background: linear-gradient(135deg, #1e3a8a 0%, #172554 100%); padding: 40px; text-align: center; border-bottom: 1px solid #1e40af;">
-            <h1 class="dwp-banner-title" style="margin: 0; font-size: 28px; font-weight: 700; letter-spacing: 2px; color: #ffffff; text-transform: uppercase;">Digital Wealth Partners</h1>
-            <p class="dwp-banner-sub" style="margin: 12px 0 0 0; font-size: 16px; color: #93c5fd; font-weight: 500; letter-spacing: 1px;">DEPOSIT ${statusText.toUpperCase()}</p>
-          </div>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+            <tr>
+              <td bgcolor="#1e3a8a" style="background: linear-gradient(135deg, #1e3a8a 0%, #172554 100%); padding: 40px; text-align: center; border-bottom: 1px solid #1e40af;">
+                <h1 class="dwp-banner-title" style="margin: 0; font-size: 28px; font-weight: 700; letter-spacing: 2px; color: #ffffff !important; text-transform: uppercase;">Digital Wealth Partners</h1>
+                <p class="dwp-banner-sub" style="margin: 12px 0 0 0; font-size: 16px; color: #93c5fd !important; font-weight: 500; letter-spacing: 1px;">DEPOSIT ${statusText.toUpperCase()}</p>
+              </td>
+            </tr>
+          </table>
 
           <!-- Body Content -->
           <div style="padding: 40px 40px 20px 40px;">
             <p class="text-muted" style="font-size: 16px; line-height: 1.6; margin-top: 0;">Hi <strong class="text-main">${firstName}</strong>,</p>
-            <p class="text-muted" style="font-size: 16px; line-height: 1.6; margin-bottom: 32px;">Your deposit has been processed. Please review your official transaction slip below.</p>
-            
+            <p class="text-muted" style="font-size: 16px; line-height: 1.6; margin-bottom: 32px;">${introText}</p>
+
             <!-- Receipt Box -->
             <div class="bg-slip border-line" style="border: 1px solid; border-radius: 12px; padding: 32px; position: relative;">
               <div style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background-color: ${statusColor}; border-top-left-radius: 12px; border-top-right-radius: 12px;"></div>
-              
+
               <h3 class="text-main border-line" style="margin: 0 0 24px 0; font-size: 18px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid; padding-bottom: 16px;">Deposit Slip</h3>
               
               <table style="width: 100%; border-collapse: collapse; font-size: 15px;">
@@ -841,16 +855,16 @@ async function sendUserDepositStatusEmail({ userEmail, firstName, assetSymbol, a
                 </tr>
                 ` : ''}
                 <tr>
-                  <td class="text-muted" style="padding: 16px 0 4px 0;">Final Status</td>
+                  <td class="text-muted" style="padding: 16px 0 4px 0;">Status</td>
                   <td style="color: ${statusColor}; font-weight: 700; text-align: right; padding: 16px 0 4px 0; text-transform: uppercase; letter-spacing: 1px;">${statusText}</td>
                 </tr>
               </table>
             </div>
-            
+
             ${adminNote ? `
             <div class="bg-note" style="border-left: 4px solid #3b82f6; padding: 20px; border-radius: 0 8px 8px 0; margin: 32px 0;">
-              <p class="text-accent" style="font-size: 12px; margin: 0 0 8px 0; text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">Administrator Note</p>
-              <p class="text-main" style="margin: 0; font-size: 15px; line-height: 1.5;">${adminNote}</p>
+              <p class="text-accent" style="font-size: 12px; margin: 0 0 8px 0; text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">${noteLabel}</p>
+              <p class="text-main" style="margin: 0; font-size: 15px; line-height: 1.5;">${escapeHtml(adminNote)}</p>
             </div>
             ` : ''}
 
@@ -875,7 +889,7 @@ async function sendUserDepositStatusEmail({ userEmail, firstName, assetSymbol, a
               <p style="color: #6b7280; font-size: 12px; margin: 0;">&copy; ${new Date().getFullYear()} Digital Wealth Partners. All rights reserved.</p>
             </div>
           </div>
-          
+
         </div>
       </div>
     </body>
@@ -890,7 +904,7 @@ async function sendUserDepositStatusEmail({ userEmail, firstName, assetSymbol, a
   });
 }
 
-async function sendUserWithdrawalStatusEmail({ userEmail, firstName, assetSymbol, amount, status, adminNote, destinationAddress, usdValue }) {
+async function sendUserWithdrawalStatusEmail({ userEmail, firstName, assetSymbol, amount, status, adminNote, destinationAddress, usdValue, isManual }) {
   const transporter = createTransporter();
   const statusMap = {
     'approved': 'Approved',
@@ -898,14 +912,22 @@ async function sendUserWithdrawalStatusEmail({ userEmail, firstName, assetSymbol
     'rejected': 'Rejected'
   };
   const statusText = statusMap[status] || status;
-  
+
   const statusColorMap = {
     'approved': '#3b82f6', // blue
     'completed': '#10b981', // green
     'rejected': '#ef4444' // red
   };
   const statusColor = statusColorMap[status] || '#f59e0b';
-  
+
+  let introText;
+  if (isManual && status === 'completed') {
+    introText = 'Our team has debited your account directly. Please see the reason for this adjustment below.';
+  } else {
+    introText = 'Your withdrawal request has been updated. Please review your official transaction slip below.';
+  }
+  const noteLabel = isManual ? 'Reason For Adjustment' : 'Administrator Note';
+
   const usdString = usdValue ? `≈ $${parseFloat(usdValue).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '';
   const now = new Date().toLocaleString('en-US', { timeZone: 'UTC', dateStyle: 'medium', timeStyle: 'short' });
   const txHash = ''; // Will be added later if needed
@@ -957,15 +979,19 @@ async function sendUserWithdrawalStatusEmail({ userEmail, firstName, assetSymbol
         <div class="bg-card" style="max-width: 800px; margin: 0 auto; border: 1px solid; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);">
           
           <!-- Header Area -->
-          <div style="background: linear-gradient(135deg, #1e3a8a 0%, #172554 100%); padding: 40px; text-align: center; border-bottom: 1px solid #1e40af;">
-            <h1 class="dwp-banner-title" style="margin: 0; font-size: 28px; font-weight: 700; letter-spacing: 2px; color: #ffffff; text-transform: uppercase;">Digital Wealth Partners</h1>
-            <p class="dwp-banner-sub" style="margin: 12px 0 0 0; font-size: 16px; color: #93c5fd; font-weight: 500; letter-spacing: 1px;">WITHDRAWAL ${statusText.toUpperCase()}</p>
-          </div>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+            <tr>
+              <td bgcolor="#1e3a8a" style="background: linear-gradient(135deg, #1e3a8a 0%, #172554 100%); padding: 40px; text-align: center; border-bottom: 1px solid #1e40af;">
+                <h1 class="dwp-banner-title" style="margin: 0; font-size: 28px; font-weight: 700; letter-spacing: 2px; color: #ffffff !important; text-transform: uppercase;">Digital Wealth Partners</h1>
+                <p class="dwp-banner-sub" style="margin: 12px 0 0 0; font-size: 16px; color: #93c5fd !important; font-weight: 500; letter-spacing: 1px;">WITHDRAWAL ${statusText.toUpperCase()}</p>
+              </td>
+            </tr>
+          </table>
 
           <!-- Body Content -->
           <div style="padding: 40px 40px 20px 40px;">
             <p class="text-muted" style="font-size: 16px; line-height: 1.6; margin-top: 0;">Hi <strong class="text-main">${firstName}</strong>,</p>
-            <p class="text-muted" style="font-size: 16px; line-height: 1.6; margin-bottom: 32px;">Your withdrawal request has been updated. Please review your official transaction slip below.</p>
+            <p class="text-muted" style="font-size: 16px; line-height: 1.6; margin-bottom: 32px;">${introText}</p>
             
             <!-- Receipt Box -->
             <div class="bg-slip border-line" style="border: 1px solid; border-radius: 12px; padding: 32px; position: relative;">
@@ -999,16 +1025,16 @@ async function sendUserWithdrawalStatusEmail({ userEmail, firstName, assetSymbol
                 </tr>
                 ` : ''}
                 <tr>
-                  <td class="text-muted" style="padding: 16px 0 4px 0;">Final Status</td>
+                  <td class="text-muted" style="padding: 16px 0 4px 0;">Status</td>
                   <td style="color: ${statusColor}; font-weight: 700; text-align: right; padding: 16px 0 4px 0; text-transform: uppercase; letter-spacing: 1px;">${statusText}</td>
                 </tr>
               </table>
             </div>
-            
+
             ${adminNote ? `
             <div class="bg-note" style="border-left: 4px solid #3b82f6; padding: 20px; border-radius: 0 8px 8px 0; margin: 32px 0;">
-              <p class="text-accent" style="font-size: 12px; margin: 0 0 8px 0; text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">Administrator Note</p>
-              <p class="text-main" style="margin: 0; font-size: 15px; line-height: 1.5;">${adminNote}</p>
+              <p class="text-accent" style="font-size: 12px; margin: 0 0 8px 0; text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">${noteLabel}</p>
+              <p class="text-main" style="margin: 0; font-size: 15px; line-height: 1.5;">${escapeHtml(adminNote)}</p>
             </div>
             ` : ''}
 

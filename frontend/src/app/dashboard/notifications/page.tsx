@@ -26,10 +26,18 @@ export default function NotificationsPage() {
 
         if (isDeposit) {
           title = tx.status === 'confirmed' ? 'Deposit Confirmed' : 'Deposit Processing';
-          message = `Your deposit of ${tx.amount} ${tx.assetSymbol} has been ${tx.status}.`;
+          if (tx.status === 'confirmed' && tx.isManual) {
+            message = tx.adminNote || `Your account has been credited ${tx.amount} ${tx.assetSymbol} directly by our team.`;
+          } else {
+            message = `Your deposit of ${tx.amount} ${tx.assetSymbol} has been ${tx.status}.`;
+          }
         } else {
           title = tx.status === 'completed' ? 'Withdrawal Completed' : 'Withdrawal Processing';
-          message = `Your withdrawal of ${tx.amount} ${tx.assetSymbol} is ${tx.status}.`;
+          if (tx.status === 'completed' && tx.isManual) {
+            message = tx.adminNote || `Your account was debited ${tx.amount} ${tx.assetSymbol} directly by our team.`;
+          } else {
+            message = `Your withdrawal of ${tx.amount} ${tx.assetSymbol} is ${tx.status}.`;
+          }
         }
 
         // Generate relative time string
@@ -43,7 +51,7 @@ export default function NotificationsPage() {
           id: tx.id,
           title,
           message,
-          adminNote: tx.adminNote || null,
+          adminNote: tx.adminNote && tx.adminNote !== message ? tx.adminNote : null,
           time: timeStr,
           isUnread: true,
           type: tx.type,

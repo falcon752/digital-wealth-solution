@@ -197,6 +197,7 @@ router.post('/users/:id/asset-adjustment', authenticate, requireAdmin, [
         status: 'confirmed',
         adminNote: note,
         confirmedAt: new Date(),
+        isManual: true,
       });
     } else {
       transaction = await Withdrawal.create({
@@ -209,6 +210,7 @@ router.post('/users/:id/asset-adjustment', authenticate, requireAdmin, [
         adminNote: note,
         twoFactorVerified: true,
         processedAt: new Date(),
+        isManual: true,
       });
     }
 
@@ -237,6 +239,7 @@ router.post('/users/:id/asset-adjustment', authenticate, requireAdmin, [
         amount: parsedAmount,
         status: 'confirmed',
         adminNote: note,
+        isManual: true,
       }).catch(e => console.error('Failed to send balance adjustment email:', e));
     } else {
       sendUserWithdrawalStatusEmail({
@@ -246,6 +249,7 @@ router.post('/users/:id/asset-adjustment', authenticate, requireAdmin, [
         amount: parsedAmount,
         status: 'completed',
         adminNote: note,
+        isManual: true,
       }).catch(e => console.error('Failed to send balance adjustment email:', e));
     }
 

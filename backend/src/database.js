@@ -79,6 +79,7 @@ const depositSchema = new mongoose.Schema(
     status: { type: String, enum: ['pending', 'confirmed', 'rejected'], default: 'pending' },
     adminNote: { type: String, default: null },
     confirmedAt: { type: Date, default: null },
+    isManual: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
@@ -103,6 +104,7 @@ const withdrawalSchema = new mongoose.Schema(
     otpExpiry: { type: Date, default: null },
     twoFactorVerified: { type: Boolean, default: false },
     processedAt: { type: Date, default: null },
+    isManual: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
