@@ -1214,18 +1214,24 @@ async function sendLLCNotificationEmail({ adminEmail, user, application }) {
 
 async function sendUserContactStatusEmail({ userEmail, firstName, topic, status, adminNote }) {
   const transporter = createTransporter();
+  const statusTextMap = {
+    approved: 'Approved',
+    rejected: 'Not Approved',
+    processing: 'Under Review',
+    pending: 'Received',
+  };
+  const statusText = statusTextMap[status] || status;
 
   const html = `
     <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
       <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
 
       <p>Hi <strong>${firstName}</strong>,</p>
-      <p>Your consultation request${topic ? ` (<strong>${topic}</strong>)` : ''} has been reviewed. Status: <strong>${status}</strong>.</p>
 
       ${adminNote ? `<div style="background:#f4f7fb;border:1px solid #dbeafe;padding:16px;border-radius:8px;margin:20px 0;">
         <p style="color:#60a5fa;font-size:13px;margin:0 0 8px 0;text-transform:uppercase;">Note From Our Team</p>
         ${renderNoteHtml(adminNote)}
-      </div>` : ''}
+      </div>` : `<p>Your consultation request${topic ? ` (<strong>${topic}</strong>)` : ''} is now <strong>${statusText}</strong>.</p>`}
 
       <hr style="border-color:#e5e7eb;margin:28px 0;" />
       <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners. Do not reply.</p>
@@ -1235,7 +1241,7 @@ async function sendUserContactStatusEmail({ userEmail, firstName, topic, status,
   await transporter.sendMail({
     from: FROM(),
     to: userEmail,
-    subject: `Consultation Request ${status}`,
+    subject: `Consultation ${statusText} - Digital Wealth Partners`,
     html: themedEmail(html),
   });
 }
