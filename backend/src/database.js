@@ -245,6 +245,22 @@ const cardSchema = new mongoose.Schema(
 applyToJSON(cardSchema);
 const Card = mongoose.model('Card', cardSchema);
 
+// ─── ACCESS REQUEST (site access gate) ─────────────────────────────────────────
+const accessRequestSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true, trim: true },
+    email: { type: String, required: true, trim: true, lowercase: true },
+    reason: { type: String, default: null, trim: true },
+    status: { type: String, enum: ['pending', 'approved', 'rejected', 'revoked'], default: 'pending' },
+    code: { type: String, default: null },
+    adminNote: { type: String, default: null },
+    approvedAt: { type: Date, default: null },
+  },
+  { timestamps: true }
+);
+applyToJSON(accessRequestSchema);
+const AccessRequest = mongoose.model('AccessRequest', accessRequestSchema);
+
 // ─── ACTIVITY LOG ─────────────────────────────────────────────────────────────
 const activityLogSchema = new mongoose.Schema(
   {
@@ -305,5 +321,6 @@ module.exports = {
   EarnDeposit,
   ActivityLog,
   Swap,
-  Card
+  Card,
+  AccessRequest,
 };

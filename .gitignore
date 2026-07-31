@@ -18,6 +18,7 @@ build/
 *.sqlite
 *.sqlite-shm
 *.sqlite-wal
+db-backups/
 
 # Logs
 npm-debug.log*

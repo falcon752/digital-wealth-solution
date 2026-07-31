@@ -173,6 +173,19 @@ export const contactAPI = {
     api.put(`/contact/admin/${id}`, data),
 };
 
+// ─── Access Requests (site gate) ───────────────────────────────────────────
+export const accessAPI = {
+  request: (data: { name: string; email: string; reason?: string }) =>
+    api.post('/access-requests', data),
+  // admin
+  adminList: () => api.get('/access-requests/admin'),
+  approve: (id: string, data?: { adminNote?: string }) =>
+    api.put(`/access-requests/admin/${id}/approve`, data),
+  reject: (id: string, data?: { adminNote?: string }) =>
+    api.put(`/access-requests/admin/${id}/reject`, data),
+  revoke: (id: string) => api.put(`/access-requests/admin/${id}/revoke`),
+};
+
 // ─── Admin ────────────────────────────────────────────────────────────────
 export const adminAPI = {
   getDashboardStats: () => api.get('/admin/dashboard-stats'),

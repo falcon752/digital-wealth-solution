@@ -1246,6 +1246,71 @@ async function sendUserContactStatusEmail({ userEmail, firstName, topic, status,
   });
 }
 
+// ─── Site access gate ──────────────────────────────────────────────────────
+async function sendAccessCodeEmail({ userEmail, firstName, code }) {
+  const transporter = createTransporter();
+
+  const html = `
+    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
+      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
+      <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">Access Request Approved</p>
+
+      <p>Hi <strong>${firstName}</strong>,</p>
+      <p>Your request for access has been approved. Enter the code below on the access page to continue:</p>
+
+      <div style="background:#f4f7fb;border:1px solid #dbeafe;padding:24px;text-align:center;border-radius:12px;margin:24px 0;">
+        <span style="font-size:36px;font-weight:bold;letter-spacing:8px;color:#60a5fa;">${code}</span>
+      </div>
+
+      <p style="color:#6b7280;font-size:13px;">
+        Keep this code private — it's tied to your access and can be revoked if shared.
+      </p>
+      <hr style="border-color:#e5e7eb;margin:24px 0;" />
+      <p style="color:#6b7280;font-size:12px;">© Digital Wealth Partners — do not reply to this email.</p>
+    </div>
+  `;
+
+  await transporter.sendMail({
+    from: FROM(),
+    to: userEmail,
+    subject: 'Your Access Code - Digital Wealth Partners',
+    html: themedEmail(html),
+  });
+}
+
+async function sendAccessRequestNotificationEmail({ adminEmail, name, email, reason }) {
+  const transporter = createTransporter();
+
+  const html = `
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
+      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
+      <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">New Access Request</p>
+
+      <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
+        <tr><td style="color:#9ca3af;padding:6px 0;">Name</td><td style="color:#111827;font-weight:600;text-align:right;">${escapeHtml(name)}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">Email</td><td style="color:#111827;text-align:right;">${escapeHtml(email)}</td></tr>
+      </table>
+
+      ${reason ? `<div style="background:#f4f7fb;border:1px solid #dbeafe;padding:16px;border-radius:8px;margin-bottom:24px;">
+        <p style="color:#60a5fa;font-size:13px;margin:0 0 8px 0;text-transform:uppercase;">Reason</p>
+        <p style="margin:0;">${escapeHtml(reason)}</p>
+      </div>` : ''}
+
+      <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/admin/access-requests"
+         class="dwp-btn" style="display:inline-block;background:#2563eb;color:#ffffff !important;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">
+        Review Request
+      </a>
+    </div>
+  `;
+
+  await transporter.sendMail({
+    from: FROM(),
+    to: adminEmail,
+    subject: `[Access Request] ${name}`,
+    html: themedEmail(html),
+  });
+}
+
 module.exports = {
   sendSignupOTPEmail,
   sendDepositNotificationEmail,
@@ -1265,4 +1330,6 @@ module.exports = {
   sendUserLLCStatusEmail,
   sendLLCNotificationEmail,
   sendUserContactStatusEmail,
+  sendAccessCodeEmail,
+  sendAccessRequestNotificationEmail,
 };
