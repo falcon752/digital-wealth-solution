@@ -28,7 +28,7 @@ export async function proxy(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  if (pathname.startsWith('/access') || pathname.startsWith('/api/gate')) {
+  if (pathname.startsWith('/access') || pathname.startsWith('/gate')) {
     return NextResponse.next();
   }
 

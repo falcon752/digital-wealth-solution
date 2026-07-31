@@ -25,7 +25,7 @@ function AccessGatePageContent() {
     if (!code.trim()) return;
     setSubmitting(true);
     try {
-      const res = await fetch('/api/gate/verify', {
+      const res = await fetch('/gate/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: code.trim() }),
