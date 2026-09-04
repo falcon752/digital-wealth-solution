@@ -23,8 +23,8 @@ export default function ContactPage() {
           support@digitalwealthpartnersllc.net
         </a>
         . For legal inquiries, reach out to our legal advisor at{' '}
-        <a href="tel:+12144446111" style={{ color: '#1e266d' }}>
-          (214) 444-6111
+        <a href="tel:+12144449933" style={{ color: '#1e266d' }}>
+          (214) 444-9933
         </a>
         .
       </p>
