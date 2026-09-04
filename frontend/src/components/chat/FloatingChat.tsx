@@ -35,10 +35,10 @@ export default function FloatingChat() {
     setHasInteracted(true);
     setShowPopup(false);
     
-    if (typeof window !== 'undefined' && (window as any).Tawk_API) {
-      const tawk = (window as any).Tawk_API;
-      tawk.showWidget();
-      tawk.maximize();
+    if (typeof window !== 'undefined' && (window as any).smartsupp) {
+      const smartsupp = (window as any).smartsupp;
+      smartsupp('chat:show');
+      smartsupp('chat:open');
     }
   };
 

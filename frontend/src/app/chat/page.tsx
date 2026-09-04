@@ -3,6 +3,15 @@
 import Navbar from '@/components/layout/Navbar';
 import SiteFooter from '@/components/layout/SiteFooter';
 import { useEffect } from 'react';
+import { MessageSquare } from 'lucide-react';
+
+function openSmartsupp() {
+  if (typeof window !== 'undefined' && (window as any).smartsupp) {
+    const smartsupp = (window as any).smartsupp;
+    smartsupp('chat:show');
+    smartsupp('chat:open');
+  }
+}
 
 export default function ChatPage() {
   useEffect(() => {
@@ -11,19 +20,33 @@ export default function ChatPage() {
     if (floatingBtn) {
       (floatingBtn as HTMLElement).style.display = 'none';
     }
+
+    // Smartsupp's loader script is async, so retry briefly in case it
+    // hasn't attached window.smartsupp yet when this page mounts.
+    openSmartsupp();
+    const retry = setInterval(openSmartsupp, 500);
+    const stopRetry = setTimeout(() => clearInterval(retry), 5000);
+
+    return () => {
+      clearInterval(retry);
+      clearTimeout(stopRetry);
+    };
   }, []);
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <Navbar transparent={false} />
-      
-      <main className="flex-1 w-full pt-[72px]" style={{ height: 'calc(100vh - 72px)' }}>
-        <iframe
-          src="https://tawk.to/chat/6a36bdde47d57f1d4d486ed9/default"
-          style={{ width: '100%', height: '100%', border: 'none' }}
-          title="Digital Wealth Partners Live Chat"
-          allow="microphone; camera"
-        />
+
+      <main className="flex-1 w-full pt-[72px] flex flex-col items-center justify-center gap-4" style={{ height: 'calc(100vh - 72px)' }}>
+        <MessageSquare className="w-10 h-10 text-gray-300" />
+        <p className="text-gray-500 text-sm">Opening live chat…</p>
+        <button
+          onClick={openSmartsupp}
+          className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-colors"
+          style={{ backgroundColor: '#2C3342' }}
+        >
+          Open Chat
+        </button>
       </main>
 
       <SiteFooter />
