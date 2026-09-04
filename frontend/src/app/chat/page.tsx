@@ -8,7 +8,6 @@ import { MessageSquare } from 'lucide-react';
 function openSmartsupp() {
   if (typeof window !== 'undefined' && (window as any).smartsupp) {
     const smartsupp = (window as any).smartsupp;
-    smartsupp('chat:show');
     smartsupp('chat:open');
   }
 }
