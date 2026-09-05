@@ -6,20 +6,13 @@ import { useEffect } from 'react';
 import { MessageSquare } from 'lucide-react';
 
 function openSmartsupp() {
-  if (typeof window !== 'undefined' && (window as any).smartsupp) {
-    const smartsupp = (window as any).smartsupp;
-    smartsupp('chat:open');
+  if (typeof window !== 'undefined' && typeof (window as any).smartsupp === 'function') {
+    (window as any).smartsupp('chat:open');
   }
 }
 
 export default function ChatPage() {
   useEffect(() => {
-    // Hide our custom floating chat icon on this page if it exists
-    const floatingBtn = document.querySelector('button[aria-label="Launch chat"]');
-    if (floatingBtn) {
-      (floatingBtn as HTMLElement).style.display = 'none';
-    }
-
     // Smartsupp's loader script is async, so retry briefly in case it
     // hasn't attached window.smartsupp yet when this page mounts.
     openSmartsupp();

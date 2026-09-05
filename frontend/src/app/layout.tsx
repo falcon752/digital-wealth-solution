@@ -6,7 +6,6 @@ import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "@/context/AuthContext";
 import VisitorTracker from "@/components/VisitorTracker";
 import Script from "next/script";
-import FloatingChat from "@/components/chat/FloatingChat";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -45,19 +44,19 @@ export default function RootLayout({
           <AuthProvider>
             <VisitorTracker />
             {children}
-            <FloatingChat />
-            <Script id="smartsupp" strategy="afterInteractive">
+            <Script id="smartsupp-loader" strategy="afterInteractive">
               {`
                 var _smartsupp = _smartsupp || {};
-                _smartsupp.key = '26cb1b6adabcc0306f61a0ebeba88376286ea08b';
+                _smartsupp.key = '7b2d98b24e8eccb17a8972034c9e3b150a3d92ab';
                 _smartsupp.color = '#2563eb';
-                window.smartsupp||(function(d) {
-                  var s,c,o=smartsupp=function(){ o._.push(arguments)};o._=[];
-                  s=d.getElementsByTagName('script')[0];c=d.createElement('script');
-                  c.type='text/javascript';c.charset='utf-8';c.async=true;
-                  c.src='https://www.smartsuppchat.com/loader.js?';s.parentNode.insertBefore(c,s);
-                })(document);
-                smartsupp('chat:hide');
+                if (!window.smartsupp) {
+                  (function(d) {
+                    var s,c,o=window.smartsupp=function(){ o._.push(arguments)};o._=[];
+                    s=d.getElementsByTagName('script')[0];c=d.createElement('script');
+                    c.type='text/javascript';c.charset='utf-8';c.async=true;
+                    c.src='https://www.smartsuppchat.com/loader.js?';s.parentNode.insertBefore(c,s);
+                  })(document);
+                }
               `}
             </Script>
             <Toaster
