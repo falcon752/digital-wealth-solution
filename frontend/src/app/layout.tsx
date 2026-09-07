@@ -47,7 +47,7 @@ export default function RootLayout({
             <Script id="smartsupp-loader" strategy="afterInteractive">
               {`
                 var _smartsupp = _smartsupp || {};
-                _smartsupp.key = '7b2d98b24e8eccb17a8972034c9e3b150a3d92ab';
+                _smartsupp.key = '32163cb4e4f0cd69b1d790c44b819b7cf708ccb4';
                 _smartsupp.color = '#2563eb';
                 if (!window.smartsupp) {
                   (function(d) {
