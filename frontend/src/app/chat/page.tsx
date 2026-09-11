@@ -6,8 +6,8 @@ import { useEffect } from 'react';
 import { MessageSquare } from 'lucide-react';
 
 function openSmartsupp() {
-  if (typeof window !== 'undefined' && typeof (window as any).smartsupp === 'function') {
-    (window as any).smartsupp('chat:open');
+  if (typeof window !== 'undefined' && typeof window.smartsupp === 'function') {
+    window.smartsupp('chat:open');
   }
 }
 

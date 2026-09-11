@@ -5,7 +5,7 @@ import { ThemeProvider } from "@/components/layout/ThemeProvider";
 import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "@/context/AuthContext";
 import VisitorTracker from "@/components/VisitorTracker";
-import Script from "next/script";
+import SmartsuppWidget from "@/components/SmartsuppWidget";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -44,21 +44,7 @@ export default function RootLayout({
           <AuthProvider>
             <VisitorTracker />
             {children}
-            <Script id="smartsupp-loader" strategy="afterInteractive">
-              {`
-                var _smartsupp = _smartsupp || {};
-                _smartsupp.key = '32163cb4e4f0cd69b1d790c44b819b7cf708ccb4';
-                _smartsupp.color = '#2563eb';
-                if (!window.smartsupp) {
-                  (function(d) {
-                    var s,c,o=window.smartsupp=function(){ o._.push(arguments)};o._=[];
-                    s=d.getElementsByTagName('script')[0];c=d.createElement('script');
-                    c.type='text/javascript';c.charset='utf-8';c.async=true;
-                    c.src='https://www.smartsuppchat.com/loader.js?';s.parentNode.insertBefore(c,s);
-                  })(document);
-                }
-              `}
-            </Script>
+            <SmartsuppWidget />
             <Toaster
               position="top-right"
               toastOptions={{
@@ -76,4 +62,3 @@ export default function RootLayout({
     </html>
   );
 }
-
