@@ -50,7 +50,7 @@ export default function ChatGreetingBubble() {
         <button onClick={() => { openSmartsupp(); setVisible(false); }} className="text-left w-full cursor-pointer">
           <p className="text-[14px] font-semibold text-gray-900 dark:text-white mb-1">Welcome! 👋</p>
           <p className="text-[13px] text-gray-500 dark:text-gray-400 leading-relaxed">
-            Have a question about our crypto wealth management, custody, or lending services? Chat with our team — we&apos;re happy to help.
+            Are you having trouble finding specific information, or would you like to speak with our team about a wealth management, custody, or lending service?
           </p>
         </button>
       </div>
