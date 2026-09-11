@@ -48,7 +48,7 @@ export default function ChatGreetingBubble() {
           <X size={16} />
         </button>
         <button onClick={() => { openSmartsupp(); setVisible(false); }} className="text-left w-full cursor-pointer">
-          <p className="text-[14px] font-semibold text-gray-900 dark:text-white mb-1">Welcome! 👋</p>
+          <p className="text-[14px] font-semibold text-gray-900 dark:text-white mb-1">Welcome to Digital Wealth Partners! 👋</p>
           <p className="text-[13px] text-gray-500 dark:text-gray-400 leading-relaxed">
             Are you having trouble finding specific information, or would you like to speak with our team about a wealth management, custody, or lending service?
           </p>
