@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { SidebarProvider } from '@/context/SidebarContext';
 import DashboardSidebar from '@/components/layout/DashboardSidebar';
 import MobileBottomNav from '@/components/layout/MobileBottomNav';
+import WelcomePopup from '@/components/WelcomePopup';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
@@ -61,6 +62,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </main>
         <MobileBottomNav />
       </div>
+      <WelcomePopup />
     </SidebarProvider>
   );
 }
