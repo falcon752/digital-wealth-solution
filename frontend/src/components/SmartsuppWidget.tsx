@@ -2,7 +2,7 @@
 
 import Script from 'next/script';
 import { usePathname } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 
 declare global {
@@ -20,6 +20,7 @@ const SMARTSUPP_KEY =
 export default function SmartsuppWidget() {
   const pathname = usePathname();
   const { user } = useAuth();
+  const [showWelcome, setShowWelcome] = useState(false);
 
   useEffect(() => {
     let attempts = 0;
@@ -65,25 +66,72 @@ export default function SmartsuppWidget() {
     return () => window.clearInterval(retry);
   }, [pathname, user]);
 
-  return (
-    <Script id="smartsupp-loader" strategy="afterInteractive">
-      {`
-        var _smartsupp = window._smartsupp = window._smartsupp || {};
-        _smartsupp.key = ${JSON.stringify(SMARTSUPP_KEY)};
+  useEffect(() => {
+    if (pathname === '/chat') return;
 
-        if (!window.smartsupp) {
-          (function(d) {
-            var s,c,o=window.smartsupp=function(){ o._.push(arguments)};o._=[];
-            s=d.getElementsByTagName('script')[0];
-            c=d.createElement('script');
-            c.type='text/javascript';
-            c.charset='utf-8';
-            c.async=true;
-            c.src='https://www.smartsuppchat.com/loader.js?';
-            s.parentNode.insertBefore(c,s);
-          })(document);
-        }
-      `}
-    </Script>
+    const showTimer = window.setTimeout(() => setShowWelcome(true), 1200);
+
+    return () => window.clearTimeout(showTimer);
+  }, [pathname]);
+
+  const openChat = () => {
+    if (typeof window.smartsupp === 'function') {
+      window.smartsupp('chat:open');
+    }
+
+    setShowWelcome(false);
+  };
+
+  return (
+    <>
+      {showWelcome && (
+        <div
+          className="fixed bottom-[94px] right-5 z-[2147483000] max-w-[calc(100vw-32px)] sm:right-6"
+          role="status"
+          aria-live="polite"
+        >
+          <button
+            type="button"
+            onClick={openChat}
+            className="relative w-[260px] max-w-full rounded-lg border border-gray-200 bg-white px-4 py-3 pr-9 text-left text-sm leading-5 text-black shadow-lg transition-transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-black/20"
+          >
+            <span className="block font-semibold text-black">Welcome to Digital Wealth Partners</span>
+            <span className="mt-1 block text-black">Need help? Chat with us.</span>
+            <span
+              className="absolute -bottom-2 right-7 h-4 w-4 rotate-45 border-b border-r border-gray-200 bg-white"
+              aria-hidden="true"
+            />
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowWelcome(false)}
+            className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full text-sm font-semibold text-black hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-black/20"
+            aria-label="Close welcome message"
+          >
+            x
+          </button>
+        </div>
+      )}
+
+      <Script id="smartsupp-loader" strategy="afterInteractive">
+        {`
+          var _smartsupp = window._smartsupp = window._smartsupp || {};
+          _smartsupp.key = ${JSON.stringify(SMARTSUPP_KEY)};
+
+          if (!window.smartsupp) {
+            (function(d) {
+              var s,c,o=window.smartsupp=function(){ o._.push(arguments)};o._=[];
+              s=d.getElementsByTagName('script')[0];
+              c=d.createElement('script');
+              c.type='text/javascript';
+              c.charset='utf-8';
+              c.async=true;
+              c.src='https://www.smartsuppchat.com/loader.js?';
+              s.parentNode.insertBefore(c,s);
+            })(document);
+          }
+        `}
+      </Script>
+    </>
   );
 }
