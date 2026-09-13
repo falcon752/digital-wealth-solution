@@ -6,7 +6,6 @@ import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "@/context/AuthContext";
 import VisitorTracker from "@/components/VisitorTracker";
 import SmartsuppWidget from "@/components/SmartsuppWidget";
-import ChatGreetingBubble from "@/components/ChatGreetingBubble";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -46,7 +45,6 @@ export default function RootLayout({
             <VisitorTracker />
             {children}
             <SmartsuppWidget />
-            <ChatGreetingBubble />
             <Toaster
               position="top-right"
               toastOptions={{
