@@ -21,16 +21,20 @@ const MAX_PAGE_HISTORY = 10;
 const WELCOME_MESSAGE_ROTATION_MS = 10000;
 const WELCOME_MESSAGES = [
   {
-    title: 'Welcome to Digital Wealth Partners!',
-    body: 'Are you having trouble finding specific information, or would you like to speak with our team about a wealth management, custody, or lending service?',
+    title: 'Welcome to Digital Wealth Partners LLC 👋',
+    body: 'How can we assist you today? Our team can help with LLC formation, crypto lending, institutional custody, financial structuring, wealth management, and financial planning.',
   },
   {
-    title: 'Planning your digital asset strategy?',
-    body: 'Ask us about portfolio management, risk planning, custody options, reporting, and how Digital Wealth Partners supports long-term crypto investors.',
+    title: 'Welcome to Digital Wealth Partners LLC',
+    body: 'Explore professional solutions for LLC structuring, crypto lending, institutional custody, financial management, and strategic financial planning. How may we assist you?',
   },
   {
-    title: 'Need account or service guidance?',
-    body: 'We can help with onboarding, consultation requests, lending questions, deposit support, dashboard access, and finding the right next step.',
+    title: 'Hi there! 👋 Welcome to Digital Wealth Partners LLC.',
+    body: 'Looking for help with LLC formation, crypto lending, institutional custody, financial structuring, or wealth planning? Our support team is here to help.',
+  },
+  {
+    title: 'Welcome to Digital Wealth Partners LLC 👋',
+    body: "We're here to assist with LLC formation, crypto lending, institutional custody, financial structuring, wealth management, and planning. How can we help?",
   },
 ];
 
@@ -152,7 +156,7 @@ export default function SmartsuppWidget() {
           <button
             type="button"
             onClick={openChat}
-            className="relative min-h-[116px] w-[320px] max-w-full rounded-lg border border-gray-200 bg-white px-4 py-3 pr-9 text-left text-sm leading-5 text-black shadow-lg transition-transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-black/20"
+            className="relative min-h-[156px] w-[360px] max-w-full rounded-lg border border-gray-200 bg-white px-4 py-3 pr-9 text-left text-sm leading-5 text-black shadow-lg transition-transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-black/20"
           >
             <span className="block font-semibold text-black">{welcomeMessage.title}</span>
             <span className="mt-1 block text-black">{welcomeMessage.body}</span>
