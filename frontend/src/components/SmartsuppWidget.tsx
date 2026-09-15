@@ -16,6 +16,27 @@ declare global {
 
 const SMARTSUPP_KEY =
   process.env.NEXT_PUBLIC_SMARTSUPP_KEY || '32163cb4e4f0cd69b1d790c44b819b7cf708ccb4';
+const PAGE_HISTORY_KEY = 'dwp_smartsupp_page_history';
+const MAX_PAGE_HISTORY = 10;
+
+function getPageHistory(pathname: string) {
+  if (typeof window === 'undefined') return pathname;
+
+  const currentUrl = `${window.location.origin}${pathname}`;
+
+  try {
+    const previous = sessionStorage.getItem(PAGE_HISTORY_KEY);
+    const pages = previous ? previous.split('\n').filter(Boolean) : [];
+    const nextPages =
+      pages[pages.length - 1] === currentUrl ? pages : [...pages, currentUrl].slice(-MAX_PAGE_HISTORY);
+
+    sessionStorage.setItem(PAGE_HISTORY_KEY, nextPages.join('\n'));
+
+    return nextPages.join(' > ');
+  } catch {
+    return currentUrl;
+  }
+}
 
 export default function SmartsuppWidget() {
   const pathname = usePathname();
@@ -27,6 +48,9 @@ export default function SmartsuppWidget() {
 
     const syncVisitor = () => {
       if (typeof window.smartsupp !== 'function') return false;
+
+      const currentUrl = `${window.location.origin}${pathname}`;
+      const pageHistory = getPageHistory(pathname);
 
       if (user) {
         const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ');
@@ -40,6 +64,8 @@ export default function SmartsuppWidget() {
           Username: user.username || '',
           Role: user.role,
           Current_page: pathname,
+          Current_url: currentUrl,
+          Page_history: pageHistory,
         });
 
         return true;
@@ -47,6 +73,8 @@ export default function SmartsuppWidget() {
 
       window.smartsupp('variables', {
         Current_page: pathname,
+        Current_url: currentUrl,
+        Page_history: pageHistory,
         Visitor_type: 'Anonymous',
       });
 
@@ -93,10 +121,12 @@ export default function SmartsuppWidget() {
           <button
             type="button"
             onClick={openChat}
-            className="relative w-[260px] max-w-full rounded-lg border border-gray-200 bg-white px-4 py-3 pr-9 text-left text-sm leading-5 text-black shadow-lg transition-transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-black/20"
+            className="relative w-[320px] max-w-full rounded-lg border border-gray-200 bg-white px-4 py-3 pr-9 text-left text-sm leading-5 text-black shadow-lg transition-transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-black/20"
           >
-            <span className="block font-semibold text-black">Welcome to Digital Wealth Partners</span>
-            <span className="mt-1 block text-black">Need help? Chat with us.</span>
+            <span className="block font-semibold text-black">Welcome to Digital Wealth Partners!</span>
+            <span className="mt-1 block text-black">
+              Are you having trouble finding specific information, or would you like to speak with our team about a wealth management, custody, or lending service?
+            </span>
             <span
               className="absolute -bottom-2 right-7 h-4 w-4 rotate-45 border-b border-r border-gray-200 bg-white"
               aria-hidden="true"
