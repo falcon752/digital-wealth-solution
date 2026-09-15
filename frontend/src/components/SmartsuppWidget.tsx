@@ -18,6 +18,21 @@ const SMARTSUPP_KEY =
   process.env.NEXT_PUBLIC_SMARTSUPP_KEY || '32163cb4e4f0cd69b1d790c44b819b7cf708ccb4';
 const PAGE_HISTORY_KEY = 'dwp_smartsupp_page_history';
 const MAX_PAGE_HISTORY = 10;
+const WELCOME_MESSAGE_ROTATION_MS = 10000;
+const WELCOME_MESSAGES = [
+  {
+    title: 'Welcome to Digital Wealth Partners!',
+    body: 'Are you having trouble finding specific information, or would you like to speak with our team about a wealth management, custody, or lending service?',
+  },
+  {
+    title: 'Planning your digital asset strategy?',
+    body: 'Ask us about portfolio management, risk planning, custody options, reporting, and how Digital Wealth Partners supports long-term crypto investors.',
+  },
+  {
+    title: 'Need account or service guidance?',
+    body: 'We can help with onboarding, consultation requests, lending questions, deposit support, dashboard access, and finding the right next step.',
+  },
+];
 
 function getPageHistory(pathname: string) {
   if (typeof window === 'undefined') return pathname;
@@ -42,6 +57,9 @@ export default function SmartsuppWidget() {
   const pathname = usePathname();
   const { user } = useAuth();
   const [showWelcome, setShowWelcome] = useState(false);
+  const [welcomeMessageIndex, setWelcomeMessageIndex] = useState(0);
+  const welcomeMessage = WELCOME_MESSAGES[welcomeMessageIndex];
+  const shouldShowWelcome = showWelcome && pathname !== '/chat';
 
   useEffect(() => {
     let attempts = 0;
@@ -97,10 +115,23 @@ export default function SmartsuppWidget() {
   useEffect(() => {
     if (pathname === '/chat') return;
 
-    const showTimer = window.setTimeout(() => setShowWelcome(true), 1200);
+    const showTimer = window.setTimeout(() => {
+      setWelcomeMessageIndex(0);
+      setShowWelcome(true);
+    }, 1200);
 
     return () => window.clearTimeout(showTimer);
   }, [pathname]);
+
+  useEffect(() => {
+    if (!shouldShowWelcome) return;
+
+    const rotationTimer = window.setInterval(() => {
+      setWelcomeMessageIndex((currentIndex) => (currentIndex + 1) % WELCOME_MESSAGES.length);
+    }, WELCOME_MESSAGE_ROTATION_MS);
+
+    return () => window.clearInterval(rotationTimer);
+  }, [shouldShowWelcome]);
 
   const openChat = () => {
     if (typeof window.smartsupp === 'function') {
@@ -112,7 +143,7 @@ export default function SmartsuppWidget() {
 
   return (
     <>
-      {showWelcome && (
+      {shouldShowWelcome && (
         <div
           className="fixed bottom-[94px] right-5 z-[2147483000] max-w-[calc(100vw-32px)] sm:right-6"
           role="status"
@@ -121,12 +152,10 @@ export default function SmartsuppWidget() {
           <button
             type="button"
             onClick={openChat}
-            className="relative w-[320px] max-w-full rounded-lg border border-gray-200 bg-white px-4 py-3 pr-9 text-left text-sm leading-5 text-black shadow-lg transition-transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-black/20"
+            className="relative min-h-[116px] w-[320px] max-w-full rounded-lg border border-gray-200 bg-white px-4 py-3 pr-9 text-left text-sm leading-5 text-black shadow-lg transition-transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-black/20"
           >
-            <span className="block font-semibold text-black">Welcome to Digital Wealth Partners!</span>
-            <span className="mt-1 block text-black">
-              Are you having trouble finding specific information, or would you like to speak with our team about a wealth management, custody, or lending service?
-            </span>
+            <span className="block font-semibold text-black">{welcomeMessage.title}</span>
+            <span className="mt-1 block text-black">{welcomeMessage.body}</span>
             <span
               className="absolute -bottom-2 right-7 h-4 w-4 rotate-45 border-b border-r border-gray-200 bg-white"
               aria-hidden="true"
