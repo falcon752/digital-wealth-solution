@@ -21,19 +21,19 @@ const MAX_PAGE_HISTORY = 10;
 const WELCOME_MESSAGE_ROTATION_MS = 10000;
 const WELCOME_MESSAGES = [
   {
-    title: 'Welcome to Digital Wealth Partners LLC 👋',
+    title: 'Welcome to Digital Wealth Partners 👋',
     body: 'How can we assist you today? Our team can help with LLC formation, crypto lending, institutional custody, financial structuring, wealth management, and financial planning.',
   },
   {
-    title: 'Welcome to Digital Wealth Partners LLC',
+    title: 'Welcome to Digital Wealth Partners',
     body: 'Explore professional solutions for LLC structuring, crypto lending, institutional custody, financial management, and strategic financial planning. How may we assist you?',
   },
   {
-    title: 'Hi there! 👋 Welcome to Digital Wealth Partners LLC.',
+    title: 'Hi there! 👋 Welcome to Digital Wealth Partners.',
     body: 'Looking for help with LLC formation, crypto lending, institutional custody, financial structuring, or wealth planning? Our support team is here to help.',
   },
   {
-    title: 'Welcome to Digital Wealth Partners LLC 👋',
+    title: 'Welcome to Digital Wealth Partners 👋',
     body: "We're here to assist with LLC formation, crypto lending, institutional custody, financial structuring, wealth management, and planning. How can we help?",
   },
 ];
