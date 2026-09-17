@@ -203,6 +203,19 @@ export const adminAPI = {
     api.post(`/admin/users/${id}/asset-adjustment`, data),
   verifyUserPayment: (id: string, onboardingFeePaid: boolean) =>
     api.put(`/admin/users/${id}/verify-payment`, { onboardingFeePaid }),
+  getBroadcastUsers: (params?: { search?: string }) =>
+    api.get('/admin/broadcast/users', { params }),
+  sendBroadcast: (data: {
+    recipientMode: 'selected' | 'all';
+    userIds?: string[];
+    activeOnly?: boolean;
+    templateKey?: string;
+    subject: string;
+    title?: string;
+    message: string;
+    ctaLabel?: string;
+    ctaUrl?: string;
+  }) => api.post('/admin/broadcast/send', data),
   getActivityLogs: (params?: { page?: number; limit?: number }) =>
     api.get('/admin/activity-logs', { params }),
 };

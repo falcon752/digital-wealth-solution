@@ -1,17 +1,15 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useSidebar } from '@/context/SidebarContext';
 import { cn } from '@/lib/utils';
 import { X, LogOut } from 'lucide-react';
 import {
-  Home, Database, ArrowLeftRight, Monitor, Settings,
   BarChart2, Building2, CircleDollarSign, Coins,
   LayoutDashboard, ArrowDownToLine, ArrowUpFromLine, Users, Package, Activity,
-  CheckCircle, CreditCard, MessageSquare, KeyRound
+  CheckCircle, CreditCard, MessageSquare, KeyRound, Mail
 } from 'lucide-react';
 
 const userNav = [
@@ -33,6 +31,7 @@ const adminNav = [
   { href: '/admin/loans', icon: Coins, label: 'Loans' },
   { href: '/admin/onboarding-payments', icon: CheckCircle, label: 'Onboarding Fee' },
   { href: '/admin/users', icon: Users, label: 'Users' },
+  { href: '/admin/broadcast', icon: Mail, label: 'Broadcast' },
   { href: '/admin/referrals', icon: Users, label: 'Referrals' },
   { href: '/admin/live-visitors', icon: Activity, label: 'Live Visitors' },
   { href: '/admin/activity', icon: Activity, label: 'Activity Log' },

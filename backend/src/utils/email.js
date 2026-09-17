@@ -1311,6 +1311,46 @@ async function sendAccessRequestNotificationEmail({ adminEmail, name, email, rea
   });
 }
 
+async function sendBroadcastEmail({ userEmail, firstName, subject, title, message, ctaLabel, ctaUrl }) {
+  const transporter = createTransporter();
+  const safeTitle = escapeHtml(title || subject);
+  const safeFirstName = escapeHtml(firstName || 'there');
+  const safeSubject = escapeHtml(subject);
+  const messageHtml = renderNoteHtml(message || '');
+  const buttonUrl = ctaUrl ? escapeHtml(ctaUrl) : null;
+  const buttonText = escapeHtml(ctaLabel || 'View Dashboard');
+
+  const html = `
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
+      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
+      <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">${safeTitle}</p>
+
+      <p>Hi <strong>${safeFirstName}</strong>,</p>
+      ${messageHtml}
+
+      ${buttonUrl ? `
+        <table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0 8px 0;">
+          <tr>
+            <td bgcolor="#0033AD" style="border-radius:8px;background:#0033AD;">
+              <a href="${buttonUrl}" class="dwp-btn" style="display:inline-block;padding:12px 24px;font-weight:600;text-decoration:none;font-family:sans-serif;color:#ffffff !important;">${buttonText}</a>
+            </td>
+          </tr>
+        </table>
+      ` : ''}
+
+      <hr style="border-color:#e5e7eb;margin:28px 0;" />
+      <p style="color:#6b7280;font-size:12px;">${safeSubject} · This is an administrative broadcast from Digital Wealth Partners.</p>
+    </div>
+  `;
+
+  await transporter.sendMail({
+    from: FROM(),
+    to: userEmail,
+    subject,
+    html: themedEmail(html),
+  });
+}
+
 module.exports = {
   sendSignupOTPEmail,
   sendDepositNotificationEmail,
@@ -1332,4 +1372,5 @@ module.exports = {
   sendUserContactStatusEmail,
   sendAccessCodeEmail,
   sendAccessRequestNotificationEmail,
+  sendBroadcastEmail,
 };
