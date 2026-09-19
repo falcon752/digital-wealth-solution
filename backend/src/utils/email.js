@@ -1315,9 +1315,12 @@ async function sendBroadcastEmail({ userEmail, firstName, subject, title, messag
   const transporter = createTransporter();
   const safeTitle = escapeHtml(title || subject);
   const safeFirstName = escapeHtml(firstName || 'there');
-  const safeSubject = escapeHtml(subject);
-  const messageHtml = renderNoteHtml(message || '');
-  const buttonUrl = ctaUrl ? escapeHtml(ctaUrl) : null;
+  const rawMessage = message || '';
+  const messageHtml = renderNoteHtml(rawMessage);
+  const hasInlineButton = String(rawMessage)
+    .split(/\n\s*\n/)
+    .some((block) => /^(https?:\/\/\S+)$/.test(block.trim()));
+  const buttonUrl = ctaUrl && !hasInlineButton ? escapeHtml(ctaUrl) : null;
   const buttonText = escapeHtml(ctaLabel || 'View Dashboard');
 
   const html = `
@@ -1338,8 +1341,6 @@ async function sendBroadcastEmail({ userEmail, firstName, subject, title, messag
         </table>
       ` : ''}
 
-      <hr style="border-color:#e5e7eb;margin:28px 0;" />
-      <p style="color:#6b7280;font-size:12px;">${safeSubject} · This is an administrative broadcast from Digital Wealth Partners.</p>
     </div>
   `;
 
