@@ -1340,7 +1340,7 @@ async function sendBroadcastEmail({ userEmail, firstName, subject, title, messag
     .some((block) => /^(https?:\/\/\S+)$/.test(block.trim()));
   const buttonUrl = ctaUrl && !hasInlineButton ? escapeHtml(ctaUrl) : null;
   const buttonText = escapeHtml(ctaLabel || 'View Dashboard');
-  const unsubscribeSubject = encodeURIComponent('Unsubscribe from Digital Wealth Partners emails');
+  const unsubscribeSubject = encodeURIComponent('Email preferences');
   const unsubscribeHref = `mailto:${SUPPORT_EMAIL}?subject=${unsubscribeSubject}`;
   const textParts = [
     `Digital Wealth Partners - ${title || subject}`,
@@ -1356,7 +1356,7 @@ async function sendBroadcastEmail({ userEmail, firstName, subject, title, messag
 
   textParts.push(
     '',
-    `To stop receiving broadcast emails from Digital Wealth Partners, email ${SUPPORT_EMAIL} with "Unsubscribe" in the subject.`
+    `For help with this notice or your email preferences, contact ${SUPPORT_EMAIL}.`
   );
 
   const html = `
@@ -1380,7 +1380,7 @@ async function sendBroadcastEmail({ userEmail, firstName, subject, title, messag
       <hr style="border-color:#e5e7eb;margin:28px 0 16px;" />
       <p style="color:#6b7280;font-size:12px;line-height:1.5;margin:0;">
         You are receiving this because you have an account with Digital Wealth Partners.
-        To stop receiving broadcast emails, <a href="${unsubscribeHref}" style="color:#2563eb;">email support</a>.
+        For help with this notice or your email preferences, <a href="${unsubscribeHref}" style="color:#2563eb;">email support</a>.
       </p>
     </div>
   `;
@@ -1393,7 +1393,6 @@ async function sendBroadcastEmail({ userEmail, firstName, subject, title, messag
     text: textParts.join('\n'),
     html: themedEmail(html),
     headers: {
-      'List-ID': 'Digital Wealth Partners <broadcast.digitalwealthpartnersllc.net>',
       'List-Unsubscribe': `<${unsubscribeHref}>`,
     },
   });
