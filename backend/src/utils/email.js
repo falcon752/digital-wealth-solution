@@ -1340,8 +1340,6 @@ async function sendBroadcastEmail({ userEmail, firstName, subject, title, messag
     .some((block) => /^(https?:\/\/\S+)$/.test(block.trim()));
   const buttonUrl = ctaUrl && !hasInlineButton ? escapeHtml(ctaUrl) : null;
   const buttonText = escapeHtml(ctaLabel || 'View Dashboard');
-  const unsubscribeSubject = encodeURIComponent('Email preferences');
-  const unsubscribeHref = `mailto:${SUPPORT_EMAIL}?subject=${unsubscribeSubject}`;
   const textParts = [
     `Digital Wealth Partners - ${title || subject}`,
     '',
@@ -1354,18 +1352,18 @@ async function sendBroadcastEmail({ userEmail, firstName, subject, title, messag
     textParts.push('', `${ctaLabel || 'View Dashboard'}: ${ctaUrl}`);
   }
 
-  textParts.push(
-    '',
-    `For help with this notice or your email preferences, contact ${SUPPORT_EMAIL}.`
-  );
+  textParts.push('', 'This is an automated notification from Digital Wealth Partners. Do not reply.');
 
   const html = `
     <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
       <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
-      <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">${safeTitle}</p>
 
       <p>Hi <strong>${safeFirstName}</strong>,</p>
-      ${messageHtml}
+
+      <div style="background:#f4f7fb;border:1px solid #dbeafe;padding:16px;border-radius:8px;margin:20px 0;">
+        <p style="color:#60a5fa;font-size:13px;margin:0 0 8px 0;text-transform:uppercase;">${safeTitle}</p>
+        ${messageHtml}
+      </div>
 
       ${buttonUrl ? `
         <table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0 8px 0;">
@@ -1377,11 +1375,8 @@ async function sendBroadcastEmail({ userEmail, firstName, subject, title, messag
         </table>
       ` : ''}
 
-      <hr style="border-color:#e5e7eb;margin:28px 0 16px;" />
-      <p style="color:#6b7280;font-size:12px;line-height:1.5;margin:0;">
-        You are receiving this because you have an account with Digital Wealth Partners.
-        For help with this notice or your email preferences, <a href="${unsubscribeHref}" style="color:#2563eb;">email support</a>.
-      </p>
+      <hr style="border-color:#e5e7eb;margin:28px 0;" />
+      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners. Do not reply.</p>
     </div>
   `;
 
@@ -1392,9 +1387,6 @@ async function sendBroadcastEmail({ userEmail, firstName, subject, title, messag
     subject,
     text: textParts.join('\n'),
     html: themedEmail(html),
-    headers: {
-      'List-Unsubscribe': `<${unsubscribeHref}>`,
-    },
   });
 }
 
