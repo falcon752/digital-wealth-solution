@@ -1340,6 +1340,24 @@ async function sendBroadcastEmail({ userEmail, firstName, subject, title, messag
     .some((block) => /^(https?:\/\/\S+)$/.test(block.trim()));
   const buttonUrl = ctaUrl && !hasInlineButton ? escapeHtml(ctaUrl) : null;
   const buttonText = escapeHtml(ctaLabel || 'View Dashboard');
+  const unsubscribeSubject = encodeURIComponent('Unsubscribe from Digital Wealth Partners emails');
+  const unsubscribeHref = `mailto:${SUPPORT_EMAIL}?subject=${unsubscribeSubject}`;
+  const textParts = [
+    `Digital Wealth Partners - ${title || subject}`,
+    '',
+    `Hi ${firstName || 'there'},`,
+    '',
+    String(rawMessage).trim(),
+  ];
+
+  if (ctaUrl && !hasInlineButton) {
+    textParts.push('', `${ctaLabel || 'View Dashboard'}: ${ctaUrl}`);
+  }
+
+  textParts.push(
+    '',
+    `To stop receiving broadcast emails from Digital Wealth Partners, email ${SUPPORT_EMAIL} with "Unsubscribe" in the subject.`
+  );
 
   const html = `
     <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
@@ -1359,14 +1377,25 @@ async function sendBroadcastEmail({ userEmail, firstName, subject, title, messag
         </table>
       ` : ''}
 
+      <hr style="border-color:#e5e7eb;margin:28px 0 16px;" />
+      <p style="color:#6b7280;font-size:12px;line-height:1.5;margin:0;">
+        You are receiving this because you have an account with Digital Wealth Partners.
+        To stop receiving broadcast emails, <a href="${unsubscribeHref}" style="color:#2563eb;">email support</a>.
+      </p>
     </div>
   `;
 
   await transporter.sendMail({
     from: FROM(),
+    replyTo: SUPPORT_EMAIL,
     to: userEmail,
     subject,
+    text: textParts.join('\n'),
     html: themedEmail(html),
+    headers: {
+      'List-ID': 'Digital Wealth Partners <broadcast.digitalwealthpartnersllc.net>',
+      'List-Unsubscribe': `<${unsubscribeHref}>`,
+    },
   });
 }
 
