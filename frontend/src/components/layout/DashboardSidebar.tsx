@@ -31,7 +31,7 @@ const adminNav = [
   { href: '/admin/loans', icon: Coins, label: 'Loans' },
   { href: '/admin/onboarding-payments', icon: CheckCircle, label: 'Onboarding Fee' },
   { href: '/admin/users', icon: Users, label: 'Users' },
-  { href: '/admin/broadcast', icon: Mail, label: 'Account Notices' },
+  { href: '/admin/broadcast', icon: Mail, label: 'Broadcast' },
   { href: '/admin/referrals', icon: Users, label: 'Referrals' },
   { href: '/admin/live-visitors', icon: Activity, label: 'Live Visitors' },
   { href: '/admin/activity', icon: Activity, label: 'Activity Log' },
