@@ -2,10 +2,11 @@ require('dotenv').config({ path: './.env' });
 const nodemailer = require('nodemailer');
 
 async function testSMTP() {
+  const port = parseInt(process.env.SMTP_PORT, 10) || 465;
   const config = {
-    host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.SMTP_PORT) || 587,
-    secure: false, // true for 465, false for 587
+    host: process.env.SMTP_HOST || 'mail.privateemail.com',
+    port,
+    secure: port === 465,
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS,

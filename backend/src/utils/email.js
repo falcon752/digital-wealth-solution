@@ -1,19 +1,37 @@
 const nodemailer = require('nodemailer');
 
+const SUPPORT_EMAIL = 'support@digitalwealthpartnersllc.net';
+const PRIVATE_EMAIL_HOST = 'mail.privateemail.com';
+
 function createTransporter() {
-  const port = parseInt(process.env.SMTP_PORT) || 587;
+  const host = process.env.SMTP_HOST || PRIVATE_EMAIL_HOST;
+  const port = parseInt(process.env.SMTP_PORT, 10) || 465;
+  const user = process.env.SMTP_USER || SUPPORT_EMAIL;
+
+  if (/gmail/i.test(host) || /gmail/i.test(user)) {
+    throw new Error('Email delivery must use the Namecheap support mailbox, not Gmail.');
+  }
+
   return nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.gmail.com',
+    host,
     port,
     secure: port === 465,
     auth: {
-      user: process.env.SMTP_USER,
+      user,
       pass: process.env.SMTP_PASS,
     },
   });
 }
 
-const FROM = () => process.env.EMAIL_FROM || 'DWP Mail <support@digitalwealthpartnersllc.net>';
+const FROM = () => {
+  const from = process.env.EMAIL_FROM || `Digital Wealth Partners <${SUPPORT_EMAIL}>`;
+
+  if (!from.includes(SUPPORT_EMAIL)) {
+    throw new Error(`EMAIL_FROM must use ${SUPPORT_EMAIL}.`);
+  }
+
+  return from;
+};
 
 function themedEmail(content) {
   return `<!doctype html>

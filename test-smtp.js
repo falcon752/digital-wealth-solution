@@ -27,14 +27,14 @@ const nodemailer = (() => {
 })();
 
 console.log('--- SMTP Configuration Test ---');
-console.log('SMTP_HOST:', process.env.SMTP_HOST || 'smtp.gmail.com');
+console.log('SMTP_HOST:', process.env.SMTP_HOST || 'mail.privateemail.com');
 console.log('SMTP_PORT:', process.env.SMTP_PORT || '465');
 console.log('SMTP_USER:', process.env.SMTP_USER);
 console.log('-------------------------------');
 
-const port = parseInt(process.env.SMTP_PORT) || 465;
+const port = parseInt(process.env.SMTP_PORT, 10) || 465;
 const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.gmail.com',
+  host: process.env.SMTP_HOST || 'mail.privateemail.com',
   port,
   secure: port === 465,
   auth: {
