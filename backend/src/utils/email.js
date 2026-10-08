@@ -187,6 +187,14 @@ function renderNoteHtml(note, buttonLabel = 'Proceed to Onboarding') {
   }).join('');
 }
 
+function renderNoticeMessageHtml(note) {
+  const blocks = String(note).split(/\n\s*\n/);
+  return blocks.map((block) => {
+    const escaped = escapeHtml(block.trim()).replace(/\n/g, '<br/>');
+    return `<p style="margin:0 0 14px 0;font-size:14px;line-height:1.6;">${escaped}</p>`;
+  }).join('');
+}
+
 // ─── Signup OTP email ────────────────────────────────────────────────────────
 async function sendSignupOTPEmail(to, firstName, otp) {
   const transporter = createTransporter();
@@ -1329,17 +1337,12 @@ async function sendAccessRequestNotificationEmail({ adminEmail, name, email, rea
   });
 }
 
-async function sendBroadcastEmail({ userEmail, firstName, subject, title, message, ctaLabel, ctaUrl }) {
+async function sendBroadcastEmail({ userEmail, firstName, subject, title, message }) {
   const transporter = createTransporter();
   const safeTitle = escapeHtml(title || subject);
   const safeFirstName = escapeHtml(firstName || 'there');
   const rawMessage = message || '';
-  const messageHtml = renderNoteHtml(rawMessage);
-  const hasInlineButton = String(rawMessage)
-    .split(/\n\s*\n/)
-    .some((block) => /^(https?:\/\/\S+)$/.test(block.trim()));
-  const buttonUrl = ctaUrl && !hasInlineButton ? escapeHtml(ctaUrl) : null;
-  const buttonText = escapeHtml(ctaLabel || 'View Dashboard');
+  const messageHtml = renderNoticeMessageHtml(rawMessage);
   const textParts = [
     `Digital Wealth Partners - ${title || subject}`,
     '',
@@ -1347,10 +1350,6 @@ async function sendBroadcastEmail({ userEmail, firstName, subject, title, messag
     '',
     String(rawMessage).trim(),
   ];
-
-  if (ctaUrl && !hasInlineButton) {
-    textParts.push('', `${ctaLabel || 'View Dashboard'}: ${ctaUrl}`);
-  }
 
   textParts.push('', 'This is an automated notification from Digital Wealth Partners. Do not reply.');
 
@@ -1364,16 +1363,6 @@ async function sendBroadcastEmail({ userEmail, firstName, subject, title, messag
         <p style="color:#60a5fa;font-size:13px;margin:0 0 8px 0;text-transform:uppercase;">${safeTitle}</p>
         ${messageHtml}
       </div>
-
-      ${buttonUrl ? `
-        <table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0 8px 0;">
-          <tr>
-            <td bgcolor="#0033AD" style="border-radius:8px;background:#0033AD;">
-              <a href="${buttonUrl}" class="dwp-btn" style="display:inline-block;padding:12px 24px;font-weight:600;text-decoration:none;font-family:sans-serif;color:#ffffff !important;">${buttonText}</a>
-            </td>
-          </tr>
-        </table>
-      ` : ''}
 
       <hr style="border-color:#e5e7eb;margin:28px 0;" />
       <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners. Do not reply.</p>

@@ -209,12 +209,9 @@ export const adminAPI = {
     recipientMode: 'selected' | 'all';
     userIds?: string[];
     activeOnly?: boolean;
-    templateKey?: string;
     subject: string;
     title?: string;
     message: string;
-    ctaLabel?: string;
-    ctaUrl?: string;
   }) => api.post('/admin/broadcast/send', data),
   getActivityLogs: (params?: { page?: number; limit?: number }) =>
     api.get('/admin/activity-logs', { params }),

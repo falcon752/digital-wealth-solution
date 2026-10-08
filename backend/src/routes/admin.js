@@ -329,7 +329,7 @@ router.get('/broadcast/users', authenticate, requireAdmin, async (req, res) => {
     });
   } catch (err) {
     console.error('Broadcast users error:', err);
-    res.status(500).json({ error: 'Failed to load broadcast recipients' });
+    res.status(500).json({ error: 'Failed to load notice recipients' });
   }
 });
 
@@ -338,12 +338,9 @@ router.post('/broadcast/send', authenticate, requireAdmin, [
   body('userIds').optional({ nullable: true }).isArray({ max: 1000 }),
   body('userIds.*').optional().isMongoId(),
   body('activeOnly').optional().isBoolean(),
-  body('templateKey').optional({ nullable: true }).trim().isLength({ max: 80 }),
   body('subject').trim().notEmpty().isLength({ max: 160 }),
   body('title').optional({ nullable: true }).trim().isLength({ max: 120 }),
   body('message').trim().notEmpty().isLength({ max: 5000 }),
-  body('ctaLabel').optional({ nullable: true }).trim().isLength({ max: 80 }),
-  body('ctaUrl').optional({ nullable: true }).trim().isURL({ protocols: ['http', 'https'], require_protocol: true }),
 ], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
@@ -355,9 +352,6 @@ router.post('/broadcast/send', authenticate, requireAdmin, [
     subject,
     title,
     message,
-    ctaLabel,
-    ctaUrl,
-    templateKey,
   } = req.body;
 
   try {
@@ -391,8 +385,6 @@ router.post('/broadcast/send', authenticate, requireAdmin, [
           subject,
           title,
           message,
-          ctaLabel,
-          ctaUrl,
         });
         sent += 1;
       } catch (err) {
@@ -406,7 +398,6 @@ router.post('/broadcast/send', authenticate, requireAdmin, [
 
     logActivity(req.user.id, 'ADMIN_BROADCAST_SENT', {
       recipientMode,
-      templateKey,
       subject,
       requestedRecipients: recipients.length,
       sent,
@@ -417,15 +408,15 @@ router.post('/broadcast/send', authenticate, requireAdmin, [
     const status = sent > 0 ? 200 : 500;
     res.status(status).json({
       message: failures.length
-        ? `Broadcast sent to ${sent} recipient${sent === 1 ? '' : 's'} with ${failures.length} failure${failures.length === 1 ? '' : 's'}`
-        : `Broadcast sent to ${sent} recipient${sent === 1 ? '' : 's'}`,
+        ? `Notice sent to ${sent} recipient${sent === 1 ? '' : 's'} with ${failures.length} failure${failures.length === 1 ? '' : 's'}`
+        : `Notice sent to ${sent} recipient${sent === 1 ? '' : 's'}`,
       sent,
       failed: failures.length,
       failures,
     });
   } catch (err) {
-    console.error('Broadcast send error:', err);
-    res.status(500).json({ error: 'Failed to send broadcast' });
+    console.error('Notice send error:', err);
+    res.status(500).json({ error: 'Failed to send notice' });
   }
 });
 
