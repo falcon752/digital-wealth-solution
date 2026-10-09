@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import { 
   ArrowLeft, Home, User, Lock, LogOut, ChevronRight, 
-  CreditCard, Handshake, ArrowRightLeft, Download
+  CreditCard, Handshake, ArrowRightLeft, Download, ShieldCheck
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { usersAPI } from '@/lib/api';
@@ -172,6 +172,16 @@ export default function SettingsPage() {
                   <User size={20} />
                 </div>
                 <span className="font-semibold text-[15px] text-gray-900 dark:text-white">Edit Profile</span>
+              </div>
+              <ChevronRight size={18} className="text-[#2d68d8]" />
+            </Link>
+
+            <Link href="/dashboard/settings/kyc" className="flex items-center justify-between bg-white dark:bg-[#101010] px-4 py-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700/50">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-[#eaf1ff] dark:bg-blue-900/30 flex items-center justify-center text-[#2d68d8]">
+                  <ShieldCheck size={20} />
+                </div>
+                <span className="font-semibold text-[15px] text-gray-900 dark:text-white">KYC Verification</span>
               </div>
               <ChevronRight size={18} className="text-[#2d68d8]" />
             </Link>

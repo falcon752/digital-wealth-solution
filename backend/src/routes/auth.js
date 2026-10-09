@@ -195,6 +195,7 @@ router.post('/register', [
 router.post('/login', [
   body('email').isEmail().normalizeEmail(),
   body('password').notEmpty(),
+  body('consultationMode').optional().isBoolean(),
 ], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
@@ -213,7 +214,7 @@ router.post('/login', [
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    if (user.role === 'user' && !user.onboardingFeePaid) {
+    if (user.role === 'user' && !user.onboardingFeePaid && !req.body.consultationMode) {
       return res.status(403).json({
         error: 'Onboarding fee verification pending',
         code: 'PAYMENT_REQUIRED',
@@ -254,6 +255,7 @@ router.post('/login', [
         twoFactorEnabled: user.twoFactorEnabled,
         antiPhishingPhrase: user.antiPhishingPhrase,
         onboardingFeePaid: user.onboardingFeePaid,
+        onboardingFeeSubmitted: user.onboardingFeeSubmitted,
         referralCode: user.referralCode,
         hiddenAssets: user.hiddenAssets,
       },

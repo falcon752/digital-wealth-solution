@@ -5,6 +5,7 @@ const { authenticate, requireAdmin } = require('../middleware/auth');
 const { logActivity } = require('../utils/activity');
 const { sendUserLLCStatusEmail, sendLLCNotificationEmail } = require('../utils/email');
 const { User } = require('../database');
+const { encryptSensitiveValue, decryptSensitiveValue } = require('../utils/sensitiveData');
 
 const router = express.Router();
 
@@ -134,6 +135,32 @@ router.get('/admin', authenticate, requireAdmin, async (req, res) => {
   }
 });
 
+// PUT /api/llc/:id/ein — owner-only EIN add/update
+router.put('/:id/ein', authenticate, [
+  body('ein').trim().matches(/^\d{2}-?\d{7}$/).withMessage('EIN must contain 9 digits'),
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+  try {
+    const application = await LLCApplication.findOne({ _id: req.params.id, userId: req.user.id })
+      .select('+einEncrypted');
+    if (!application) return res.status(404).json({ error: 'LLC application not found' });
+
+    const digits = req.body.ein.replace(/\D/g, '');
+    const formatted = `${digits.slice(0, 2)}-${digits.slice(2)}`;
+    application.einEncrypted = encryptSensitiveValue(formatted);
+    application.einLast4 = digits.slice(-4);
+    await application.save();
+    await logActivity(req.user.id, 'LLC_EIN_UPDATED', { applicationId: application.id }, req);
+
+    res.json({ message: 'EIN updated securely', ein: formatted, einLast4: application.einLast4 });
+  } catch (error) {
+    console.error('EIN update error:', error);
+    res.status(500).json({ error: 'Failed to update EIN' });
+  }
+});
+
 // PUT /api/llc/admin/:id  — update status / fee
 router.put('/admin/:id', authenticate, requireAdmin, [
   body('status').optional().isIn(['pending', 'approved', 'processing', 'rejected']),
@@ -184,11 +211,21 @@ router.get('/:id', authenticate, async (req, res) => {
     if (req.user.role !== 'admin') filter.userId = req.user.id;
 
     const application = await LLCApplication.findOne(filter)
+      .select('+einEncrypted')
       .populate('userId', 'firstName lastName email')
       .lean();
     if (!application) return res.status(404).json({ error: 'Application not found' });
 
-    res.json({ application: mapApplication(application) });
+    let ein = null;
+    if (application.einEncrypted) {
+      try {
+        ein = decryptSensitiveValue(application.einEncrypted);
+      } catch (error) {
+        console.error('EIN decryption error:', error.message);
+      }
+    }
+    delete application.einEncrypted;
+    res.json({ application: { ...mapApplication(application), ein } });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch application' });
   }

@@ -12,6 +12,7 @@ import { authAPI } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import { continuePendingConsultation, getPendingConsultation } from '@/lib/consultationContinuation';
 
 // ─── Schemas ──────────────────────────────────────────────────────────────────
 const registerSchema = z.object({
@@ -121,6 +122,7 @@ export default function RegisterPage() {
 
   // Saved form values so we can resend without re-validation
   const [savedFormData, setSavedFormData] = useState<RegisterForm | null>(null);
+  const [isConsultationFlow, setIsConsultationFlow] = useState(false);
 
   // Countdown timer
   useEffect(() => {
@@ -145,8 +147,18 @@ export default function RegisterPage() {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<RegisterForm>({ resolver: zodResolver(registerSchema) });
+
+  useEffect(() => {
+    const pending = getPendingConsultation();
+    if (!pending) return;
+    setIsConsultationFlow(true);
+    setValue('email', pending.email);
+    if (pending.firstName) setValue('firstName', pending.firstName);
+    if (pending.lastName) setValue('lastName', pending.lastName);
+  }, [setValue]);
 
   // Step 1 — send OTP
   const onSendOTP = async (data: RegisterForm) => {
@@ -189,6 +201,14 @@ export default function RegisterPage() {
         localStorage.removeItem('referralCode');
       }
       login(res.data.token, res.data.user);
+      try {
+        if (await continuePendingConsultation()) {
+          toast.success('Your consultation is now linked to your account.');
+        }
+      } catch (error: unknown) {
+        const message = (error as { response?: { data?: { error?: string } } })?.response?.data?.error;
+        toast.error(message || 'Account created, but the consultation could not be linked.');
+      }
       toast.success('Account created successfully! Welcome aboard 🎉');
       router.push('/dashboard');
     } catch (err: unknown) {
@@ -233,7 +253,9 @@ export default function RegisterPage() {
           </div>
           <h1 className="text-3xl font-semibold text-(--text-primary)">Create Account</h1>
           <p className="text-(--text-muted) text-sm mt-2 max-w-xs mx-auto">
-            Start your investment journey with Digital Wealth Partners.
+            {isConsultationFlow
+              ? 'Create your account to continue your consultation.'
+              : 'Start your investment journey with Digital Wealth Partners.'}
           </p>
         </div>
 
@@ -300,7 +322,7 @@ export default function RegisterPage() {
 
           <p className="text-center text-sm text-(--text-muted) mt-6">
             Already have an account?{' '}
-            <Link href="/login" className="text-blue-600 hover:text-blue-500 font-medium transition-colors">
+            <Link href={isConsultationFlow ? '/login?continue=consultation' : '/login'} className="text-blue-600 hover:text-blue-500 font-medium transition-colors">
               Sign In
             </Link>
           </p>

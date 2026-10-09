@@ -150,6 +150,8 @@ export interface LLCApplication {
   country?: string | null;
   postalCode?: string | null;
   partnerCode?: string | null;
+  ein?: string | null;
+  einLast4?: string | null;
   status: 'pending' | 'approved' | 'processing' | 'rejected';
   stateFee: number;
   adminNote?: string | null;
@@ -180,6 +182,40 @@ export interface ContactSubmission {
   adminNote?: string | null;
   createdAt: string;
   processedAt?: string | null;
+}
+
+export interface KYCRequirement {
+  id: string;
+  name: string;
+  description?: string | null;
+  required: boolean;
+  active: boolean;
+  sortOrder: number;
+}
+
+export interface KYCDocument {
+  id: string;
+  requirementId: string;
+  requirementName: string;
+  originalName: string;
+  mimeType: string;
+  size: number;
+}
+
+export interface KYCSubmission {
+  id: string;
+  userId: string | { id?: string; _id?: string; firstName: string; lastName: string; email: string };
+  legalFirstName: string;
+  legalLastName: string;
+  dateOfBirth: string;
+  country: string;
+  residentialAddress: string;
+  documents: KYCDocument[];
+  status: 'not_verified' | 'pending' | 'approved' | 'rejected';
+  rejectionReason?: string | null;
+  submittedAt?: string | null;
+  reviewedAt?: string | null;
+  createdAt: string;
 }
 
 export interface LLCStats {

@@ -127,6 +127,9 @@ export default function UserDashboard() {
           <div className="flex items-center">
             <Image src="/anchorage-light.png" alt="Anchorage" width={110} height={30} className="h-7 w-auto dark:hidden" priority />
             <Image src="/anchorage-dark.png" alt="Anchorage" width={110} height={30} className="h-7 w-auto hidden dark:block" priority />
+            <span className="hidden sm:inline ml-3 pl-3 border-l border-gray-200 dark:border-gray-700 text-sm font-semibold text-gray-900 dark:text-white">
+              Anchorage Digital Bank
+            </span>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -137,6 +140,11 @@ export default function UserDashboard() {
           </Link>
         </div>
       </header>
+
+      <div className="px-4 pt-4">
+        <h1 className="text-lg font-semibold text-gray-900 dark:text-white">Anchorage Digital Bank</h1>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Digital asset custody and account management</p>
+      </div>
 
       {/* Balance */}
       <div className="flex flex-col items-center mt-6 mb-8">
@@ -272,7 +280,7 @@ export default function UserDashboard() {
 
       <div className="flex justify-center mt-6">
         <Link href="/dashboard/assets" className="text-[#1e3a8a] dark:text-blue-400 font-semibold text-[15px] tracking-wide hover:underline">
-          Manage crypto
+          Anchorage Digital Bank
         </Link>
       </div>
 

@@ -131,6 +131,8 @@ const llcApplicationSchema = new mongoose.Schema(
     country: { type: String, default: null, trim: true },
     postalCode: { type: String, default: null, trim: true },
     partnerCode: { type: String, default: null, trim: true },
+    einEncrypted: { type: String, default: null, select: false },
+    einLast4: { type: String, default: null },
     status: {
       type: String,
       enum: ['pending', 'approved', 'processing', 'rejected'],
@@ -167,11 +169,65 @@ const contactSubmissionSchema = new mongoose.Schema(
     },
     adminNote: { type: String, default: null },
     processedAt: { type: Date, default: null },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    continuationTokenHash: { type: String, default: null, select: false },
+    linkedAt: { type: Date, default: null },
   },
   { timestamps: true }
 );
 applyToJSON(contactSubmissionSchema);
 const ContactSubmission = mongoose.model('ContactSubmission', contactSubmissionSchema);
+
+// ─── KYC REQUIREMENT ──────────────────────────────────────────────────────────
+const kycRequirementSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true, trim: true, maxlength: 100 },
+    description: { type: String, default: null, trim: true, maxlength: 500 },
+    required: { type: Boolean, default: true },
+    active: { type: Boolean, default: true },
+    sortOrder: { type: Number, default: 0 },
+  },
+  { timestamps: true }
+);
+applyToJSON(kycRequirementSchema);
+const KYCRequirement = mongoose.model('KYCRequirement', kycRequirementSchema);
+
+// ─── KYC SUBMISSION ───────────────────────────────────────────────────────────
+const kycDocumentSchema = new mongoose.Schema(
+  {
+    requirementId: { type: mongoose.Schema.Types.ObjectId, ref: 'KYCRequirement', required: true },
+    requirementName: { type: String, required: true, trim: true },
+    filename: { type: String, required: true },
+    originalName: { type: String, required: true },
+    mimeType: { type: String, required: true },
+    size: { type: Number, required: true },
+  },
+  { _id: true }
+);
+
+const kycSubmissionSchema = new mongoose.Schema(
+  {
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
+    legalFirstName: { type: String, required: true, trim: true, maxlength: 80 },
+    legalLastName: { type: String, required: true, trim: true, maxlength: 80 },
+    dateOfBirth: { type: Date, required: true },
+    country: { type: String, required: true, trim: true, maxlength: 100 },
+    residentialAddress: { type: String, required: true, trim: true, maxlength: 250 },
+    documents: { type: [kycDocumentSchema], default: [] },
+    status: {
+      type: String,
+      enum: ['not_verified', 'pending', 'approved', 'rejected'],
+      default: 'not_verified',
+    },
+    rejectionReason: { type: String, default: null, trim: true, maxlength: 2000 },
+    submittedAt: { type: Date, default: null },
+    reviewedAt: { type: Date, default: null },
+    reviewedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+  },
+  { timestamps: true }
+);
+applyToJSON(kycSubmissionSchema);
+const KYCSubmission = mongoose.model('KYCSubmission', kycSubmissionSchema);
 
 // ─── LOAN ─────────────────────────────────────────────────────────────────────
 const loanSchema = new mongoose.Schema(
@@ -317,6 +373,8 @@ module.exports = {
   Withdrawal,
   LLCApplication,
   ContactSubmission,
+  KYCRequirement,
+  KYCSubmission,
   Loan,
   EarnDeposit,
   ActivityLog,

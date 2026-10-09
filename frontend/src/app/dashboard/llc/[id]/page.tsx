@@ -6,9 +6,10 @@ import { llcAPI } from '@/lib/api';
 import { LLCApplication } from '@/types';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import Badge from '@/components/ui/Badge';
-import { formatDate, formatCurrency } from '@/lib/utils';
-import { Building2, Mail, MapPin, Phone, UserRound } from 'lucide-react';
+import { formatDate } from '@/lib/utils';
+import { Building2, Eye, EyeOff, KeyRound, Mail, MapPin, Phone, UserRound } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { getApiError } from '@/lib/apiError';
 
 function DetailRow({ label, value }: { label: string; value?: string | number | null }) {
   return (
@@ -23,12 +24,18 @@ export default function LLCProfilePage() {
   const params = useParams<{ id: string }>();
   const [application, setApplication] = useState<LLCApplication | null>(null);
   const [loading, setLoading] = useState(true);
+  const [ein, setEin] = useState('');
+  const [showEin, setShowEin] = useState(false);
+  const [savingEin, setSavingEin] = useState(false);
 
   useEffect(() => {
     if (!params.id) return;
 
     llcAPI.get(params.id)
-      .then((res) => setApplication(res.data.application))
+      .then((res) => {
+        setApplication(res.data.application);
+        setEin(res.data.application.ein || '');
+      })
       .catch(() => toast.error('Failed to load LLC profile'))
       .finally(() => setLoading(false));
   }, [params.id]);
@@ -63,6 +70,29 @@ export default function LLCProfilePage() {
     application.country,
   ].filter(Boolean).join(', ');
 
+  const handleEinChange = (value: string) => {
+    const digits = value.replace(/\D/g, '').slice(0, 9);
+    setEin(digits.length > 2 ? `${digits.slice(0, 2)}-${digits.slice(2)}` : digits);
+  };
+
+  const saveEin = async () => {
+    if (ein.replace(/\D/g, '').length !== 9) {
+      toast.error('Enter a valid 9-digit EIN');
+      return;
+    }
+    setSavingEin(true);
+    try {
+      const response = await llcAPI.updateEIN(application.id, ein);
+      setEin(response.data.ein);
+      setApplication((current) => current ? { ...current, ein: response.data.ein, einLast4: response.data.einLast4 } : current);
+      toast.success('EIN updated securely');
+    } catch (error: unknown) {
+      toast.error(getApiError(error, 'Failed to update EIN'));
+    } finally {
+      setSavingEin(false);
+    }
+  };
+
   return (
     <div className="flex flex-col min-h-full pb-20 bg-[#f9f9fb] dark:bg-[#050505]">
       <DashboardHeader title="LLC Profile" backHref="/dashboard/llc" logo="wyoming" />
@@ -82,6 +112,47 @@ export default function LLCProfilePage() {
               </p>
             </div>
             <Badge status={application.status} />
+          </div>
+        </section>
+
+        <section className="bg-white dark:bg-[#101010] rounded-[20px] p-5 shadow-[0_2px_15px_-4px_rgba(0,0,0,0.05)]">
+          <div className="flex items-start gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center shrink-0">
+              <KeyRound size={19} className="text-[#2d68d8]" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Employer Identification Number</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Only you and authorized administrators can access this EIN.</p>
+            </div>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <input
+                type={showEin ? 'text' : 'password'}
+                inputMode="numeric"
+                value={ein}
+                onChange={(event) => handleEinChange(event.target.value)}
+                placeholder="12-3456789"
+                aria-label="Employer Identification Number"
+                className="w-full h-12 rounded-xl border border-gray-200 dark:border-gray-700 bg-[#f9fafb] dark:bg-[#181818] px-4 pr-12 text-sm font-semibold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <button
+                type="button"
+                onClick={() => setShowEin((visible) => !visible)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-gray-900 dark:hover:text-white"
+                aria-label={showEin ? 'Hide EIN' : 'Show EIN'}
+              >
+                {showEin ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+            <button
+              type="button"
+              onClick={saveEin}
+              disabled={savingEin}
+              className="h-12 px-5 rounded-xl bg-[#2d68d8] text-white text-sm font-semibold hover:bg-blue-700 disabled:opacity-60"
+            >
+              {savingEin ? 'Saving...' : application.ein ? 'Update EIN' : 'Add EIN'}
+            </button>
           </div>
         </section>
 

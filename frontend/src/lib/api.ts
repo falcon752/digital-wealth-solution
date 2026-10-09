@@ -39,7 +39,7 @@ export const authAPI = {
     api.post('/auth/send-signup-otp', data),
   verifySignupOTP: (data: { email: string; otp: string }) =>
     api.post('/auth/verify-signup-otp', data),
-  login: (data: { email: string; password: string; totpCode?: string }) =>
+  login: (data: { email: string; password: string; totpCode?: string; consultationMode?: boolean }) =>
     api.post('/auth/login', data),
   me: () => api.get('/auth/me'),
   setup2FA: () => api.post('/auth/setup-2fa'),
@@ -137,6 +137,7 @@ export const llcAPI = {
   list: () => api.get('/llc'),
   stats: () => api.get('/llc/stats'),
   get: (id: string) => api.get(`/llc/${id}`),
+  updateEIN: (id: string, ein: string) => api.put(`/llc/${id}/ein`, { ein }),
   create: (data: {
     companyName: string;
     entityType: string;
@@ -167,10 +168,30 @@ export const llcAPI = {
 // ─── Contact / Consultation ─────────────────────────────────────────────────
 export const contactAPI = {
   onboardingStatus: (email: string) => api.get('/contact/onboarding-status', { params: { email } }),
+  continueConsultation: (submissionId: string, token: string) =>
+    api.post(`/contact/${submissionId}/continue`, { token }),
   // admin
   adminList: () => api.get('/contact/admin'),
   adminUpdate: (id: string, data: { status?: string; adminNote?: string }) =>
     api.put(`/contact/admin/${id}`, data),
+};
+
+// ─── KYC Verification ─────────────────────────────────────────────────────
+export const kycAPI = {
+  getRequirements: () => api.get('/kyc/requirements'),
+  getMySubmission: () => api.get('/kyc/me'),
+  submit: (data: FormData) => api.post('/kyc/submit', data, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
+  getDocument: (submissionId: string, documentId: string) =>
+    api.get(`/kyc/documents/${submissionId}/${documentId}`, { responseType: 'blob' }),
+  adminSubmissions: () => api.get('/kyc/admin/submissions'),
+  adminReview: (id: string, data: { status: 'approved' | 'rejected'; rejectionReason?: string }) =>
+    api.put(`/kyc/admin/submissions/${id}`, data),
+  createRequirement: (data: { name: string; description?: string; required?: boolean; active?: boolean; sortOrder?: number }) =>
+    api.post('/kyc/admin/requirements', data),
+  updateRequirement: (id: string, data: { name?: string; description?: string; required?: boolean; active?: boolean; sortOrder?: number }) =>
+    api.put(`/kyc/admin/requirements/${id}`, data),
 };
 
 // ─── Access Requests (site gate) ───────────────────────────────────────────

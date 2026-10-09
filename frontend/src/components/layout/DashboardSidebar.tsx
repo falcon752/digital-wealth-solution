@@ -9,13 +9,13 @@ import { X, LogOut } from 'lucide-react';
 import {
   BarChart2, Building2, CircleDollarSign, Coins,
   LayoutDashboard, ArrowDownToLine, ArrowUpFromLine, Users, Package, Activity,
-  CheckCircle, CreditCard, MessageSquare, KeyRound, Mail
+  CheckCircle, CreditCard, MessageSquare, KeyRound, Mail, ShieldCheck
 } from 'lucide-react';
 
 const userNav = [
   { href: '/dashboard', icon: BarChart2, label: 'Overview' },
   { href: '/dashboard/llc', icon: Building2, label: 'LLC Management' },
-  { href: '/dashboard/wallet', icon: CircleDollarSign, label: 'Manage Crypto Custody' },
+  { href: '/dashboard/wallet', icon: CircleDollarSign, label: 'Anchorage Digital Bank' },
   { href: '/dashboard/lending', icon: Coins, label: 'Crypto Lending' },
 ];
 
@@ -23,6 +23,7 @@ const adminNav = [
   { href: '/admin', icon: LayoutDashboard, label: 'Overview' },
   { href: '/admin/llc', icon: Building2, label: 'LLC Apps' },
   { href: '/admin/consultations', icon: MessageSquare, label: 'Consultations' },
+  { href: '/admin/kyc', icon: ShieldCheck, label: 'KYC Verification' },
   { href: '/admin/access-requests', icon: KeyRound, label: 'Access Requests' },
   { href: '/admin/cards', icon: CreditCard, label: 'Cards' },
   { href: '/admin/assets', icon: Package, label: 'Assets' },

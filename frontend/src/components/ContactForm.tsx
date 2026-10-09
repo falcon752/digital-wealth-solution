@@ -5,6 +5,8 @@ import Link from 'next/link';
 import toast from 'react-hot-toast';
 import axios from 'axios';
 import { Check } from 'lucide-react';
+import { CONSULTATION_CONTINUATION_KEY } from '@/lib/consultationContinuation';
+import { getApiError } from '@/lib/apiError';
 
 const radioStyle = `
   .custom-radio {
@@ -70,7 +72,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
 
     setIsSubmitting(true);
     try {
-      await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/contact/general`, {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/contact/general`, {
         topic,
         firstName,
         lastName,
@@ -85,12 +87,20 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
         message,
       });
 
+      if (response.data.continuation) {
+        sessionStorage.setItem(CONSULTATION_CONTINUATION_KEY, JSON.stringify({
+          ...response.data.continuation,
+          firstName,
+          lastName,
+        }));
+      }
+
       setSubmitted(true);
       onSubmitted?.();
       window.scrollTo({ top: 0, behavior: 'smooth' });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Submit contact form error:', error);
-      toast.error(error.response?.data?.error || 'Failed to submit contact form. Please try again later.');
+      toast.error(getApiError(error, 'Failed to submit contact form. Please try again later.'));
     } finally {
       setIsSubmitting(false);
     }
@@ -107,20 +117,25 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
         <h2 className="text-2xl font-semibold mb-3" style={{ color: '#1a202c' }}>
           Submission Received
         </h2>
-        <p className="text-sm max-w-[320px] leading-relaxed mb-8" style={{ color: '#4a5568' }}>
-          Your submission is under review. Once approved, you&apos;ll receive a notification with
-          instructions on how to start your onboarding.
+        <p className="text-sm max-w-[360px] leading-relaxed mb-8" style={{ color: '#4a5568' }}>
+          Create an account to keep this consultation linked to you and continue onboarding without entering these details again.
         </p>
-        <div className="w-full max-w-[280px]">
-          <Link href="/digital-asset-custody" className="w-full">
+        <div className="w-full max-w-[320px] space-y-3">
+          <Link href="/register?continue=consultation" className="block w-full">
             <button
               type="button"
               className="w-full px-8 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"
               style={{ backgroundColor: '#AD7F4E' }}
             >
-              Done
+              Create Account & Continue
             </button>
           </Link>
+          <p className="text-sm" style={{ color: '#4a5568' }}>
+            Already have an account?{' '}
+            <Link href="/login?continue=consultation" className="font-semibold text-blue-600 hover:underline">
+              Log in
+            </Link>
+          </p>
         </div>
       </div>
     );

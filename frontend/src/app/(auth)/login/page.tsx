@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
@@ -12,6 +12,8 @@ import { authAPI } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import { continuePendingConsultation, getPendingConsultation } from '@/lib/consultationContinuation';
+import { getApiError } from '@/lib/apiError';
 
 const loginSchema = z.object({
   email: z.string().email('Enter a valid email'),
@@ -27,18 +29,26 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [requires2FA, setRequires2FA] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isConsultationFlow, setIsConsultationFlow] = useState(false);
 
   const {
     register,
     handleSubmit,
-    getValues,
+    setValue,
     formState: { errors },
   } = useForm<LoginForm>({ resolver: zodResolver(loginSchema) });
+
+  useEffect(() => {
+    const pending = getPendingConsultation();
+    if (!pending) return;
+    setIsConsultationFlow(true);
+    setValue('email', pending.email);
+  }, [setValue]);
 
   const onSubmit = async (data: LoginForm) => {
     setIsLoading(true);
     try {
-      const res = await authAPI.login(data);
+      const res = await authAPI.login({ ...data, consultationMode: isConsultationFlow });
 
       if (res.data.requires2FA) {
         setRequires2FA(true);
@@ -48,16 +58,23 @@ export default function LoginPage() {
       }
 
       login(res.data.token, res.data.user);
+      try {
+        if (await continuePendingConsultation()) {
+          toast.success('Your consultation is now linked to your account.');
+        }
+      } catch (error: unknown) {
+        const message = (error as { response?: { data?: { error?: string } } })?.response?.data?.error;
+        toast.error(message || 'Signed in, but the consultation could not be linked.');
+      }
       toast.success(`Welcome back, ${res.data.user.firstName}!`);
       router.push(res.data.user.role === 'admin' ? '/admin' : '/dashboard');
-    } catch (err: any) {
-      const data = err.response?.data;
+    } catch (err: unknown) {
+      const data = (err as { response?: { data?: { code?: string; onboardingFeeSubmitted?: boolean; error?: string } } })?.response?.data;
       if (data?.code === 'PAYMENT_REQUIRED') {
         router.push(data?.onboardingFeeSubmitted ? '/pay-onboarding?status=pending' : '/pay-onboarding');
         return;
       }
-      const msg = data?.error || 'Login failed';
-      toast.error(msg);
+      toast.error(getApiError(err, 'Login failed'));
     } finally {
       setIsLoading(false);
     }
@@ -72,7 +89,9 @@ export default function LoginPage() {
         </div>
         <h1 className="text-3xl font-semibold text-(--text-primary)">Welcome Back</h1>
         <p className="text-(--text-muted) text-sm mt-2 max-w-xs mx-auto">
-          Sign in to your Digital Wealth Partners account to continue your journey.
+          {isConsultationFlow
+            ? 'Sign in to continue your consultation without starting over.'
+            : 'Sign in to your Digital Wealth Partners account to continue your journey.'}
         </p>
       </div>
 
@@ -143,7 +162,7 @@ export default function LoginPage() {
 
           <div className="text-center text-sm text-(--text-muted) pt-4 border-t border-gray-100 dark:border-gray-700/50 mt-4">
             Don&apos;t have an account?{' '}
-            <Link href="/register" className="text-blue-600 hover:text-blue-500 font-semibold transition-colors">
+            <Link href={isConsultationFlow ? '/register?continue=consultation' : '/register'} className="text-blue-600 hover:text-blue-500 font-semibold transition-colors">
               Sign Up
             </Link>
           </div>

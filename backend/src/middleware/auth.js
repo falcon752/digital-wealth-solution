@@ -18,7 +18,8 @@ async function authenticate(req, res, next) {
 
     // Block standard users who haven't paid their onboarding fee from accessing standard API routes
     // Exclude /me so they can still load their profile in the frontend for redirection/pending screen
-    const isPublicAuthRoute = req.originalUrl === '/api/auth/me';
+    const isPublicAuthRoute = req.originalUrl === '/api/auth/me'
+      || /^\/api\/contact\/[^/]+\/continue$/.test(req.originalUrl.split('?')[0]);
     if (user.role === 'user' && !user.onboardingFeePaid && !isPublicAuthRoute) {
       return res.status(403).json({
         error: 'Onboarding fee verification pending',

@@ -1,4 +1,5 @@
 const express = require('express');
+const crypto = require('crypto');
 const router = express.Router();
 const { body, query, validationResult } = require('express-validator');
 const { sendOnboardingFeeNotificationEmail, sendGeneralContactEmail, sendUserContactStatusEmail } = require('../utils/email');
@@ -85,10 +86,12 @@ router.post('/general', [
       investableAssets, digitalAllocation, holdsXRP, existingClient, message,
     } = req.body;
 
-    await ContactSubmission.create({
+    const continuationToken = crypto.randomBytes(32).toString('hex');
+    const submission = await ContactSubmission.create({
       topic, firstName, lastName, email, phone, married, children,
       investableAssets, digitalAllocation, holdsXRP, existingClient, message,
       status: 'pending',
+      continuationTokenHash: crypto.createHash('sha256').update(continuationToken).digest('hex'),
     });
 
     await sendGeneralContactEmail({
@@ -104,10 +107,52 @@ router.post('/general', [
     }
     await logActivity(userId, 'INQUIRY_SUBMITTED', { email: req.body.email, topic: req.body.topic }, req);
 
-    res.json({ message: 'Thank you for your message. We will get back to you shortly!' });
+    res.json({
+      message: 'Thank you for your message. We will get back to you shortly!',
+      continuation: { submissionId: submission.id, token: continuationToken, email },
+    });
   } catch (error) {
     console.error('General contact email error:', error);
     res.status(500).json({ error: 'Failed to submit contact form. Please try again later.' });
+  }
+});
+
+// POST /api/contact/:id/continue — link a submitted consultation after auth
+router.post('/:id/continue', authenticate, [
+  body('token').isString().isLength({ min: 64, max: 64 }),
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+  try {
+    const submission = await ContactSubmission.findById(req.params.id)
+      .select('+continuationTokenHash');
+    if (!submission) return res.status(404).json({ error: 'Consultation not found' });
+    if (submission.userId) {
+      if (submission.userId.toString() !== req.user.id.toString()) {
+        return res.status(403).json({ error: 'This consultation belongs to another account' });
+      }
+      return res.json({ message: 'Consultation already linked', submissionId: submission.id });
+    }
+    if (submission.email.toLowerCase() !== req.user.email.toLowerCase()) {
+      return res.status(403).json({ error: 'Sign in with the email used for this consultation' });
+    }
+    const tokenHash = crypto.createHash('sha256').update(req.body.token).digest('hex');
+    const expected = Buffer.from(submission.continuationTokenHash || '', 'hex');
+    const received = Buffer.from(tokenHash, 'hex');
+    if (!expected.length || expected.length !== received.length || !crypto.timingSafeEqual(expected, received)) {
+      return res.status(403).json({ error: 'Invalid consultation continuation link' });
+    }
+
+    submission.userId = req.user.id;
+    submission.linkedAt = new Date();
+    submission.continuationTokenHash = null;
+    await submission.save();
+    await logActivity(req.user.id, 'CONSULTATION_LINKED', { submissionId: submission.id }, req);
+    res.json({ message: 'Consultation linked to your account', submissionId: submission.id });
+  } catch (error) {
+    console.error('Consultation continuation error:', error);
+    res.status(500).json({ error: 'Failed to continue consultation' });
   }
 });
 

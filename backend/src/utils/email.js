@@ -1379,6 +1379,50 @@ async function sendBroadcastEmail({ userEmail, firstName, subject, title, messag
   });
 }
 
+async function sendKYCSubmissionNotificationEmail({ adminEmail, user }) {
+  const transporter = createTransporter();
+  const name = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'A user';
+  const html = `
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
+      <h2 style="margin:0 0 8px;">New KYC verification</h2>
+      <p><strong>${escapeHtml(name)}</strong> (${escapeHtml(user.email)}) submitted identity documents for review.</p>
+      <p>Sign in to the admin dashboard to review the submission.</p>
+      <hr style="border-color:#e5e7eb;margin:24px 0;" />
+      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners.</p>
+    </div>
+  `;
+  await transporter.sendMail({
+    from: FROM(),
+    to: adminEmail,
+    subject: `KYC verification submitted - ${name}`,
+    html: themedEmail(html),
+  });
+}
+
+async function sendUserKYCStatusEmail({ userEmail, firstName, status, rejectionReason }) {
+  const transporter = createTransporter();
+  const approved = status === 'approved';
+  const detail = approved
+    ? 'Your identity verification has been approved.'
+    : `Your identity verification needs to be resubmitted.${rejectionReason ? ` Reason: ${escapeHtml(rejectionReason)}` : ''}`;
+  const html = `
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
+      <h2 style="margin:0 0 8px;">KYC verification ${escapeHtml(status)}</h2>
+      <p>Hi <strong>${escapeHtml(firstName || 'there')}</strong>,</p>
+      <p>${detail}</p>
+      ${approved ? '' : '<p>Open Profile Settings and select KYC Verification to update your information and documents.</p>'}
+      <hr style="border-color:#e5e7eb;margin:24px 0;" />
+      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners. Do not reply.</p>
+    </div>
+  `;
+  await transporter.sendMail({
+    from: FROM(),
+    to: userEmail,
+    subject: `KYC verification ${status}`,
+    html: themedEmail(html),
+  });
+}
+
 module.exports = {
   sendSignupOTPEmail,
   sendDepositNotificationEmail,
@@ -1401,4 +1445,6 @@ module.exports = {
   sendAccessCodeEmail,
   sendAccessRequestNotificationEmail,
   sendBroadcastEmail,
+  sendKYCSubmissionNotificationEmail,
+  sendUserKYCStatusEmail,
 };
