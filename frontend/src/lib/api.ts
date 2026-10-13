@@ -186,11 +186,12 @@ export const kycAPI = {
   getDocument: (submissionId: string, documentId: string) =>
     api.get(`/kyc/documents/${submissionId}/${documentId}`, { responseType: 'blob' }),
   adminSubmissions: () => api.get('/kyc/admin/submissions'),
+  adminSensitiveData: (id: string) => api.get(`/kyc/admin/submissions/${id}/sensitive`),
   adminReview: (id: string, data: { status: 'approved' | 'rejected'; rejectionReason?: string }) =>
     api.put(`/kyc/admin/submissions/${id}`, data),
-  createRequirement: (data: { name: string; description?: string; required?: boolean; active?: boolean; sortOrder?: number }) =>
+  createRequirement: (data: { name: string; description?: string; required?: boolean; active?: boolean; appliesTo?: 'all' | 'individual' | 'business'; sortOrder?: number }) =>
     api.post('/kyc/admin/requirements', data),
-  updateRequirement: (id: string, data: { name?: string; description?: string; required?: boolean; active?: boolean; sortOrder?: number }) =>
+  updateRequirement: (id: string, data: { name?: string; description?: string; required?: boolean; active?: boolean; appliesTo?: 'all' | 'individual' | 'business'; sortOrder?: number }) =>
     api.put(`/kyc/admin/requirements/${id}`, data),
 };
 

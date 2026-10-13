@@ -1,14 +1,18 @@
 const crypto = require('crypto');
 
-function encryptionKey() {
-  const secret = process.env.EIN_ENCRYPTION_KEY || process.env.JWT_SECRET;
-  if (!secret) throw new Error('EIN encryption key is not configured');
-  return crypto.createHash('sha256').update(secret).digest();
+function encryptionKeys() {
+  const secrets = [
+    process.env.SENSITIVE_DATA_ENCRYPTION_KEY,
+    process.env.EIN_ENCRYPTION_KEY,
+    process.env.JWT_SECRET,
+  ].filter((secret, index, values) => secret && values.indexOf(secret) === index);
+  if (!secrets.length) throw new Error('Sensitive-data encryption key is not configured');
+  return secrets.map((secret) => crypto.createHash('sha256').update(secret).digest());
 }
 
 function encryptSensitiveValue(value) {
   const iv = crypto.randomBytes(12);
-  const cipher = crypto.createCipheriv('aes-256-gcm', encryptionKey(), iv);
+  const cipher = crypto.createCipheriv('aes-256-gcm', encryptionKeys()[0], iv);
   const encrypted = Buffer.concat([cipher.update(value, 'utf8'), cipher.final()]);
   const tag = cipher.getAuthTag();
   return `${iv.toString('base64')}.${tag.toString('base64')}.${encrypted.toString('base64')}`;
@@ -17,9 +21,17 @@ function encryptSensitiveValue(value) {
 function decryptSensitiveValue(payload) {
   if (!payload) return null;
   const [iv, tag, encrypted] = payload.split('.').map((part) => Buffer.from(part, 'base64'));
-  const decipher = crypto.createDecipheriv('aes-256-gcm', encryptionKey(), iv);
-  decipher.setAuthTag(tag);
-  return Buffer.concat([decipher.update(encrypted), decipher.final()]).toString('utf8');
+  let lastError;
+  for (const key of encryptionKeys()) {
+    try {
+      const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
+      decipher.setAuthTag(tag);
+      return Buffer.concat([decipher.update(encrypted), decipher.final()]).toString('utf8');
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError;
 }
 
 module.exports = { encryptSensitiveValue, decryptSensitiveValue };

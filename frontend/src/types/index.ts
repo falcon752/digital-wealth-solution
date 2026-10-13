@@ -190,6 +190,7 @@ export interface KYCRequirement {
   description?: string | null;
   required: boolean;
   active: boolean;
+  appliesTo: 'all' | 'individual' | 'business';
   sortOrder: number;
 }
 
@@ -202,14 +203,39 @@ export interface KYCDocument {
   size: number;
 }
 
+export interface KYCRelatedPerson {
+  id?: string;
+  fullName: string;
+  title?: string | null;
+  email?: string | null;
+  ownershipPercentage?: number | null;
+}
+
 export interface KYCSubmission {
   id: string;
   userId: string | { id?: string; _id?: string; firstName: string; lastName: string; email: string };
+  applicantType: 'individual' | 'business';
   legalFirstName: string;
   legalLastName: string;
   dateOfBirth: string;
+  emailAddress?: string | null;
+  phoneNumber?: string | null;
   country: string;
   residentialAddress: string;
+  taxClassification?: string | null;
+  taxIdentifierLast4?: string | null;
+  taxCertificationConfirmed?: boolean;
+  legalEntityName?: string | null;
+  entityType?: string | null;
+  businessEinLast4?: string | null;
+  principalAddress?: string | null;
+  formationJurisdiction?: string | null;
+  businessDescription?: string | null;
+  affiliatedEntities?: string | null;
+  kycAmlProgramDetails?: string | null;
+  financialHistorySummary?: string | null;
+  beneficialOwners?: KYCRelatedPerson[];
+  authorizedRepresentatives?: KYCRelatedPerson[];
   documents: KYCDocument[];
   status: 'not_verified' | 'pending' | 'approved' | 'rejected';
   rejectionReason?: string | null;

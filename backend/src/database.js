@@ -185,6 +185,7 @@ const kycRequirementSchema = new mongoose.Schema(
     description: { type: String, default: null, trim: true, maxlength: 500 },
     required: { type: Boolean, default: true },
     active: { type: Boolean, default: true },
+    appliesTo: { type: String, enum: ['all', 'individual', 'business'], default: 'all' },
     sortOrder: { type: Number, default: 0 },
   },
   { timestamps: true }
@@ -205,14 +206,43 @@ const kycDocumentSchema = new mongoose.Schema(
   { _id: true }
 );
 
+const kycRelatedPersonSchema = new mongoose.Schema(
+  {
+    fullName: { type: String, required: true, trim: true, maxlength: 160 },
+    title: { type: String, default: null, trim: true, maxlength: 120 },
+    email: { type: String, default: null, trim: true, lowercase: true, maxlength: 160 },
+    ownershipPercentage: { type: Number, default: null, min: 0, max: 100 },
+  },
+  { _id: true }
+);
+
 const kycSubmissionSchema = new mongoose.Schema(
   {
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
+    applicantType: { type: String, enum: ['individual', 'business'], default: 'individual' },
     legalFirstName: { type: String, required: true, trim: true, maxlength: 80 },
     legalLastName: { type: String, required: true, trim: true, maxlength: 80 },
     dateOfBirth: { type: Date, required: true },
+    emailAddress: { type: String, default: null, trim: true, lowercase: true, maxlength: 160 },
+    phoneNumber: { type: String, default: null, trim: true, maxlength: 40 },
     country: { type: String, required: true, trim: true, maxlength: 100 },
     residentialAddress: { type: String, required: true, trim: true, maxlength: 250 },
+    taxClassification: { type: String, default: null, trim: true, maxlength: 100 },
+    taxIdentifierEncrypted: { type: String, default: null, select: false },
+    taxIdentifierLast4: { type: String, default: null },
+    taxCertificationConfirmed: { type: Boolean, default: false },
+    legalEntityName: { type: String, default: null, trim: true, maxlength: 180 },
+    entityType: { type: String, default: null, trim: true, maxlength: 100 },
+    businessEinEncrypted: { type: String, default: null, select: false },
+    businessEinLast4: { type: String, default: null },
+    principalAddress: { type: String, default: null, trim: true, maxlength: 300 },
+    formationJurisdiction: { type: String, default: null, trim: true, maxlength: 120 },
+    businessDescription: { type: String, default: null, trim: true, maxlength: 2000 },
+    affiliatedEntities: { type: String, default: null, trim: true, maxlength: 2000 },
+    kycAmlProgramDetails: { type: String, default: null, trim: true, maxlength: 3000 },
+    financialHistorySummary: { type: String, default: null, trim: true, maxlength: 3000 },
+    beneficialOwners: { type: [kycRelatedPersonSchema], default: [] },
+    authorizedRepresentatives: { type: [kycRelatedPersonSchema], default: [] },
     documents: { type: [kycDocumentSchema], default: [] },
     status: {
       type: String,
