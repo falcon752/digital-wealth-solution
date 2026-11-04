@@ -17,6 +17,10 @@ export interface User {
   balance?: number;
   onboardingFeePaid?: boolean;
   onboardingFeeSubmitted?: boolean;
+  onboardingStatus?: OnboardingStatus;
+  emailVerifiedAt?: string | null;
+  paymentConfirmedAt?: string | null;
+  accountActivatedAt?: string | null;
   referralCode?: string;
   hiddenAssets?: string[];
   createdAt: string;
@@ -182,6 +186,84 @@ export interface ContactSubmission {
   adminNote?: string | null;
   createdAt: string;
   processedAt?: string | null;
+  lastNotifiedStatus?: string | null;
+  statusHistory?: StatusHistoryEntry[];
+  emailDeliveries?: EmailDelivery[];
+}
+
+export type OnboardingStatus = 'registered' | 'payment_pending' | 'payment_under_review' | 'payment_confirmed' | 'account_active' | 'payment_rejected';
+
+export interface EmailDelivery {
+  id?: string;
+  template: string;
+  status?: string | null;
+  success: boolean;
+  providerMessageId?: string | null;
+  error?: string | null;
+  attemptedAt: string;
+}
+
+export interface StatusHistoryEntry {
+  id?: string;
+  status: string;
+  changedAt: string;
+  note?: string | null;
+}
+
+export interface OnboardingConfig {
+  id: string;
+  feeUsd: number;
+  renewalFeeUsd: number;
+  coverageMonths: number;
+  asset: string;
+  network: string;
+  assetAmount: string;
+  destinationAddress: string;
+  destinationTag?: number | null;
+  quoteValidUntil: string;
+  refundPolicyUrl: string;
+  termsUrl: string;
+  updatedAt: string;
+}
+
+export interface OnboardingPayment {
+  id: string;
+  userId: string | {
+    id?: string;
+    _id?: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    onboardingStatus?: OnboardingStatus;
+    onboardingFeePaid?: boolean;
+    isActive?: boolean;
+  };
+  consultationId?: string | null;
+  email: string;
+  source: 'client' | 'legacy';
+  feeUsd: number;
+  asset: string;
+  network: string;
+  assetAmount: string;
+  destinationAddress: string;
+  destinationTag?: number | null;
+  quoteValidUntil: string;
+  transactionReference: string;
+  verification: {
+    state: 'pending_network' | 'verified' | 'legacy_manual' | 'failed';
+    checkedAt?: string | null;
+    ledgerIndex?: number | null;
+    senderAddress?: string | null;
+    deliveredAmount?: string | null;
+    failureReason?: string | null;
+  };
+  status: 'under_review' | 'confirmed' | 'rejected';
+  termsAcceptedAt?: string | null;
+  submittedAt: string;
+  reviewedAt?: string | null;
+  rejectionReason?: string | null;
+  statusHistory: StatusHistoryEntry[];
+  emailDeliveries: EmailDelivery[];
 }
 
 export interface KYCRequirement {

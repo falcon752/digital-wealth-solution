@@ -36,6 +36,15 @@ const userSchema = new mongoose.Schema(
     balance: { type: Number, default: 0 },
     onboardingFeePaid: { type: Boolean, default: false },
     onboardingFeeSubmitted: { type: Boolean, default: false },
+    emailVerifiedAt: { type: Date, default: null },
+    onboardingStatus: {
+      type: String,
+      enum: ['registered', 'payment_pending', 'payment_under_review', 'payment_confirmed', 'account_active', 'payment_rejected'],
+      default: 'registered',
+    },
+    onboardingPaymentId: { type: mongoose.Schema.Types.ObjectId, ref: 'OnboardingPayment', default: null },
+    paymentConfirmedAt: { type: Date, default: null },
+    accountActivatedAt: { type: Date, default: null },
     referralCode: { type: String, unique: true, sparse: true },
     referredBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     hiddenAssets: { type: [String], default: [] },
@@ -148,6 +157,28 @@ applyToJSON(llcApplicationSchema);
 const LLCApplication = mongoose.model('LLCApplication', llcApplicationSchema);
 
 // ─── CONTACT SUBMISSION ────────────────────────────────────────────────────────
+const emailDeliverySchema = new mongoose.Schema(
+  {
+    template: { type: String, required: true, trim: true },
+    status: { type: String, default: null, trim: true },
+    success: { type: Boolean, required: true },
+    providerMessageId: { type: String, default: null, trim: true },
+    error: { type: String, default: null, trim: true, maxlength: 1000 },
+    attemptedAt: { type: Date, default: Date.now },
+  },
+  { _id: true }
+);
+
+const statusHistorySchema = new mongoose.Schema(
+  {
+    status: { type: String, required: true, trim: true },
+    changedAt: { type: Date, default: Date.now },
+    changedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    note: { type: String, default: null, trim: true, maxlength: 2000 },
+  },
+  { _id: true }
+);
+
 const contactSubmissionSchema = new mongoose.Schema(
   {
     topic: { type: String, required: true, trim: true },
@@ -172,11 +203,81 @@ const contactSubmissionSchema = new mongoose.Schema(
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     continuationTokenHash: { type: String, default: null, select: false },
     linkedAt: { type: Date, default: null },
+    statusHistory: { type: [statusHistorySchema], default: [] },
+    emailDeliveries: { type: [emailDeliverySchema], default: [] },
+    lastNotifiedStatus: { type: String, default: null },
   },
   { timestamps: true }
 );
 applyToJSON(contactSubmissionSchema);
 const ContactSubmission = mongoose.model('ContactSubmission', contactSubmissionSchema);
+
+// ─── ONBOARDING PAYMENT ──────────────────────────────────────────────────────
+const onboardingConfigSchema = new mongoose.Schema(
+  {
+    key: { type: String, unique: true, default: 'default' },
+    feeUsd: { type: Number, required: true, min: 0 },
+    renewalFeeUsd: { type: Number, required: true, min: 0 },
+    coverageMonths: { type: Number, required: true, min: 1, max: 120, default: 12 },
+    asset: { type: String, required: true, trim: true, uppercase: true },
+    network: { type: String, required: true, trim: true },
+    assetAmount: { type: String, required: true, trim: true, match: /^\d+(\.\d{1,6})?$/ },
+    destinationAddress: { type: String, required: true, trim: true, match: /^r[1-9A-HJ-NP-Za-km-z]{24,34}$/ },
+    destinationTag: { type: Number, default: null, min: 0, max: 4294967295 },
+    quoteValidUntil: { type: Date, required: true },
+    refundPolicyUrl: { type: String, required: true, trim: true },
+    termsUrl: { type: String, required: true, trim: true },
+    updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+  },
+  { timestamps: true }
+);
+applyToJSON(onboardingConfigSchema);
+const OnboardingConfig = mongoose.model('OnboardingConfig', onboardingConfigSchema);
+
+const paymentVerificationSchema = new mongoose.Schema(
+  {
+    state: { type: String, enum: ['pending_network', 'verified', 'legacy_manual', 'failed'], required: true },
+    checkedAt: { type: Date, default: null },
+    ledgerIndex: { type: Number, default: null },
+    senderAddress: { type: String, default: null, trim: true },
+    deliveredAmount: { type: String, default: null, trim: true },
+    failureReason: { type: String, default: null, trim: true, maxlength: 1000 },
+  },
+  { _id: false }
+);
+
+const onboardingPaymentSchema = new mongoose.Schema(
+  {
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+    consultationId: { type: mongoose.Schema.Types.ObjectId, ref: 'ContactSubmission', default: null },
+    email: { type: String, required: true, lowercase: true, trim: true },
+    source: { type: String, enum: ['client', 'legacy'], default: 'client' },
+    feeUsd: { type: Number, required: true },
+    asset: { type: String, required: true, trim: true, uppercase: true },
+    network: { type: String, required: true, trim: true },
+    assetAmount: { type: String, required: true, trim: true },
+    destinationAddress: { type: String, required: true, trim: true },
+    destinationTag: { type: Number, default: null },
+    quoteValidUntil: { type: Date, required: true },
+    transactionReference: { type: String, required: true, unique: true, trim: true, uppercase: true },
+    verification: { type: paymentVerificationSchema, required: true },
+    status: { type: String, enum: ['under_review', 'confirmed', 'rejected'], default: 'under_review' },
+    termsAcceptedAt: { type: Date, default: null },
+    submittedAt: { type: Date, default: Date.now },
+    reviewedAt: { type: Date, default: null },
+    reviewedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    rejectionReason: { type: String, default: null, trim: true, maxlength: 2000 },
+    statusHistory: { type: [statusHistorySchema], default: [] },
+    emailDeliveries: { type: [emailDeliverySchema], default: [] },
+  },
+  { timestamps: true }
+);
+onboardingPaymentSchema.index(
+  { userId: 1 },
+  { unique: true, partialFilterExpression: { status: 'under_review' } }
+);
+applyToJSON(onboardingPaymentSchema);
+const OnboardingPayment = mongoose.model('OnboardingPayment', onboardingPaymentSchema);
 
 // ─── KYC REQUIREMENT ──────────────────────────────────────────────────────────
 const kycRequirementSchema = new mongoose.Schema(
@@ -392,6 +493,96 @@ async function connectDB() {
     console.log(`Generated referral codes for ${usersWithoutRef.length} existing users.`);
   }
 
+  await User.updateMany(
+    { emailVerifiedAt: { $exists: false } },
+    [{ $set: { emailVerifiedAt: '$createdAt' } }]
+  );
+  await User.updateMany(
+    { onboardingStatus: { $exists: false }, onboardingFeePaid: true },
+    { $set: { onboardingStatus: 'account_active' } }
+  );
+  await User.updateMany(
+    { onboardingStatus: { $exists: false }, onboardingFeePaid: { $ne: true }, onboardingFeeSubmitted: true },
+    { $set: { onboardingStatus: 'payment_under_review' } }
+  );
+  await User.updateMany(
+    { onboardingStatus: { $exists: false } },
+    { $set: { onboardingStatus: 'registered' } }
+  );
+
+  let onboardingConfig = await OnboardingConfig.findOne({ key: 'default' });
+  if (!onboardingConfig) {
+    const configuredAmount = process.env.ONBOARDING_PAYMENT_AMOUNT;
+    const configuredDestination = process.env.ONBOARDING_PAYMENT_DESTINATION;
+    const configuredExpiry = process.env.ONBOARDING_QUOTE_VALID_UNTIL
+      ? new Date(process.env.ONBOARDING_QUOTE_VALID_UNTIL)
+      : null;
+    const validAmount = /^\d+(\.\d{1,6})?$/.test(configuredAmount || '');
+    const validDestination = /^r[1-9A-HJ-NP-Za-km-z]{24,34}$/.test(configuredDestination || '');
+    const validExpiry = configuredExpiry && !Number.isNaN(configuredExpiry.getTime()) && configuredExpiry > new Date();
+    const quoteIsConfigured = validAmount && validDestination && validExpiry;
+    onboardingConfig = await OnboardingConfig.create({
+      key: 'default',
+      feeUsd: Number(process.env.ONBOARDING_FEE_USD || 1000),
+      renewalFeeUsd: Number(process.env.ONBOARDING_RENEWAL_FEE_USD || 100),
+      coverageMonths: Number(process.env.ONBOARDING_COVERAGE_MONTHS || 12),
+      asset: process.env.ONBOARDING_PAYMENT_ASSET || 'XRP',
+      network: process.env.ONBOARDING_PAYMENT_NETWORK || 'XRPL',
+      assetAmount: validAmount ? configuredAmount : '758',
+      destinationAddress: validDestination ? configuredDestination : 'rpR3Tor8XLZB71kmkWgtRrbHzJ8mdnHjTp',
+      destinationTag: process.env.ONBOARDING_PAYMENT_DESTINATION_TAG
+        ? Number(process.env.ONBOARDING_PAYMENT_DESTINATION_TAG)
+        : null,
+      quoteValidUntil: quoteIsConfigured ? configuredExpiry : new Date(0),
+      refundPolicyUrl: '/legal/refund-policy',
+      termsUrl: '/legal/terms-of-service',
+    });
+    console.log(`Created initial onboarding payment configuration (${quoteIsConfigured ? 'active' : 'inactive until an administrator publishes a current quote'}).`);
+  }
+
+  const legacyUsers = await User.find({
+    role: 'user',
+    $or: [{ onboardingFeeSubmitted: true }, { onboardingFeePaid: true }],
+    onboardingPaymentId: null,
+  }).select('_id email onboardingFeeSubmitted onboardingFeePaid createdAt');
+  for (const user of legacyUsers) {
+    const status = user.onboardingFeePaid ? 'confirmed' : 'under_review';
+    const payment = await OnboardingPayment.findOneAndUpdate(
+      { transactionReference: `LEGACY-${user.id}` },
+      {
+        $setOnInsert: {
+          userId: user._id,
+          email: user.email,
+          source: 'legacy',
+          feeUsd: onboardingConfig.feeUsd,
+          asset: onboardingConfig.asset,
+          network: onboardingConfig.network,
+          assetAmount: onboardingConfig.assetAmount,
+          destinationAddress: onboardingConfig.destinationAddress,
+          destinationTag: onboardingConfig.destinationTag,
+          quoteValidUntil: onboardingConfig.quoteValidUntil,
+          transactionReference: `LEGACY-${user.id}`,
+          verification: { state: 'legacy_manual', checkedAt: user.createdAt },
+          status,
+          submittedAt: user.createdAt,
+          reviewedAt: user.onboardingFeePaid ? user.createdAt : null,
+          statusHistory: [{ status, changedAt: user.createdAt, note: 'Migrated from the previous onboarding workflow.' }],
+        },
+      },
+      { upsert: true, returnDocument: 'after' }
+    );
+    await User.updateOne(
+      { _id: user._id },
+      {
+        $set: {
+          onboardingPaymentId: payment._id,
+          ...(user.onboardingFeePaid ? { accountActivatedAt: user.createdAt, paymentConfirmedAt: user.createdAt } : {}),
+        },
+      }
+    );
+  }
+  if (legacyUsers.length) console.log(`Migrated ${legacyUsers.length} legacy onboarding payment record(s).`);
+
   console.log('Database ready');
 }
 
@@ -403,6 +594,8 @@ module.exports = {
   Withdrawal,
   LLCApplication,
   ContactSubmission,
+  OnboardingConfig,
+  OnboardingPayment,
   KYCRequirement,
   KYCSubmission,
   Loan,

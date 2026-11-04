@@ -47,6 +47,7 @@ router.post('/send-signup-otp', [
     signupOTPStore.set(email, {
       otp,
       expiresAt,
+      attempts: 0,
       userData: { email, password, firstName, lastName, referralCode },
     });
 
@@ -83,6 +84,11 @@ router.post('/verify-signup-otp', [
     }
 
     if (record.otp !== otp) {
+      record.attempts += 1;
+      if (record.attempts >= 5) {
+        signupOTPStore.delete(email);
+        return res.status(429).json({ error: 'Too many invalid attempts. Please request a new verification code.' });
+      }
       return res.status(400).json({ error: 'Invalid verification code' });
     }
 
@@ -109,6 +115,8 @@ router.post('/verify-signup-otp', [
       firstName, 
       lastName, 
       role: 'user',
+      emailVerifiedAt: new Date(),
+      onboardingStatus: 'registered',
       referralCode: newReferralCode,
       referredBy: referredById
     });
@@ -124,7 +132,14 @@ router.post('/verify-signup-otp', [
 
     res.status(201).json({
       token,
-      user: { id: user.id, email, firstName, lastName, role: 'user', onboardingFeePaid: user.onboardingFeePaid, referralCode: user.referralCode },
+      user: {
+        id: user.id, email, firstName, lastName, role: 'user',
+        onboardingFeePaid: user.onboardingFeePaid,
+        onboardingFeeSubmitted: user.onboardingFeeSubmitted,
+        onboardingStatus: user.onboardingStatus,
+        emailVerifiedAt: user.emailVerifiedAt,
+        referralCode: user.referralCode,
+      },
     });
   } catch (err) {
     console.error('Verify signup OTP error:', err);
@@ -132,61 +147,9 @@ router.post('/verify-signup-otp', [
   }
 });
 
-// POST /api/auth/register (one-shot signup)
-router.post('/register', [
-  body('email').isEmail().normalizeEmail(),
-  body('password')
-    .isLength({ min: 8 })
-    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/)
-    .withMessage('Password must be 8+ chars with uppercase, lowercase, number, and special character'),
-  body('firstName').trim().notEmpty().isLength({ max: 50 }),
-  body('lastName').trim().notEmpty().isLength({ max: 50 }),
-  body('referralCode').optional().trim(),
-], async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
-
-  const { email, password, firstName, lastName, referralCode } = req.body;
-
-  try {
-    const existing = await User.findOne({ email });
-    if (existing) return res.status(409).json({ error: 'Email already registered' });
-
-    let referredById = null;
-    if (referralCode) {
-      const parent = await User.findOne({ referralCode: referralCode.toUpperCase() });
-      if (parent) referredById = parent._id;
-    }
-
-    const newReferralCode = require('crypto').randomBytes(4).toString('hex').toUpperCase();
-    const hashedPassword = await bcrypt.hash(password, 12);
-    const user = await User.create({ 
-      email, 
-      password: hashedPassword, 
-      firstName, 
-      lastName, 
-      role: 'user',
-      referralCode: newReferralCode,
-      referredBy: referredById
-    });
-
-    logActivity(user.id, 'USER_REGISTERED', { email }, req);
-    sendWelcomeEmail(email, firstName).catch(() => {});
-
-    const token = jwt.sign(
-      { userId: user.id, role: 'user' },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
-    );
-
-    res.status(201).json({
-      token,
-      user: { id: user.id, email, firstName, lastName, role: 'user', onboardingFeePaid: user.onboardingFeePaid, referralCode: user.referralCode },
-    });
-  } catch (err) {
-    console.error('Register error:', err);
-    res.status(500).json({ error: 'Registration failed' });
-  }
+// Direct registration is intentionally disabled so email verification cannot be bypassed.
+router.post('/register', async (req, res) => {
+  res.status(410).json({ error: 'Email verification is required. Start registration by requesting a verification code.' });
 });
 
 
@@ -212,14 +175,6 @@ router.post('/login', [
     if (!isValid) {
       logActivity(user.id, 'LOGIN_FAILED', { email }, req);
       return res.status(401).json({ error: 'Invalid email or password' });
-    }
-
-    if (user.role === 'user' && !user.onboardingFeePaid && !req.body.consultationMode) {
-      return res.status(403).json({
-        error: 'Onboarding fee verification pending',
-        code: 'PAYMENT_REQUIRED',
-        onboardingFeeSubmitted: user.onboardingFeeSubmitted,
-      });
     }
 
     if (user.twoFactorEnabled) {
@@ -256,6 +211,10 @@ router.post('/login', [
         antiPhishingPhrase: user.antiPhishingPhrase,
         onboardingFeePaid: user.onboardingFeePaid,
         onboardingFeeSubmitted: user.onboardingFeeSubmitted,
+        onboardingStatus: user.onboardingStatus,
+        emailVerifiedAt: user.emailVerifiedAt,
+        paymentConfirmedAt: user.paymentConfirmedAt,
+        accountActivatedAt: user.accountActivatedAt,
         referralCode: user.referralCode,
         hiddenAssets: user.hiddenAssets,
       },

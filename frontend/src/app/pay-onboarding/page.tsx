@@ -1,333 +1,204 @@
 'use client';
 
-import { useState, Suspense, useEffect } from 'react';
-import Image from 'next/image';
+import { Suspense, useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+import { Check, CheckCircle2, Clock3, Copy, ExternalLink, FileCheck2, RefreshCw, UserRound, XCircle } from 'lucide-react';
+import toast from 'react-hot-toast';
 import Navbar from '@/components/layout/Navbar';
 import SiteFooter from '@/components/layout/SiteFooter';
-import FadeIn from '@/components/animations/FadeIn';
 import Button from '@/components/ui/Button';
-import toast from 'react-hot-toast';
-import axios from 'axios';
-import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { authAPI, contactAPI } from '@/lib/api';
-import { Hourglass } from 'lucide-react';
+import { onboardingAPI } from '@/lib/api';
+import { getApiError } from '@/lib/apiError';
+import { OnboardingConfig, OnboardingPayment, OnboardingStatus } from '@/types';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const includedServices = [
+  'Initial consultation and onboarding assistance',
+  'Assignment of a personal advisor',
+  'Access to client advisory and support services',
+  'Guidance on institutional custody and identity verification',
+  'Assistance understanding eligible XRP yield and crypto-backed lending products',
+];
 
-function PayOnboardingPageContent() {
+const statusDetails: Record<OnboardingStatus, { label: string; message: string; tone: string; icon: typeof Clock3 }> = {
+  registered: { label: 'Registered / Payment Pending', message: 'Your email is verified. Review the active quote before making payment.', tone: 'bg-gray-100 text-gray-700', icon: UserRound },
+  payment_pending: { label: 'Payment Pending', message: 'No onboarding payment has been submitted yet.', tone: 'bg-gray-100 text-gray-700', icon: Clock3 },
+  payment_under_review: { label: 'Payment Under Review', message: 'Your transaction is being verified and reviewed. This does not yet grant dashboard access.', tone: 'bg-amber-50 text-amber-700', icon: RefreshCw },
+  payment_confirmed: { label: 'Payment Confirmed', message: 'Payment is confirmed. Account activation remains a separate administrative step.', tone: 'bg-blue-50 text-blue-700', icon: FileCheck2 },
+  account_active: { label: 'Account Active', message: 'Your onboarding account is active and dashboard access is available.', tone: 'bg-emerald-50 text-emerald-700', icon: CheckCircle2 },
+  payment_rejected: { label: 'Payment Rejected', message: 'The submitted payment was not approved. Review the reason and submit a valid transaction.', tone: 'bg-red-50 text-red-700', icon: XCircle },
+};
+
+function OnboardingPageContent() {
   const searchParams = useSearchParams();
-  const isPending = searchParams.get('status') === 'pending';
-  const { user, token, login } = useAuth();
-  const router = useRouter();
-
-  const [showForm, setShowForm] = useState(false);
-  const [email, setEmail] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isDone, setIsDone] = useState(false);
+  const { user, refreshUser } = useAuth();
+  const [config, setConfig] = useState<OnboardingConfig | null>(null);
+  const [quoteActive, setQuoteActive] = useState(false);
+  const [payment, setPayment] = useState<OnboardingPayment | null>(null);
+  const [status, setStatus] = useState<OnboardingStatus>('payment_pending');
+  const [transactionReference, setTransactionReference] = useState('');
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [isChecking, setIsChecking] = useState(false);
 
-  useEffect(() => {
-    if (user && user.role === 'user' && user.onboardingFeePaid) {
-      router.replace('/dashboard');
-    }
-  }, [user, router]);
-
-  const handleCheckStatus = async () => {
-    const storedToken = token || (typeof window !== 'undefined' ? localStorage.getItem('dws_token') : null);
-
-    // Not logged in — check status by email instead of a session
-    if (!storedToken) {
-      if (!email) {
-        toast.error('Please enter the email you used to submit your confirmation.');
-        return;
-      }
-      setIsChecking(true);
-      try {
-        const res = await contactAPI.onboardingStatus(email);
-        if (res.data.onboardingFeePaid) {
-          toast.success('Payment verified! Please log in to access your dashboard.');
-          router.push('/login');
-        } else {
-          toast.error('Verification Status: Pending. Admin has not approved this account yet.', {
-            icon: <Hourglass className="w-5 h-5 text-amber-500 animate-spin" style={{ animationDuration: '3s' }} />,
-          });
-        }
-      } catch (err: any) {
-        if (err.response?.status === 404) {
-          toast.error('No account found for this email. Please create an account first.');
-          router.push('/register');
-        } else {
-          toast.error('Failed to verify status. Please try again.');
-        }
-      } finally {
-        setIsChecking(false);
-      }
-      return;
-    }
-
-    // Logged in — check status via the authenticated session
-    setIsChecking(true);
+  const load = useCallback(async () => {
+    setLoading(true);
     try {
-      const res = await authAPI.me();
-      const updatedUser = res.data.user;
-
-      if (updatedUser.onboardingFeePaid) {
-        login(storedToken, updatedUser);
-        toast.success('Payment verified! Redirecting to dashboard...');
-        router.replace('/dashboard');
-      } else {
-        toast.error('Verification Status: Pending. Admin has not approved this account yet.', {
-          icon: <Hourglass className="w-5 h-5 text-amber-500 animate-spin" style={{ animationDuration: '3s' }} />,
-        });
+      const configResponse = await onboardingAPI.getConfig();
+      setConfig(configResponse.data.config);
+      setQuoteActive(configResponse.data.quoteActive);
+      if (user) {
+        const statusResponse = await onboardingAPI.getMyStatus();
+        setPayment(statusResponse.data.payment);
+        setStatus(statusResponse.data.onboarding?.onboardingStatus || user.onboardingStatus || 'payment_pending');
       }
-    } catch {
-      toast.error('Failed to verify status. Please try again.');
+    } catch (error: unknown) {
+      toast.error(getApiError(error, 'Unable to load onboarding information'));
     } finally {
-      setIsChecking(false);
+      setLoading(false);
     }
-  };
+  }, [user]);
 
-  const walletAddress = 'rpR3Tor8XLZB71kmkWgtRrbHzJ8mdnHjTp';
+  useEffect(() => { load(); }, [load]);
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(walletAddress);
+  const copyDestination = async () => {
+    if (!config) return;
+    await navigator.clipboard.writeText(config.destinationAddress);
     setCopied(true);
-    toast.success('Wallet address copied!');
-    setTimeout(() => setCopied(false), 2000);
+    toast.success('Official destination copied');
+    setTimeout(() => setCopied(false), 1800);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email) {
-      toast.error('Please enter your email address');
-      return;
-    }
-
-    setIsSubmitting(true);
+  const submitPayment = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setSubmitting(true);
     try {
-      await axios.post(`${API_URL}/contact/onboarding-fee`, { email });
-      toast.success('Confirmation sent! Our team will contact you shortly.');
-      setIsDone(true);
-      setShowForm(false);
-    } catch (error: any) {
-      console.error('Submission error:', error);
-      toast.error(error.response?.data?.error || 'Failed to send confirmation. Please try again.');
+      const response = await onboardingAPI.submitPayment({ transactionReference, termsAccepted });
+      setPayment(response.data.payment);
+      setStatus('payment_under_review');
+      setTransactionReference('');
+      await refreshUser();
+      toast.success(response.data.idempotent ? 'This transaction was already submitted.' : 'Payment submitted for verification and review.');
+    } catch (error: unknown) {
+      toast.error(getApiError(error, 'Unable to submit payment'));
     } finally {
-      setIsSubmitting(false);
+      setSubmitting(false);
     }
   };
+
+  const effectiveStatus = user?.onboardingStatus || status;
+  const statusView = statusDetails[effectiveStatus] || statusDetails.payment_pending;
+  const StatusIcon = statusView.icon;
+  const canSubmit = Boolean(user && quoteActive && ['registered', 'payment_pending', 'payment_rejected'].includes(effectiveStatus));
+  const requestedStatus = searchParams.get('status');
 
   return (
-    <div className="min-h-screen bg-white" style={{ fontFamily: "'Source Sans Pro', 'Inter', sans-serif" }}>
+    <div className="min-h-screen bg-white text-gray-900">
       <Navbar />
-
-      <main className="pt-32 pb-24 px-6">
-        <div className="max-w-3xl mx-auto">
-          <FadeIn direction="up">
-            <div className="text-center mb-12">
-              <h1 className="text-[36px] font-semibold mb-4" style={{ color: '#1e266d' }}>
-                Onboarding Fee Payment
-              </h1>
-              <p className="text-[18px] text-gray-600 max-w-xl mx-auto">
-                To complete your onboarding and gain access to our institutional crypto services, 
-                a one-time onboarding fee is required.
-              </p>
-            </div>
-
-            <div className="bg-white rounded-2xl p-8 md:p-12 shadow-[0_10px_50px_rgba(30,38,109,0.1)] border border-gray-100">
-              {/* Fee Highlight */}
-              <div className="flex flex-col items-center mb-10">
-                <div className="flex items-center gap-4 mb-2">
-                  <div className="relative w-12 h-12 flex items-center justify-center">
-                    <Image 
-                      src="/xrp-logo.svg" 
-                      alt="XRP Logo" 
-                      fill 
-                      className="object-contain"
-                    />
-                  </div>
-                  <span className="text-[24px] font-semibold text-gray-800 tracking-tight">XRP (Ripple)</span>
-                </div>
-                <span className="text-gray-500 uppercase tracking-widest text-xs font-semibold mb-1">Required Onboarding Fee</span>
-                <span className="text-[48px] font-semibold" style={{ color: '#A87A49' }}>$1,000.00</span>
+      <main className="pt-24">
+        <section className="border-b border-gray-200 bg-[#f7f9fc] px-5 py-10 md:py-14">
+          <div className="mx-auto max-w-6xl">
+            <p className="text-sm font-semibold text-[#0033AD]">DWP client onboarding</p>
+            <div className="mt-2 grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
+              <div>
+                <h1 className="max-w-3xl text-3xl font-semibold leading-tight text-[#17205c] md:text-5xl">Review the service, active quote, and payment terms</h1>
+                <p className="mt-4 max-w-3xl text-base leading-7 text-gray-600">The onboarding fee covers advisory and support services for the first 12 months. Custody, yield, lending, and other financial products require separate eligibility checks, approvals, and agreements.</p>
               </div>
+              {user && (
+                <div className={`flex max-w-sm items-start gap-3 rounded-lg px-4 py-3 ${statusView.tone}`}>
+                  <StatusIcon size={20} className="mt-0.5 shrink-0" />
+                  <div><p className="text-sm font-semibold">{statusView.label}</p><p className="mt-1 text-xs leading-5 opacity-80">{statusView.message}</p></div>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
 
-              <div className="grid md:grid-cols-2 gap-12 items-center">
-                {/* QR Code */}
-                <div className="flex flex-col items-center">
-                  <div className="relative w-64 h-64 bg-gray-50 rounded-xl p-4 border border-gray-200 shadow-inner">
-                    <Image 
-                      src="/onboarding-qr.jpg" 
-                      alt="XRP Wallet QR Code" 
-                      fill 
-                      className="p-4 object-contain"
-                    />
-                  </div>
-                  <p className="mt-4 text-sm text-gray-500 font-medium">Scan to pay with your XRP wallet</p>
+        {loading ? (
+          <div className="flex h-72 items-center justify-center"><div className="h-9 w-9 animate-spin rounded-full border-2 border-[#0033AD] border-t-transparent" /></div>
+        ) : (
+          <>
+            <section className="border-b border-gray-200 px-5 py-10">
+              <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-2">
+                <div>
+                  <h2 className="text-2xl font-semibold text-[#17205c]">What the onboarding fee includes</h2>
+                  <div className="mt-6 flex items-baseline gap-3"><span className="text-4xl font-semibold text-[#17205c]">${config?.feeUsd.toLocaleString()}</span><span className="text-sm text-gray-500">USD / first {config?.coverageMonths} months</span></div>
+                  <ul className="mt-7 space-y-3">{includedServices.map((service) => <li key={service} className="flex gap-3 text-sm leading-6 text-gray-700"><Check size={18} className="mt-0.5 shrink-0 text-emerald-600" />{service}</li>)}</ul>
+                  <p className="mt-7 border-l-2 border-[#0033AD] pl-4 text-sm leading-6 text-gray-600"><strong className="text-gray-900">Renewal:</strong> ${config?.renewalFeeUsd} after the initial {config?.coverageMonths}-month period, subject to applicable renewal terms.</p>
                 </div>
 
-                {/* Wallet Info */}
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-2">XRP Wallet Address</h3>
-                    <div className="flex items-center gap-3">
-                      <div 
-                        className="flex-1 bg-gray-50 p-4 rounded-lg border border-gray-200 font-mono text-sm break-all"
-                        style={{ color: '#1e266d' }}
-                      >
-                        {walletAddress}
-                      </div>
-                      <button 
-                        onClick={handleCopy}
-                        className="p-3 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
-                        title="Copy to clipboard"
-                      >
-                        {copied ? (
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-5 h-5 text-green-600">
-                            <path d="M20 6L9 17l-5-5" />
-                          </svg>
-                        ) : (
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5 text-gray-600">
-                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                            <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
-                          </svg>
-                        )}
-                      </button>
-                    </div>
+                <div className="border-l-0 border-gray-200 lg:border-l lg:pl-10">
+                  <div className="flex items-center justify-between gap-4">
+                    <div><p className="text-xs font-semibold uppercase text-gray-500">Current payment quote</p><p className="mt-1 text-3xl font-semibold text-[#17205c]">{config?.assetAmount} {config?.asset}</p></div>
+                    <span className={`rounded-md px-2.5 py-1 text-xs font-semibold ${quoteActive ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>{quoteActive ? 'Active quote' : 'Quote expired'}</span>
                   </div>
-
-                  <div className="bg-[#A87A49]/10 border border-[#A87A49]/20 rounded-xl p-4">
-                    <p className="text-sm leading-relaxed" style={{ color: '#A87A49' }}>
-                      <strong>Important:</strong> Please ensure you send the exact amount. Transfers are non-refundable and will be verified manually by our team.
-                    </p>
-                  </div>
-
-                  {(isPending || isDone) ? (
-                    <div className="pt-4 space-y-3">
-                      <div className="bg-amber-50/70 border border-amber-100 rounded-xl p-6 text-center shadow-sm mb-2">
-                        <div className="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-6 h-6">
-                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                          </svg>
-                        </div>
-                        <h3 className="text-amber-900 font-semibold mb-1">Verification in Progress</h3>
-                        <p className="text-amber-700 text-sm leading-relaxed">
-                          We have received your confirmation. Our team is currently verifying the transfer on the ledger. 
-                          This process usually takes 2-6 hours. You will be automatically redirected to your dashboard once approved.
-                        </p>
-                      </div>
-
-                      {!token && (
-                        <div>
-                          <label htmlFor="check-status-email" className="block text-sm font-semibold text-gray-500 mb-1.5">
-                            Your Email Address
-                          </label>
-                          <input
-                            id="check-status-email"
-                            type="email"
-                            placeholder="Enter the email you used to submit your confirmation"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="w-full rounded-xl px-4 py-2.5 text-sm mb-3 bg-white text-gray-900 placeholder:text-gray-400 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500/50 transition-all duration-200"
-                          />
-                        </div>
-                      )}
-
-                      <Button
-                        onClick={handleCheckStatus}
-                        loading={isChecking}
-                        className="w-full bg-blue-600! hover:bg-blue-700! text-white font-semibold py-3 rounded-lg shadow-lg hover:translate-y-[-1px] transition-all"
-                      >
-                        Check Approval Status
-                      </Button>
-
-                      <Button
-                        onClick={() => window.location.href = '/login'}
-                        variant="outline"
-                        className="w-full py-3 text-gray-900 border-gray-300 hover:bg-gray-50"
-                      >
-                        Back to Login
-                      </Button>
-                    </div>
-                  ) : !showForm ? (
-                    <div className="pt-4">
-                      <p className="text-xs text-center text-gray-400 mb-3 italic">
-                        Click only after you have sent the payment
-                      </p>
-                      <Button 
-                        onClick={() => setShowForm(true)}
-                        className="w-full py-4 text-white font-semibold rounded-lg transition-all shadow-lg hover:translate-y-[-2px]"
-                        style={{ backgroundColor: '#1e266d' }}
-                      >
-                        I have made the transfer
-                      </Button>
-                    </div>
-                  ) : (
-                    <FadeIn direction="up">
-                      <form onSubmit={handleSubmit} className="space-y-4 pt-4 border-t border-gray-100">
-                        <div>
-                          <label htmlFor="pay-onboarding-email" className="block text-sm font-semibold text-gray-500 mb-1.5">
-                            Your Email Address
-                          </label>
-                          <input
-                            id="pay-onboarding-email"
-                            type="email"
-                            placeholder="Enter the email associated with your account"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                            className="w-full rounded-xl px-4 py-2.5 text-sm bg-white text-gray-900 placeholder:text-gray-400 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500/50 transition-all duration-200"
-                          />
-                        </div>
-                        <div className="flex gap-3">
-                          <Button 
-                            type="button" 
-                            variant="secondary"
-                            onClick={() => setShowForm(false)}
-                            className="flex-1"
-                          >
-                            Back
-                          </Button>
-                          <Button 
-                            type="submit"
-                            className="flex-[2] py-3 text-white font-semibold"
-                            style={{ backgroundColor: '#A87A49' }}
-                            loading={isSubmitting}
-                          >
-                            Confirm Payment
-                          </Button>
-                        </div>
-                      </form>
-                    </FadeIn>
-                  )}
+                  <dl className="mt-6 divide-y divide-gray-200 border-y border-gray-200 text-sm">
+                    <div className="grid grid-cols-[120px_1fr] gap-4 py-3"><dt className="text-gray-500">Network</dt><dd className="font-semibold">{config?.network}</dd></div>
+                    <div className="grid grid-cols-[120px_1fr] gap-4 py-3"><dt className="text-gray-500">Valid until</dt><dd className="font-semibold">{config ? new Date(config.quoteValidUntil).toLocaleString() : '-'}</dd></div>
+                    <div className="grid grid-cols-[120px_1fr] gap-4 py-3"><dt className="text-gray-500">Destination</dt><dd className="flex min-w-0 items-start gap-2"><code className="min-w-0 break-all text-xs font-semibold text-[#17205c]">{config?.destinationAddress}</code><button type="button" onClick={copyDestination} className="shrink-0 rounded-md p-1.5 text-gray-500 hover:bg-gray-100" title="Copy official destination">{copied ? <Check size={16} /> : <Copy size={16} />}</button></dd></div>
+                    {config?.destinationTag != null && <div className="grid grid-cols-[120px_1fr] gap-4 py-3"><dt className="text-gray-500">Destination tag</dt><dd className="font-semibold">{config.destinationTag}</dd></div>}
+                  </dl>
+                  <p className="mt-4 text-xs leading-5 text-gray-500">Use only the destination displayed here. The quote is time-limited and may change after expiration. Retain your 64-character transaction hash.</p>
                 </div>
               </div>
-            </div>
+            </section>
 
-            <div className="mt-12 text-center">
-              <p className="text-sm text-gray-400">
-                Need assistance? <a href="/contact" className="underline hover:text-gray-600">Contact our support team</a>
-              </p>
-            </div>
-          </FadeIn>
-        </div>
+            <section className="border-b border-gray-200 bg-[#f7f9fc] px-5 py-10">
+              <div className="mx-auto max-w-6xl">
+                <h2 className="text-2xl font-semibold text-[#17205c]">Payment and account activation</h2>
+                <div className="mt-7 grid gap-5 md:grid-cols-4">
+                  {[
+                    ['1', 'Register and verify', 'Create an account with the consultation email and verify the one-time email code.'],
+                    ['2', 'Make the transfer', `Transfer the active ${config?.asset || 'XRP'} quote to the official destination before it expires.`],
+                    ['3', 'Submit the reference', 'Provide the transaction hash. The backend checks network, destination, amount, and validated status.'],
+                    ['4', 'Review and activation', 'An administrator confirms payment and activates dashboard access as separate actions.'],
+                  ].map(([number, title, copy]) => <div key={number} className="border-t-2 border-[#0033AD] pt-4"><span className="text-xs font-semibold text-[#0033AD]">STEP {number}</span><h3 className="mt-2 font-semibold text-gray-900">{title}</h3><p className="mt-2 text-sm leading-6 text-gray-600">{copy}</p></div>)}
+                </div>
+              </div>
+            </section>
+
+            <section className="px-5 py-10">
+              <div className="mx-auto max-w-3xl">
+                <h2 className="text-2xl font-semibold text-[#17205c]">Submit payment confirmation</h2>
+                {requestedStatus && <p className="mt-2 text-sm text-gray-500">Current workflow status: {statusView.label}</p>}
+
+                {!user ? (
+                  <div className="mt-6 border border-gray-200 p-6">
+                    <p className="text-sm leading-6 text-gray-700">Register and verify your email before submitting a payment. Existing clients can sign in with the email used for their consultation.</p>
+                    <div className="mt-5 flex flex-wrap gap-3"><Link href="/register"><Button className="bg-[#0033AD]! text-white">Create Account</Button></Link><Link href="/login"><Button variant="outline">Already have an account? Log in</Button></Link></div>
+                  </div>
+                ) : effectiveStatus === 'account_active' ? (
+                  <div className="mt-6 flex items-start gap-3 border border-emerald-200 bg-emerald-50 p-5 text-emerald-800"><CheckCircle2 size={21} className="mt-0.5" /><div><p className="font-semibold">Your account is active.</p><p className="mt-1 text-sm">Continue to your dashboard, complete your profile, and submit any required KYC information.</p><Link href="/dashboard" className="mt-3 inline-flex items-center gap-1 text-sm font-semibold underline">Open dashboard <ExternalLink size={14} /></Link></div></div>
+                ) : ['payment_under_review', 'payment_confirmed'].includes(effectiveStatus) ? (
+                  <div className="mt-6 border border-amber-200 bg-amber-50 p-5 text-amber-900"><p className="font-semibold">{statusView.label}</p><p className="mt-1 text-sm leading-6">{statusView.message}</p>{payment && <p className="mt-3 break-all font-mono text-xs">Reference: {payment.transactionReference}</p>}</div>
+                ) : (
+                  <form onSubmit={submitPayment} className="mt-6 space-y-5 border border-gray-200 p-6">
+                    {payment?.status === 'rejected' && <div className="border-l-2 border-red-500 pl-4 text-sm text-red-700"><p className="font-semibold">Previous payment rejected</p><p className="mt-1">{payment.rejectionReason || 'Review the instructions and submit a different valid transaction.'}</p></div>}
+                    <label className="block"><span className="text-sm font-semibold text-gray-800">XRP transaction hash</span><input required maxLength={64} minLength={64} pattern="[A-Fa-f0-9]{64}" value={transactionReference} onChange={(event) => setTransactionReference(event.target.value.trim())} placeholder="64-character transaction hash" className="mt-2 h-12 w-full border border-gray-300 px-3 font-mono text-sm focus:border-[#0033AD] focus:outline-none" /></label>
+                    <label className="flex items-start gap-3 text-sm leading-6 text-gray-700"><input type="checkbox" required checked={termsAccepted} onChange={(event) => setTermsAccepted(event.target.checked)} className="mt-1" /><span>I acknowledge the <Link href={config?.termsUrl || '/legal/terms-of-service'} className="font-semibold text-[#0033AD] underline">terms and conditions</Link>, the <Link href={config?.refundPolicyUrl || '/legal/refund-policy'} className="font-semibold text-[#0033AD] underline">refund policy</Link>, the active quote, and that submitting a transaction does not automatically approve payment or product eligibility.</span></label>
+                    <Button type="submit" disabled={!canSubmit || !termsAccepted} loading={submitting} className="w-full bg-[#0033AD]! py-3 text-white">I&apos;ve made this transfer</Button>
+                    {!quoteActive && <p className="text-center text-sm font-semibold text-red-600">Payment submission is disabled until an administrator publishes a current quote.</p>}
+                  </form>
+                )}
+              </div>
+            </section>
+
+            <section className="border-t border-gray-200 bg-[#f7f9fc] px-5 py-10">
+              <div className="mx-auto grid max-w-6xl gap-8 md:grid-cols-2">
+                <div><h2 className="text-xl font-semibold text-[#17205c]">KYC and next steps</h2><p className="mt-3 text-sm leading-6 text-gray-600">After account activation, complete your profile and the KYC Verification section. Your advisor can then guide you through any separately eligible custody, yield, or lending process.</p></div>
+                <div><h2 className="text-xl font-semibold text-[#17205c]">Refund and support</h2><p className="mt-3 text-sm leading-6 text-gray-600">Refund requests may be submitted in writing within 7 calendar days of the initial payment, provided substantive onboarding services have not commenced. Later requests are reviewed under the applicable agreement and law.</p><div className="mt-3 flex gap-4 text-sm font-semibold"><Link href="/legal/refund-policy" className="text-[#0033AD] underline">Refund policy</Link><a href="mailto:support@digitalwealthpartnersllc.net" className="text-[#0033AD] underline">Contact support</a></div></div>
+              </div>
+            </section>
+          </>
+        )}
       </main>
-
       <SiteFooter />
     </div>
   );
 }
 
 export default function PayOnboardingPage() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-800"></div>
-      </div>
-    }>
-      <PayOnboardingPageContent />
-    </Suspense>
-  );
+  return <Suspense fallback={<div className="flex min-h-screen items-center justify-center"><div className="h-10 w-10 animate-spin rounded-full border-2 border-[#0033AD] border-t-transparent" /></div>}><OnboardingPageContent /></Suspense>;
 }

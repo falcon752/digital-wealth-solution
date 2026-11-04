@@ -11,7 +11,7 @@ const {
   sendUserLoanStatusEmail,
   sendUserEarnStatusEmail,
   sendUserLLCStatusEmail,
-  sendBroadcastEmail
+  sendBroadcastEmail,
 } = require('../utils/email');
 
 const router = express.Router();
@@ -88,7 +88,7 @@ router.get('/users', authenticate, requireAdmin, async (req, res) => {
         .sort({ createdAt: -1 })
         .skip(offset)
         .limit(parseInt(limit))
-        .select('id email firstName lastName role isActive onboardingFeePaid onboardingFeeSubmitted twoFactorEnabled createdAt balance')
+        .select('id email firstName lastName role isActive onboardingFeePaid onboardingFeeSubmitted onboardingStatus emailVerifiedAt paymentConfirmedAt accountActivatedAt twoFactorEnabled createdAt balance')
         .lean(),
       User.countDocuments(filter),
     ]);
@@ -121,27 +121,9 @@ router.put('/users/:id/status', authenticate, requireAdmin, [
 });
 
 router.put('/users/:id/verify-payment', authenticate, requireAdmin, async (req, res) => {
-  const { id } = req.params;
-  const { onboardingFeePaid } = req.body;
-
-  try {
-    const user = await User.findById(id);
-    if (!user) return res.status(404).json({ error: 'User not found' });
-
-    user.onboardingFeePaid = onboardingFeePaid;
-    if (!onboardingFeePaid) {
-      // Reset submission status on revoke so user can re-submit if needed
-      user.onboardingFeeSubmitted = false;
-    }
-    await user.save();
-
-    logActivity(req.user.id, 'USER_PAYMENT_VERIFIED', { targetUserId: id, onboardingFeePaid }, req);
-
-    res.json({ message: `User payment status updated to ${onboardingFeePaid ? 'Verified' : 'Pending'}` });
-  } catch (err) {
-    console.error('Verify payment error:', err);
-    res.status(500).json({ error: 'Failed to verify payment' });
-  }
+  res.status(410).json({
+    error: 'This legacy payment toggle has been retired. Review, confirm, and activate the payment from Onboarding Payments.',
+  });
 });
 
 router.put('/users/:id/balance', authenticate, requireAdmin, [

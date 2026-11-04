@@ -67,7 +67,13 @@ export default function LoginPage() {
         toast.error(message || 'Signed in, but the consultation could not be linked.');
       }
       toast.success(`Welcome back, ${res.data.user.firstName}!`);
-      router.push(res.data.user.role === 'admin' ? '/admin' : '/dashboard');
+      router.push(
+        res.data.user.role === 'admin'
+          ? '/admin'
+          : res.data.user.onboardingFeePaid
+            ? '/dashboard'
+            : `/pay-onboarding?status=${res.data.user.onboardingStatus || 'payment_pending'}`
+      );
     } catch (err: unknown) {
       const data = (err as { response?: { data?: { code?: string; onboardingFeeSubmitted?: boolean; error?: string } } })?.response?.data;
       if (data?.code === 'PAYMENT_REQUIRED') {

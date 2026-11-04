@@ -166,7 +166,7 @@ function escapeHtml(str) {
 
 // Renders free-form admin note text as HTML, turning any line that is
 // solely a bare URL into a real styled button instead of plain text.
-function renderNoteHtml(note, buttonLabel = 'Proceed to Onboarding') {
+function renderNoteHtml(note, buttonLabel = 'Learn More') {
   const blocks = String(note).split(/\n\s*\n/);
   return blocks.map((block) => {
     const trimmed = block.trim();
@@ -572,43 +572,6 @@ async function sendPasswordResetEmail(to, firstName, otp) {
   });
 }
 
-// ─── Onboarding fee notification ──────────────────────────────────────────────
-async function sendOnboardingFeeNotificationEmail({ adminEmail, userEmail }) {
-  const transporter = createTransporter();
-
-  const now = new Date().toLocaleString('en-US', { timeZone: 'UTC', dateStyle: 'medium', timeStyle: 'short' });
-
-  const html = `
-    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
-      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
-      <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">Onboarding Fee Confirmation - Action Required</p>
-
-      <div style="background:#2563eb11;border:1px solid #2563eb44;border-radius:10px;padding:14px 18px;margin-bottom:24px;">
-        <p style="margin:0;color:#60a5fa;font-size:14px;">
-          A user has clicked the confirmation button for their $1,000 onboarding fee payment.
-        </p>
-      </div>
-
-      <!-- User details -->
-      <h3 style="color:#60a5fa;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">User Details</h3>
-      <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
-        <tr><td style="color:#9ca3af;padding:6px 0;">Email</td><td style="color:#111827;text-align:right;">${userEmail}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">Confirmed At</td><td style="color:#111827;text-align:right;">${now} UTC</td></tr>
-      </table>
-
-      <hr style="border-color:#e5e7eb;margin:28px 0;" />
-      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners. Do not reply.</p>
-    </div>
-  `;
-
-  await transporter.sendMail({
-    from: FROM(),
-    to: adminEmail,
-    subject: `[Onboarding Fee] Confirmation from ${userEmail}`,
-    html: themedEmail(html),
-  });
-}
-
 // ─── General Contact Form Email ──────────────────────────────────────────────
 async function sendGeneralContactEmail({ adminEmail, contactData }) {
   const transporter = createTransporter();
@@ -629,6 +592,20 @@ async function sendGeneralContactEmail({ adminEmail, contactData }) {
   } = contactData;
 
   const now = new Date().toLocaleString('en-US', { timeZone: 'UTC', dateStyle: 'medium', timeStyle: 'short' });
+  const safe = {
+    topic: escapeHtml(topic),
+    firstName: escapeHtml(firstName),
+    lastName: escapeHtml(lastName),
+    email: escapeHtml(email),
+    phone: escapeHtml(phone),
+    married: escapeHtml(married),
+    children: escapeHtml(children),
+    investableAssets: escapeHtml(investableAssets),
+    digitalAllocation: escapeHtml(digitalAllocation),
+    holdsXRP: escapeHtml(holdsXRP),
+    existingClient: escapeHtml(existingClient),
+    message: escapeHtml(message),
+  };
 
   const html = `
     <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
@@ -643,31 +620,33 @@ async function sendGeneralContactEmail({ adminEmail, contactData }) {
 
       <h3 style="color:#fbbf24;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Submission Details</h3>
       <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
-        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Topic</td><td style="color:#111827;text-align:right;font-size:14px;font-weight:bold;">${topic}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Name</td><td style="color:#111827;text-align:right;font-size:14px;font-weight:bold;">${firstName} ${lastName}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Email</td><td style="color:#111827;text-align:right;font-size:14px;"><a href="mailto:${email}" style="color:#fbbf24;text-decoration:none;">${email}</a></td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Phone</td><td style="color:#111827;text-align:right;font-size:14px;">${phone}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Married</td><td style="color:#111827;text-align:right;font-size:14px;">${married}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Children</td><td style="color:#111827;text-align:right;font-size:14px;">${children}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Investable Assets</td><td style="color:#111827;text-align:right;font-size:14px;font-weight:bold;color:#10b981;">${investableAssets}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Digital Allocation</td><td style="color:#111827;text-align:right;font-size:14px;">${digitalAllocation}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Holds 50k+ XRP</td><td style="color:#111827;text-align:right;font-size:14px;font-weight:bold;color:#f59e0b;">${holdsXRP}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">DWP Client</td><td style="color:#111827;text-align:right;font-size:14px;">${existingClient}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Topic</td><td style="color:#111827;text-align:right;font-size:14px;font-weight:bold;">${safe.topic}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Name</td><td style="color:#111827;text-align:right;font-size:14px;font-weight:bold;">${safe.firstName} ${safe.lastName}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Email</td><td style="color:#111827;text-align:right;font-size:14px;"><a href="mailto:${safe.email}" style="color:#fbbf24;text-decoration:none;">${safe.email}</a></td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Phone</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.phone}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Married</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.married}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Children</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.children}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Investable Assets</td><td style="color:#111827;text-align:right;font-size:14px;font-weight:bold;color:#10b981;">${safe.investableAssets}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Digital Allocation</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.digitalAllocation}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Holds 50k+ XRP</td><td style="color:#111827;text-align:right;font-size:14px;font-weight:bold;color:#f59e0b;">${safe.holdsXRP}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">DWP Client</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.existingClient}</td></tr>
         <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Submitted At</td><td style="color:#111827;text-align:right;font-size:14px;">${now} UTC</td></tr>
       </table>
 
       <h3 style="color:#fbbf24;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Message</h3>
-      <div style="background:#f4f7fb;border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin-bottom:24px;line-height:1.6;font-size:14px;white-space:pre-wrap;">${message}</div>
+      <div style="background:#f4f7fb;border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin-bottom:24px;line-height:1.6;font-size:14px;white-space:pre-wrap;">${safe.message}</div>
 
       <hr style="border-color:#e5e7eb;margin:28px 0;" />
       <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners. Do not reply.</p>
     </div>
   `;
 
-  await transporter.sendMail({
+  return transporter.sendMail({
     from: FROM(),
     to: adminEmail,
     subject: `[Contact Form] ${topic} - From ${firstName} ${lastName}`,
+    replyTo: email,
+    text: `New consultation request\n\nTopic: ${topic}\nName: ${firstName} ${lastName}\nEmail: ${email}\nPhone: ${phone}\n\n${message}`,
     html: themedEmail(html),
   });
 }
@@ -1238,7 +1217,7 @@ async function sendLLCNotificationEmail({ adminEmail, user, application }) {
   });
 }
 
-async function sendUserContactStatusEmail({ userEmail, firstName, topic, status, adminNote }) {
+async function sendUserContactStatusEmail({ userEmail, firstName, topic, status, adminNote, statusUrl, onboardingConfig }) {
   const transporter = createTransporter();
   const statusTextMap = {
     approved: 'Approved',
@@ -1247,27 +1226,223 @@ async function sendUserContactStatusEmail({ userEmail, firstName, topic, status,
     pending: 'Received',
   };
   const statusText = statusTextMap[status] || status;
+  const appUrl = process.env.FRONTEND_URL || 'https://digitalwealthpartnersllc.net';
+  const onboardingUrl = `${appUrl}/pay-onboarding`;
+  const refundPath = onboardingConfig?.refundPolicyUrl || '/legal/refund-policy';
+  const refundUrl = /^https?:\/\//i.test(refundPath)
+    ? refundPath
+    : `${appUrl}${refundPath.startsWith('/') ? refundPath : `/${refundPath}`}`;
+  const supportUrl = `mailto:${SUPPORT_EMAIL}`;
+  const safeFirstName = escapeHtml(firstName || 'there');
+  const topicText = topic ? ` about ${escapeHtml(topic)}` : '';
+  const safeStatusUrl = escapeHtml(statusUrl || `${appUrl}/contact`);
+  const feeUsd = Number(onboardingConfig?.feeUsd ?? 1000).toLocaleString('en-US');
+  const renewalFeeUsd = Number(onboardingConfig?.renewalFeeUsd ?? 100).toLocaleString('en-US');
+  const coverageMonths = Number(onboardingConfig?.coverageMonths ?? 12);
+  const quoteText = onboardingConfig && new Date(onboardingConfig.quoteValidUntil) > new Date()
+    ? `${onboardingConfig.assetAmount} ${onboardingConfig.asset}, valid until ${new Date(onboardingConfig.quoteValidUntil).toUTCString()}`
+    : 'The current XRP amount and quote validity are displayed on the onboarding portal at payment time.';
+  const quoteLine = onboardingConfig && new Date(onboardingConfig.quoteValidUntil) > new Date()
+    ? `<p><strong>Current payment quote:</strong> ${escapeHtml(onboardingConfig.assetAmount)} ${escapeHtml(onboardingConfig.asset)}, valid until ${new Date(onboardingConfig.quoteValidUntil).toUTCString()}.</p>`
+    : '<p>The current XRP amount and quote validity are displayed on the onboarding portal at payment time.</p>';
+
+  const bodyByStatus = {
+    pending: `
+      <p>Hi <strong>${safeFirstName}</strong>,</p>
+      <p>We received your consultation request${topicText}. It is awaiting review by our client advisory team.</p>
+      <p>No payment is required at this stage. We will send another notification when the status changes.</p>
+      <p><a href="${safeStatusUrl}">View consultation status</a></p>
+    `,
+    processing: `
+      <p>Hi <strong>${safeFirstName}</strong>,</p>
+      <p>Your consultation request${topicText} is currently being reviewed by our client advisory team.</p>
+      <p>You will receive another notification when the review is complete.</p>
+      <p><a href="${safeStatusUrl}">View consultation status</a></p>
+    `,
+    approved: `
+      <p>Dear <strong>${safeFirstName}</strong>,</p>
+      <p>Welcome to Digital Wealth Partners (DWP). Your consultation request${topicText} has been approved.</p>
+      <p>DWP provides client advisory and onboarding support, institutional XRP custody onboarding guidance, information about eligible XRP yield products, crypto-backed lending guidance, and KYC and identity-verification assistance.</p>
+      <h3 style="margin:24px 0 8px;">Onboarding fee and services</h3>
+      <p><strong>Initial onboarding fee: $${feeUsd} USD</strong><br/>Coverage: first ${coverageMonths} months</p>
+      <ul style="line-height:1.7;color:#374151;">
+        <li>Initial consultation and onboarding assistance.</li>
+        <li>Assignment of a personal advisor.</li>
+        <li>Access to client advisory and support services.</li>
+        <li>Guidance on institutional custody and identity verification.</li>
+        <li>Assistance understanding eligible XRP yield and crypto-backed lending products.</li>
+      </ul>
+      <p><strong>Renewal fee: $${renewalFeeUsd} after the initial ${coverageMonths} months</strong>, subject to applicable renewal terms.</p>
+      <p>The onboarding fee covers advisory and support services. Custody, yield, lending, and other financial products require separate eligibility checks, approvals, and applicable agreements.</p>
+      ${quoteLine}
+      <table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0;">
+        <tr>
+          <td bgcolor="#0033AD" style="border-radius:8px;background:#0033AD;">
+            <a href="${onboardingUrl}" class="dwp-btn" style="display:inline-block;padding:12px 24px;font-weight:600;text-decoration:none;font-family:sans-serif;color:#ffffff !important;">Begin Your Onboarding</a>
+          </td>
+        </tr>
+      </table>
+      <p>The portal shows the services and pricing, applicable terms and refund conditions, the active XRP quote, the approved destination, and payment-confirmation instructions. Clicking “I've made this transfer” submits the transaction for verification and administrative review; it does not automatically approve payment.</p>
+      <h3 style="margin:24px 0 8px;">Account access</h3>
+      <ol style="line-height:1.7;color:#374151;">
+        <li>Create an account using this email address, or log in if you already have one.</li>
+        <li>Verify your email using the one-time code.</li>
+        <li>Submit the transaction reference after transferring the quoted amount.</li>
+        <li>Access the dashboard after payment confirmation and account activation.</li>
+        <li>Complete your profile and required KYC information.</li>
+      </ol>
+      <h3 style="margin:24px 0 8px;">Refund terms</h3>
+      <p>Refund requests may be submitted in writing within 7 calendar days of the initial onboarding payment, provided substantive onboarding services have not commenced. Requests after services have commenced will be reviewed under the applicable agreement and relevant law.</p>
+      <p><a href="${refundUrl}">Read the complete refund policy</a></p>
+    `,
+    rejected: `
+      <p>Hi <strong>${safeFirstName}</strong>,</p>
+      <p>Thank you for your interest in Digital Wealth Partners. After review, we are unable to approve your consultation request${topicText} at this time.</p>
+      <p>If an explanation is available, it appears in the note below. For further assistance, contact <a href="${supportUrl}">${SUPPORT_EMAIL}</a>.</p>
+      <p><a href="${safeStatusUrl}">View consultation status</a></p>
+    `,
+  };
+
+  const statusBody = bodyByStatus[status] || `
+    <p>Hi <strong>${safeFirstName}</strong>,</p>
+    <p>Your consultation request is now <strong>${statusText}</strong>.</p>
+  `;
 
   const html = `
     <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
       <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
+      <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">Consultation ${statusText}</p>
 
-      <p>Hi <strong>${firstName}</strong>,</p>
+      ${statusBody}
 
       ${adminNote ? `<div style="background:#f4f7fb;border:1px solid #dbeafe;padding:16px;border-radius:8px;margin:20px 0;">
         <p style="color:#60a5fa;font-size:13px;margin:0 0 8px 0;text-transform:uppercase;">Note From Our Team</p>
-        ${renderNoteHtml(adminNote)}
-      </div>` : `<p>Your consultation request${topic ? ` (<strong>${topic}</strong>)` : ''} is now <strong>${statusText}</strong>.</p>`}
+        ${renderNoteHtml(adminNote, 'Learn More')}
+      </div>` : ''}
 
       <hr style="border-color:#e5e7eb;margin:28px 0;" />
       <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners. Do not reply.</p>
     </div>
   `;
 
-  await transporter.sendMail({
+  const subjects = {
+    pending: 'Consultation Request Received - Digital Wealth Partners',
+    processing: 'Consultation Under Review - Digital Wealth Partners',
+    approved: 'DWP Client Onboarding, Payment Instructions & Services',
+    rejected: 'Consultation Request Update - Digital Wealth Partners',
+  };
+  const text = [
+    `Digital Wealth Partners - Consultation ${statusText}`,
+    '',
+    `Hi ${firstName || 'there'},`,
+    '',
+    status === 'pending' ? 'We received your consultation request. It is awaiting review.' : '',
+    status === 'processing' ? 'Your consultation request is currently under review.' : '',
+    status === 'approved' ? [
+      'Your consultation is approved. Welcome to Digital Wealth Partners (DWP).',
+      `Initial onboarding fee: $${feeUsd} USD. Coverage: first ${coverageMonths} months.`,
+      'Included services: initial consultation and onboarding assistance; assignment of a personal advisor; client advisory and support; institutional custody and identity-verification guidance; and assistance understanding eligible XRP yield and crypto-backed lending products.',
+      `Renewal fee: $${renewalFeeUsd} after the initial ${coverageMonths} months, subject to applicable renewal terms.`,
+      'The fee covers advisory and support services. Custody, yield, lending, and other financial products require separate eligibility checks, approvals, and agreements.',
+      `Current payment quote: ${quoteText}`,
+      `Begin your onboarding: ${onboardingUrl}`,
+      'Register with this email address or log in, verify your email, review the active quote and official destination, make the transfer, and submit the transaction reference. Submission starts server verification and administrative review; it does not automatically approve payment or activate the account.',
+      'Dashboard access begins only after payment confirmation and separate account activation. Complete your profile and required KYC information after activation.',
+      'Refund requests may be submitted in writing within 7 calendar days of the initial onboarding payment, provided substantive onboarding services have not commenced. Requests after services have commenced will be reviewed under the applicable agreement and relevant law.',
+      `Refund policy: ${refundUrl}`,
+    ].join('\n\n') : '',
+    status === 'rejected' ? `We are unable to approve your consultation request at this time. Contact ${SUPPORT_EMAIL} for assistance.` : '',
+    adminNote ? `Team note: ${adminNote}` : '',
+    statusUrl ? `Status: ${statusUrl}` : '',
+    '',
+    'Digital Wealth Partners',
+  ].filter(Boolean).join('\n');
+
+  return transporter.sendMail({
     from: FROM(),
+    replyTo: SUPPORT_EMAIL,
     to: userEmail,
-    subject: `Consultation ${statusText} - Digital Wealth Partners`,
+    subject: subjects[status] || `Consultation ${statusText} - Digital Wealth Partners`,
+    text,
+    html: themedEmail(html),
+  });
+}
+
+async function sendOnboardingPaymentStatusEmail({ userEmail, firstName, type, payment, rejectionReason }) {
+  const transporter = createTransporter();
+  const appUrl = process.env.FRONTEND_URL || 'https://digitalwealthpartnersllc.net';
+  const details = {
+    submitted: {
+      subject: 'Onboarding Payment Under Review - Digital Wealth Partners',
+      heading: 'Payment submitted for review',
+      message: 'We received your transaction reference. The payment remains under review and has not yet activated your account.',
+      action: 'View Payment Status',
+      url: `${appUrl}/pay-onboarding?status=pending`,
+    },
+    confirmed: {
+      subject: 'Onboarding Payment Confirmed - Digital Wealth Partners',
+      heading: 'Payment confirmed',
+      message: 'Your onboarding payment has been confirmed. Account activation is the next separate administrative step, and we will notify you when access is active.',
+      action: 'View Payment Status',
+      url: `${appUrl}/pay-onboarding?status=confirmed`,
+    },
+    rejected: {
+      subject: 'Onboarding Payment Requires Attention - Digital Wealth Partners',
+      heading: 'Payment not approved',
+      message: `We could not approve the submitted payment.${rejectionReason ? ` Reason: ${escapeHtml(rejectionReason)}` : ''}`,
+      action: 'Review Onboarding Instructions',
+      url: `${appUrl}/pay-onboarding?status=rejected`,
+    },
+    activated: {
+      subject: 'Your DWP Account Is Active',
+      heading: 'Account access activated',
+      message: 'Your onboarding payment is confirmed and your client account is now active. You can sign in, complete your profile, and continue to KYC verification.',
+      action: 'Open Your Dashboard',
+      url: `${appUrl}/login`,
+    },
+  }[type];
+  if (!details) throw new Error('Unknown onboarding payment email type');
+  const reference = payment?.transactionReference || 'Not available';
+  const html = `
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
+      <h2 style="margin:0 0 4px;">Digital Wealth Partners</h2>
+      <p style="color:#60a5fa;margin:0 0 28px;">${details.heading}</p>
+      <p>Hi <strong>${escapeHtml(firstName || 'there')}</strong>,</p>
+      <p>${details.message}</p>
+      <div style="background:#f4f7fb;border:1px solid #dbeafe;padding:16px;border-radius:8px;margin:20px 0;">
+        <p style="margin:0 0 6px;"><strong>Transaction reference</strong></p>
+        <p style="margin:0;word-break:break-all;font-family:monospace;">${escapeHtml(reference)}</p>
+      </div>
+      <table role="presentation" cellpadding="0" cellspacing="0" style="margin:20px 0;"><tr><td bgcolor="#0033AD" style="border-radius:8px;background:#0033AD;"><a href="${details.url}" class="dwp-btn" style="display:inline-block;padding:12px 24px;font-weight:600;text-decoration:none;color:#ffffff !important;">${details.action}</a></td></tr></table>
+      <p>Questions? Contact <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a>.</p>
+      <hr style="border-color:#e5e7eb;margin:28px 0;" />
+      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners.</p>
+    </div>`;
+  return transporter.sendMail({
+    from: FROM(), replyTo: SUPPORT_EMAIL, to: userEmail, subject: details.subject,
+    text: `${details.heading}\n\nHi ${firstName || 'there'},\n\n${details.message.replace(/<[^>]*>/g, '')}\n\nTransaction reference: ${reference}\n\n${details.url}\n\nDigital Wealth Partners`,
+    html: themedEmail(html),
+  });
+}
+
+async function sendOnboardingPaymentAdminEmail({ adminEmail, user, payment }) {
+  const transporter = createTransporter();
+  const appUrl = process.env.FRONTEND_URL || 'https://digitalwealthpartnersllc.net';
+  const html = `
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
+      <h2 style="margin:0 0 4px;">Onboarding payment submitted</h2>
+      <p>${escapeHtml(user.firstName)} ${escapeHtml(user.lastName)} (${escapeHtml(user.email)}) submitted a transaction for review.</p>
+      <table style="width:100%;border-collapse:collapse;margin:20px 0;">
+        <tr><td style="padding:6px 0;color:#6b7280;">Quote</td><td style="text-align:right;font-weight:600;">${escapeHtml(payment.assetAmount)} ${escapeHtml(payment.asset)}</td></tr>
+        <tr><td style="padding:6px 0;color:#6b7280;">Network check</td><td style="text-align:right;font-weight:600;">${escapeHtml(payment.verification.state)}</td></tr>
+        <tr><td style="padding:6px 0;color:#6b7280;">Reference</td><td style="text-align:right;word-break:break-all;">${escapeHtml(payment.transactionReference)}</td></tr>
+      </table>
+      <a href="${appUrl}/admin/onboarding-payments" class="dwp-btn" style="display:inline-block;background:#0033AD;color:#ffffff !important;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">Review Payment</a>
+    </div>`;
+  return transporter.sendMail({
+    from: FROM(), replyTo: SUPPORT_EMAIL, to: adminEmail,
+    subject: `Onboarding payment submitted - ${user.email}`,
+    text: `Onboarding payment submitted by ${user.firstName} ${user.lastName} (${user.email}).\nTransaction: ${payment.transactionReference}\nVerification: ${payment.verification.state}\nReview: ${appUrl}/admin/onboarding-payments`,
     html: themedEmail(html),
   });
 }
@@ -1431,7 +1606,6 @@ module.exports = {
   sendWelcomeEmail,
   sendAdminRegistrationNotificationEmail,
   sendPasswordResetEmail,
-  sendOnboardingFeeNotificationEmail,
   sendGeneralContactEmail,
   sendLoanNotificationEmail,
   sendEarnNotificationEmail,
@@ -1442,6 +1616,8 @@ module.exports = {
   sendUserLLCStatusEmail,
   sendLLCNotificationEmail,
   sendUserContactStatusEmail,
+  sendOnboardingPaymentStatusEmail,
+  sendOnboardingPaymentAdminEmail,
   sendAccessCodeEmail,
   sendAccessRequestNotificationEmail,
   sendBroadcastEmail,

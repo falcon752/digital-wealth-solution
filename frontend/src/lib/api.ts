@@ -167,13 +167,37 @@ export const llcAPI = {
 
 // ─── Contact / Consultation ─────────────────────────────────────────────────
 export const contactAPI = {
-  onboardingStatus: (email: string) => api.get('/contact/onboarding-status', { params: { email } }),
+  consultationStatus: (id: string, token: string) => api.get(`/contact/status/${id}`, { params: { token } }),
   continueConsultation: (submissionId: string, token: string) =>
     api.post(`/contact/${submissionId}/continue`, { token }),
   // admin
   adminList: () => api.get('/contact/admin'),
   adminUpdate: (id: string, data: { status?: string; adminNote?: string }) =>
     api.put(`/contact/admin/${id}`, data),
+};
+
+// ─── Client Onboarding ─────────────────────────────────────────────────────
+export const onboardingAPI = {
+  getConfig: () => api.get('/onboarding/config'),
+  getMyStatus: () => api.get('/onboarding/me'),
+  submitPayment: (data: { transactionReference: string; termsAccepted: boolean }) =>
+    api.post('/onboarding/payments', data),
+  adminPayments: () => api.get('/onboarding/admin/payments'),
+  adminReverify: (id: string) => api.post(`/onboarding/admin/payments/${id}/reverify`),
+  adminReview: (id: string, data: { status: 'confirmed' | 'rejected'; rejectionReason?: string }) =>
+    api.put(`/onboarding/admin/payments/${id}/review`, data),
+  adminActivate: (id: string) => api.post(`/onboarding/admin/payments/${id}/activate`),
+  adminUpdateConfig: (data: {
+    feeUsd: number;
+    renewalFeeUsd: number;
+    coverageMonths: number;
+    asset: string;
+    network: string;
+    assetAmount: string;
+    destinationAddress: string;
+    destinationTag?: number | null;
+    quoteValidUntil: string;
+  }) => api.put('/onboarding/admin/config', data),
 };
 
 // ─── KYC Verification ─────────────────────────────────────────────────────
@@ -223,8 +247,6 @@ export const adminAPI = {
     api.put(`/admin/users/${id}/balance`, { balance }),
   adjustUserAssetBalance: (id: string, data: { assetId: string; action: 'credit' | 'deduct'; amount: number; usdValue?: number; adminNote?: string }) =>
     api.post(`/admin/users/${id}/asset-adjustment`, data),
-  verifyUserPayment: (id: string, onboardingFeePaid: boolean) =>
-    api.put(`/admin/users/${id}/verify-payment`, { onboardingFeePaid }),
   getBroadcastUsers: (params?: { search?: string }) =>
     api.get('/admin/broadcast/users', { params }),
   sendBroadcast: (data: {

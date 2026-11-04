@@ -8,35 +8,8 @@ import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
 import Modal from '@/components/ui/Modal';
 import { formatDate } from '@/lib/utils';
-import { Edit, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Edit, ChevronLeft, ChevronRight, MailCheck, MailWarning } from 'lucide-react';
 import toast from 'react-hot-toast';
-
-function buildApprovalNote(firstName: string, lastName: string) {
-  const fullName = [firstName, lastName].filter(Boolean).join(' ');
-  return `Dear ${fullName}
-
-I am pleased to confirm that your application to join Digital Wealth Partners has been approved. We look forward to partnering with you to manage and grow your wealth portfolio.
-
-To complete your account onboarding and gain full access to our services, please proceed with the following steps:
-
-1. Click the secure onboarding link below.
-
-2. Copy the On-Ramp node address and pay the one-time onboarding fee.
-
-3. After a successful transfer, click "I have made the transfer" to submit the payment.
-
-4. Wait for approval to register your account.
-
-Proceed with Onboarding
-
-https://digitalwealthpartnersllc.net/pay-onboarding
-
-Should you have any questions, please feel free to contact us via email or support chat.
-
-Best regards,
-
-The Digital Wealth Partners Team`;
-}
 
 export default function AdminConsultationsPage() {
   const [submissions, setSubmissions] = useState<ContactSubmission[]>([]);
@@ -70,17 +43,20 @@ export default function AdminConsultationsPage() {
 
   const handleStatusChange = (newStatus: ContactSubmission['status']) => {
     setStatus(newStatus);
-    if (newStatus === 'approved' && editTarget) {
-      setAdminNote(buildApprovalNote(editTarget.firstName, editTarget.lastName));
-    }
   };
 
   const handleUpdate = async () => {
     if (!editTarget) return;
     setSubmitting(true);
     try {
-      await contactAPI.adminUpdate(editTarget.id, { status, adminNote });
-      toast.success('Consultation submission updated successfully!');
+      const response = await contactAPI.adminUpdate(editTarget.id, { status, adminNote });
+      if (response.data.emailDelivery && !response.data.emailDelivery.success) {
+        toast.error('Status saved, but the client email failed. The attempt is recorded.');
+      } else if (response.data.statusChanged) {
+        toast.success('Status updated and client email submitted');
+      } else {
+        toast.success('Consultation note updated. No duplicate status email was sent.');
+      }
       setEditTarget(null);
       load();
     } catch (err: unknown) {
@@ -234,6 +210,29 @@ export default function AdminConsultationsPage() {
               </div>
             </div>
 
+            <div className="border border-[var(--border)] rounded-xl overflow-hidden">
+              <div className="px-4 py-3 bg-[var(--bg-secondary)]">
+                <h3 className="text-sm font-semibold text-[var(--text-primary)]">Email Delivery</h3>
+                <p className="text-xs text-[var(--text-muted)] mt-1">Provider submission results for automated consultation notifications.</p>
+              </div>
+              <div className="divide-y divide-[var(--border)] px-4">
+                {editTarget.emailDeliveries?.map((delivery, index) => (
+                  <div key={`${delivery.template}-${index}`} className="flex items-start justify-between gap-3 py-3 text-xs">
+                    <div className="flex items-start gap-2 min-w-0">
+                      {delivery.success ? <MailCheck size={16} className="text-emerald-500 shrink-0" /> : <MailWarning size={16} className="text-red-500 shrink-0" />}
+                      <div className="min-w-0">
+                        <p className="font-semibold capitalize text-[var(--text-primary)]">{delivery.template.replaceAll('_', ' ')}</p>
+                        <p className="text-[var(--text-muted)] mt-0.5">{new Date(delivery.attemptedAt).toLocaleString()}</p>
+                        {delivery.error && <p className="text-red-500 mt-1 break-words">{delivery.error}</p>}
+                      </div>
+                    </div>
+                    <span className={delivery.success ? 'text-emerald-500' : 'text-red-500'}>{delivery.success ? 'Submitted' : 'Failed'}</span>
+                  </div>
+                ))}
+                {!editTarget.emailDeliveries?.length && <p className="py-4 text-xs text-[var(--text-muted)]">No provider delivery attempts recorded for this legacy request.</p>}
+              </div>
+            </div>
+
             <div className="space-y-1">
               <label className="text-sm font-medium text-[var(--text-primary)]">Status</label>
               <select
@@ -249,10 +248,13 @@ export default function AdminConsultationsPage() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-sm font-medium text-[var(--text-primary)]">Admin Note (optional)</label>
+              <label className="text-sm font-medium text-[var(--text-primary)]">Additional Note (optional)</label>
+              <p className="text-xs text-[var(--text-muted)]">
+                A standard status email is sent automatically. Anything you add here appears as an extra note below it.
+              </p>
               <textarea
-                rows={10}
-                placeholder="E.g. Approved, will follow up with onboarding steps..."
+                rows={6}
+                placeholder="Optional — add any personalized context for this client..."
                 value={adminNote}
                 onChange={(e) => setAdminNote(e.target.value)}
                 className="w-full px-4 py-3 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-xl text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-brand-500/50 resize-y"

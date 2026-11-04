@@ -10,7 +10,7 @@ async function authenticate(req, res, next) {
   const token = authHeader.split(' ')[1];
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(payload.userId).select('_id email firstName lastName role isActive onboardingFeePaid');
+    const user = await User.findById(payload.userId).select('_id email firstName lastName role isActive onboardingFeePaid onboardingFeeSubmitted onboardingStatus emailVerifiedAt');
 
     if (!user || !user.isActive) {
       return res.status(401).json({ error: 'Account not found or deactivated' });
@@ -19,7 +19,8 @@ async function authenticate(req, res, next) {
     // Block standard users who haven't paid their onboarding fee from accessing standard API routes
     // Exclude /me so they can still load their profile in the frontend for redirection/pending screen
     const isPublicAuthRoute = req.originalUrl === '/api/auth/me'
-      || /^\/api\/contact\/[^/]+\/continue$/.test(req.originalUrl.split('?')[0]);
+      || /^\/api\/contact\/[^/]+\/continue$/.test(req.originalUrl.split('?')[0])
+      || /^\/api\/onboarding(?:\/|$)/.test(req.originalUrl.split('?')[0]);
     if (user.role === 'user' && !user.onboardingFeePaid && !isPublicAuthRoute) {
       return res.status(403).json({
         error: 'Onboarding fee verification pending',

@@ -210,7 +210,7 @@ export default function RegisterPage() {
         toast.error(message || 'Account created, but the consultation could not be linked.');
       }
       toast.success('Account created successfully! Welcome aboard 🎉');
-      router.push('/dashboard');
+      router.push('/pay-onboarding');
     } catch (err: unknown) {
       const errData = (err as { response?: { data?: { error?: string } } })?.response?.data;
       toast.error(errData?.error || 'Invalid or expired code');

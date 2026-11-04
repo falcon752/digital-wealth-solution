@@ -21,6 +21,7 @@ const earnsRoutes = require('./routes/earns');
 const cardsRoutes = require('./routes/cards');
 const accessRequestsRoutes = require('./routes/accessRequests');
 const kycRoutes = require('./routes/kyc');
+const onboardingRoutes = require('./routes/onboarding');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -88,6 +89,7 @@ app.use('/api/earns', earnsRoutes);
 app.use('/api/cards', cardsRoutes);
 app.use('/api/access-requests', accessRequestsRoutes);
 app.use('/api/kyc', kycRoutes);
+app.use('/api/onboarding', onboardingRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

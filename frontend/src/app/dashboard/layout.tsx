@@ -21,9 +21,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     if (!isLoading && !user) router.replace('/login');
     if (!isLoading && user?.role === 'admin') router.replace('/admin');
     if (!isLoading && user?.role === 'user' && !user.onboardingFeePaid) {
-      router.replace(user.onboardingFeeSubmitted ? '/pay-onboarding?status=pending' : '/pay-onboarding');
+      router.replace(`/pay-onboarding?status=${user.onboardingStatus || (user.onboardingFeeSubmitted ? 'payment_under_review' : 'payment_pending')}`);
     }
-  }, [user, isLoading, router]);
+  }, [user, isLoading, router, isReferralLink]);
 
   const isAuthorized = user && (user.role === 'admin' || user.onboardingFeePaid);
 
