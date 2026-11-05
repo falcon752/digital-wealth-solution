@@ -248,7 +248,7 @@ const paymentVerificationSchema = new mongoose.Schema(
 
 const onboardingPaymentSchema = new mongoose.Schema(
   {
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     consultationId: { type: mongoose.Schema.Types.ObjectId, ref: 'ContactSubmission', default: null },
     email: { type: String, required: true, lowercase: true, trim: true },
     source: { type: String, enum: ['client', 'legacy'], default: 'client' },
@@ -495,7 +495,8 @@ async function connectDB() {
 
   await User.updateMany(
     { emailVerifiedAt: { $exists: false } },
-    [{ $set: { emailVerifiedAt: '$createdAt' } }]
+    [{ $set: { emailVerifiedAt: '$createdAt' } }],
+    { updatePipeline: true }
   );
   await User.updateMany(
     { onboardingStatus: { $exists: false }, onboardingFeePaid: true },
