@@ -6,6 +6,7 @@ const path = require('path');
 const http = require('http');
 const { Server } = require('socket.io');
 require('dotenv').config();
+process.env.TZ = process.env.APP_TIMEZONE || 'America/New_York';
 
 const { connectDB } = require('./database');
 const authRoutes = require('./routes/auth');

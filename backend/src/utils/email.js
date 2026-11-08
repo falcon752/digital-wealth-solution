@@ -23,6 +23,8 @@ function createTransporter() {
   });
 }
 
+const APP_TIMEZONE = process.env.APP_TIMEZONE || 'America/New_York';
+
 const FROM = () => {
   const from = process.env.EMAIL_FROM || `Digital Wealth Partners <${SUPPORT_EMAIL}>`;
 
@@ -259,7 +261,7 @@ async function sendDepositNotificationEmail({
     ? `<tr><td style="color:#9ca3af;padding:6px 0;">Provider Reference</td><td style="color:#111827;font-weight:600;text-align:right;word-break:break-all;">${providerReference}</td></tr>`
     : '';
 
-  const now = new Date().toLocaleString('en-US', { timeZone: 'UTC', dateStyle: 'medium', timeStyle: 'short' });
+  const now = new Date().toLocaleString('en-US', { timeZone: APP_TIMEZONE, dateStyle: 'medium', timeStyle: 'short' });
 
   const html = `
     <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
@@ -290,7 +292,7 @@ async function sendDepositNotificationEmail({
         ${txHashLine}
         ${providerReferenceLine}
         <tr><td style="color:#9ca3af;padding:6px 0;">Deposit ID</td><td style="color:#6b7280;font-size:12px;text-align:right;">${depositId}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">Submitted At</td><td style="color:#111827;text-align:right;">${now} UTC</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">Submitted At</td><td style="color:#111827;text-align:right;">${now} ET</td></tr>
       </table>
 
       <!-- Wallet -->
@@ -441,7 +443,7 @@ async function sendWithdrawalNotificationEmail({ adminEmail, user, asset, amount
     ? `<tr><td style="color:#9ca3af;padding:6px 0;">USD Value</td><td style="color:#111827;font-weight:600;text-align:right;">≈ $${parseFloat(usdValue).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td></tr>`
     : '';
 
-  const now = new Date().toLocaleString('en-US', { timeZone: 'UTC', dateStyle: 'medium', timeStyle: 'short' });
+  const now = new Date().toLocaleString('en-US', { timeZone: APP_TIMEZONE, dateStyle: 'medium', timeStyle: 'short' });
 
   const html = `
     <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
@@ -469,7 +471,7 @@ async function sendWithdrawalNotificationEmail({ adminEmail, user, asset, amount
         <tr><td style="color:#9ca3af;padding:6px 0;">Amount</td><td style="color:#111827;font-weight:600;text-align:right;">${amount} ${asset.symbol}</td></tr>
         ${usdLine}
         <tr><td style="color:#9ca3af;padding:6px 0;">Withdrawal ID</td><td style="color:#6b7280;font-size:12px;text-align:right;">${withdrawalId}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">Submitted At</td><td style="color:#111827;text-align:right;">${now} UTC</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">Submitted At</td><td style="color:#111827;text-align:right;">${now} ET</td></tr>
       </table>
 
       <!-- Destination wallet -->
@@ -500,7 +502,7 @@ async function sendWithdrawalNotificationEmail({ adminEmail, user, asset, amount
 async function sendAdminRegistrationNotificationEmail({ adminEmail, user }) {
   const transporter = createTransporter();
 
-  const now = new Date().toLocaleString('en-US', { timeZone: 'UTC', dateStyle: 'medium', timeStyle: 'short' });
+  const now = new Date().toLocaleString('en-US', { timeZone: APP_TIMEZONE, dateStyle: 'medium', timeStyle: 'short' });
 
   const html = `
     <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
@@ -519,7 +521,7 @@ async function sendAdminRegistrationNotificationEmail({ adminEmail, user }) {
         <tr><td style="color:#9ca3af;padding:6px 0;">Name</td><td style="color:#111827;font-weight:600;text-align:right;">${user.firstName} ${user.lastName}</td></tr>
         <tr><td style="color:#9ca3af;padding:6px 0;">Email</td><td style="color:#111827;text-align:right;">${user.email}</td></tr>
         <tr><td style="color:#9ca3af;padding:6px 0;">User ID</td><td style="color:#6b7280;font-size:12px;text-align:right;">${user.id}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">Registered At</td><td style="color:#111827;text-align:right;">${now} UTC</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">Registered At</td><td style="color:#111827;text-align:right;">${now} ET</td></tr>
       </table>
 
       <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/admin/users?highlight=${user.id}"
@@ -591,7 +593,7 @@ async function sendGeneralContactEmail({ adminEmail, contactData }) {
     message,
   } = contactData;
 
-  const now = new Date().toLocaleString('en-US', { timeZone: 'UTC', dateStyle: 'medium', timeStyle: 'short' });
+  const now = new Date().toLocaleString('en-US', { timeZone: APP_TIMEZONE, dateStyle: 'medium', timeStyle: 'short' });
   const safe = {
     topic: escapeHtml(topic),
     firstName: escapeHtml(firstName),
@@ -630,7 +632,7 @@ async function sendGeneralContactEmail({ adminEmail, contactData }) {
         <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Digital Allocation</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.digitalAllocation}</td></tr>
         <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Holds 50k+ XRP</td><td style="color:#111827;text-align:right;font-size:14px;font-weight:bold;color:#f59e0b;">${safe.holdsXRP}</td></tr>
         <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">DWP Client</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.existingClient}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Submitted At</td><td style="color:#111827;text-align:right;font-size:14px;">${now} UTC</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Submitted At</td><td style="color:#111827;text-align:right;font-size:14px;">${now} ET</td></tr>
       </table>
 
       <h3 style="color:#fbbf24;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Message</h3>
@@ -655,7 +657,7 @@ async function sendGeneralContactEmail({ adminEmail, contactData }) {
 async function sendLoanNotificationEmail({ adminEmail, user, loanData }) {
   const transporter = createTransporter();
 
-  const now = new Date().toLocaleString('en-US', { timeZone: 'UTC', dateStyle: 'medium', timeStyle: 'short' });
+  const now = new Date().toLocaleString('en-US', { timeZone: APP_TIMEZONE, dateStyle: 'medium', timeStyle: 'short' });
 
   const html = `
     <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
@@ -684,7 +686,7 @@ async function sendLoanNotificationEmail({ adminEmail, user, loanData }) {
         <tr><td style="color:#9ca3af;padding:6px 0;">LTV</td><td style="color:#111827;text-align:right;">${(loanData.ltv * 100).toFixed(0)}%</td></tr>
         <tr><td style="color:#9ca3af;padding:6px 0;">APR</td><td style="color:#111827;text-align:right;">${(loanData.apr * 100).toFixed(0)}%</td></tr>
         <tr><td style="color:#9ca3af;padding:6px 0;">Payout Address</td><td style="color:#6b7280;font-size:12px;text-align:right;word-break:break-all;">${loanData.payoutAddress}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">Submitted At</td><td style="color:#111827;text-align:right;">${now} UTC</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">Submitted At</td><td style="color:#111827;text-align:right;">${now} ET</td></tr>
       </table>
 
       <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/admin/loans?highlight=${loanData._id}"
@@ -709,7 +711,7 @@ async function sendLoanNotificationEmail({ adminEmail, user, loanData }) {
 async function sendEarnNotificationEmail({ adminEmail, user, earnData }) {
   const transporter = createTransporter();
 
-  const now = new Date().toLocaleString('en-US', { timeZone: 'UTC', dateStyle: 'medium', timeStyle: 'short' });
+  const now = new Date().toLocaleString('en-US', { timeZone: APP_TIMEZONE, dateStyle: 'medium', timeStyle: 'short' });
 
   const html = `
     <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
@@ -737,7 +739,7 @@ async function sendEarnNotificationEmail({ adminEmail, user, earnData }) {
         <tr><td style="color:#9ca3af;padding:6px 0;">Deposit Amount</td><td style="color:#111827;font-weight:600;text-align:right;">${earnData.amount} ${earnData.asset}</td></tr>
         <tr><td style="color:#9ca3af;padding:6px 0;">APY</td><td style="color:#111827;text-align:right;">${(earnData.apy * 100).toFixed(0)}%</td></tr>
         <tr><td style="color:#9ca3af;padding:6px 0;">Term</td><td style="color:#111827;text-align:right;">${earnData.term}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">Submitted At</td><td style="color:#111827;text-align:right;">${now} UTC</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;">Submitted At</td><td style="color:#111827;text-align:right;">${now} ET</td></tr>
       </table>
 
       <hr style="border-color:#e5e7eb;margin:28px 0;" />
@@ -771,7 +773,7 @@ async function sendUserDepositStatusEmail({ userEmail, firstName, assetSymbol, a
   const noteLabel = isManual ? 'Reason For Credit' : 'Administrator Note';
 
   const usdString = usdValue ? `≈ $${parseFloat(usdValue).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '';
-  const now = new Date().toLocaleString('en-US', { timeZone: 'UTC', dateStyle: 'medium', timeStyle: 'short' });
+  const now = new Date().toLocaleString('en-US', { timeZone: APP_TIMEZONE, dateStyle: 'medium', timeStyle: 'short' });
 
   const html = `
     <!DOCTYPE html>
@@ -843,7 +845,7 @@ async function sendUserDepositStatusEmail({ userEmail, firstName, assetSymbol, a
               <table style="width: 100%; border-collapse: collapse; font-size: 15px;">
                 <tr>
                   <td class="text-muted border-line" style="padding: 12px 0; width: 35%; border-bottom: 1px solid;">Date & Time</td>
-                  <td class="text-main border-line" style="font-weight: 600; text-align: right; border-bottom: 1px solid;">${now} UTC</td>
+                  <td class="text-main border-line" style="font-weight: 600; text-align: right; border-bottom: 1px solid;">${now} ET</td>
                 </tr>
                 <tr>
                   <td class="text-muted border-line" style="padding: 12px 0; border-bottom: 1px solid;">Asset Deposited</td>
@@ -934,7 +936,7 @@ async function sendUserWithdrawalStatusEmail({ userEmail, firstName, assetSymbol
   const noteLabel = isManual ? 'Reason For Adjustment' : 'Administrator Note';
 
   const usdString = usdValue ? `≈ $${parseFloat(usdValue).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '';
-  const now = new Date().toLocaleString('en-US', { timeZone: 'UTC', dateStyle: 'medium', timeStyle: 'short' });
+  const now = new Date().toLocaleString('en-US', { timeZone: APP_TIMEZONE, dateStyle: 'medium', timeStyle: 'short' });
   const txHash = ''; // Will be added later if needed
 
   const html = `
@@ -1007,7 +1009,7 @@ async function sendUserWithdrawalStatusEmail({ userEmail, firstName, assetSymbol
               <table style="width: 100%; border-collapse: collapse; font-size: 15px;">
                 <tr>
                   <td class="text-muted border-line" style="padding: 12px 0; width: 35%; border-bottom: 1px solid;">Date & Time</td>
-                  <td class="text-main border-line" style="font-weight: 600; text-align: right; border-bottom: 1px solid;">${now} UTC</td>
+                  <td class="text-main border-line" style="font-weight: 600; text-align: right; border-bottom: 1px solid;">${now} ET</td>
                 </tr>
                 <tr>
                   <td class="text-muted border-line" style="padding: 12px 0; border-bottom: 1px solid;">Asset Withdrawn</td>

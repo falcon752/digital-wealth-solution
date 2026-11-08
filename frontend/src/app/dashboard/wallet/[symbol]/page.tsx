@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { assetsAPI, usersAPI } from '@/lib/api';
-import { formatCurrency } from '@/lib/utils';
+import { APP_TIMEZONE, formatCurrency } from '@/lib/utils';
 import { ArrowLeft, ArrowUpRight, ArrowDownLeft, Zap } from 'lucide-react';
 import { ArrowRightLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -310,7 +310,7 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
                       {tx.type} {tx.assetSymbol || tx.fromAssetSymbol}
                     </span>
                     <span className="text-[13px] text-[#8f9bb3] dark:text-gray-400 font-medium mt-0.5">
-                      {new Date(tx.createdAt).toLocaleDateString()}
+                      {new Date(tx.createdAt).toLocaleDateString('en-US', { timeZone: APP_TIMEZONE })}
                     </span>
                   </div>
                   <div className="flex flex-col items-end">

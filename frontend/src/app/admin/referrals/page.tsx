@@ -7,6 +7,7 @@ import { adminAPI } from '@/lib/api';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
+import { APP_TIMEZONE } from '@/lib/utils';
 
 export default function AdminReferralsPage() {
   const [referrals, setReferrals] = useState<any[]>([]);
@@ -107,7 +108,7 @@ export default function AdminReferralsPage() {
                       </td>
                       <td className="p-4">
                         <span className="text-[14px] text-gray-900 dark:text-gray-300">
-                          {new Date(r.createdAt).toLocaleDateString()}
+                          {new Date(r.createdAt).toLocaleDateString('en-US', { timeZone: APP_TIMEZONE })}
                         </span>
                       </td>
                     </tr>

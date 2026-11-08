@@ -8,6 +8,7 @@ import Modal from '@/components/ui/Modal';
 import { kycAPI } from '@/lib/api';
 import { getApiError } from '@/lib/apiError';
 import { KYCRelatedPerson, KYCRequirement, KYCSubmission } from '@/types';
+import { APP_TIMEZONE } from '@/lib/utils';
 
 type SensitiveData = { taxIdentifier: string | null; businessEin: string | null };
 
@@ -196,7 +197,7 @@ export default function AdminKYCPage() {
                     <tr key={submission.id} className="text-sm">
                       <td className="px-4 py-4"><p className="font-semibold text-gray-900 dark:text-white">{user.firstName} {user.lastName}</p><p className="text-xs text-gray-500">{user.email}</p></td>
                       <td className="px-4 py-4"><span className="inline-flex items-center gap-1.5 capitalize text-gray-700 dark:text-gray-200">{submission.applicantType === 'business' ? <Building2 size={15} /> : <UserRound size={15} />}{submission.applicantType}</span></td>
-                      <td className="px-4 py-4 text-gray-600 dark:text-gray-300">{submission.submittedAt ? new Date(submission.submittedAt).toLocaleDateString() : '-'}</td>
+                      <td className="px-4 py-4 text-gray-600 dark:text-gray-300">{submission.submittedAt ? new Date(submission.submittedAt).toLocaleDateString('en-US', { timeZone: APP_TIMEZONE }) : '-'}</td>
                       <td className="px-4 py-4 text-gray-600 dark:text-gray-300">{submission.documents.length}</td>
                       <td className="px-4 py-4"><span className={`inline-flex rounded-md px-2.5 py-1 text-xs font-semibold capitalize ${statusClass(submission.status)}`}>{submission.status.replace('_', ' ')}</span></td>
                       <td className="px-4 py-4 text-right"><button type="button" onClick={() => openReview(submission)} className="inline-flex rounded-md p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20" title="Review verification"><Eye size={17} /></button></td>
@@ -255,7 +256,7 @@ export default function AdminKYCPage() {
               <h3 className="mb-2 text-sm font-semibold text-gray-900 dark:text-white">Applicant information</h3>
               <div className="grid gap-3 sm:grid-cols-2">
                 <Detail label="Legal name" value={`${reviewing.legalFirstName} ${reviewing.legalLastName}`} />
-                <Detail label="Date of birth" value={new Date(reviewing.dateOfBirth).toLocaleDateString()} />
+                <Detail label="Date of birth" value={new Date(reviewing.dateOfBirth).toLocaleDateString('en-US', { timeZone: 'UTC' })} />
                 <Detail label="Email" value={reviewing.emailAddress} />
                 <Detail label="Phone" value={reviewing.phoneNumber} />
                 <Detail label="Country" value={reviewing.country} />

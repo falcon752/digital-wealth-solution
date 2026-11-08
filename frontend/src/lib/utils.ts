@@ -14,8 +14,11 @@ export function formatCurrency(amount: number): string {
   }).format(amount);
 }
 
+export const APP_TIMEZONE = process.env.NEXT_PUBLIC_APP_TIMEZONE || 'America/New_York';
+
 export function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('en-US', {
+    timeZone: APP_TIMEZONE,
     year: 'numeric',
     month: 'short',
     day: 'numeric',

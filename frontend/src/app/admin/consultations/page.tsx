@@ -7,7 +7,7 @@ import DashboardHeader from '@/components/layout/DashboardHeader';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
 import Modal from '@/components/ui/Modal';
-import { formatDate } from '@/lib/utils';
+import { APP_TIMEZONE, formatDate } from '@/lib/utils';
 import { Edit, ChevronLeft, ChevronRight, MailCheck, MailWarning } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -222,7 +222,7 @@ export default function AdminConsultationsPage() {
                       {delivery.success ? <MailCheck size={16} className="text-emerald-500 shrink-0" /> : <MailWarning size={16} className="text-red-500 shrink-0" />}
                       <div className="min-w-0">
                         <p className="font-semibold capitalize text-[var(--text-primary)]">{delivery.template.replaceAll('_', ' ')}</p>
-                        <p className="text-[var(--text-muted)] mt-0.5">{new Date(delivery.attemptedAt).toLocaleString()}</p>
+                        <p className="text-[var(--text-muted)] mt-0.5">{new Date(delivery.attemptedAt).toLocaleString('en-US', { timeZone: APP_TIMEZONE })}</p>
                         {delivery.error && <p className="text-red-500 mt-1 break-words">{delivery.error}</p>}
                       </div>
                     </div>

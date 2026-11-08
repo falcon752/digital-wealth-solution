@@ -8,6 +8,7 @@ import Navbar from '@/components/layout/Navbar';
 import SiteFooter from '@/components/layout/SiteFooter';
 import Button from '@/components/ui/Button';
 import { contactAPI } from '@/lib/api';
+import { APP_TIMEZONE } from '@/lib/utils';
 
 interface ConsultationStatus {
   id: string;
@@ -51,7 +52,7 @@ function ConsultationStatusContent() {
       <p className="text-sm font-semibold text-[#0033AD]">DWP client advisory</p><h1 className="mt-2 text-4xl font-semibold text-[#17205c]">Consultation status</h1>
       {loading && !linkIncomplete ? <div className="flex h-56 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-2 border-[#0033AD] border-t-transparent" /></div> : linkIncomplete || error ? <div className="mt-8 border border-red-200 bg-red-50 p-5 text-sm text-red-700">{linkIncomplete ? 'This consultation status link is incomplete.' : error}</div> : consultation && view ? <div className="mt-8 space-y-6">
         <div className={`flex items-start gap-4 p-5 ${view.tone}`}><StatusIcon size={24} className="mt-0.5" /><div><p className="text-lg font-semibold">{view.label}</p><p className="mt-1 text-sm">{view.message}</p></div></div>
-        <dl className="divide-y divide-gray-200 border-y border-gray-200 text-sm"><div className="grid grid-cols-[120px_1fr] gap-4 py-4"><dt className="text-gray-500">Applicant</dt><dd className="font-semibold">{consultation.firstName} {consultation.lastName}</dd></div><div className="grid grid-cols-[120px_1fr] gap-4 py-4"><dt className="text-gray-500">Topic</dt><dd className="font-semibold">{consultation.topic}</dd></div><div className="grid grid-cols-[120px_1fr] gap-4 py-4"><dt className="text-gray-500">Submitted</dt><dd>{new Date(consultation.createdAt).toLocaleString()}</dd></div></dl>
+        <dl className="divide-y divide-gray-200 border-y border-gray-200 text-sm"><div className="grid grid-cols-[120px_1fr] gap-4 py-4"><dt className="text-gray-500">Applicant</dt><dd className="font-semibold">{consultation.firstName} {consultation.lastName}</dd></div><div className="grid grid-cols-[120px_1fr] gap-4 py-4"><dt className="text-gray-500">Topic</dt><dd className="font-semibold">{consultation.topic}</dd></div><div className="grid grid-cols-[120px_1fr] gap-4 py-4"><dt className="text-gray-500">Submitted</dt><dd>{new Date(consultation.createdAt).toLocaleString('en-US', { timeZone: APP_TIMEZONE })}</dd></div></dl>
         {consultation.adminNote && <div className="border-l-2 border-[#0033AD] pl-4"><p className="text-sm font-semibold text-gray-900">Note from our team</p><p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-gray-600">{consultation.adminNote}</p></div>}
         {consultation.status === 'approved' && <div className="flex flex-wrap gap-3"><Link href="/pay-onboarding"><Button className="bg-[#0033AD]! text-white">Begin Onboarding</Button></Link><Link href="/register"><Button variant="outline">Create Account</Button></Link><Link href="/login"><Button variant="outline">Log In</Button></Link></div>}
         {consultation.status === 'rejected' && <a href="mailto:support@digitalwealthpartnersllc.net" className="text-sm font-semibold text-[#0033AD] underline">Contact support</a>}

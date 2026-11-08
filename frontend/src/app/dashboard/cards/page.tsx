@@ -8,6 +8,7 @@ import DashboardHeader from '@/components/layout/DashboardHeader';
 import Button from '@/components/ui/Button';
 import toast from 'react-hot-toast';
 import Modal from '@/components/ui/Modal';
+import { APP_TIMEZONE } from '@/lib/utils';
 import { CreditCard, CheckCircle2, Clock, ShieldCheck, CircleDollarSign, Globe, Lock, Copy, Info, Eye, EyeOff, PowerOff, Trash2 } from 'lucide-react';
 
 type UserCard = {
@@ -27,6 +28,7 @@ type ApiErrorResponse = {
 function formatCardDate(date?: string) {
   if (!date) return 'Pending';
   return new Intl.DateTimeFormat('en-US', {
+    timeZone: APP_TIMEZONE,
     month: 'short',
     year: 'numeric',
   }).format(new Date(date));
@@ -37,6 +39,7 @@ function getValidThru(date?: string) {
   const validThru = new Date(date);
   validThru.setFullYear(validThru.getFullYear() + 3);
   return new Intl.DateTimeFormat('en-US', {
+    timeZone: APP_TIMEZONE,
     month: '2-digit',
     year: '2-digit',
   }).format(validThru);
