@@ -1,10 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import axios from 'axios';
-import { Check } from 'lucide-react';
 import { CONSULTATION_CONTINUATION_KEY } from '@/lib/consultationContinuation';
 import { getApiError } from '@/lib/apiError';
 
@@ -47,6 +46,7 @@ interface PlatformAsset {
 }
 
 export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void }) {
+  const router = useRouter();
   const [topic, setTopic] = useState('General Question');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -66,7 +66,6 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
   const [message, setMessage] = useState('');
   const [acknowledged, setAcknowledged] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -118,9 +117,9 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
         }));
       }
 
-      setSubmitted(true);
       onSubmitted?.();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      // Next step is the onboarding page. The confirmation email is sent once the account is created.
+      router.push('/pay-onboarding?from=consultation');
     } catch (error: unknown) {
       console.error('Submit contact form error:', error);
       toast.error(getApiError(error, 'Failed to submit contact form. Please try again later.'));
@@ -128,41 +127,6 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
       setIsSubmitting(false);
     }
   };
-
-  if (submitted) {
-    return (
-      <div className="flex flex-col items-center justify-center text-center py-12 animate-in fade-in zoom-in-95 duration-300">
-        <div className="w-20 h-20 rounded-full bg-green-50 flex items-center justify-center mb-6">
-          <div className="w-14 h-14 rounded-full bg-green-500 text-white flex items-center justify-center shadow-lg shadow-green-500/30">
-            <Check size={30} strokeWidth={3} />
-          </div>
-        </div>
-        <h2 className="text-2xl font-semibold mb-3" style={{ color: '#1a202c' }}>
-          Submission Received
-        </h2>
-        <p className="text-sm max-w-[360px] leading-relaxed mb-8" style={{ color: '#4a5568' }}>
-          Create an account to keep this consultation linked to you and continue onboarding without entering these details again.
-        </p>
-        <div className="w-full max-w-[320px] space-y-3">
-          <Link href="/register?continue=consultation" className="block w-full">
-            <button
-              type="button"
-              className="w-full px-8 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"
-              style={{ backgroundColor: '#AD7F4E' }}
-            >
-              Create Account & Continue
-            </button>
-          </Link>
-          <p className="text-sm" style={{ color: '#4a5568' }}>
-            Already have an account?{' '}
-            <Link href="/login?continue=consultation" className="font-semibold text-blue-600 hover:underline">
-              Log in
-            </Link>
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <>

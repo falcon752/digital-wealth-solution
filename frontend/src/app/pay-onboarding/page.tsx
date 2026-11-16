@@ -11,6 +11,7 @@ import SiteFooter from '@/components/layout/SiteFooter';
 import Button from '@/components/ui/Button';
 import { useAuth } from '@/context/AuthContext';
 import { onboardingAPI } from '@/lib/api';
+import { getPendingConsultation } from '@/lib/consultationContinuation';
 import { getApiError } from '@/lib/apiError';
 import { OnboardingConfig, OnboardingPayment, OnboardingQuote, OnboardingStatus } from '@/types';
 
@@ -43,6 +44,7 @@ function OnboardingPageContent() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [hasPendingConsultation, setHasPendingConsultation] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -63,6 +65,8 @@ function OnboardingPageContent() {
   }, [user]);
 
   useEffect(() => { load(); }, [load]);
+
+  useEffect(() => { setHasPendingConsultation(Boolean(getPendingConsultation())); }, []);
 
   // Keep the XRP amount in step with the live market rate while the page is open.
   useEffect(() => {
@@ -115,6 +119,12 @@ function OnboardingPageContent() {
       <main className="pt-24">
         <section className="border-b border-gray-200 bg-[#f7f9fc] px-5 py-10 md:py-14">
           <div className="mx-auto max-w-6xl">
+            {hasPendingConsultation && !user && (
+              <div className="mb-6 border-l-2 border-[#0033AD] bg-white px-4 py-3 text-sm leading-6 text-gray-700">
+                <p className="font-semibold text-[#17205c]">Your details have been received.</p>
+                <p className="mt-1">Take your time to read the onboarding information below, including the services, the payment and the terms. When you are ready, create your account at the bottom of this page. Your confirmation email is sent once your account is created.</p>
+              </div>
+            )}
             <p className="text-sm font-semibold text-[#0033AD]">DWP client onboarding</p>
             <div className="mt-2 grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
               <div>
@@ -194,7 +204,7 @@ function OnboardingPageContent() {
                 {!user ? (
                   <div className="mt-6 border border-gray-200 p-6">
                     <p className="text-sm leading-6 text-gray-700">Register and verify your email before submitting a payment. Existing clients can sign in with the email used for their consultation.</p>
-                    <div className="mt-5 flex flex-wrap gap-3"><Link href="/register"><Button className="bg-[#0033AD]! text-white">Create Account</Button></Link><Link href="/login"><Button variant="outline" className="border-2! border-[#0033AD]! text-[#0033AD]! hover:bg-[#0033AD]/5!">Already have an account? Log in</Button></Link></div>
+                    <div className="mt-5 flex flex-wrap gap-3"><Link href={hasPendingConsultation ? '/register?continue=consultation' : '/register'}><Button className="bg-[#0033AD]! text-white">Create Account</Button></Link><Link href={hasPendingConsultation ? '/login?continue=consultation' : '/login'}><Button variant="outline" className="border-2! border-[#0033AD]! text-[#0033AD]! hover:bg-[#0033AD]/5!">Already have an account? Log in</Button></Link></div>
                   </div>
                 ) : effectiveStatus === 'account_active' ? (
                   <div className="mt-6 flex items-start gap-3 border border-emerald-200 bg-emerald-50 p-5 text-emerald-800"><CheckCircle2 size={21} className="mt-0.5" /><div><p className="font-semibold">Your account is active.</p><p className="mt-1 text-sm">Continue to your dashboard, complete your profile, and submit any required KYC information.</p><Link href="/dashboard" className="mt-3 inline-flex items-center gap-1 text-sm font-semibold underline">Open dashboard <ExternalLink size={14} /></Link></div></div>

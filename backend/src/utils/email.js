@@ -1254,7 +1254,7 @@ async function sendUserContactStatusEmail({ userEmail, firstName, topic, status,
     pending: `
       <p>Hi <strong>${safeFirstName}</strong>,</p>
       <p>We received your consultation request${topicText}. It is awaiting review by our client advisory team.</p>
-      <p>No payment is required at this stage. We will send another notification when the status changes.</p>
+      <p>Your request is being reviewed. We will send another notification when the status changes.</p>
       <p><a href="${safeStatusUrl}">View consultation status</a></p>
     `,
     processing: `

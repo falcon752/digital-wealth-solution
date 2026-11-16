@@ -94,21 +94,16 @@ router.post('/general', [
     });
 
     const statusUrl = consultationStatusUrl(submission);
-    const [adminResult, userResult] = await Promise.allSettled([
+    // The client's confirmation email is held until they create an account (see POST /:id/continue).
+    // The admin is still notified immediately so no enquiry is lost.
+    const [adminResult] = await Promise.allSettled([
       sendGeneralContactEmail({ adminEmail, contactData: req.body }),
-      sendUserContactStatusEmail({
-        userEmail: email, firstName, topic, status: 'pending', statusUrl,
-      }),
     ]);
     submission.emailDeliveries.push(
       adminResult.status === 'fulfilled'
         ? emailDelivery('consultation_admin_received', 'pending', adminResult.value)
-        : emailDelivery('consultation_admin_received', 'pending', null, adminResult.reason),
-      userResult.status === 'fulfilled'
-        ? emailDelivery('consultation_pending', 'pending', userResult.value)
-        : emailDelivery('consultation_pending', 'pending', null, userResult.reason)
+        : emailDelivery('consultation_admin_received', 'pending', null, adminResult.reason)
     );
-    if (userResult.status === 'fulfilled') submission.lastNotifiedStatus = 'pending';
     await submission.save();
 
     // Try to log system activity if the email belongs to a registered user
@@ -123,7 +118,7 @@ router.post('/general', [
       message: 'Thank you for your message. We will get back to you shortly!',
       continuation: { submissionId: submission.id, token: continuationToken, email },
       emailDelivery: {
-        client: userResult.status === 'fulfilled',
+        client: false,
         admin: adminResult.status === 'fulfilled',
       },
     });
@@ -197,7 +192,35 @@ router.post('/:id/continue', authenticate, [
     submission.continuationTokenHash = null;
     await submission.save();
     await logActivity(req.user.id, 'CONSULTATION_LINKED', { submissionId: submission.id }, req);
-    res.json({ message: 'Consultation linked to your account', submissionId: submission.id });
+
+    // Account now exists: send the confirmation for the consultation's current status.
+    let clientEmailSent = false;
+    if (submission.lastNotifiedStatus !== submission.status) {
+      const onboardingConfig = submission.status === 'approved'
+        ? await OnboardingConfig.findOne({ key: 'default' })
+        : null;
+      const template = `consultation_${submission.status}`;
+      try {
+        const result = await sendUserContactStatusEmail({
+          userEmail: submission.email,
+          firstName: submission.firstName,
+          topic: submission.topic,
+          status: submission.status,
+          adminNote: submission.adminNote || null,
+          statusUrl: consultationStatusUrl(submission),
+          onboardingConfig,
+        });
+        submission.emailDeliveries.push(emailDelivery(template, submission.status, result));
+        submission.lastNotifiedStatus = submission.status;
+        clientEmailSent = true;
+      } catch (error) {
+        submission.emailDeliveries.push(emailDelivery(template, submission.status, null, error));
+        console.error('Failed to send consultation confirmation email:', error.message);
+      }
+      await submission.save();
+    }
+
+    res.json({ message: 'Consultation linked to your account', submissionId: submission.id, clientEmailSent });
   } catch (error) {
     console.error('Consultation continuation error:', error);
     res.status(500).json({ error: 'Failed to continue consultation' });
