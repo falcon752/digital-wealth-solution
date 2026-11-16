@@ -182,6 +182,7 @@ export interface ContactSubmission {
   holdsXRP?: string | null;
   existingClient?: string | null;
   custodyAsset?: string | null;
+  custodyAssets?: string[];
   referralSource?: string | null;
   message: string;
   status: 'pending' | 'approved' | 'processing' | 'rejected';

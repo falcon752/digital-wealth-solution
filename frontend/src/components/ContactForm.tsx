@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import axios from 'axios';
 import { CONSULTATION_CONTINUATION_KEY } from '@/lib/consultationContinuation';
 import { getApiError } from '@/lib/apiError';
+import MultiSelect from '@/components/MultiSelect';
 
 const radioStyle = `
   .custom-radio {
@@ -59,13 +60,18 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
   const [digitalAllocation, setDigitalAllocation] = useState('');
   const [holdsXRP, setHoldsXRP] = useState('No');
   const [existingClient, setExistingClient] = useState('Not Currently a DWP Client');
-  const [custodyAsset, setCustodyAsset] = useState('');
+  const [custodyAssets, setCustodyAssets] = useState<string[]>([]);
   const [referralSource, setReferralSource] = useState('');
   const [platformAssets, setPlatformAssets] = useState<PlatformAsset[]>([]);
   const [assetsLoading, setAssetsLoading] = useState(true);
   const [message, setMessage] = useState('');
   const [acknowledged, setAcknowledged] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const assetOptions = [
+    ...platformAssets.map((asset) => ({ value: asset.symbol, label: `${asset.name} (${asset.symbol})` })),
+    { value: 'Other', label: 'Other (describe in your message)' },
+  ];
 
   useEffect(() => {
     let cancelled = false;
@@ -104,7 +110,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
         digitalAllocation,
         holdsXRP,
         existingClient,
-        custodyAsset,
+        custodyAssets,
         referralSource,
         message,
       });
@@ -362,19 +368,13 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
           <label className="block text-sm font-medium mb-1" style={{ color: '#1a202c' }}>
             List digital assets you want to move to custody <span style={{ color: '#c0392b' }}>*</span>
           </label>
-          <select
-            className="w-full border px-3 py-2 text-sm rounded-none bg-white"
-            style={{ borderColor: '#d1d5db', color: '#4a5568', outline: 'none' }}
-            value={custodyAsset}
-            onChange={(e) => setCustodyAsset(e.target.value)}
+          <MultiSelect
+            options={assetOptions}
+            values={custodyAssets}
+            onChange={setCustodyAssets}
+            loading={assetsLoading}
             required
-          >
-            <option value="">{assetsLoading ? 'Loading assets…' : 'Please make a selection'}</option>
-            {platformAssets.map((asset) => (
-              <option key={asset.symbol} value={asset.symbol}>{asset.name} ({asset.symbol})</option>
-            ))}
-            <option value="Other">Other (describe in your message)</option>
-          </select>
+          />
         </div>
 
         {/* Referral source */}

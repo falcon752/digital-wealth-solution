@@ -193,6 +193,7 @@ const contactSubmissionSchema = new mongoose.Schema(
     holdsXRP: { type: String, default: null },
     existingClient: { type: String, default: null },
     custodyAsset: { type: String, default: null, trim: true },
+    custodyAssets: { type: [String], default: [] },
     referralSource: { type: String, default: null, trim: true },
     message: { type: String, required: true, trim: true },
     status: {

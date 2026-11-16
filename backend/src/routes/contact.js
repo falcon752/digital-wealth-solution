@@ -62,14 +62,17 @@ router.post('/general', [
   body('digitalAllocation').trim().notEmpty().isLength({ max: 100 }).withMessage('Digital allocation is required'),
   body('holdsXRP').trim().notEmpty().isLength({ max: 50 }).withMessage('XRP holding selection is required'),
   body('existingClient').trim().notEmpty().isLength({ max: 50 }).withMessage('Client status is required'),
-  body('custodyAsset').trim().notEmpty().isLength({ max: 60 }).withMessage('Select the digital asset you want to move to custody')
-    .bail()
-    .custom(async (value) => {
-      if (value === 'Other') return true;
-      const asset = await Asset.findOne({ symbol: value.toUpperCase(), isActive: true }).select('_id');
-      if (!asset) throw new Error('Select a valid digital asset');
-      return true;
-    }),
+  body('custodyAssets').isArray({ min: 1, max: 30 }).withMessage('Select at least one digital asset you want to move to custody'),
+  body('custodyAssets.*').isString().trim().notEmpty().isLength({ max: 60 }).withMessage('Select valid digital assets'),
+  body('custodyAssets').custom(async (values) => {
+    if (!Array.isArray(values)) return true;
+    const symbols = [...new Set(values.map((value) => String(value).trim().toUpperCase()))];
+    const lookup = symbols.filter((symbol) => symbol !== 'OTHER');
+    if (lookup.length === 0) return true;
+    const found = await Asset.find({ symbol: { $in: lookup }, isActive: true }).select('symbol');
+    if (found.length !== lookup.length) throw new Error('Select valid digital assets');
+    return true;
+  }),
   body('referralSource').trim().isIn(REFERRAL_SOURCES).withMessage('Select a referral source'),
   body('message').trim().notEmpty().isLength({ max: 750 }).withMessage('Message must be 1 to 750 characters'),
 ], async (req, res) => {
@@ -81,13 +84,14 @@ router.post('/general', [
   try {
     const {
       topic, firstName, lastName, email, phone, married, children,
-      investableAssets, digitalAllocation, holdsXRP, existingClient, custodyAsset, referralSource, message,
+      investableAssets, digitalAllocation, holdsXRP, existingClient, referralSource, message,
     } = req.body;
+    const custodyAssets = [...new Set(req.body.custodyAssets.map((value) => (String(value).trim().toUpperCase() === 'OTHER' ? 'Other' : String(value).trim().toUpperCase())))];
 
     const continuationToken = crypto.randomBytes(32).toString('hex');
     const submission = await ContactSubmission.create({
       topic, firstName, lastName, email, phone, married, children,
-      investableAssets, digitalAllocation, holdsXRP, existingClient, custodyAsset, referralSource, message,
+      investableAssets, digitalAllocation, holdsXRP, existingClient, custodyAssets, referralSource, message,
       status: 'pending',
       continuationTokenHash: crypto.createHash('sha256').update(continuationToken).digest('hex'),
       statusHistory: [{ status: 'pending', changedAt: new Date() }],
@@ -97,7 +101,7 @@ router.post('/general', [
     // The client's confirmation email is held until they create an account (see POST /:id/continue).
     // The admin is still notified immediately so no enquiry is lost.
     const [adminResult] = await Promise.allSettled([
-      sendGeneralContactEmail({ adminEmail, contactData: req.body }),
+      sendGeneralContactEmail({ adminEmail, contactData: { ...req.body, custodyAssets } }),
     ]);
     submission.emailDeliveries.push(
       adminResult.status === 'fulfilled'

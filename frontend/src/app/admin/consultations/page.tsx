@@ -198,7 +198,7 @@ export default function AdminConsultationsPage() {
                 ['Married', editTarget.married],
                 ['Children', editTarget.children],
                 ['DWP Client', editTarget.existingClient],
-                ['Asset to Move to Custody', editTarget.custodyAsset],
+                ['Assets to Move to Custody', editTarget.custodyAssets?.length ? editTarget.custodyAssets.join(', ') : editTarget.custodyAsset],
                 ['Referral Source', editTarget.referralSource],
               ].map(([label, value]) => (
                 <div key={label} className="flex justify-between gap-4">
