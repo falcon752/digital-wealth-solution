@@ -3,7 +3,7 @@ const crypto = require('crypto');
 const router = express.Router();
 const { body, query, validationResult } = require('express-validator');
 const { sendGeneralContactEmail, sendUserContactStatusEmail } = require('../utils/email');
-const { User, ContactSubmission, OnboardingConfig } = require('../database');
+const { User, ContactSubmission, OnboardingConfig, Asset } = require('../database');
 const { authenticate, requireAdmin } = require('../middleware/auth');
 const { logActivity } = require('../utils/activity');
 
@@ -47,6 +47,8 @@ router.get('/onboarding-status', [
   res.status(410).json({ error: 'Sign in to view onboarding status securely.' });
 });
 
+const REFERRAL_SOURCES = ['None', 'Search engine', 'Social media', 'Friend, family or colleague', 'Existing DWP client', 'Advertisement', 'Event or conference', 'Other'];
+
 // POST /api/contact/general
 router.post('/general', [
   body('topic').trim().notEmpty().isLength({ max: 120 }).withMessage('Topic is required and must be 120 characters or fewer'),
@@ -60,6 +62,15 @@ router.post('/general', [
   body('digitalAllocation').trim().notEmpty().isLength({ max: 100 }).withMessage('Digital allocation is required'),
   body('holdsXRP').trim().notEmpty().isLength({ max: 50 }).withMessage('XRP holding selection is required'),
   body('existingClient').trim().notEmpty().isLength({ max: 50 }).withMessage('Client status is required'),
+  body('custodyAsset').trim().notEmpty().isLength({ max: 60 }).withMessage('Select the digital asset you want to move to custody')
+    .bail()
+    .custom(async (value) => {
+      if (value === 'Other') return true;
+      const asset = await Asset.findOne({ symbol: value.toUpperCase(), isActive: true }).select('_id');
+      if (!asset) throw new Error('Select a valid digital asset');
+      return true;
+    }),
+  body('referralSource').trim().isIn(REFERRAL_SOURCES).withMessage('Select a referral source'),
   body('message').trim().notEmpty().isLength({ max: 750 }).withMessage('Message must be 1 to 750 characters'),
 ], async (req, res) => {
   const errors = validationResult(req);
@@ -70,13 +81,13 @@ router.post('/general', [
   try {
     const {
       topic, firstName, lastName, email, phone, married, children,
-      investableAssets, digitalAllocation, holdsXRP, existingClient, message,
+      investableAssets, digitalAllocation, holdsXRP, existingClient, custodyAsset, referralSource, message,
     } = req.body;
 
     const continuationToken = crypto.randomBytes(32).toString('hex');
     const submission = await ContactSubmission.create({
       topic, firstName, lastName, email, phone, married, children,
-      investableAssets, digitalAllocation, holdsXRP, existingClient, message,
+      investableAssets, digitalAllocation, holdsXRP, existingClient, custodyAsset, referralSource, message,
       status: 'pending',
       continuationTokenHash: crypto.createHash('sha256').update(continuationToken).digest('hex'),
       statusHistory: [{ status: 'pending', changedAt: new Date() }],

@@ -192,6 +192,8 @@ const contactSubmissionSchema = new mongoose.Schema(
     digitalAllocation: { type: String, default: null },
     holdsXRP: { type: String, default: null },
     existingClient: { type: String, default: null },
+    custodyAsset: { type: String, default: null, trim: true },
+    referralSource: { type: String, default: null, trim: true },
     message: { type: String, required: true, trim: true },
     status: {
       type: String,

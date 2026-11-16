@@ -181,6 +181,8 @@ export interface ContactSubmission {
   digitalAllocation?: string | null;
   holdsXRP?: string | null;
   existingClient?: string | null;
+  custodyAsset?: string | null;
+  referralSource?: string | null;
   message: string;
   status: 'pending' | 'approved' | 'processing' | 'rejected';
   adminNote?: string | null;

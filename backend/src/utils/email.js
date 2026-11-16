@@ -590,6 +590,8 @@ async function sendGeneralContactEmail({ adminEmail, contactData }) {
     digitalAllocation,
     holdsXRP,
     existingClient,
+    custodyAsset,
+    referralSource,
     message,
   } = contactData;
 
@@ -606,6 +608,8 @@ async function sendGeneralContactEmail({ adminEmail, contactData }) {
     digitalAllocation: escapeHtml(digitalAllocation),
     holdsXRP: escapeHtml(holdsXRP),
     existingClient: escapeHtml(existingClient),
+    custodyAsset: escapeHtml(custodyAsset),
+    referralSource: escapeHtml(referralSource),
     message: escapeHtml(message),
   };
 
@@ -632,6 +636,8 @@ async function sendGeneralContactEmail({ adminEmail, contactData }) {
         <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Digital Allocation</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.digitalAllocation}</td></tr>
         <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Holds 50k+ XRP</td><td style="color:#111827;text-align:right;font-size:14px;font-weight:bold;color:#f59e0b;">${safe.holdsXRP}</td></tr>
         <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">DWP Client</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.existingClient}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Asset to Move to Custody</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.custodyAsset}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Referral Source</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.referralSource}</td></tr>
         <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Submitted At</td><td style="color:#111827;text-align:right;font-size:14px;">${now} ET</td></tr>
       </table>
 

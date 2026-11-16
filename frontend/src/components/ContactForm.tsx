@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import axios from 'axios';
@@ -39,6 +39,13 @@ const radioStyle = `
   }
 `;
 
+const REFERRAL_SOURCES = ['None', 'Search engine', 'Social media', 'Friend, family or colleague', 'Existing DWP client', 'Advertisement', 'Event or conference', 'Other'];
+
+interface PlatformAsset {
+  name: string;
+  symbol: string;
+}
+
 export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void }) {
   const [topic, setTopic] = useState('General Question');
   const [firstName, setFirstName] = useState('');
@@ -52,10 +59,24 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
   const [digitalAllocation, setDigitalAllocation] = useState('');
   const [holdsXRP, setHoldsXRP] = useState('No');
   const [existingClient, setExistingClient] = useState('Not Currently a DWP Client');
+  const [custodyAsset, setCustodyAsset] = useState('');
+  const [referralSource, setReferralSource] = useState('');
+  const [platformAssets, setPlatformAssets] = useState<PlatformAsset[]>([]);
+  const [assetsLoading, setAssetsLoading] = useState(true);
   const [message, setMessage] = useState('');
   const [acknowledged, setAcknowledged] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    axios
+      .get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/assets/public`)
+      .then((response) => { if (!cancelled) setPlatformAssets(response.data.assets || []); })
+      .catch(() => { /* The "Other" option stays available if the list cannot load. */ })
+      .finally(() => { if (!cancelled) setAssetsLoading(false); });
+    return () => { cancelled = true; };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,6 +105,8 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
         digitalAllocation,
         holdsXRP,
         existingClient,
+        custodyAsset,
+        referralSource,
         message,
       });
 
@@ -368,6 +391,45 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
               </label>
             ))}
           </div>
+        </div>
+
+        {/* Asset to move to custody */}
+        <div>
+          <label className="block text-sm font-medium mb-1" style={{ color: '#1a202c' }}>
+            List digital assets you want to move to custody <span style={{ color: '#c0392b' }}>*</span>
+          </label>
+          <select
+            className="w-full border px-3 py-2 text-sm rounded-none bg-white"
+            style={{ borderColor: '#d1d5db', color: '#4a5568', outline: 'none' }}
+            value={custodyAsset}
+            onChange={(e) => setCustodyAsset(e.target.value)}
+            required
+          >
+            <option value="">{assetsLoading ? 'Loading assets…' : 'Please make a selection'}</option>
+            {platformAssets.map((asset) => (
+              <option key={asset.symbol} value={asset.symbol}>{asset.name} ({asset.symbol})</option>
+            ))}
+            <option value="Other">Other (describe in your message)</option>
+          </select>
+        </div>
+
+        {/* Referral source */}
+        <div>
+          <label className="block text-sm font-medium mb-1" style={{ color: '#1a202c' }}>
+            Referral source (if any): <span style={{ color: '#c0392b' }}>*</span>
+          </label>
+          <select
+            className="w-full border px-3 py-2 text-sm rounded-none bg-white"
+            style={{ borderColor: '#d1d5db', color: '#4a5568', outline: 'none' }}
+            value={referralSource}
+            onChange={(e) => setReferralSource(e.target.value)}
+            required
+          >
+            <option value="">Please make a selection</option>
+            {REFERRAL_SOURCES.map((source) => (
+              <option key={source} value={source}>{source}</option>
+            ))}
+          </select>
         </div>
 
         {/* Message */}

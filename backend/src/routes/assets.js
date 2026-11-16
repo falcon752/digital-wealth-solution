@@ -60,6 +60,17 @@ router.get('/', authenticate, async (req, res) => {
   }
 });
 
+// GET /api/assets/public — names and symbols only, for the public contact form
+router.get('/public', async (req, res) => {
+  try {
+    const assets = await Asset.find({ isActive: true }).sort({ name: 1 }).select('name symbol');
+    res.set('Cache-Control', 'public, max-age=60');
+    res.json({ assets: assets.map((asset) => ({ name: asset.name, symbol: asset.symbol })) });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch assets' });
+  }
+});
+
 // GET /api/assets/:id
 router.get('/:id', authenticate, async (req, res) => {
   try {
