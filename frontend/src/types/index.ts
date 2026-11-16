@@ -184,6 +184,7 @@ export interface ContactSubmission {
   custodyAsset?: string | null;
   custodyAssets?: string[];
   referralSource?: string | null;
+  referralOfficial?: string | null;
   message: string;
   status: 'pending' | 'approved' | 'processing' | 'rejected';
   adminNote?: string | null;

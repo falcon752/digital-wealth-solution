@@ -200,6 +200,7 @@ export default function AdminConsultationsPage() {
                 ['DWP Client', editTarget.existingClient],
                 ['Assets to Move to Custody', editTarget.custodyAssets?.length ? editTarget.custodyAssets.join(', ') : editTarget.custodyAsset],
                 ['Referral Source', editTarget.referralSource],
+                ['Referred by (DWP official)', editTarget.referralOfficial],
               ].map(([label, value]) => (
                 <div key={label} className="flex justify-between gap-4">
                   <span className="text-[var(--text-muted)]">{label}</span>

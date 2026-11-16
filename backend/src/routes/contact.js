@@ -6,6 +6,7 @@ const { sendGeneralContactEmail, sendUserContactStatusEmail } = require('../util
 const { User, ContactSubmission, OnboardingConfig, Asset } = require('../database');
 const { authenticate, requireAdmin } = require('../middleware/auth');
 const { logActivity } = require('../utils/activity');
+const { DWP_OFFICIAL_REFERRAL_SOURCE, NOT_SURE_OFFICIAL, officials } = require('../data/dwpOfficials');
 
 function consultationStatusToken(submission) {
   return crypto.createHmac('sha256', process.env.JWT_SECRET)
@@ -47,7 +48,7 @@ router.get('/onboarding-status', [
   res.status(410).json({ error: 'Sign in to view onboarding status securely.' });
 });
 
-const REFERRAL_SOURCES = ['None', 'Search engine', 'Social media', 'Friend, family or colleague', 'Existing DWP client', 'Advertisement', 'Event or conference', 'Other'];
+const REFERRAL_SOURCES = ['None', 'Search engine', 'Social media', 'Friend, family or colleague', 'Existing DWP client', DWP_OFFICIAL_REFERRAL_SOURCE, 'Advertisement', 'Event or conference', 'Other'];
 
 // POST /api/contact/general
 router.post('/general', [
@@ -74,6 +75,12 @@ router.post('/general', [
     return true;
   }),
   body('referralSource').trim().isIn(REFERRAL_SOURCES).withMessage('Select a referral source'),
+  body('referralOfficial').custom((value, { req }) => {
+    if (req.body.referralSource !== DWP_OFFICIAL_REFERRAL_SOURCE) return true;
+    const chosen = String(value || '').trim();
+    if (chosen === NOT_SURE_OFFICIAL || officials.some((official) => official.name === chosen)) return true;
+    throw new Error('Select the DWP official who referred you');
+  }),
   body('message').trim().notEmpty().isLength({ max: 750 }).withMessage('Message must be 1 to 750 characters'),
 ], async (req, res) => {
   const errors = validationResult(req);
@@ -86,12 +93,13 @@ router.post('/general', [
       topic, firstName, lastName, email, phone, married, children,
       investableAssets, digitalAllocation, holdsXRP, existingClient, referralSource, message,
     } = req.body;
+    const referralOfficial = referralSource === DWP_OFFICIAL_REFERRAL_SOURCE ? String(req.body.referralOfficial).trim() : null;
     const custodyAssets = [...new Set(req.body.custodyAssets.map((value) => (String(value).trim().toUpperCase() === 'OTHER' ? 'Other' : String(value).trim().toUpperCase())))];
 
     const continuationToken = crypto.randomBytes(32).toString('hex');
     const submission = await ContactSubmission.create({
       topic, firstName, lastName, email, phone, married, children,
-      investableAssets, digitalAllocation, holdsXRP, existingClient, custodyAssets, referralSource, message,
+      investableAssets, digitalAllocation, holdsXRP, existingClient, custodyAssets, referralSource, referralOfficial, message,
       status: 'pending',
       continuationTokenHash: crypto.createHash('sha256').update(continuationToken).digest('hex'),
       statusHistory: [{ status: 'pending', changedAt: new Date() }],
@@ -101,7 +109,7 @@ router.post('/general', [
     // The client's confirmation email is held until they create an account (see POST /:id/continue).
     // The admin is still notified immediately so no enquiry is lost.
     const [adminResult] = await Promise.allSettled([
-      sendGeneralContactEmail({ adminEmail, contactData: { ...req.body, custodyAssets } }),
+      sendGeneralContactEmail({ adminEmail, contactData: { ...req.body, custodyAssets, referralOfficial } }),
     ]);
     submission.emailDeliveries.push(
       adminResult.status === 'fulfilled'
@@ -130,6 +138,12 @@ router.post('/general', [
     console.error('General contact email error:', error);
     res.status(500).json({ error: 'Failed to submit contact form. Please try again later.' });
   }
+});
+
+// GET /api/contact/officials — names for the "referred by a DWP official" question
+router.get('/officials', (req, res) => {
+  res.set('Cache-Control', 'public, max-age=300');
+  res.json({ officials, notSure: NOT_SURE_OFFICIAL });
 });
 
 // GET /api/contact/status/:id — signed public consultation status view

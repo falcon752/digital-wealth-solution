@@ -195,6 +195,7 @@ const contactSubmissionSchema = new mongoose.Schema(
     custodyAsset: { type: String, default: null, trim: true },
     custodyAssets: { type: [String], default: [] },
     referralSource: { type: String, default: null, trim: true },
+    referralOfficial: { type: String, default: null, trim: true },
     message: { type: String, required: true, trim: true },
     status: {
       type: String,

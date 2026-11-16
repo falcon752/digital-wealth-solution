@@ -592,6 +592,7 @@ async function sendGeneralContactEmail({ adminEmail, contactData }) {
     existingClient,
     custodyAssets,
     referralSource,
+    referralOfficial,
     message,
   } = contactData;
 
@@ -610,6 +611,7 @@ async function sendGeneralContactEmail({ adminEmail, contactData }) {
     existingClient: escapeHtml(existingClient),
     custodyAssets: escapeHtml(Array.isArray(custodyAssets) ? custodyAssets.join(', ') : ''),
     referralSource: escapeHtml(referralSource),
+    referralOfficial: escapeHtml(referralOfficial || ''),
     message: escapeHtml(message),
   };
 
@@ -638,6 +640,7 @@ async function sendGeneralContactEmail({ adminEmail, contactData }) {
         <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">DWP Client</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.existingClient}</td></tr>
         <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Assets to Move to Custody</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.custodyAssets}</td></tr>
         <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Referral Source</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.referralSource}</td></tr>
+        ${safe.referralOfficial ? `<tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Referred by (DWP official)</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.referralOfficial}</td></tr>` : ''}
         <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Submitted At</td><td style="color:#111827;text-align:right;font-size:14px;">${now} ET</td></tr>
       </table>
 

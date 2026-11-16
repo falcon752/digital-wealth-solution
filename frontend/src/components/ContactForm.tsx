@@ -39,7 +39,16 @@ const radioStyle = `
   }
 `;
 
-const REFERRAL_SOURCES = ['None', 'Search engine', 'Social media', 'Friend, family or colleague', 'Existing DWP client', 'Advertisement', 'Event or conference', 'Other'];
+const REFERRAL_SOURCES = ['None', 'Search engine', 'Social media', 'Friend, family or colleague', 'Existing DWP client', 'A DWP official or advisor', 'Advertisement', 'Event or conference', 'Other'];
+
+const OFFICIAL_SOURCE = 'A DWP official or advisor';
+const NOT_SURE_OFFICIAL = "I'm not sure";
+
+interface DwpOfficial {
+  name: string;
+  role: string;
+  group: 'Leadership' | 'Advisors';
+}
 
 interface PlatformAsset {
   name: string;
@@ -62,6 +71,9 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
   const [existingClient, setExistingClient] = useState('Not Currently a DWP Client');
   const [custodyAssets, setCustodyAssets] = useState<string[]>([]);
   const [referralSource, setReferralSource] = useState('');
+  const [referralOfficial, setReferralOfficial] = useState('');
+  const [officials, setOfficials] = useState<DwpOfficial[]>([]);
+  const [officialsLoading, setOfficialsLoading] = useState(false);
   const [platformAssets, setPlatformAssets] = useState<PlatformAsset[]>([]);
   const [assetsLoading, setAssetsLoading] = useState(true);
   const [message, setMessage] = useState('');
@@ -82,6 +94,18 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
       .finally(() => { if (!cancelled) setAssetsLoading(false); });
     return () => { cancelled = true; };
   }, []);
+
+  useEffect(() => {
+    if (referralSource !== OFFICIAL_SOURCE || officials.length > 0) return;
+    let cancelled = false;
+    setOfficialsLoading(true);
+    axios
+      .get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/contact/officials`)
+      .then((response) => { if (!cancelled) setOfficials(response.data.officials || []); })
+      .catch(() => { /* "I'm not sure" stays available if the list cannot load. */ })
+      .finally(() => { if (!cancelled) setOfficialsLoading(false); });
+    return () => { cancelled = true; };
+  }, [referralSource, officials.length]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -112,6 +136,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
         existingClient,
         custodyAssets,
         referralSource,
+        referralOfficial: referralSource === OFFICIAL_SOURCE ? referralOfficial : undefined,
         message,
       });
 
@@ -386,7 +411,10 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
             className="w-full border px-3 py-2 text-sm rounded-none bg-white"
             style={{ borderColor: '#d1d5db', color: '#4a5568', outline: 'none' }}
             value={referralSource}
-            onChange={(e) => setReferralSource(e.target.value)}
+            onChange={(e) => {
+              setReferralSource(e.target.value);
+              if (e.target.value !== OFFICIAL_SOURCE) setReferralOfficial('');
+            }}
             required
           >
             <option value="">Please make a selection</option>
@@ -395,6 +423,35 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
             ))}
           </select>
         </div>
+
+        {/* Which DWP official referred the visitor */}
+        {referralSource === OFFICIAL_SOURCE && (
+          <div>
+            <label className="block text-sm font-medium mb-1" style={{ color: '#1a202c' }}>
+              Which DWP official referred you? <span style={{ color: '#c0392b' }}>*</span>
+            </label>
+            <select
+              className="w-full border px-3 py-2 text-sm rounded-none bg-white"
+              style={{ borderColor: '#d1d5db', color: '#4a5568', outline: 'none' }}
+              value={referralOfficial}
+              onChange={(e) => setReferralOfficial(e.target.value)}
+              required
+            >
+              <option value="">{officialsLoading ? 'Loading names…' : 'Please make a selection'}</option>
+              {(['Leadership', 'Advisors'] as const).map((group) => {
+                const people = officials.filter((official) => official.group === group);
+                return people.length > 0 ? (
+                  <optgroup key={group} label={group}>
+                    {people.map((official) => (
+                      <option key={official.name} value={official.name}>{official.name} ({official.role})</option>
+                    ))}
+                  </optgroup>
+                ) : null;
+              })}
+              <option value={NOT_SURE_OFFICIAL}>{NOT_SURE_OFFICIAL}</option>
+            </select>
+          </div>
+        )}
 
         {/* Message */}
         <div>
