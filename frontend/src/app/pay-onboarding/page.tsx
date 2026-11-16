@@ -3,6 +3,7 @@
 import { Suspense, useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { QRCodeSVG } from 'qrcode.react';
 import { Check, CheckCircle2, Clock3, Copy, ExternalLink, FileCheck2, RefreshCw, UserRound, XCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Navbar from '@/components/layout/Navbar';
@@ -11,7 +12,7 @@ import Button from '@/components/ui/Button';
 import { useAuth } from '@/context/AuthContext';
 import { onboardingAPI } from '@/lib/api';
 import { getApiError } from '@/lib/apiError';
-import { OnboardingConfig, OnboardingPayment, OnboardingStatus } from '@/types';
+import { OnboardingConfig, OnboardingPayment, OnboardingQuote, OnboardingStatus } from '@/types';
 
 const includedServices = [
   'Initial consultation and onboarding assistance',
@@ -22,7 +23,7 @@ const includedServices = [
 ];
 
 const statusDetails: Record<OnboardingStatus, { label: string; message: string; tone: string; icon: typeof Clock3 }> = {
-  registered: { label: 'Registered / Payment Pending', message: 'Your email is verified. Review the active quote before making payment.', tone: 'bg-gray-100 text-gray-700', icon: UserRound },
+  registered: { label: 'Registered / Payment Pending', message: 'Your email is verified. Review the payment details before making payment.', tone: 'bg-gray-100 text-gray-700', icon: UserRound },
   payment_pending: { label: 'Payment Pending', message: 'No onboarding payment has been submitted yet.', tone: 'bg-gray-100 text-gray-700', icon: Clock3 },
   payment_under_review: { label: 'Payment Under Review', message: 'Your transaction is being verified and reviewed. This does not yet grant dashboard access.', tone: 'bg-amber-50 text-amber-700', icon: RefreshCw },
   payment_confirmed: { label: 'Payment Confirmed', message: 'Payment is confirmed. Account activation remains a separate administrative step.', tone: 'bg-blue-50 text-blue-700', icon: FileCheck2 },
@@ -34,7 +35,7 @@ function OnboardingPageContent() {
   const searchParams = useSearchParams();
   const { user, refreshUser } = useAuth();
   const [config, setConfig] = useState<OnboardingConfig | null>(null);
-  const [quoteActive, setQuoteActive] = useState(false);
+  const [quote, setQuote] = useState<OnboardingQuote | null>(null);
   const [payment, setPayment] = useState<OnboardingPayment | null>(null);
   const [status, setStatus] = useState<OnboardingStatus>('payment_pending');
   const [transactionReference, setTransactionReference] = useState('');
@@ -48,7 +49,7 @@ function OnboardingPageContent() {
     try {
       const configResponse = await onboardingAPI.getConfig();
       setConfig(configResponse.data.config);
-      setQuoteActive(configResponse.data.quoteActive);
+      setQuote(configResponse.data.quote ?? null);
       if (user) {
         const statusResponse = await onboardingAPI.getMyStatus();
         setPayment(statusResponse.data.payment);
@@ -62,6 +63,20 @@ function OnboardingPageContent() {
   }, [user]);
 
   useEffect(() => { load(); }, [load]);
+
+  // Keep the XRP amount in step with the live market rate while the page is open.
+  useEffect(() => {
+    const timer = setInterval(async () => {
+      try {
+        const response = await onboardingAPI.getConfig();
+        setConfig(response.data.config);
+        setQuote(response.data.quote ?? null);
+      } catch {
+        // Keep showing the last known amount if a refresh fails.
+      }
+    }, 60000);
+    return () => clearInterval(timer);
+  }, []);
 
   const copyDestination = async () => {
     if (!config) return;
@@ -91,7 +106,7 @@ function OnboardingPageContent() {
   const effectiveStatus = user?.onboardingStatus || status;
   const statusView = statusDetails[effectiveStatus] || statusDetails.payment_pending;
   const StatusIcon = statusView.icon;
-  const canSubmit = Boolean(user && quoteActive && ['registered', 'payment_pending', 'payment_rejected'].includes(effectiveStatus));
+  const canSubmit = Boolean(user && ['registered', 'payment_pending', 'payment_rejected'].includes(effectiveStatus));
   const requestedStatus = searchParams.get('status');
 
   return (
@@ -103,7 +118,7 @@ function OnboardingPageContent() {
             <p className="text-sm font-semibold text-[#0033AD]">DWP client onboarding</p>
             <div className="mt-2 grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
               <div>
-                <h1 className="max-w-3xl text-3xl font-semibold leading-tight text-[#17205c] md:text-5xl">Review the service, active quote, and payment terms</h1>
+                <h1 className="max-w-3xl text-3xl font-semibold leading-tight text-[#17205c] md:text-5xl">Review the service, payment details, and payment terms</h1>
                 <p className="mt-4 max-w-3xl text-base leading-7 text-gray-600">The onboarding fee covers advisory and support services for the first 12 months. Custody, yield, lending, and other financial products require separate eligibility checks, approvals, and agreements.</p>
               </div>
               {user && (
@@ -130,17 +145,29 @@ function OnboardingPageContent() {
                 </div>
 
                 <div className="border-l-0 border-gray-200 lg:border-l lg:pl-10">
-                  <div className="flex items-center justify-between gap-4">
-                    <div><p className="text-xs font-semibold uppercase text-gray-500">Current payment quote</p><p className="mt-1 text-3xl font-semibold text-[#17205c]">{config?.assetAmount} {config?.asset}</p></div>
-                    <span className={`rounded-md px-2.5 py-1 text-xs font-semibold ${quoteActive ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>{quoteActive ? 'Active quote' : 'Quote expired'}</span>
+                  <div>
+                    <p className="text-xs font-semibold uppercase text-gray-500">Payment amount</p>
+                    <p className="mt-1 text-3xl font-semibold text-[#17205c]">{config?.assetAmount} {config?.asset}</p>
+                    <p className="mt-1 text-xs leading-5 text-gray-500">
+                      {quote?.live && quote.priceUsd
+                        ? `Live rate: about $${config?.feeUsd.toLocaleString()} USD at 1 ${config?.asset} = $${quote.priceUsd.toFixed(4)}. Updates every minute.`
+                        : 'The live rate is temporarily unavailable, so the last published amount is shown.'}
+                    </p>
                   </div>
                   <dl className="mt-6 divide-y divide-gray-200 border-y border-gray-200 text-sm">
                     <div className="grid grid-cols-[120px_1fr] gap-4 py-3"><dt className="text-gray-500">Network</dt><dd className="font-semibold">{config?.network}</dd></div>
-                    <div className="grid grid-cols-[120px_1fr] gap-4 py-3"><dt className="text-gray-500">Valid until</dt><dd className="font-semibold">{config ? new Date(config.quoteValidUntil).toLocaleString() : '-'}</dd></div>
                     <div className="grid grid-cols-[120px_1fr] gap-4 py-3"><dt className="text-gray-500">Destination</dt><dd className="flex min-w-0 items-start gap-2"><code className="min-w-0 break-all text-xs font-semibold text-[#17205c]">{config?.destinationAddress}</code><button type="button" onClick={copyDestination} className="shrink-0 rounded-md p-1.5 text-gray-500 hover:bg-gray-100" title="Copy official destination">{copied ? <Check size={16} /> : <Copy size={16} />}</button></dd></div>
                     {config?.destinationTag != null && <div className="grid grid-cols-[120px_1fr] gap-4 py-3"><dt className="text-gray-500">Destination tag</dt><dd className="font-semibold">{config.destinationTag}</dd></div>}
                   </dl>
-                  <p className="mt-4 text-xs leading-5 text-gray-500">Use only the destination displayed here. The quote is time-limited and may change after expiration. Retain your 64-character transaction hash.</p>
+                  {config?.destinationAddress && (
+                    <div className="mt-6 flex flex-col items-center gap-3 sm:flex-row sm:items-center sm:gap-5">
+                      <div className="shrink-0 rounded-lg border border-gray-200 bg-white p-3">
+                        <QRCodeSVG value={config.destinationAddress} size={168} level="M" role="img" aria-label="QR code of the official XRP destination address" />
+                      </div>
+                      <p className="text-center text-sm leading-6 text-gray-600 sm:text-left"><strong className="block text-gray-900">Scan to pay</strong>Open your XRP wallet app and scan this code to fill in the official destination address.</p>
+                    </div>
+                  )}
+                  <p className="mt-4 text-xs leading-5 text-gray-500">Use only the destination displayed here. Retain your 64-character transaction hash.</p>
                 </div>
               </div>
             </section>
@@ -151,7 +178,7 @@ function OnboardingPageContent() {
                 <div className="mt-7 grid gap-5 md:grid-cols-4">
                   {[
                     ['1', 'Register and verify', 'Create an account with the consultation email and verify the one-time email code.'],
-                    ['2', 'Make the transfer', `Transfer the active ${config?.asset || 'XRP'} quote to the official destination before it expires.`],
+                    ['2', 'Make the transfer', `Transfer the ${config?.asset || 'XRP'} amount shown to the official destination address. It follows the live market rate, and payments within ${quote?.tolerancePercent ?? 2}% of it are accepted.`],
                     ['3', 'Submit the reference', 'Provide the transaction hash. The backend checks network, destination, amount, and validated status.'],
                     ['4', 'Review and activation', 'An administrator confirms payment and activates dashboard access as separate actions.'],
                   ].map(([number, title, copy]) => <div key={number} className="border-t-2 border-[#0033AD] pt-4"><span className="text-xs font-semibold text-[#0033AD]">STEP {number}</span><h3 className="mt-2 font-semibold text-gray-900">{title}</h3><p className="mt-2 text-sm leading-6 text-gray-600">{copy}</p></div>)}
@@ -167,7 +194,7 @@ function OnboardingPageContent() {
                 {!user ? (
                   <div className="mt-6 border border-gray-200 p-6">
                     <p className="text-sm leading-6 text-gray-700">Register and verify your email before submitting a payment. Existing clients can sign in with the email used for their consultation.</p>
-                    <div className="mt-5 flex flex-wrap gap-3"><Link href="/register"><Button className="bg-[#0033AD]! text-white">Create Account</Button></Link><Link href="/login"><Button variant="outline">Already have an account? Log in</Button></Link></div>
+                    <div className="mt-5 flex flex-wrap gap-3"><Link href="/register"><Button className="bg-[#0033AD]! text-white">Create Account</Button></Link><Link href="/login"><Button variant="outline" className="border-2! border-[#0033AD]! text-[#0033AD]! hover:bg-[#0033AD]/5!">Already have an account? Log in</Button></Link></div>
                   </div>
                 ) : effectiveStatus === 'account_active' ? (
                   <div className="mt-6 flex items-start gap-3 border border-emerald-200 bg-emerald-50 p-5 text-emerald-800"><CheckCircle2 size={21} className="mt-0.5" /><div><p className="font-semibold">Your account is active.</p><p className="mt-1 text-sm">Continue to your dashboard, complete your profile, and submit any required KYC information.</p><Link href="/dashboard" className="mt-3 inline-flex items-center gap-1 text-sm font-semibold underline">Open dashboard <ExternalLink size={14} /></Link></div></div>
@@ -177,9 +204,8 @@ function OnboardingPageContent() {
                   <form onSubmit={submitPayment} className="mt-6 space-y-5 border border-gray-200 p-6">
                     {payment?.status === 'rejected' && <div className="border-l-2 border-red-500 pl-4 text-sm text-red-700"><p className="font-semibold">Previous payment rejected</p><p className="mt-1">{payment.rejectionReason || 'Review the instructions and submit a different valid transaction.'}</p></div>}
                     <label className="block"><span className="text-sm font-semibold text-gray-800">XRP transaction hash</span><input required maxLength={64} minLength={64} pattern="[A-Fa-f0-9]{64}" value={transactionReference} onChange={(event) => setTransactionReference(event.target.value.trim())} placeholder="64-character transaction hash" className="mt-2 h-12 w-full border border-gray-300 px-3 font-mono text-sm focus:border-[#0033AD] focus:outline-none" /></label>
-                    <label className="flex items-start gap-3 text-sm leading-6 text-gray-700"><input type="checkbox" required checked={termsAccepted} onChange={(event) => setTermsAccepted(event.target.checked)} className="mt-1" /><span>I acknowledge the <Link href={config?.termsUrl || '/legal/terms-of-service'} className="font-semibold text-[#0033AD] underline">terms and conditions</Link>, the <Link href={config?.refundPolicyUrl || '/legal/refund-policy'} className="font-semibold text-[#0033AD] underline">refund policy</Link>, the active quote, and that submitting a transaction does not automatically approve payment or product eligibility.</span></label>
+                    <label className="flex items-start gap-3 text-sm leading-6 text-gray-700"><input type="checkbox" required checked={termsAccepted} onChange={(event) => setTermsAccepted(event.target.checked)} className="mt-1" /><span>I acknowledge the <Link href={config?.termsUrl || '/legal/terms-of-service'} className="font-semibold text-[#0033AD] underline">terms and conditions</Link>, the <Link href={config?.refundPolicyUrl || '/legal/refund-policy'} className="font-semibold text-[#0033AD] underline">refund policy</Link>, the payment amount, and that submitting a transaction does not automatically approve payment or product eligibility.</span></label>
                     <Button type="submit" disabled={!canSubmit || !termsAccepted} loading={submitting} className="w-full bg-[#0033AD]! py-3 text-white">I&apos;ve made this transfer</Button>
-                    {!quoteActive && <p className="text-center text-sm font-semibold text-red-600">Payment submission is disabled until an administrator publishes a current quote.</p>}
                   </form>
                 )}
               </div>

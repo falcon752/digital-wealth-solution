@@ -220,7 +220,7 @@ export interface OnboardingConfig {
   assetAmount: string;
   destinationAddress: string;
   destinationTag?: number | null;
-  quoteValidUntil: string;
+  quoteValidUntil?: string | null;
   refundPolicyUrl: string;
   termsUrl: string;
   updatedAt: string;
@@ -247,7 +247,7 @@ export interface OnboardingPayment {
   assetAmount: string;
   destinationAddress: string;
   destinationTag?: number | null;
-  quoteValidUntil: string;
+  quoteValidUntil?: string | null;
   transactionReference: string;
   verification: {
     state: 'pending_network' | 'verified' | 'legacy_manual' | 'failed';
@@ -331,4 +331,14 @@ export interface LLCStats {
   pending: number;
   processing: number;
   rejected: number;
+}
+
+export interface OnboardingQuote {
+  live: boolean;
+  priceUsd: number | null;
+  priceSource: string | null;
+  quotedAt: string | null;
+  tolerancePercent: number;
+  feeUsd: number;
+  fallbackAssetAmount: string;
 }

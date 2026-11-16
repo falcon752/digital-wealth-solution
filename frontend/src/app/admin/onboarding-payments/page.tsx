@@ -43,7 +43,7 @@ export default function AdminOnboardingPaymentsPage() {
         onboardingAPI.adminPayments(), onboardingAPI.getConfig(),
       ]);
       setPayments(paymentsResponse.data.payments);
-      setConfig(configResponse.data.config);
+      setConfig({ ...configResponse.data.config, assetAmount: configResponse.data.quote?.fallbackAssetAmount ?? configResponse.data.config.assetAmount });
     } catch (error: unknown) {
       toast.error(getApiError(error, 'Failed to load onboarding payments'));
     } finally {
@@ -138,7 +138,6 @@ export default function AdminOnboardingPaymentsPage() {
         network: config.network, assetAmount: config.assetAmount,
         destinationAddress: config.destinationAddress,
         destinationTag: config.destinationTag == null ? null : Number(config.destinationTag),
-        quoteValidUntil: new Date(config.quoteValidUntil).toISOString(),
       });
       setConfig(response.data.config);
       toast.success('Active onboarding quote updated');
@@ -182,14 +181,13 @@ export default function AdminOnboardingPaymentsPage() {
               <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Initial fee (USD)<input type="number" min="0" required value={config.feeUsd} onChange={(event) => updateConfig({ feeUsd: Number(event.target.value) })} className="mt-1.5 h-11 w-full border border-gray-200 bg-transparent px-3 dark:border-gray-700" /></label>
               <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Renewal fee (USD)<input type="number" min="0" required value={config.renewalFeeUsd} onChange={(event) => updateConfig({ renewalFeeUsd: Number(event.target.value) })} className="mt-1.5 h-11 w-full border border-gray-200 bg-transparent px-3 dark:border-gray-700" /></label>
               <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Coverage (months)<input type="number" min="1" max="120" required value={config.coverageMonths} onChange={(event) => updateConfig({ coverageMonths: Number(event.target.value) })} className="mt-1.5 h-11 w-full border border-gray-200 bg-transparent px-3 dark:border-gray-700" /></label>
-              <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">XRP amount<input required value={config.assetAmount} onChange={(event) => updateConfig({ assetAmount: event.target.value })} className="mt-1.5 h-11 w-full border border-gray-200 bg-transparent px-3 dark:border-gray-700" /></label>
+              <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Fallback XRP amount (used only if the live price is unavailable)<input required value={config.assetAmount} onChange={(event) => updateConfig({ assetAmount: event.target.value })} className="mt-1.5 h-11 w-full border border-gray-200 bg-transparent px-3 dark:border-gray-700" /></label>
               <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Asset<input required readOnly value={config.asset} className="mt-1.5 h-11 w-full border border-gray-200 bg-gray-50 px-3 dark:border-gray-700 dark:bg-[#181818]" /></label>
               <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Network<input required value={config.network} onChange={(event) => updateConfig({ network: event.target.value })} className="mt-1.5 h-11 w-full border border-gray-200 bg-transparent px-3 dark:border-gray-700" /></label>
               <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 sm:col-span-2">Official XRP destination<input required value={config.destinationAddress} onChange={(event) => updateConfig({ destinationAddress: event.target.value.trim() })} className="mt-1.5 h-11 w-full border border-gray-200 bg-transparent px-3 font-mono text-sm dark:border-gray-700" /></label>
               <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Destination tag (optional)<input type="number" min="0" value={config.destinationTag ?? ''} onChange={(event) => updateConfig({ destinationTag: event.target.value ? Number(event.target.value) : null })} className="mt-1.5 h-11 w-full border border-gray-200 bg-transparent px-3 dark:border-gray-700" /></label>
-              <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Quote valid until<input type="datetime-local" required value={new Date(config.quoteValidUntil).toISOString().slice(0, 16)} onChange={(event) => event.target.value && updateConfig({ quoteValidUntil: new Date(event.target.value).toISOString() })} className="mt-1.5 h-11 w-full border border-gray-200 bg-transparent px-3 dark:border-gray-700" /></label>
             </div>
-            <Button type="submit" loading={saving} className="mt-6 bg-blue-600! text-white"><Save size={16} /> Save Active Quote</Button>
+            <Button type="submit" loading={saving} className="mt-6 bg-blue-600! text-white"><Save size={16} /> Save Payment Details</Button>
           </form>
         ) : null}
       </main>

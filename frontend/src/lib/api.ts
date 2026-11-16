@@ -196,7 +196,6 @@ export const onboardingAPI = {
     assetAmount: string;
     destinationAddress: string;
     destinationTag?: number | null;
-    quoteValidUntil: string;
   }) => api.put('/onboarding/admin/config', data),
 };
 

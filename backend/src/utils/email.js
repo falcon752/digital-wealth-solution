@@ -1241,12 +1241,8 @@ async function sendUserContactStatusEmail({ userEmail, firstName, topic, status,
   const feeUsd = Number(onboardingConfig?.feeUsd ?? 1000).toLocaleString('en-US');
   const renewalFeeUsd = Number(onboardingConfig?.renewalFeeUsd ?? 100).toLocaleString('en-US');
   const coverageMonths = Number(onboardingConfig?.coverageMonths ?? 12);
-  const quoteText = onboardingConfig && new Date(onboardingConfig.quoteValidUntil) > new Date()
-    ? `${onboardingConfig.assetAmount} ${onboardingConfig.asset}, valid until ${new Date(onboardingConfig.quoteValidUntil).toUTCString()}`
-    : 'The current XRP amount and quote validity are displayed on the onboarding portal at payment time.';
-  const quoteLine = onboardingConfig && new Date(onboardingConfig.quoteValidUntil) > new Date()
-    ? `<p><strong>Current payment quote:</strong> ${escapeHtml(onboardingConfig.assetAmount)} ${escapeHtml(onboardingConfig.asset)}, valid until ${new Date(onboardingConfig.quoteValidUntil).toUTCString()}.</p>`
-    : '<p>The current XRP amount and quote validity are displayed on the onboarding portal at payment time.</p>';
+  const quoteText = `the XRP equivalent of $${feeUsd} USD at the live market rate, shown on the onboarding portal at payment time`;
+  const quoteLine = `<p><strong>Payment amount:</strong> the XRP equivalent of $${feeUsd} USD at the live market rate, shown on the onboarding portal at payment time.</p>`;
 
   const bodyByStatus = {
     pending: `
@@ -1346,9 +1342,9 @@ async function sendUserContactStatusEmail({ userEmail, firstName, topic, status,
       'Included services: initial consultation and onboarding assistance; assignment of a personal advisor; client advisory and support; institutional custody and identity-verification guidance; and assistance understanding eligible XRP yield and crypto-backed lending products.',
       `Renewal fee: $${renewalFeeUsd} after the initial ${coverageMonths} months, subject to applicable renewal terms.`,
       'The fee covers advisory and support services. Custody, yield, lending, and other financial products require separate eligibility checks, approvals, and agreements.',
-      `Current payment quote: ${quoteText}`,
+      `Payment amount: ${quoteText}`,
       `Begin your onboarding: ${onboardingUrl}`,
-      'Register with this email address or log in, verify your email, review the active quote and official destination, make the transfer, and submit the transaction reference. Submission starts server verification and administrative review; it does not automatically approve payment or activate the account.',
+      'Register with this email address or log in, verify your email, review the payment amount and official destination, make the transfer, and submit the transaction reference. Submission starts server verification and administrative review; it does not automatically approve payment or activate the account.',
       'Dashboard access begins only after payment confirmation and separate account activation. Complete your profile and required KYC information after activation.',
       'Refund requests may be submitted in writing within 7 calendar days of the initial onboarding payment, provided substantive onboarding services have not commenced. Requests after services have commenced will be reviewed under the applicable agreement and relevant law.',
       `Refund policy: ${refundUrl}`,

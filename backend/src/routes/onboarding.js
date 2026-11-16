@@ -4,6 +4,7 @@ const { OnboardingConfig, OnboardingPayment, ContactSubmission, User } = require
 const { authenticate, requireAdmin } = require('../middleware/auth');
 const { logActivity } = require('../utils/activity');
 const { PaymentVerificationError, verifyXrplPayment } = require('../utils/onboardingPayment');
+const { getLiveQuote } = require('../utils/xrpPrice');
 const { sendOnboardingPaymentStatusEmail, sendOnboardingPaymentAdminEmail } = require('../utils/email');
 
 const router = express.Router();
@@ -47,9 +48,20 @@ router.get('/config', async (req, res) => {
   try {
     const config = await activeConfig();
     if (!config) return res.status(503).json({ error: 'Onboarding payment configuration is unavailable' });
+    const quote = await getLiveQuote(config);
+    const plain = config.toJSON ? config.toJSON() : { ...config };
+    res.set('Cache-Control', 'no-store');
     res.json({
-      config,
-      quoteActive: new Date(config.quoteValidUntil) > new Date(),
+      config: { ...plain, assetAmount: quote.assetAmount },
+      quote: {
+        live: quote.live,
+        priceUsd: quote.priceUsd,
+        priceSource: quote.priceSource,
+        quotedAt: quote.quotedAt,
+        tolerancePercent: quote.tolerancePercent,
+        feeUsd: quote.feeUsd,
+        fallbackAssetAmount: config.assetAmount,
+      },
     });
   } catch (error) {
     res.status(500).json({ error: 'Failed to load onboarding information' });
@@ -90,16 +102,19 @@ router.post('/payments', authenticate, [
     if (openPayment) return res.status(409).json({ error: 'An onboarding payment is already being reviewed or confirmed' });
 
     const config = await activeConfig();
-    if (!config || new Date(config.quoteValidUntil) <= new Date()) {
-      return res.status(409).json({ error: 'The onboarding payment quote has expired. Please wait for an administrator to publish a current quote.' });
+    if (!config) {
+      return res.status(503).json({ error: 'Onboarding payment configuration is unavailable' });
     }
     if (config.asset !== 'XRP' || !/XRPL/i.test(config.network)) {
       return res.status(503).json({ error: 'Automated verification is not configured for the active payment network' });
     }
 
+    const quote = await getLiveQuote(config);
+    const quoteConfig = { ...(config.toJSON ? config.toJSON() : config), assetAmount: quote.assetAmount, tolerancePercent: quote.tolerancePercent };
+
     let verification;
     try {
-      verification = await verifyXrplPayment(transactionReference, config);
+      verification = await verifyXrplPayment(transactionReference, quoteConfig);
     } catch (error) {
       if (error instanceof PaymentVerificationError) {
         return res.status(422).json({ error: error.message, code: error.code });
@@ -118,10 +133,10 @@ router.post('/payments', authenticate, [
       feeUsd: config.feeUsd,
       asset: config.asset,
       network: config.network,
-      assetAmount: config.assetAmount,
+      assetAmount: quote.assetAmount,
+      quotePriceUsd: quote.priceUsd,
       destinationAddress: config.destinationAddress,
       destinationTag: config.destinationTag,
-      quoteValidUntil: config.quoteValidUntil,
       transactionReference,
       verification,
       status: 'under_review',
@@ -369,12 +384,11 @@ router.put('/admin/config', authenticate, requireAdmin, [
   body('assetAmount').trim().matches(/^\d+(\.\d{1,6})?$/),
   body('destinationAddress').trim().matches(/^r[1-9A-HJ-NP-Za-km-z]{24,34}$/),
   body('destinationTag').optional({ nullable: true }).isInt({ min: 0, max: 4294967295 }),
-  body('quoteValidUntil').isISO8601().custom((value) => new Date(value) > new Date()),
 ], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
   try {
-    const allowed = ['feeUsd', 'renewalFeeUsd', 'coverageMonths', 'asset', 'network', 'assetAmount', 'destinationAddress', 'destinationTag', 'quoteValidUntil'];
+    const allowed = ['feeUsd', 'renewalFeeUsd', 'coverageMonths', 'asset', 'network', 'assetAmount', 'destinationAddress', 'destinationTag'];
     const update = Object.fromEntries(Object.entries(req.body).filter(([key]) => allowed.includes(key)));
     update.updatedBy = req.user.id;
     const config = await OnboardingConfig.findOneAndUpdate(
@@ -384,7 +398,6 @@ router.put('/admin/config', authenticate, requireAdmin, [
     );
     await logActivity(req.user.id, 'ONBOARDING_QUOTE_UPDATED', {
       assetAmount: config.assetAmount,
-      quoteValidUntil: config.quoteValidUntil,
       destinationAddress: config.destinationAddress,
     }, req);
     res.json({ config });

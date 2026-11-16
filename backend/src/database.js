@@ -224,7 +224,7 @@ const onboardingConfigSchema = new mongoose.Schema(
     assetAmount: { type: String, required: true, trim: true, match: /^\d+(\.\d{1,6})?$/ },
     destinationAddress: { type: String, required: true, trim: true, match: /^r[1-9A-HJ-NP-Za-km-z]{24,34}$/ },
     destinationTag: { type: Number, default: null, min: 0, max: 4294967295 },
-    quoteValidUntil: { type: Date, required: true },
+    quoteValidUntil: { type: Date, default: null },
     refundPolicyUrl: { type: String, required: true, trim: true },
     termsUrl: { type: String, required: true, trim: true },
     updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
@@ -258,7 +258,8 @@ const onboardingPaymentSchema = new mongoose.Schema(
     assetAmount: { type: String, required: true, trim: true },
     destinationAddress: { type: String, required: true, trim: true },
     destinationTag: { type: Number, default: null },
-    quoteValidUntil: { type: Date, required: true },
+    quoteValidUntil: { type: Date, default: null },
+    quotePriceUsd: { type: Number, default: null },
     transactionReference: { type: String, required: true, unique: true, trim: true, uppercase: true },
     verification: { type: paymentVerificationSchema, required: true },
     status: { type: String, enum: ['under_review', 'confirmed', 'rejected'], default: 'under_review' },
@@ -515,13 +516,9 @@ async function connectDB() {
   if (!onboardingConfig) {
     const configuredAmount = process.env.ONBOARDING_PAYMENT_AMOUNT;
     const configuredDestination = process.env.ONBOARDING_PAYMENT_DESTINATION;
-    const configuredExpiry = process.env.ONBOARDING_QUOTE_VALID_UNTIL
-      ? new Date(process.env.ONBOARDING_QUOTE_VALID_UNTIL)
-      : null;
     const validAmount = /^\d+(\.\d{1,6})?$/.test(configuredAmount || '');
     const validDestination = /^r[1-9A-HJ-NP-Za-km-z]{24,34}$/.test(configuredDestination || '');
-    const validExpiry = configuredExpiry && !Number.isNaN(configuredExpiry.getTime()) && configuredExpiry > new Date();
-    const quoteIsConfigured = validAmount && validDestination && validExpiry;
+    const quoteIsConfigured = validAmount && validDestination;
     onboardingConfig = await OnboardingConfig.create({
       key: 'default',
       feeUsd: Number(process.env.ONBOARDING_FEE_USD || 1000),
@@ -534,11 +531,10 @@ async function connectDB() {
       destinationTag: process.env.ONBOARDING_PAYMENT_DESTINATION_TAG
         ? Number(process.env.ONBOARDING_PAYMENT_DESTINATION_TAG)
         : null,
-      quoteValidUntil: quoteIsConfigured ? configuredExpiry : new Date(0),
       refundPolicyUrl: '/legal/refund-policy',
       termsUrl: '/legal/terms-of-service',
     });
-    console.log(`Created initial onboarding payment configuration (${quoteIsConfigured ? 'active' : 'inactive until an administrator publishes a current quote'}).`);
+    console.log(`Created initial onboarding payment configuration (${quoteIsConfigured ? 'from environment' : 'using defaults; review the amount and address in the admin portal'}).`);
   }
 
   const legacyUsers = await User.find({
@@ -561,7 +557,6 @@ async function connectDB() {
           assetAmount: onboardingConfig.assetAmount,
           destinationAddress: onboardingConfig.destinationAddress,
           destinationTag: onboardingConfig.destinationTag,
-          quoteValidUntil: onboardingConfig.quoteValidUntil,
           transactionReference: `LEGACY-${user.id}`,
           verification: { state: 'legacy_manual', checkedAt: user.createdAt },
           status,

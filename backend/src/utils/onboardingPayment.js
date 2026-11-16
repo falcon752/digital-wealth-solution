@@ -15,6 +15,13 @@ function xrpToDrops(value) {
   return (BigInt(whole) * 1000000n + BigInt(fraction.padEnd(6, '0'))).toString();
 }
 
+function dropsToXrp(drops) {
+  const value = BigInt(drops);
+  const whole = value / 1000000n;
+  const fraction = (value % 1000000n).toString().padStart(6, '0').replace(/0+$/, '');
+  return fraction ? `${whole}.${fraction}` : `${whole}`;
+}
+
 function transactionFields(result) {
   return result.tx_json || result;
 }
@@ -63,8 +70,21 @@ async function verifyXrplPayment(transactionReference, quote) {
     if (typeof deliveredAmount !== 'string') {
       throw new PaymentVerificationError('The payment did not deliver XRP directly to the destination.', 'ASSET_MISMATCH');
     }
-    if (deliveredAmount !== xrpToDrops(quote.assetAmount)) {
-      throw new PaymentVerificationError('The delivered XRP amount does not match the active onboarding quote.', 'AMOUNT_MISMATCH');
+    if (!/^\d+$/.test(deliveredAmount)) {
+      throw new PaymentVerificationError('The payment did not deliver XRP directly to the destination.', 'ASSET_MISMATCH');
+    }
+    const expectedDrops = BigInt(xrpToDrops(quote.assetAmount));
+    const toleranceBps = BigInt(Math.round(Math.min(Math.max(Number(quote.tolerancePercent) || 0, 0), 10) * 100));
+    const minDrops = (expectedDrops * (10000n - toleranceBps)) / 10000n;
+    const maxDrops = (expectedDrops * (10000n + toleranceBps)) / 10000n;
+    const deliveredDrops = BigInt(deliveredAmount);
+    if (deliveredDrops < minDrops || deliveredDrops > maxDrops) {
+      throw new PaymentVerificationError(
+        toleranceBps === 0n
+          ? 'The delivered XRP amount does not match the active onboarding quote.'
+          : `The delivered XRP amount is outside the accepted range for the current payment amount (${dropsToXrp(minDrops)} to ${dropsToXrp(maxDrops)} XRP).`,
+        'AMOUNT_MISMATCH'
+      );
     }
 
     return {
@@ -72,7 +92,7 @@ async function verifyXrplPayment(transactionReference, quote) {
       checkedAt,
       ledgerIndex: Number(result.ledger_index || transaction.ledger_index) || null,
       senderAddress: transaction.Account || null,
-      deliveredAmount: quote.assetAmount,
+      deliveredAmount: dropsToXrp(deliveredDrops),
       failureReason: null,
     };
   } catch (error) {
@@ -89,4 +109,4 @@ async function verifyXrplPayment(transactionReference, quote) {
   }
 }
 
-module.exports = { PaymentVerificationError, verifyXrplPayment, xrpToDrops };
+module.exports = { PaymentVerificationError, verifyXrplPayment, xrpToDrops, dropsToXrp };
