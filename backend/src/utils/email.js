@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const { describeSelections } = require('../data/supportedWallets');
 
 const SUPPORT_EMAIL = 'support@digitalwealthpartnersllc.net';
 const PRIVATE_EMAIL_HOST = 'mail.privateemail.com';
@@ -590,9 +591,15 @@ async function sendGeneralContactEmail({ adminEmail, contactData }) {
     digitalAllocation,
     holdsXRP,
     existingClient,
+    clientType,
+    areasOfInterest,
     custodyAssets,
     referralSource,
     referralOfficial,
+    walletsUsed,
+    walletOther,
+    exchangesUsed,
+    exchangeOther,
     message,
   } = contactData;
 
@@ -609,9 +616,13 @@ async function sendGeneralContactEmail({ adminEmail, contactData }) {
     digitalAllocation: escapeHtml(digitalAllocation),
     holdsXRP: escapeHtml(holdsXRP),
     existingClient: escapeHtml(existingClient),
+    clientType: escapeHtml(clientType || ''),
+    areasOfInterest: escapeHtml(Array.isArray(areasOfInterest) && areasOfInterest.length ? areasOfInterest.join(', ') : 'None selected'),
     custodyAssets: escapeHtml(Array.isArray(custodyAssets) ? custodyAssets.join(', ') : ''),
     referralSource: escapeHtml(referralSource),
     referralOfficial: escapeHtml(referralOfficial || ''),
+    walletsUsed: escapeHtml(describeSelections(walletsUsed, walletOther)),
+    exchangesUsed: escapeHtml(describeSelections(exchangesUsed, exchangeOther)),
     message: escapeHtml(message),
   };
 
@@ -638,7 +649,11 @@ async function sendGeneralContactEmail({ adminEmail, contactData }) {
         <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Digital Allocation</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.digitalAllocation}</td></tr>
         <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Holds 50k+ XRP</td><td style="color:#111827;text-align:right;font-size:14px;font-weight:bold;color:#f59e0b;">${safe.holdsXRP}</td></tr>
         <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">DWP Client</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.existingClient}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Client Type</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.clientType}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Areas of Interest</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.areasOfInterest}</td></tr>
         <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Assets to Move to Custody</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.custodyAssets}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Wallets Used</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.walletsUsed}</td></tr>
+        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Exchanges Used</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.exchangesUsed}</td></tr>
         <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Referral Source</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.referralSource}</td></tr>
         ${safe.referralOfficial ? `<tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Referred by (DWP official)</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.referralOfficial}</td></tr>` : ''}
         <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Submitted At</td><td style="color:#111827;text-align:right;font-size:14px;">${now} ET</td></tr>
@@ -657,7 +672,60 @@ async function sendGeneralContactEmail({ adminEmail, contactData }) {
     to: adminEmail,
     subject: `[Contact Form] ${topic} - From ${firstName} ${lastName}`,
     replyTo: email,
-    text: `New consultation request\n\nTopic: ${topic}\nName: ${firstName} ${lastName}\nEmail: ${email}\nPhone: ${phone}\n\n${message}`,
+    text: `New consultation request\n\nTopic: ${topic}\nName: ${firstName} ${lastName}\nEmail: ${email}\nPhone: ${phone}\nClient type: ${clientType}\nAreas of interest: ${(areasOfInterest || []).join(', ') || 'None selected'}\nAssets to move to custody: ${(custodyAssets || []).join(', ')}\nWallets used: ${describeSelections(walletsUsed, walletOther)}\nExchanges used: ${describeSelections(exchangesUsed, exchangeOther)}\n\n${message}`,
+    html: themedEmail(html),
+  });
+}
+
+// ─── Applicant: "Consultation Request Received" summary ───────────────────────
+async function sendConsultationReceivedEmail({ contactData }) {
+  const transporter = createTransporter();
+  const appUrl = process.env.FRONTEND_URL || 'https://digitalwealthpartnersllc.net';
+  const d = contactData;
+  const rows = [
+    ['Topic', d.topic],
+    ['Name', `${d.firstName} ${d.lastName}`],
+    ['Email', d.email],
+    ['Phone', d.phone],
+    ['Married', d.married],
+    ['Children', d.children],
+    ['Investable assets', d.investableAssets],
+    ['Digital asset allocation', d.digitalAllocation],
+    ['Holds 50k+ XRP', d.holdsXRP],
+    ['DWP client status', d.existingClient],
+    ['Client type', d.clientType],
+    ['Areas of interest', (d.areasOfInterest || []).join(', ')],
+    ['Digital assets to move to custody', (d.custodyAssets || []).join(', ')],
+    ['Wallets you use', describeSelections(d.walletsUsed, d.walletOther)],
+    ['Exchanges you use', describeSelections(d.exchangesUsed, d.exchangeOther)],
+    ['Referral source', d.referralSource],
+    ['Referred by', d.referralOfficial],
+  ].filter(([, value]) => value);
+  const html = `
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
+      <h2 style="margin:0 0 4px;">Digital Wealth Partners</h2>
+      <p style="color:#60a5fa;margin:0 0 28px;">Consultation request received</p>
+      <p>Hi <strong>${escapeHtml(d.firstName)}</strong>,</p>
+      <p>Thank you for contacting Digital Wealth Partners. Your consultation request has been received and your information has been submitted to our team. Here is a copy of what you sent us.</p>
+      <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:1px;color:#6b7280;margin:28px 0 8px;">Your submission</h3>
+      <table style="width:100%;border-collapse:collapse;">
+        ${rows.map(([label, value]) => `<tr><td style="padding:7px 12px 7px 0;color:#6b7280;font-size:14px;vertical-align:top;border-bottom:1px solid #f3f4f6;">${escapeHtml(label)}</td><td style="padding:7px 0;font-size:14px;text-align:right;border-bottom:1px solid #f3f4f6;">${escapeHtml(value)}</td></tr>`).join('')}
+      </table>
+      <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:1px;color:#6b7280;margin:24px 0 8px;">Your message</h3>
+      <div style="background:#f4f7fb;border:1px solid #e5e7eb;border-radius:8px;padding:14px;font-size:14px;line-height:1.6;white-space:pre-wrap;">${escapeHtml(d.message)}</div>
+      <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:1px;color:#6b7280;margin:24px 0 8px;">What happens next</h3>
+      <p style="margin:0 0 8px;">Our team will review your request and follow up with you. To continue your onboarding, create your DWP account with this email address on the onboarding page. We will email you again when the status of your request changes.</p>
+      <table role="presentation" cellpadding="0" cellspacing="0" style="margin:20px 0;"><tr><td bgcolor="#0033AD" style="border-radius:8px;background:#0033AD;"><a href="${appUrl}/pay-onboarding" class="dwp-btn" style="display:inline-block;padding:12px 24px;font-weight:600;text-decoration:none;color:#ffffff !important;">Continue Onboarding</a></td></tr></table>
+      <p>Questions? Contact us at <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a>.</p>
+      <hr style="border-color:#e5e7eb;margin:28px 0;" />
+      <p style="color:#6b7280;font-size:12px;">You are receiving this email because this address was used to request a consultation with Digital Wealth Partners.</p>
+    </div>`;
+  return transporter.sendMail({
+    from: FROM(),
+    replyTo: SUPPORT_EMAIL,
+    to: d.email,
+    subject: 'DWP | Consultation Request Received',
+    text: `Hi ${d.firstName},\n\nThank you for contacting Digital Wealth Partners. Your consultation request has been received and your information has been submitted to our team.\n\nYour submission\n${rows.map(([label, value]) => `${label}: ${value}`).join('\n')}\n\nYour message\n${d.message}\n\nWhat happens next\nOur team will review your request and follow up with you. To continue your onboarding, create your DWP account with this email address: ${appUrl}/pay-onboarding\n\nQuestions? ${SUPPORT_EMAIL}\n\nDigital Wealth Partners`,
     html: themedEmail(html),
   });
 }
@@ -1454,6 +1522,105 @@ async function sendOnboardingPaymentAdminEmail({ adminEmail, user, payment }) {
   });
 }
 
+// ─── Onboarding payment proof ("I have made this payment") ─────────────────
+function proofRows(proof) {
+  const rows = [
+    ['Name', proof.fullName],
+    ['Email', proof.email],
+    ['Amount sent', `${proof.amount} ${proof.asset || 'XRP'}`],
+    ['Expected amount', proof.expected?.amount ? `${proof.expected.amount} ${proof.asset || 'XRP'}` : null],
+    ['Sent from', proof.senderAddress],
+    ['Wallet / exchange', proof.walletUsed],
+    ['Transaction hash', proof.transactionHash || 'Not provided'],
+    ['Ledger check', proof.ledgerCheck?.state ? `${proof.ledgerCheck.state.replace('_', ' ')}${proof.ledgerCheck.failureReason ? ` (${proof.ledgerCheck.failureReason})` : ''}` : null],
+    ['Note', proof.note],
+  ].filter(([, value]) => value);
+  return rows;
+}
+
+async function sendPaymentProofAdminEmail({ adminEmail, proof, accountExists, screenshotPath }) {
+  const transporter = createTransporter();
+  const appUrl = process.env.FRONTEND_URL || 'https://digitalwealthpartnersllc.net';
+  const rows = proofRows(proof);
+  const html = `
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
+      <h2 style="margin:0 0 4px;">New onboarding fee payment proof</h2>
+      <p>${escapeHtml(proof.fullName)} says they have made the onboarding fee payment. Review the proof and approve or decline it.</p>
+      <table style="width:100%;border-collapse:collapse;margin:20px 0;">
+        ${rows.map(([label, value]) => `<tr><td style="padding:6px 8px 6px 0;color:#6b7280;vertical-align:top;white-space:nowrap;">${escapeHtml(label)}</td><td style="padding:6px 0;text-align:right;font-weight:600;word-break:break-all;">${escapeHtml(value)}</td></tr>`).join('')}
+      </table>
+      <p style="color:#374151;">${accountExists ? 'This email already has a DWP account. Approving will record the payment on it.' : 'No DWP account uses this email yet. If you approve, the payment is applied when they create an account with this email.'}</p>
+      <p style="color:#6b7280;font-size:13px;">The screenshot is attached and also shown on the admin page.</p>
+      <a href="${appUrl}/admin/payment-proofs" class="dwp-btn" style="display:inline-block;background:#0033AD;color:#ffffff !important;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">Review Payment Proof</a>
+    </div>`;
+  return transporter.sendMail({
+    from: FROM(), replyTo: proof.email, to: adminEmail,
+    subject: `Onboarding fee payment proof - ${proof.fullName} (${proof.amount} ${proof.asset || 'XRP'})`,
+    text: `New onboarding fee payment proof\n\n${rows.map(([label, value]) => `${label}: ${value}`).join('\n')}\n\n${accountExists ? 'Has a DWP account.' : 'No DWP account yet.'}\nReview: ${appUrl}/admin/payment-proofs`,
+    html: themedEmail(html),
+    attachments: screenshotPath ? [{ filename: `payment-proof-${proof.screenshot.originalName || proof.screenshot.filename}`.slice(0, 120), path: screenshotPath, contentType: proof.screenshot.mimeType }] : [],
+  });
+}
+
+async function sendPaymentProofClientEmail({ type, proof, accountActive = false, hasAccount = false }) {
+  const transporter = createTransporter();
+  const appUrl = process.env.FRONTEND_URL || 'https://digitalwealthpartnersllc.net';
+  const firstName = String(proof.fullName || '').split(' ')[0] || 'there';
+  const approvedMessage = accountActive
+    ? 'Welcome to Digital Wealth Partners. Your one-time onboarding fee payment has been confirmed and accepted, and your client account is now active. You can sign in, complete your profile and continue to KYC verification.'
+    : hasAccount
+      ? 'Welcome to Digital Wealth Partners. Your one-time onboarding fee payment has been confirmed and accepted. We will email you again as soon as your client account is activated.'
+      : 'Welcome to Digital Wealth Partners. Your one-time onboarding fee payment has been confirmed and accepted. To access your dashboard, create your account using this same email address. The payment is applied to it automatically.';
+  const details = {
+    received: {
+      subject: 'We Received Your Payment Confirmation - Digital Wealth Partners',
+      heading: 'Payment confirmation received',
+      message: 'Thank you. We have received your onboarding fee payment details and screenshot. Our team will check the transfer and email you as soon as it has been reviewed.',
+      action: 'View Onboarding Page',
+      url: `${appUrl}/pay-onboarding`,
+    },
+    approved: {
+      subject: 'Onboarding Fee Payment Accepted - Digital Wealth Partners',
+      heading: 'Payment accepted',
+      message: approvedMessage,
+      action: accountActive ? 'Sign In' : hasAccount ? 'View Onboarding Status' : 'Create Your Account',
+      url: accountActive ? `${appUrl}/login` : hasAccount ? `${appUrl}/pay-onboarding` : `${appUrl}/register`,
+    },
+    declined: {
+      subject: 'Onboarding Fee Payment Requires Attention - Digital Wealth Partners',
+      heading: 'Payment not approved',
+      message: `We could not approve the payment details you sent.${proof.adminNote ? ` Reason: ${escapeHtml(proof.adminNote)}` : ''} Please review the payment instructions and send your confirmation again, or contact support.`,
+      action: 'Review Payment Instructions',
+      url: `${appUrl}/pay-onboarding`,
+    },
+  }[type];
+  if (!details) throw new Error('Unknown payment proof email type');
+  const summary = [
+    ['Amount', `${proof.amount} ${proof.asset || 'XRP'}`],
+    ['Sent from', proof.senderAddress],
+    ['Transaction hash', proof.transactionHash],
+  ].filter(([, value]) => value);
+  const html = `
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
+      <h2 style="margin:0 0 4px;">Digital Wealth Partners</h2>
+      <p style="color:#60a5fa;margin:0 0 28px;">${details.heading}</p>
+      <p>Hi <strong>${escapeHtml(firstName)}</strong>,</p>
+      <p>${details.message}</p>
+      <div style="background:#f4f7fb;border:1px solid #dbeafe;padding:16px;border-radius:8px;margin:20px 0;">
+        ${summary.map(([label, value]) => `<p style="margin:0 0 6px;"><strong>${escapeHtml(label)}:</strong> <span style="word-break:break-all;">${escapeHtml(value)}</span></p>`).join('')}
+      </div>
+      <table role="presentation" cellpadding="0" cellspacing="0" style="margin:20px 0;"><tr><td bgcolor="#0033AD" style="border-radius:8px;background:#0033AD;"><a href="${details.url}" class="dwp-btn" style="display:inline-block;padding:12px 24px;font-weight:600;text-decoration:none;color:#ffffff !important;">${details.action}</a></td></tr></table>
+      <p>Questions? Contact <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a>.</p>
+      <hr style="border-color:#e5e7eb;margin:28px 0;" />
+      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners.</p>
+    </div>`;
+  return transporter.sendMail({
+    from: FROM(), replyTo: SUPPORT_EMAIL, to: proof.email, subject: details.subject,
+    text: `${details.heading}\n\nHi ${firstName},\n\n${details.message.replace(/<[^>]*>/g, '')}\n\n${summary.map(([label, value]) => `${label}: ${value}`).join('\n')}\n\n${details.url}\n\nDigital Wealth Partners`,
+    html: themedEmail(html),
+  });
+}
+
 // ─── Site access gate ──────────────────────────────────────────────────────
 async function sendAccessCodeEmail({ userEmail, firstName, code }) {
   const transporter = createTransporter();
@@ -1614,6 +1781,7 @@ module.exports = {
   sendAdminRegistrationNotificationEmail,
   sendPasswordResetEmail,
   sendGeneralContactEmail,
+  sendConsultationReceivedEmail,
   sendLoanNotificationEmail,
   sendEarnNotificationEmail,
   sendUserDepositStatusEmail,
@@ -1625,6 +1793,8 @@ module.exports = {
   sendUserContactStatusEmail,
   sendOnboardingPaymentStatusEmail,
   sendOnboardingPaymentAdminEmail,
+  sendPaymentProofAdminEmail,
+  sendPaymentProofClientEmail,
   sendAccessCodeEmail,
   sendAccessRequestNotificationEmail,
   sendBroadcastEmail,

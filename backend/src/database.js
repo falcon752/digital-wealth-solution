@@ -193,9 +193,15 @@ const contactSubmissionSchema = new mongoose.Schema(
     holdsXRP: { type: String, default: null },
     existingClient: { type: String, default: null },
     custodyAsset: { type: String, default: null, trim: true },
+    clientType: { type: String, default: null, trim: true },
+    areasOfInterest: { type: [String], default: [] },
     custodyAssets: { type: [String], default: [] },
     referralSource: { type: String, default: null, trim: true },
     referralOfficial: { type: String, default: null, trim: true },
+    walletsUsed: { type: [String], default: [] },
+    walletOther: { type: String, default: null, trim: true },
+    exchangesUsed: { type: [String], default: [] },
+    exchangeOther: { type: String, default: null, trim: true },
     message: { type: String, required: true, trim: true },
     status: {
       type: String,
@@ -240,7 +246,7 @@ const OnboardingConfig = mongoose.model('OnboardingConfig', onboardingConfigSche
 
 const paymentVerificationSchema = new mongoose.Schema(
   {
-    state: { type: String, enum: ['pending_network', 'verified', 'legacy_manual', 'failed'], required: true },
+    state: { type: String, enum: ['pending_network', 'verified', 'legacy_manual', 'manual_review', 'failed'], required: true },
     checkedAt: { type: Date, default: null },
     ledgerIndex: { type: Number, default: null },
     senderAddress: { type: String, default: null, trim: true },
@@ -255,7 +261,8 @@ const onboardingPaymentSchema = new mongoose.Schema(
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     consultationId: { type: mongoose.Schema.Types.ObjectId, ref: 'ContactSubmission', default: null },
     email: { type: String, required: true, lowercase: true, trim: true },
-    source: { type: String, enum: ['client', 'legacy'], default: 'client' },
+    // client = hash submitted from an account; manual = "I have made the transfer" confirmation; legacy = imported
+    source: { type: String, enum: ['client', 'manual', 'legacy'], default: 'client' },
     feeUsd: { type: Number, required: true },
     asset: { type: String, required: true, trim: true, uppercase: true },
     network: { type: String, required: true, trim: true },
@@ -283,6 +290,46 @@ onboardingPaymentSchema.index(
 );
 applyToJSON(onboardingPaymentSchema);
 const OnboardingPayment = mongoose.model('OnboardingPayment', onboardingPaymentSchema);
+
+// ─── PAYMENT PROOF ("I have made this payment") ──────────────────────────────
+const paymentProofSchema = new mongoose.Schema(
+  {
+    fullName: { type: String, required: true, trim: true, maxlength: 120 },
+    email: { type: String, required: true, lowercase: true, trim: true },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    senderAddress: { type: String, required: true, trim: true, maxlength: 120 },
+    amount: { type: String, required: true, trim: true },
+    asset: { type: String, default: 'XRP', trim: true, uppercase: true },
+    walletUsed: { type: String, required: true, trim: true },
+    transactionHash: { type: String, default: null, trim: true, uppercase: true },
+    note: { type: String, default: null, trim: true, maxlength: 1000 },
+    screenshot: {
+      filename: { type: String, required: true },
+      originalName: { type: String, default: null },
+      mimeType: { type: String, required: true },
+      size: { type: Number, default: 0 },
+    },
+    expected: {
+      amount: { type: String, default: null },
+      priceUsd: { type: Number, default: null },
+      feeUsd: { type: Number, default: null },
+      destinationAddress: { type: String, default: null },
+    },
+    ledgerCheck: { type: paymentVerificationSchema, default: null },
+    status: { type: String, enum: ['pending', 'approved', 'declined'], default: 'pending' },
+    adminNote: { type: String, default: null, trim: true, maxlength: 2000 },
+    activateAccount: { type: Boolean, default: true },
+    reviewedAt: { type: Date, default: null },
+    reviewedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    onboardingPaymentId: { type: mongoose.Schema.Types.ObjectId, ref: 'OnboardingPayment', default: null },
+    statusHistory: { type: [statusHistorySchema], default: [] },
+    emailDeliveries: { type: [emailDeliverySchema], default: [] },
+  },
+  { timestamps: true }
+);
+paymentProofSchema.index({ email: 1, status: 1 });
+applyToJSON(paymentProofSchema);
+const PaymentProof = mongoose.model('PaymentProof', paymentProofSchema);
 
 // ─── KYC REQUIREMENT ──────────────────────────────────────────────────────────
 const kycRequirementSchema = new mongoose.Schema(
@@ -596,6 +643,7 @@ module.exports = {
   ContactSubmission,
   OnboardingConfig,
   OnboardingPayment,
+  PaymentProof,
   KYCRequirement,
   KYCSubmission,
   Loan,

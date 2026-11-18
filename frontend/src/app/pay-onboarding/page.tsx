@@ -9,6 +9,7 @@ import toast from 'react-hot-toast';
 import Navbar from '@/components/layout/Navbar';
 import SiteFooter from '@/components/layout/SiteFooter';
 import Button from '@/components/ui/Button';
+import PaymentProofModal from '@/components/PaymentProofModal';
 import { useAuth } from '@/context/AuthContext';
 import { onboardingAPI } from '@/lib/api';
 import { getPendingConsultation } from '@/lib/consultationContinuation';
@@ -45,6 +46,7 @@ function OnboardingPageContent() {
   const [submitting, setSubmitting] = useState(false);
   const [copied, setCopied] = useState(false);
   const [hasPendingConsultation, setHasPendingConsultation] = useState(false);
+  const [proofOpen, setProofOpen] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -122,7 +124,7 @@ function OnboardingPageContent() {
             {hasPendingConsultation && !user && (
               <div className="mb-6 border-l-2 border-[#0033AD] bg-white px-4 py-3 text-sm leading-6 text-gray-700">
                 <p className="font-semibold text-[#17205c]">Your details have been received.</p>
-                <p className="mt-1">Take your time to read the onboarding information below, including the services, the payment and the terms. When you are ready, create your account at the bottom of this page. Your confirmation email is sent once your account is created.</p>
+                <p className="mt-1">We have emailed you a copy of what you sent us. Take your time to read the onboarding information below, including the services, the payment and the terms. When you are ready, create your account at the bottom of this page.</p>
               </div>
             )}
             <p className="text-sm font-semibold text-[#0033AD]">DWP client onboarding</p>
@@ -189,7 +191,7 @@ function OnboardingPageContent() {
                   {[
                     ['1', 'Register and verify', 'Create an account with the consultation email and verify the one-time email code.'],
                     ['2', 'Make the transfer', `Transfer the ${config?.asset || 'XRP'} amount shown to the official destination address. It follows the live market rate, and payments within ${quote?.tolerancePercent ?? 2}% of it are accepted.`],
-                    ['3', 'Submit the reference', 'Provide the transaction hash. The backend checks network, destination, amount, and validated status.'],
+                    ['3', 'Confirm your payment', 'Click "I have made this payment" and send the transfer details with a screenshot. Account holders can also submit the transaction hash for an automatic ledger check.'],
                     ['4', 'Review and activation', 'An administrator confirms payment and activates dashboard access as separate actions.'],
                   ].map(([number, title, copy]) => <div key={number} className="border-t-2 border-[#0033AD] pt-4"><span className="text-xs font-semibold text-[#0033AD]">STEP {number}</span><h3 className="mt-2 font-semibold text-gray-900">{title}</h3><p className="mt-2 text-sm leading-6 text-gray-600">{copy}</p></div>)}
                 </div>
@@ -200,6 +202,16 @@ function OnboardingPageContent() {
               <div className="mx-auto max-w-3xl">
                 <h2 className="text-2xl font-semibold text-[#17205c]">Submit payment confirmation</h2>
                 {requestedStatus && <p className="mt-2 text-sm text-gray-500">Current workflow status: {statusView.label}</p>}
+
+                {(!user || canSubmit) && (
+                  <div className="mt-6 flex flex-col gap-4 border border-[#0033AD]/30 bg-[#f4f7ff] p-6 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="font-semibold text-[#17205c]">Already sent the payment?</p>
+                      <p className="mt-1 text-sm leading-6 text-gray-600">Send us the transfer details and a screenshot as proof. We will email you once it has been approved.</p>
+                    </div>
+                    <Button onClick={() => setProofOpen(true)} className="shrink-0 bg-[#0033AD]! px-6 py-3 text-white">I have made this payment</Button>
+                  </div>
+                )}
 
                 {!user ? (
                   <div className="mt-6 border border-gray-200 p-6">
@@ -231,6 +243,14 @@ function OnboardingPageContent() {
         )}
       </main>
       <SiteFooter />
+      <PaymentProofModal
+        isOpen={proofOpen}
+        onClose={() => setProofOpen(false)}
+        defaultName={user ? `${user.firstName} ${user.lastName}`.trim() : ''}
+        defaultEmail={user?.email || ''}
+        expectedAmount={config?.assetAmount}
+        asset={config?.asset || 'XRP'}
+      />
     </div>
   );
 }

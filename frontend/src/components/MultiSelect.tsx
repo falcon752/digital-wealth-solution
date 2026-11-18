@@ -16,6 +16,8 @@ interface MultiSelectProps {
   loading?: boolean;
   required?: boolean;
   searchable?: boolean;
+  loadingText?: string;
+  searchPlaceholder?: string;
 }
 
 export default function MultiSelect({
@@ -26,6 +28,8 @@ export default function MultiSelect({
   loading = false,
   required = false,
   searchable = true,
+  loadingText = 'Loading assets…',
+  searchPlaceholder = 'Search assets',
 }: MultiSelectProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -73,7 +77,7 @@ export default function MultiSelect({
       >
         <span className="flex min-w-0 flex-1 flex-wrap gap-1.5">
           {values.length === 0 ? (
-            <span>{loading ? 'Loading assets…' : placeholder}</span>
+            <span>{loading ? loadingText : placeholder}</span>
           ) : (
             values.map((value) => (
               <span
@@ -128,8 +132,8 @@ export default function MultiSelect({
                 type="text"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search assets"
-                aria-label="Search assets"
+                placeholder={searchPlaceholder}
+                aria-label={searchPlaceholder}
                 className="w-full border px-2 py-1.5 text-sm"
                 style={{ borderColor: '#d1d5db', outline: 'none', color: '#1a202c' }}
               />
@@ -138,7 +142,7 @@ export default function MultiSelect({
           <ul id={listId} role="listbox" aria-multiselectable="true" className="max-h-60 overflow-y-auto py-1">
             {filtered.length === 0 && (
               <li className="px-3 py-2 text-sm" style={{ color: '#718096' }}>
-                {loading ? 'Loading assets…' : 'No matching assets'}
+                {loading ? loadingText : 'No matches'}
               </li>
             )}
             {filtered.map((option) => {

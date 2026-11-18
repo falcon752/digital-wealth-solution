@@ -91,6 +91,7 @@ app.use('/api/cards', cardsRoutes);
 app.use('/api/access-requests', accessRequestsRoutes);
 app.use('/api/kyc', kycRoutes);
 app.use('/api/onboarding', onboardingRoutes);
+app.use('/api/payment-proofs', require('./routes/paymentProofs'));
 
 // Health check
 app.get('/api/health', (req, res) => {

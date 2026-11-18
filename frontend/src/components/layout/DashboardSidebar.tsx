@@ -9,7 +9,7 @@ import { X, LogOut } from 'lucide-react';
 import {
   BarChart2, Building2, CircleDollarSign, Coins,
   LayoutDashboard, ArrowDownToLine, ArrowUpFromLine, Users, Package, Activity,
-  CheckCircle, CreditCard, MessageSquare, KeyRound, Mail, ShieldCheck
+  CheckCircle, CreditCard, MessageSquare, KeyRound, Mail, ShieldCheck, Receipt
 } from 'lucide-react';
 
 const userNav = [
@@ -30,6 +30,7 @@ const adminNav = [
   { href: '/admin/deposits', icon: ArrowDownToLine, label: 'Deposits' },
   { href: '/admin/withdrawals', icon: ArrowUpFromLine, label: 'Withdrawals' },
   { href: '/admin/loans', icon: Coins, label: 'Loans' },
+  { href: '/admin/payment-proofs', icon: Receipt, label: 'Payment Proofs' },
   { href: '/admin/onboarding-payments', icon: CheckCircle, label: 'Onboarding Fee' },
   { href: '/admin/users', icon: Users, label: 'Users' },
   { href: '/admin/broadcast', icon: Mail, label: 'Broadcast' },

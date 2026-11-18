@@ -50,4 +50,25 @@ const kycUpload = multer({
   limits: { fileSize: 10 * 1024 * 1024, files: 12 },
 });
 
-module.exports = { upload, kycUpload };
+const PROOF_DIRECTORY = path.join(__dirname, '../../private_uploads/payment-proofs');
+
+const proofUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      fs.mkdirSync(PROOF_DIRECTORY, { recursive: true });
+      cb(null, PROOF_DIRECTORY);
+    },
+    filename: (req, file, cb) => {
+      const ext = path.extname(file.originalname).toLowerCase().replace(/[^.a-z0-9]/g, '');
+      cb(null, `proof_${uuidv4()}${ext}`);
+    },
+  }),
+  fileFilter: (req, file, cb) => {
+    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif', 'application/pdf'];
+    if (allowedMimeTypes.includes(file.mimetype)) return cb(null, true);
+    cb(new Error('Upload the screenshot as a JPEG, PNG, WebP, HEIC or PDF file'), false);
+  },
+  limits: { fileSize: 8 * 1024 * 1024, files: 1 },
+});
+
+module.exports = { upload, kycUpload, proofUpload, PROOF_DIRECTORY };

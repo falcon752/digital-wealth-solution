@@ -2,11 +2,31 @@ const express = require('express');
 const crypto = require('crypto');
 const router = express.Router();
 const { body, query, validationResult } = require('express-validator');
-const { sendGeneralContactEmail, sendUserContactStatusEmail } = require('../utils/email');
+const { sendGeneralContactEmail, sendConsultationReceivedEmail, sendUserContactStatusEmail } = require('../utils/email');
 const { User, ContactSubmission, OnboardingConfig, Asset } = require('../database');
 const { authenticate, requireAdmin } = require('../middleware/auth');
 const { logActivity } = require('../utils/activity');
 const { DWP_OFFICIAL_REFERRAL_SOURCE, NOT_SURE_OFFICIAL, officials } = require('../data/dwpOfficials');
+const {
+  OTHER, NO_WALLET, NO_EXCHANGE, supportedWallets, supportedExchanges, walletChoices, exchangeChoices,
+} = require('../data/supportedWallets');
+
+// Unique values; a "none" answer is dropped when real choices were also picked.
+function cleanChoices(values, noneValue) {
+  const unique = [...new Set(values.map((value) => String(value).trim()))];
+  return unique.length > 1 ? unique.filter((value) => value !== noneValue) : unique;
+}
+
+function otherTextValidator(listField, label) {
+  return body(`${listField === 'walletsUsed' ? 'walletOther' : 'exchangeOther'}`).custom((value, { req }) => {
+    const list = Array.isArray(req.body[listField]) ? req.body[listField] : [];
+    if (!list.includes(OTHER)) return true;
+    const text = String(value || '').trim();
+    if (!text) throw new Error(`Enter the name of the other ${label} you use`);
+    if (text.length > 100) throw new Error(`The other ${label} name must be 100 characters or fewer`);
+    return true;
+  });
+}
 
 function consultationStatusToken(submission) {
   return crypto.createHmac('sha256', process.env.JWT_SECRET)
@@ -48,6 +68,13 @@ router.get('/onboarding-status', [
   res.status(410).json({ error: 'Sign in to view onboarding status securely.' });
 });
 
+const CLIENT_TYPES = ['Individual', 'Family Office', 'RIA Firm', 'TAMP', 'Trust', 'Corporation'];
+const AREAS_OF_INTEREST = [
+  'Trading and financing', 'Wealth management', 'Stablecoin issuance', 'Stablecoin rewards',
+  'Stablecoin correspondent banking', 'Tokenized deposits', 'Agentic banking', 'Atlas settlement network',
+  'Self-custody (Defi)', 'Staking', 'Custody', 'Token generation events', 'Token management',
+];
+
 const REFERRAL_SOURCES = ['None', 'Search engine', 'Social media', 'Friend, family or colleague', 'Existing DWP client', DWP_OFFICIAL_REFERRAL_SOURCE, 'Advertisement', 'Event or conference', 'Other'];
 
 // POST /api/contact/general
@@ -63,6 +90,9 @@ router.post('/general', [
   body('digitalAllocation').trim().notEmpty().isLength({ max: 100 }).withMessage('Digital allocation is required'),
   body('holdsXRP').trim().notEmpty().isLength({ max: 50 }).withMessage('XRP holding selection is required'),
   body('existingClient').trim().notEmpty().isLength({ max: 50 }).withMessage('Client status is required'),
+  body('clientType').trim().isIn(CLIENT_TYPES).withMessage('Select whether you are an individual, family office, RIA firm, TAMP, trust or corporation'),
+  body('areasOfInterest').optional({ values: 'null' }).isArray({ max: AREAS_OF_INTEREST.length }).withMessage('Select areas of interest from the list'),
+  body('areasOfInterest.*').isString().trim().isIn(AREAS_OF_INTEREST).withMessage('Select areas of interest from the list'),
   body('custodyAssets').isArray({ min: 1, max: 30 }).withMessage('Select at least one digital asset you want to move to custody'),
   body('custodyAssets.*').isString().trim().notEmpty().isLength({ max: 60 }).withMessage('Select valid digital assets'),
   body('custodyAssets').custom(async (values) => {
@@ -74,6 +104,12 @@ router.post('/general', [
     if (found.length !== lookup.length) throw new Error('Select valid digital assets');
     return true;
   }),
+  body('walletsUsed').isArray({ min: 1, max: walletChoices.length }).withMessage('Select the wallets you use'),
+  body('walletsUsed.*').isString().trim().isIn(walletChoices).withMessage('Select wallets from the list'),
+  otherTextValidator('walletsUsed', 'wallet'),
+  body('exchangesUsed').isArray({ min: 1, max: exchangeChoices.length }).withMessage('Select the exchanges you use'),
+  body('exchangesUsed.*').isString().trim().isIn(exchangeChoices).withMessage('Select exchanges from the list'),
+  otherTextValidator('exchangesUsed', 'exchange'),
   body('referralSource').trim().isIn(REFERRAL_SOURCES).withMessage('Select a referral source'),
   body('referralOfficial').custom((value, { req }) => {
     if (req.body.referralSource !== DWP_OFFICIAL_REFERRAL_SOURCE) return true;
@@ -94,28 +130,42 @@ router.post('/general', [
       investableAssets, digitalAllocation, holdsXRP, existingClient, referralSource, message,
     } = req.body;
     const referralOfficial = referralSource === DWP_OFFICIAL_REFERRAL_SOURCE ? String(req.body.referralOfficial).trim() : null;
+    const clientType = String(req.body.clientType).trim();
+    const areasOfInterest = [...new Set((req.body.areasOfInterest || []).map((value) => String(value).trim()))];
+    const walletsUsed = cleanChoices(req.body.walletsUsed, NO_WALLET);
+    const exchangesUsed = cleanChoices(req.body.exchangesUsed, NO_EXCHANGE);
+    const walletOther = walletsUsed.includes(OTHER) ? String(req.body.walletOther).trim() : null;
+    const exchangeOther = exchangesUsed.includes(OTHER) ? String(req.body.exchangeOther).trim() : null;
     const custodyAssets = [...new Set(req.body.custodyAssets.map((value) => (String(value).trim().toUpperCase() === 'OTHER' ? 'Other' : String(value).trim().toUpperCase())))];
 
     const continuationToken = crypto.randomBytes(32).toString('hex');
     const submission = await ContactSubmission.create({
       topic, firstName, lastName, email, phone, married, children,
-      investableAssets, digitalAllocation, holdsXRP, existingClient, custodyAssets, referralSource, referralOfficial, message,
+      investableAssets, digitalAllocation, holdsXRP, existingClient, clientType, areasOfInterest, custodyAssets, walletsUsed, walletOther, exchangesUsed, exchangeOther, referralSource, referralOfficial, message,
       status: 'pending',
       continuationTokenHash: crypto.createHash('sha256').update(continuationToken).digest('hex'),
       statusHistory: [{ status: 'pending', changedAt: new Date() }],
     });
 
     const statusUrl = consultationStatusUrl(submission);
-    // The client's confirmation email is held until they create an account (see POST /:id/continue).
-    // The admin is still notified immediately so no enquiry is lost.
-    const [adminResult] = await Promise.allSettled([
-      sendGeneralContactEmail({ adminEmail, contactData: { ...req.body, custodyAssets, referralOfficial } }),
+    // Both emails go out once, right after the submission is saved: the admin notification and the
+    // applicant's "request received" summary. The status email follows when they create an account
+    // (see POST /:id/continue).
+    const contactData = {
+      ...req.body, email: submission.email, clientType, areasOfInterest, custodyAssets, walletsUsed, walletOther, exchangesUsed, exchangeOther, referralOfficial,
+    };
+    const [adminResult, clientResult] = await Promise.allSettled([
+      sendGeneralContactEmail({ adminEmail, contactData }),
+      sendConsultationReceivedEmail({ contactData }),
     ]);
-    submission.emailDeliveries.push(
-      adminResult.status === 'fulfilled'
-        ? emailDelivery('consultation_admin_received', 'pending', adminResult.value)
-        : emailDelivery('consultation_admin_received', 'pending', null, adminResult.reason)
-    );
+    for (const [template, result] of [['consultation_admin_received', adminResult], ['consultation_received', clientResult]]) {
+      if (result.status === 'rejected') console.error(`${template} email failed:`, result.reason?.message || result.reason);
+      submission.emailDeliveries.push(
+        result.status === 'fulfilled'
+          ? emailDelivery(template, 'pending', result.value)
+          : emailDelivery(template, 'pending', null, result.reason)
+      );
+    }
     await submission.save();
 
     // Try to log system activity if the email belongs to a registered user
@@ -130,7 +180,7 @@ router.post('/general', [
       message: 'Thank you for your message. We will get back to you shortly!',
       continuation: { submissionId: submission.id, token: continuationToken, email },
       emailDelivery: {
-        client: false,
+        client: clientResult.status === 'fulfilled',
         admin: adminResult.status === 'fulfilled',
       },
     });
@@ -138,6 +188,12 @@ router.post('/general', [
     console.error('General contact email error:', error);
     res.status(500).json({ error: 'Failed to submit contact form. Please try again later.' });
   }
+});
+
+// GET /api/contact/wallets — supported wallets and exchanges for the consultation and payment proof forms
+router.get('/wallets', (req, res) => {
+  res.set('Cache-Control', 'public, max-age=300');
+  res.json({ wallets: supportedWallets, exchanges: supportedExchanges, other: OTHER, noWallet: NO_WALLET, noExchange: NO_EXCHANGE });
 });
 
 // GET /api/contact/officials — names for the "referred by a DWP official" question

@@ -5,6 +5,7 @@ const { authenticate, requireAdmin } = require('../middleware/auth');
 const { logActivity } = require('../utils/activity');
 const { PaymentVerificationError, verifyXrplPayment } = require('../utils/onboardingPayment');
 const { getLiveQuote } = require('../utils/xrpPrice');
+const { linkApprovedProofForUser } = require('../utils/paymentProofLink');
 const { sendOnboardingPaymentStatusEmail, sendOnboardingPaymentAdminEmail } = require('../utils/email');
 
 const router = express.Router();
@@ -70,6 +71,11 @@ router.get('/config', async (req, res) => {
 
 router.get('/me', authenticate, async (req, res) => {
   try {
+    try {
+      await linkApprovedProofForUser(req.user);
+    } catch (error) {
+      console.error('Linking approved payment proof failed:', error.message);
+    }
     const payment = await OnboardingPayment.findOne({ userId: req.user.id }).sort({ submittedAt: -1 });
     const user = await User.findById(req.user.id)
       .select('onboardingStatus onboardingFeePaid onboardingFeeSubmitted emailVerifiedAt paymentConfirmedAt accountActivatedAt');
@@ -215,6 +221,7 @@ router.post('/admin/payments/:id/reverify', authenticate, requireAdmin, async (r
     const payment = await OnboardingPayment.findById(req.params.id);
     if (!payment) return res.status(404).json({ error: 'Payment not found' });
     if (payment.source === 'legacy') return res.json({ payment: mapPayment(payment), message: 'Legacy payment remains available for manual review' });
+    if (payment.transactionReference.startsWith('MANUAL-')) return res.json({ payment: mapPayment(payment), message: 'No transaction hash was provided. Check the destination wallet manually.' });
     try {
       payment.verification = await verifyXrplPayment(payment.transactionReference, payment);
     } catch (error) {
@@ -249,7 +256,9 @@ router.put('/admin/payments/:id/review', authenticate, requireAdmin, [
     if (payment.status === req.body.status) return res.json({ payment: mapPayment(payment), idempotent: true });
     if (payment.status !== 'under_review') return res.status(409).json({ error: 'Only payments under review can be updated' });
 
-    if (req.body.status === 'confirmed' && !['verified', 'legacy_manual'].includes(payment.verification.state)) {
+    // "I have made the transfer" confirmations are checked by the admin against the wallet, so they can be
+    // confirmed without a verified hash. Hash submissions still need the ledger check to pass.
+    if (req.body.status === 'confirmed' && payment.source !== 'manual' && !['verified', 'legacy_manual'].includes(payment.verification.state)) {
       if (payment.source !== 'legacy') {
         try {
           payment.verification = await verifyXrplPayment(payment.transactionReference, payment);

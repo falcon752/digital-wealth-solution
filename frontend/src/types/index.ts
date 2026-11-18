@@ -182,9 +182,15 @@ export interface ContactSubmission {
   holdsXRP?: string | null;
   existingClient?: string | null;
   custodyAsset?: string | null;
+  clientType?: string | null;
+  areasOfInterest?: string[];
   custodyAssets?: string[];
   referralSource?: string | null;
   referralOfficial?: string | null;
+  walletsUsed?: string[];
+  walletOther?: string | null;
+  exchangesUsed?: string[];
+  exchangeOther?: string | null;
   message: string;
   status: 'pending' | 'approved' | 'processing' | 'rejected';
   adminNote?: string | null;
@@ -244,7 +250,7 @@ export interface OnboardingPayment {
   };
   consultationId?: string | null;
   email: string;
-  source: 'client' | 'legacy';
+  source: 'client' | 'manual' | 'legacy';
   feeUsd: number;
   asset: string;
   network: string;
@@ -254,7 +260,7 @@ export interface OnboardingPayment {
   quoteValidUntil?: string | null;
   transactionReference: string;
   verification: {
-    state: 'pending_network' | 'verified' | 'legacy_manual' | 'failed';
+    state: 'pending_network' | 'verified' | 'legacy_manual' | 'manual_review' | 'failed';
     checkedAt?: string | null;
     ledgerIndex?: number | null;
     senderAddress?: string | null;
@@ -268,6 +274,46 @@ export interface OnboardingPayment {
   rejectionReason?: string | null;
   statusHistory: StatusHistoryEntry[];
   emailDeliveries: EmailDelivery[];
+}
+
+export interface SupportedWalletLists {
+  wallets: string[];
+  exchanges: string[];
+  other: string;
+  noWallet: string;
+  noExchange: string;
+}
+
+export interface PaymentProof {
+  id: string;
+  fullName: string;
+  email: string;
+  userId?: string | null | {
+    id?: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    onboardingStatus?: OnboardingStatus;
+    onboardingFeePaid?: boolean;
+  };
+  senderAddress: string;
+  amount: string;
+  asset: string;
+  walletUsed: string;
+  transactionHash?: string | null;
+  note?: string | null;
+  screenshot: { filename: string; originalName?: string | null; mimeType: string; size: number };
+  expected?: { amount?: string | null; priceUsd?: number | null; feeUsd?: number | null; destinationAddress?: string | null };
+  ledgerCheck?: OnboardingPayment['verification'] | null;
+  status: 'pending' | 'approved' | 'declined';
+  adminNote?: string | null;
+  activateAccount?: boolean;
+  reviewedAt?: string | null;
+  reviewedBy?: { firstName: string; lastName: string; email: string } | string | null;
+  onboardingPaymentId?: string | null;
+  statusHistory: StatusHistoryEntry[];
+  emailDeliveries: EmailDelivery[];
+  createdAt: string;
 }
 
 export interface KYCRequirement {

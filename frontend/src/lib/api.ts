@@ -199,6 +199,18 @@ export const onboardingAPI = {
   }) => api.put('/onboarding/admin/config', data),
 };
 
+// ─── Onboarding payment proofs ("I have made this payment") ────────────────
+export const paymentProofAPI = {
+  wallets: () => api.get('/contact/wallets'),
+  submit: (data: FormData) => api.post('/payment-proofs', data, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
+  adminList: () => api.get('/payment-proofs/admin'),
+  adminScreenshot: (id: string) => api.get(`/payment-proofs/admin/${id}/screenshot`, { responseType: 'blob' }),
+  adminReview: (id: string, data: { status: 'approved' | 'declined'; adminNote?: string; activateAccount?: boolean }) =>
+    api.put(`/payment-proofs/admin/${id}/review`, data),
+};
+
 // ─── KYC Verification ─────────────────────────────────────────────────────
 export const kycAPI = {
   getRequirements: () => api.get('/kyc/requirements'),

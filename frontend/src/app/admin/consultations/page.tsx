@@ -198,9 +198,13 @@ export default function AdminConsultationsPage() {
                 ['Married', editTarget.married],
                 ['Children', editTarget.children],
                 ['DWP Client', editTarget.existingClient],
+                ['Client Type', editTarget.clientType],
+                ['Areas of Interest', editTarget.areasOfInterest?.length ? editTarget.areasOfInterest.join(', ') : null],
                 ['Assets to Move to Custody', editTarget.custodyAssets?.length ? editTarget.custodyAssets.join(', ') : editTarget.custodyAsset],
                 ['Referral Source', editTarget.referralSource],
                 ['Referred by (DWP official)', editTarget.referralOfficial],
+                ['Wallets Used', editTarget.walletsUsed?.length ? editTarget.walletsUsed.map((value) => (value === 'Other' && editTarget.walletOther ? `Other: ${editTarget.walletOther}` : value)).join(', ') : null],
+                ['Exchanges Used', editTarget.exchangesUsed?.length ? editTarget.exchangesUsed.map((value) => (value === 'Other' && editTarget.exchangeOther ? `Other: ${editTarget.exchangeOther}` : value)).join(', ') : null],
               ].map(([label, value]) => (
                 <div key={label} className="flex justify-between gap-4">
                   <span className="text-[var(--text-muted)]">{label}</span>

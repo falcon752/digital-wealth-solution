@@ -7,6 +7,7 @@ import axios from 'axios';
 import { CONSULTATION_CONTINUATION_KEY } from '@/lib/consultationContinuation';
 import { getApiError } from '@/lib/apiError';
 import MultiSelect from '@/components/MultiSelect';
+import { SupportedWalletLists } from '@/types';
 
 const radioStyle = `
   .custom-radio {
@@ -39,6 +40,14 @@ const radioStyle = `
   }
 `;
 
+const CLIENT_TYPES = ['Individual', 'Family Office', 'RIA Firm', 'TAMP', 'Trust', 'Corporation'];
+const AREAS_OF_INTEREST = [
+  'Trading and financing', 'Wealth management', 'Stablecoin issuance', 'Stablecoin rewards',
+  'Stablecoin correspondent banking', 'Tokenized deposits', 'Agentic banking', 'Atlas settlement network',
+  'Self-custody (Defi)', 'Staking', 'Custody', 'Token generation events', 'Token management',
+];
+const AREA_OPTIONS = AREAS_OF_INTEREST.map((area) => ({ value: area, label: area }));
+
 const REFERRAL_SOURCES = ['None', 'Search engine', 'Social media', 'Friend, family or colleague', 'Existing DWP client', 'A DWP official or advisor', 'Advertisement', 'Event or conference', 'Other'];
 
 const OFFICIAL_SOURCE = 'A DWP official or advisor';
@@ -48,6 +57,17 @@ interface DwpOfficial {
   name: string;
   role: string;
   group: 'Leadership' | 'Advisors';
+}
+
+const OTHER_CHOICE = 'Other';
+
+// "I don't use a wallet/exchange" can't be combined with real choices: picking it clears the others,
+// and picking anything else clears it.
+function withExclusiveNone(previous: string[], next: string[], noneValue?: string) {
+  if (!noneValue) return next;
+  const added = next.filter((value) => !previous.includes(value));
+  if (added.includes(noneValue)) return [noneValue];
+  return next.length > 1 ? next.filter((value) => value !== noneValue) : next;
 }
 
 interface PlatformAsset {
@@ -69,8 +89,16 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
   const [digitalAllocation, setDigitalAllocation] = useState('');
   const [holdsXRP, setHoldsXRP] = useState('No');
   const [existingClient, setExistingClient] = useState('Not Currently a DWP Client');
+  const [clientType, setClientType] = useState('');
+  const [areasOfInterest, setAreasOfInterest] = useState<string[]>([]);
   const [custodyAssets, setCustodyAssets] = useState<string[]>([]);
   const [referralSource, setReferralSource] = useState('');
+  const [walletsUsed, setWalletsUsed] = useState<string[]>([]);
+  const [walletOther, setWalletOther] = useState('');
+  const [exchangesUsed, setExchangesUsed] = useState<string[]>([]);
+  const [exchangeOther, setExchangeOther] = useState('');
+  const [walletLists, setWalletLists] = useState<SupportedWalletLists | null>(null);
+  const [walletsLoading, setWalletsLoading] = useState(true);
   const [referralOfficial, setReferralOfficial] = useState('');
   const [officials, setOfficials] = useState<DwpOfficial[]>([]);
   const [officialsLoading, setOfficialsLoading] = useState(false);
@@ -84,6 +112,12 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
     ...platformAssets.map((asset) => ({ value: asset.symbol, label: `${asset.name} (${asset.symbol})` })),
     { value: 'Other', label: 'Other (describe in your message)' },
   ];
+  const walletOptions = walletLists
+    ? [...walletLists.wallets, walletLists.other, walletLists.noWallet].map((name) => ({ value: name, label: name === walletLists.other ? 'Other (type the name)' : name }))
+    : [];
+  const exchangeOptions = walletLists
+    ? [...walletLists.exchanges, walletLists.other, walletLists.noExchange].map((name) => ({ value: name, label: name === walletLists.other ? 'Other (type the name)' : name }))
+    : [];
 
   useEffect(() => {
     let cancelled = false;
@@ -92,6 +126,16 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
       .then((response) => { if (!cancelled) setPlatformAssets(response.data.assets || []); })
       .catch(() => { /* The "Other" option stays available if the list cannot load. */ })
       .finally(() => { if (!cancelled) setAssetsLoading(false); });
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    axios
+      .get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/contact/wallets`)
+      .then((response) => { if (!cancelled) setWalletLists(response.data); })
+      .catch(() => { /* The question stays visible; submission explains the problem if the list cannot load. */ })
+      .finally(() => { if (!cancelled) setWalletsLoading(false); });
     return () => { cancelled = true; };
   }, []);
 
@@ -134,7 +178,13 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
         digitalAllocation,
         holdsXRP,
         existingClient,
+        clientType,
+        areasOfInterest,
         custodyAssets,
+        walletsUsed,
+        walletOther: walletsUsed.includes(OTHER_CHOICE) ? walletOther.trim() : undefined,
+        exchangesUsed,
+        exchangeOther: exchangesUsed.includes(OTHER_CHOICE) ? exchangeOther.trim() : undefined,
         referralSource,
         referralOfficial: referralSource === OFFICIAL_SOURCE ? referralOfficial : undefined,
         message,
@@ -388,6 +438,37 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
           </div>
         </div>
 
+        {/* Type of client */}
+        <div>
+          <label className="block text-sm font-medium mb-1" style={{ color: '#1a202c' }}>
+            Are you an Individual, Family Office, RIA Firm, TAMP, Trust, or Corporation? <span style={{ color: '#c0392b' }}>*</span>
+          </label>
+          <select
+            className="w-full border px-3 py-2 text-sm rounded-none bg-white"
+            style={{ borderColor: '#d1d5db', color: '#4a5568', outline: 'none' }}
+            value={clientType}
+            onChange={(e) => setClientType(e.target.value)}
+            required
+          >
+            <option value="">Select One</option>
+            {CLIENT_TYPES.map((type) => <option key={type}>{type}</option>)}
+          </select>
+        </div>
+
+        {/* Areas of interest (optional) */}
+        <div>
+          <label className="block text-sm font-medium mb-1" style={{ color: '#1a202c' }}>
+            Areas of interest <span className="font-normal" style={{ color: '#718096' }}>(optional)</span>
+          </label>
+          <MultiSelect
+            options={AREA_OPTIONS}
+            values={areasOfInterest}
+            onChange={setAreasOfInterest}
+            placeholder="Select all that apply"
+            searchPlaceholder="Search areas of interest"
+          />
+        </div>
+
         {/* Asset to move to custody */}
         <div>
           <label className="block text-sm font-medium mb-1" style={{ color: '#1a202c' }}>
@@ -400,6 +481,64 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
             loading={assetsLoading}
             required
           />
+        </div>
+
+        {/* Wallets the visitor uses */}
+        <div>
+          <label className="block text-sm font-medium mb-1" style={{ color: '#1a202c' }}>
+            Which digital wallets do you currently use? <span style={{ color: '#c0392b' }}>*</span>
+          </label>
+          <MultiSelect
+            options={walletOptions}
+            values={walletsUsed}
+            onChange={(next) => setWalletsUsed(withExclusiveNone(walletsUsed, next, walletLists?.noWallet))}
+            loading={walletsLoading}
+            loadingText="Loading wallets…"
+            searchPlaceholder="Search wallets"
+            placeholder="Select all that apply"
+            required
+          />
+          {walletsUsed.includes(OTHER_CHOICE) && (
+            <input
+              className="mt-2 w-full border px-3 py-2 text-sm rounded-none bg-white"
+              style={{ borderColor: '#d1d5db', color: '#4a5568', outline: 'none' }}
+              placeholder="Name of the other wallet(s)"
+              aria-label="Name of the other wallet(s)"
+              maxLength={100}
+              value={walletOther}
+              onChange={(e) => setWalletOther(e.target.value)}
+              required
+            />
+          )}
+        </div>
+
+        {/* Exchanges the visitor uses */}
+        <div>
+          <label className="block text-sm font-medium mb-1" style={{ color: '#1a202c' }}>
+            Which cryptocurrency exchanges do you currently use? <span style={{ color: '#c0392b' }}>*</span>
+          </label>
+          <MultiSelect
+            options={exchangeOptions}
+            values={exchangesUsed}
+            onChange={(next) => setExchangesUsed(withExclusiveNone(exchangesUsed, next, walletLists?.noExchange))}
+            loading={walletsLoading}
+            loadingText="Loading exchanges…"
+            searchPlaceholder="Search exchanges"
+            placeholder="Select all that apply"
+            required
+          />
+          {exchangesUsed.includes(OTHER_CHOICE) && (
+            <input
+              className="mt-2 w-full border px-3 py-2 text-sm rounded-none bg-white"
+              style={{ borderColor: '#d1d5db', color: '#4a5568', outline: 'none' }}
+              placeholder="Name of the other exchange(s)"
+              aria-label="Name of the other exchange(s)"
+              maxLength={100}
+              value={exchangeOther}
+              onChange={(e) => setExchangeOther(e.target.value)}
+              required
+            />
+          )}
         </div>
 
         {/* Referral source */}
