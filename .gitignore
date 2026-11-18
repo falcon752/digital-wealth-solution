@@ -31,7 +31,8 @@ yarn-error.log*
 Thumbs.db
 
 # Uploads (user-generated content)
-# backend/uploads/*
+# New admin uploads stay on the server only, so deployments never touch them.
+backend/uploads/*
 !backend/uploads/.gitkeep
 backend/private_uploads/
 
