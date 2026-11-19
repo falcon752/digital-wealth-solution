@@ -192,6 +192,7 @@ export default function AdminConsultationsPage() {
             <div className="bg-[var(--bg-secondary)] rounded-xl p-4 space-y-3 text-sm">
               <h3 className="font-semibold text-[var(--text-primary)]">Submission Details</h3>
               {[
+                ['Address', [editTarget.streetAddress, [editTarget.city, [editTarget.stateProvince, editTarget.postalCode].filter(Boolean).join(' ')].filter(Boolean).join(', '), editTarget.country].filter(Boolean).join(', ') || null],
                 ['Investable Assets', editTarget.investableAssets],
                 ['Digital Allocation', editTarget.digitalAllocation],
                 ['Holds 50k+ XRP', editTarget.holdsXRP],
@@ -199,6 +200,8 @@ export default function AdminConsultationsPage() {
                 ['Children', editTarget.children],
                 ['DWP Client', editTarget.existingClient],
                 ['Client Type', editTarget.clientType],
+                ['Has LLC, Trust or Corp', editTarget.hasEntity ? `${editTarget.hasEntity}${editTarget.hasEntity === 'Yes' && editTarget.entityName ? ` (${editTarget.entityName})` : ''}` : null],
+                ['Has a Crypto IRA', editTarget.hasCryptoIRA],
                 ['Areas of Interest', editTarget.areasOfInterest?.length ? editTarget.areasOfInterest.join(', ') : null],
                 ['Assets to Move to Custody', editTarget.custodyAssets?.length ? editTarget.custodyAssets.join(', ') : editTarget.custodyAsset],
                 ['Referral Source', editTarget.referralSource],

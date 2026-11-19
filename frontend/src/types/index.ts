@@ -182,7 +182,15 @@ export interface ContactSubmission {
   holdsXRP?: string | null;
   existingClient?: string | null;
   custodyAsset?: string | null;
+  streetAddress?: string | null;
+  city?: string | null;
+  stateProvince?: string | null;
+  postalCode?: string | null;
+  country?: string | null;
   clientType?: string | null;
+  hasEntity?: string | null;
+  entityName?: string | null;
+  hasCryptoIRA?: string | null;
   areasOfInterest?: string[];
   custodyAssets?: string[];
   referralSource?: string | null;

@@ -3,6 +3,9 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Check, ChevronDown, X } from 'lucide-react';
 
+// The open list uses a dark charcoal panel, matching how phones show native dropdowns.
+const PANEL = { background: '#262626', border: '#3f3f46', divider: 'rgba(255,255,255,0.08)', text: '#f5f5f5', muted: '#a1a1aa' };
+
 export interface MultiSelectOption {
   value: string;
   label: string;
@@ -123,25 +126,25 @@ export default function MultiSelect({
 
       {open && (
         <div
-          className="absolute z-30 mt-1 w-full border bg-white shadow-lg"
-          style={{ borderColor: '#d1d5db' }}
+          className="absolute z-30 mt-1 w-full overflow-hidden rounded-md border shadow-2xl"
+          style={{ backgroundColor: PANEL.background, borderColor: PANEL.border }}
         >
           {searchable && options.length > 8 && (
-            <div className="border-b p-2" style={{ borderColor: '#e5e7eb' }}>
+            <div className="border-b p-2" style={{ borderColor: PANEL.divider }}>
               <input
                 type="text"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder={searchPlaceholder}
                 aria-label={searchPlaceholder}
-                className="w-full border px-2 py-1.5 text-sm"
-                style={{ borderColor: '#d1d5db', outline: 'none', color: '#1a202c' }}
+                className="w-full rounded border px-2 py-1.5 text-sm placeholder:text-zinc-400"
+                style={{ backgroundColor: '#1c1c1c', borderColor: PANEL.border, outline: 'none', color: PANEL.text }}
               />
             </div>
           )}
           <ul id={listId} role="listbox" aria-multiselectable="true" className="max-h-60 overflow-y-auto py-1">
             {filtered.length === 0 && (
-              <li className="px-3 py-2 text-sm" style={{ color: '#718096' }}>
+              <li className="px-3 py-2 text-sm" style={{ color: PANEL.muted }}>
                 {loading ? loadingText : 'No matches'}
               </li>
             )}
@@ -153,8 +156,8 @@ export default function MultiSelect({
                   role="option"
                   aria-selected={selected}
                   tabIndex={0}
-                  className="flex cursor-pointer items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 focus:bg-gray-50 focus:outline-none"
-                  style={{ color: '#1a202c' }}
+                  className="flex cursor-pointer items-center gap-2 border-b px-3 py-2.5 text-sm last:border-b-0 hover:bg-white/10 focus:bg-white/10 focus:outline-none"
+                  style={{ color: PANEL.text, borderColor: PANEL.divider }}
                   onClick={() => toggle(option.value)}
                   onKeyDown={(event) => {
                     if (event.key === 'Enter' || event.key === ' ') {
@@ -166,8 +169,8 @@ export default function MultiSelect({
                   <span
                     className="flex h-4 w-4 shrink-0 items-center justify-center border"
                     style={{
-                      borderColor: selected ? '#2563eb' : '#9ca3af',
-                      backgroundColor: selected ? '#2563eb' : 'transparent',
+                      borderColor: selected ? '#3b82f6' : PANEL.muted,
+                      backgroundColor: selected ? '#3b82f6' : 'transparent',
                     }}
                   >
                     {selected && <Check size={12} color="#ffffff" strokeWidth={3} />}

@@ -7,6 +7,7 @@ const { User, ContactSubmission, OnboardingConfig, Asset } = require('../databas
 const { authenticate, requireAdmin } = require('../middleware/auth');
 const { logActivity } = require('../utils/activity');
 const { DWP_OFFICIAL_REFERRAL_SOURCE, NOT_SURE_OFFICIAL, officials } = require('../data/dwpOfficials');
+const { countries } = require('../data/countries');
 const {
   OTHER, NO_WALLET, NO_EXCHANGE, supportedWallets, supportedExchanges, walletChoices, exchangeChoices,
 } = require('../data/supportedWallets');
@@ -75,6 +76,8 @@ const AREAS_OF_INTEREST = [
   'Self-custody (Defi)', 'Staking', 'Custody', 'Token generation events', 'Token management',
 ];
 
+const YES_NO = ['Yes', 'No'];
+
 const REFERRAL_SOURCES = ['None', 'Search engine', 'Social media', 'Friend, family or colleague', 'Existing DWP client', DWP_OFFICIAL_REFERRAL_SOURCE, 'Advertisement', 'Event or conference', 'Other'];
 
 // POST /api/contact/general
@@ -90,7 +93,15 @@ router.post('/general', [
   body('digitalAllocation').trim().notEmpty().isLength({ max: 100 }).withMessage('Digital allocation is required'),
   body('holdsXRP').trim().notEmpty().isLength({ max: 50 }).withMessage('XRP holding selection is required'),
   body('existingClient').trim().notEmpty().isLength({ max: 50 }).withMessage('Client status is required'),
-  body('clientType').trim().isIn(CLIENT_TYPES).withMessage('Select whether you are an individual, family office, RIA firm, TAMP, trust or corporation'),
+  body('streetAddress').trim().notEmpty().isLength({ max: 120 }).withMessage('Street address is required and must be 120 characters or fewer'),
+  body('city').trim().notEmpty().isLength({ max: 80 }).withMessage('City is required and must be 80 characters or fewer'),
+  body('stateProvince').optional({ values: 'falsy' }).trim().isLength({ max: 80 }).withMessage('State/Province must be 80 characters or fewer'),
+  body('postalCode').optional({ values: 'falsy' }).trim().isLength({ max: 20 }).withMessage('ZIP/Postal code must be 20 characters or fewer'),
+  body('country').trim().isIn(countries).withMessage('Select your country'),
+  body('clientType').trim().isIn(CLIENT_TYPES).withMessage('Select your client type'),
+  body('hasEntity').trim().isIn(YES_NO).withMessage('Tell us whether you have an LLC, trust or corporation'),
+  body('entityName').optional({ values: 'falsy' }).trim().isLength({ max: 120 }).withMessage('The LLC/Trust/Corp name must be 120 characters or fewer'),
+  body('hasCryptoIRA').optional({ values: 'falsy' }).trim().isIn(YES_NO).withMessage('Tell us whether you have a crypto IRA'),
   body('areasOfInterest').optional({ values: 'null' }).isArray({ max: AREAS_OF_INTEREST.length }).withMessage('Select areas of interest from the list'),
   body('areasOfInterest.*').isString().trim().isIn(AREAS_OF_INTEREST).withMessage('Select areas of interest from the list'),
   body('custodyAssets').isArray({ min: 1, max: 30 }).withMessage('Select at least one digital asset you want to move to custody'),
@@ -131,6 +142,17 @@ router.post('/general', [
     } = req.body;
     const referralOfficial = referralSource === DWP_OFFICIAL_REFERRAL_SOURCE ? String(req.body.referralOfficial).trim() : null;
     const clientType = String(req.body.clientType).trim();
+    const optionalText = (value) => (value ? String(value).trim() || null : null);
+    const address = {
+      streetAddress: String(req.body.streetAddress).trim(),
+      city: String(req.body.city).trim(),
+      stateProvince: optionalText(req.body.stateProvince),
+      postalCode: optionalText(req.body.postalCode),
+      country: String(req.body.country).trim(),
+    };
+    const hasEntity = String(req.body.hasEntity).trim();
+    const entityName = hasEntity === 'Yes' ? optionalText(req.body.entityName) : null;
+    const hasCryptoIRA = optionalText(req.body.hasCryptoIRA) || 'No';
     const areasOfInterest = [...new Set((req.body.areasOfInterest || []).map((value) => String(value).trim()))];
     const walletsUsed = cleanChoices(req.body.walletsUsed, NO_WALLET);
     const exchangesUsed = cleanChoices(req.body.exchangesUsed, NO_EXCHANGE);
@@ -141,7 +163,7 @@ router.post('/general', [
     const continuationToken = crypto.randomBytes(32).toString('hex');
     const submission = await ContactSubmission.create({
       topic, firstName, lastName, email, phone, married, children,
-      investableAssets, digitalAllocation, holdsXRP, existingClient, clientType, areasOfInterest, custodyAssets, walletsUsed, walletOther, exchangesUsed, exchangeOther, referralSource, referralOfficial, message,
+      investableAssets, digitalAllocation, holdsXRP, existingClient, ...address, clientType, hasEntity, entityName, hasCryptoIRA, areasOfInterest, custodyAssets, walletsUsed, walletOther, exchangesUsed, exchangeOther, referralSource, referralOfficial, message,
       status: 'pending',
       continuationTokenHash: crypto.createHash('sha256').update(continuationToken).digest('hex'),
       statusHistory: [{ status: 'pending', changedAt: new Date() }],
@@ -152,7 +174,7 @@ router.post('/general', [
     // applicant's "request received" summary. The status email follows when they create an account
     // (see POST /:id/continue).
     const contactData = {
-      ...req.body, email: submission.email, clientType, areasOfInterest, custodyAssets, walletsUsed, walletOther, exchangesUsed, exchangeOther, referralOfficial,
+      ...req.body, email: submission.email, ...address, clientType, hasEntity, entityName, hasCryptoIRA, areasOfInterest, custodyAssets, walletsUsed, walletOther, exchangesUsed, exchangeOther, referralOfficial,
     };
     const [adminResult, clientResult] = await Promise.allSettled([
       sendGeneralContactEmail({ adminEmail, contactData }),

@@ -8,6 +8,7 @@ import { CONSULTATION_CONTINUATION_KEY } from '@/lib/consultationContinuation';
 import { getApiError } from '@/lib/apiError';
 import MultiSelect from '@/components/MultiSelect';
 import { SupportedWalletLists } from '@/types';
+import { COUNTRIES } from '@/lib/countries';
 
 const radioStyle = `
   .custom-radio {
@@ -26,6 +27,12 @@ const radioStyle = `
   .custom-radio:checked {
     border-color: #2563eb;
     background: transparent;
+  }
+  /* Native dropdown lists use the same dark background as the custom pop-ups (where the browser allows it). */
+  .dwp-contact-form select option,
+  .dwp-contact-form select optgroup {
+    background-color: #262626;
+    color: #f5f5f5;
   }
   .custom-radio:checked::after {
     content: '';
@@ -89,7 +96,15 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
   const [digitalAllocation, setDigitalAllocation] = useState('');
   const [holdsXRP, setHoldsXRP] = useState('No');
   const [existingClient, setExistingClient] = useState('Not Currently a DWP Client');
+  const [streetAddress, setStreetAddress] = useState('');
+  const [city, setCity] = useState('');
+  const [stateProvince, setStateProvince] = useState('');
+  const [postalCode, setPostalCode] = useState('');
+  const [country, setCountry] = useState('');
   const [clientType, setClientType] = useState('');
+  const [hasEntity, setHasEntity] = useState('No');
+  const [entityName, setEntityName] = useState('');
+  const [hasCryptoIRA, setHasCryptoIRA] = useState('No');
   const [areasOfInterest, setAreasOfInterest] = useState<string[]>([]);
   const [custodyAssets, setCustodyAssets] = useState<string[]>([]);
   const [referralSource, setReferralSource] = useState('');
@@ -178,7 +193,15 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
         digitalAllocation,
         holdsXRP,
         existingClient,
+        streetAddress,
+        city,
+        stateProvince,
+        postalCode,
+        country,
         clientType,
+        hasEntity,
+        entityName: hasEntity === 'Yes' ? entityName.trim() : undefined,
+        hasCryptoIRA,
         areasOfInterest,
         custodyAssets,
         walletsUsed,
@@ -212,7 +235,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
   return (
     <>
       <style>{radioStyle}</style>
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="dwp-contact-form space-y-6">
         {/* What brings you here */}
         <div>
           <label className="block text-sm font-medium mb-1" style={{ color: '#1a202c' }}>
@@ -309,6 +332,79 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
           />
         </div>
 
+        {/* Address */}
+        <div>
+          <label className="block text-sm font-medium mb-1" style={{ color: '#1a202c' }}>
+            Address <span style={{ color: '#c0392b' }}>*</span>
+          </label>
+          <div className="space-y-3">
+            <div>
+              <input
+                type="text"
+                className="w-full border px-3 py-2 text-sm"
+                style={{ borderColor: '#d1d5db', outline: 'none', color: '#1a202c' }}
+                placeholder="Street Address"
+                aria-label="Street Address"
+                autoComplete="street-address"
+                maxLength={120}
+                value={streetAddress}
+                onChange={(e) => setStreetAddress(e.target.value)}
+                required
+              />
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+              <input
+                type="text"
+                className="w-full border px-3 py-2 text-sm"
+                style={{ borderColor: '#d1d5db', outline: 'none', color: '#1a202c' }}
+                placeholder="City"
+                aria-label="City"
+                autoComplete="address-level2"
+                maxLength={80}
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                required
+              />
+              <input
+                type="text"
+                className="w-full border px-3 py-2 text-sm"
+                style={{ borderColor: '#d1d5db', outline: 'none', color: '#1a202c' }}
+                placeholder="State/Province"
+                aria-label="State/Province"
+                autoComplete="address-level1"
+                maxLength={80}
+                value={stateProvince}
+                onChange={(e) => setStateProvince(e.target.value)}
+              />
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+              <input
+                type="text"
+                className="w-full border px-3 py-2 text-sm"
+                style={{ borderColor: '#d1d5db', outline: 'none', color: '#1a202c' }}
+                placeholder="ZIP/Postal"
+                aria-label="ZIP/Postal"
+                autoComplete="postal-code"
+                maxLength={20}
+                value={postalCode}
+                onChange={(e) => setPostalCode(e.target.value)}
+              />
+              <select
+                className="w-full border px-3 py-2 text-sm rounded-none bg-white"
+                style={{ borderColor: '#d1d5db', color: country ? '#1a202c' : '#4a5568', outline: 'none' }}
+                aria-label="Country"
+                autoComplete="country-name"
+                value={country}
+                onChange={(e) => setCountry(e.target.value)}
+                required
+              >
+                <option value="">Select Country</option>
+                {COUNTRIES.map((name) => <option key={name} value={name}>{name}</option>)}
+              </select>
+            </div>
+          </div>
+        </div>
+
         {/* Family Status */}
         <div className="grid grid-cols-2 gap-8">
           <div>
@@ -371,6 +467,82 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
             <option>$500K – $1M</option>
             <option>$1M+</option>
           </select>
+        </div>
+
+        {/* Client type, entity and IRA, in the same order as the DWP application form */}
+        <div>
+          <label className="block text-sm font-medium mb-1" style={{ color: '#1a202c' }}>
+            Client Type <span style={{ color: '#c0392b' }}>*</span>
+          </label>
+          <select
+            className="w-full border px-3 py-2 text-sm rounded-none bg-white"
+            style={{ borderColor: '#d1d5db', color: '#4a5568', outline: 'none' }}
+            value={clientType}
+            onChange={(e) => setClientType(e.target.value)}
+            required
+          >
+            <option value="">Select One</option>
+            {CLIENT_TYPES.map((type) => <option key={type}>{type}</option>)}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-2" style={{ color: '#1a202c' }}>
+            Do you have an LLC, Trust, or Corporation? <span style={{ color: '#c0392b' }}>*</span>
+          </label>
+          <div className="flex gap-6">
+            {['Yes', 'No'].map((v) => (
+              <label key={v} className="flex items-center gap-2 text-sm select-none cursor-pointer" style={{ color: '#4a5568' }}>
+                <input
+                  type="radio"
+                  name="hasEntity"
+                  value={v}
+                  className="custom-radio"
+                  checked={hasEntity === v}
+                  onChange={(e) => setHasEntity(e.target.value)}
+                />
+                {v}
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {hasEntity === 'Yes' && (
+          <div>
+            <label className="block text-sm font-medium mb-1" style={{ color: '#1a202c' }}>
+              Name of LLC/Trust/Corp?
+            </label>
+            <input
+              type="text"
+              className="w-full border px-3 py-2 text-sm"
+              style={{ borderColor: '#d1d5db', outline: 'none', color: '#1a202c' }}
+              aria-label="Name of LLC/Trust/Corp"
+              maxLength={120}
+              value={entityName}
+              onChange={(e) => setEntityName(e.target.value)}
+            />
+          </div>
+        )}
+
+        <div>
+          <label className="block text-sm font-medium mb-2" style={{ color: '#1a202c' }}>
+            Do you have a Crypto IRA?
+          </label>
+          <div className="flex gap-6">
+            {['Yes', 'No'].map((v) => (
+              <label key={v} className="flex items-center gap-2 text-sm select-none cursor-pointer" style={{ color: '#4a5568' }}>
+                <input
+                  type="radio"
+                  name="cryptoIra"
+                  value={v}
+                  className="custom-radio"
+                  checked={hasCryptoIRA === v}
+                  onChange={(e) => setHasCryptoIRA(e.target.value)}
+                />
+                {v}
+              </label>
+            ))}
+          </div>
         </div>
 
         {/* Current Allocation & XRP */}
@@ -436,23 +608,6 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
               </label>
             ))}
           </div>
-        </div>
-
-        {/* Type of client */}
-        <div>
-          <label className="block text-sm font-medium mb-1" style={{ color: '#1a202c' }}>
-            Are you an Individual, Family Office, RIA Firm, TAMP, Trust, or Corporation? <span style={{ color: '#c0392b' }}>*</span>
-          </label>
-          <select
-            className="w-full border px-3 py-2 text-sm rounded-none bg-white"
-            style={{ borderColor: '#d1d5db', color: '#4a5568', outline: 'none' }}
-            value={clientType}
-            onChange={(e) => setClientType(e.target.value)}
-            required
-          >
-            <option value="">Select One</option>
-            {CLIENT_TYPES.map((type) => <option key={type}>{type}</option>)}
-          </select>
         </div>
 
         {/* Areas of interest (optional) */}

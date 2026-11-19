@@ -158,6 +158,40 @@ function themedEmail(content) {
 </html>`;
 }
 
+// How a newly activated client starts account setup and KYC. Shown above the sign-in button in every
+// "your account is active" email (wording supplied by DWP).
+const KYC_INTRO = 'Please follow the steps below to complete your DWP Institutional Custody KYC verification process:';
+const KYC_STEPS = [
+  'Log into your Digital Wealth custody account.',
+  'Click on the three-dot menu.',
+  'Select <strong>Anchorage Digital Bank</strong> to access your Digital Banking custody dashboard.',
+  'Navigate to the user profile (<strong>Me</strong>) button located below the dashboard.',
+  'Scroll down to the bottom of your Profile Settings Overview to locate the <strong>KYC</strong> page.',
+  'Proceed to <strong>Account Setup &amp; Identity Verification</strong> to complete the process.',
+];
+const KYC_NOTE = 'Kindly ensure all required documents are available and correctly uploaded to avoid any delays in verification.';
+
+function kycInstructionsHtml(lead = KYC_INTRO) {
+  const steps = KYC_STEPS.map((step, index) => `
+          <tr>
+            <td style="width:28px;padding:6px 10px 6px 0;vertical-align:top;"><div style="width:24px;height:24px;line-height:24px;border-radius:12px;background:#0033AD;color:#ffffff;font-size:12px;font-weight:700;text-align:center;">${index + 1}</div></td>
+            <td style="padding:8px 0 6px;font-size:14px;line-height:1.5;color:#111827;vertical-align:top;">${step}</td>
+          </tr>`).join('');
+  return `
+      <div style="background:#f8fafc;border:1px solid #dbeafe;border-radius:10px;padding:18px 18px 10px;margin:22px 0;">
+        <p style="margin:0 0 4px;font-size:15px;font-weight:700;color:#111827;">How to set up your account and complete KYC</p>
+        <p style="margin:0 0 10px;font-size:14px;line-height:1.6;color:#374151;">${lead}</p>
+        <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;">${steps}
+        </table>
+        <p style="margin:10px 0 8px;font-size:13px;line-height:1.6;color:#4b5563;">${KYC_NOTE}</p>
+      </div>`;
+}
+
+function kycInstructionsText(lead = KYC_INTRO) {
+  const steps = KYC_STEPS.map((step, index) => `${index + 1}. ${step.replace(/<[^>]*>/g, '').replace(/&amp;/g, '&')}`).join('\n');
+  return `How to set up your account and complete KYC\n${lead}\n${steps}\n${KYC_NOTE}`;
+}
+
 function escapeHtml(str) {
   return String(str)
     .replace(/&/g, '&amp;')
@@ -576,6 +610,11 @@ async function sendPasswordResetEmail(to, firstName, otp) {
 }
 
 // ─── General Contact Form Email ──────────────────────────────────────────────
+function formatAddress({ streetAddress, city, stateProvince, postalCode, country } = {}) {
+  const cityLine = [city, [stateProvince, postalCode].filter(Boolean).join(' ')].filter(Boolean).join(', ');
+  return [streetAddress, cityLine, country].filter(Boolean).join(', ');
+}
+
 async function sendGeneralContactEmail({ adminEmail, contactData }) {
   const transporter = createTransporter();
 
@@ -592,6 +631,9 @@ async function sendGeneralContactEmail({ adminEmail, contactData }) {
     holdsXRP,
     existingClient,
     clientType,
+    hasEntity,
+    entityName,
+    hasCryptoIRA,
     areasOfInterest,
     custodyAssets,
     referralSource,
@@ -616,7 +658,10 @@ async function sendGeneralContactEmail({ adminEmail, contactData }) {
     digitalAllocation: escapeHtml(digitalAllocation),
     holdsXRP: escapeHtml(holdsXRP),
     existingClient: escapeHtml(existingClient),
+    address: escapeHtml(formatAddress(contactData)),
     clientType: escapeHtml(clientType || ''),
+    hasEntity: escapeHtml(hasEntity ? `${hasEntity}${hasEntity === 'Yes' && entityName ? ` (${entityName})` : ''}` : ''),
+    hasCryptoIRA: escapeHtml(hasCryptoIRA || ''),
     areasOfInterest: escapeHtml(Array.isArray(areasOfInterest) && areasOfInterest.length ? areasOfInterest.join(', ') : 'None selected'),
     custodyAssets: escapeHtml(Array.isArray(custodyAssets) ? custodyAssets.join(', ') : ''),
     referralSource: escapeHtml(referralSource),
@@ -643,6 +688,7 @@ async function sendGeneralContactEmail({ adminEmail, contactData }) {
         <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Name</td><td style="color:#111827;text-align:right;font-size:14px;font-weight:bold;">${safe.firstName} ${safe.lastName}</td></tr>
         <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Email</td><td style="color:#111827;text-align:right;font-size:14px;"><a href="mailto:${safe.email}" style="color:#fbbf24;text-decoration:none;">${safe.email}</a></td></tr>
         <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Phone</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.phone}</td></tr>
+        ${safe.address ? `<tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;vertical-align:top;">Address</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.address}</td></tr>` : ''}
         <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Married</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.married}</td></tr>
         <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Children</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.children}</td></tr>
         <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Investable Assets</td><td style="color:#111827;text-align:right;font-size:14px;font-weight:bold;color:#10b981;">${safe.investableAssets}</td></tr>
@@ -650,6 +696,8 @@ async function sendGeneralContactEmail({ adminEmail, contactData }) {
         <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Holds 50k+ XRP</td><td style="color:#111827;text-align:right;font-size:14px;font-weight:bold;color:#f59e0b;">${safe.holdsXRP}</td></tr>
         <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">DWP Client</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.existingClient}</td></tr>
         <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Client Type</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.clientType}</td></tr>
+        ${safe.hasEntity ? `<tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Has LLC, Trust or Corp</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.hasEntity}</td></tr>` : ''}
+        ${safe.hasCryptoIRA ? `<tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Has a Crypto IRA</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.hasCryptoIRA}</td></tr>` : ''}
         <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Areas of Interest</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.areasOfInterest}</td></tr>
         <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Assets to Move to Custody</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.custodyAssets}</td></tr>
         <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Wallets Used</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.walletsUsed}</td></tr>
@@ -672,7 +720,7 @@ async function sendGeneralContactEmail({ adminEmail, contactData }) {
     to: adminEmail,
     subject: `[Contact Form] ${topic} - From ${firstName} ${lastName}`,
     replyTo: email,
-    text: `New consultation request\n\nTopic: ${topic}\nName: ${firstName} ${lastName}\nEmail: ${email}\nPhone: ${phone}\nClient type: ${clientType}\nAreas of interest: ${(areasOfInterest || []).join(', ') || 'None selected'}\nAssets to move to custody: ${(custodyAssets || []).join(', ')}\nWallets used: ${describeSelections(walletsUsed, walletOther)}\nExchanges used: ${describeSelections(exchangesUsed, exchangeOther)}\n\n${message}`,
+    text: `New consultation request\n\nTopic: ${topic}\nName: ${firstName} ${lastName}\nEmail: ${email}\nPhone: ${phone}\nAddress: ${formatAddress(contactData)}\nClient type: ${clientType}\nHas LLC, trust or corporation: ${hasEntity || ''}${entityName ? ` (${entityName})` : ''}\nHas a crypto IRA: ${hasCryptoIRA || ''}\nAreas of interest: ${(areasOfInterest || []).join(', ') || 'None selected'}\nAssets to move to custody: ${(custodyAssets || []).join(', ')}\nWallets used: ${describeSelections(walletsUsed, walletOther)}\nExchanges used: ${describeSelections(exchangesUsed, exchangeOther)}\n\n${message}`,
     html: themedEmail(html),
   });
 }
@@ -687,6 +735,7 @@ async function sendConsultationReceivedEmail({ contactData }) {
     ['Name', `${d.firstName} ${d.lastName}`],
     ['Email', d.email],
     ['Phone', d.phone],
+    ['Address', formatAddress(d)],
     ['Married', d.married],
     ['Children', d.children],
     ['Investable assets', d.investableAssets],
@@ -694,6 +743,8 @@ async function sendConsultationReceivedEmail({ contactData }) {
     ['Holds 50k+ XRP', d.holdsXRP],
     ['DWP client status', d.existingClient],
     ['Client type', d.clientType],
+    ['LLC, trust or corporation', d.hasEntity ? `${d.hasEntity}${d.hasEntity === 'Yes' && d.entityName ? ` (${d.entityName})` : ''}` : null],
+    ['Crypto IRA', d.hasCryptoIRA],
     ['Areas of interest', (d.areasOfInterest || []).join(', ')],
     ['Digital assets to move to custody', (d.custodyAssets || []).join(', ')],
     ['Wallets you use', describeSelections(d.walletsUsed, d.walletOther)],
@@ -709,7 +760,7 @@ async function sendConsultationReceivedEmail({ contactData }) {
       <p>Thank you for contacting Digital Wealth Partners. Your consultation request has been received and your information has been submitted to our team. Here is a copy of what you sent us.</p>
       <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:1px;color:#6b7280;margin:28px 0 8px;">Your submission</h3>
       <table style="width:100%;border-collapse:collapse;">
-        ${rows.map(([label, value]) => `<tr><td style="padding:7px 12px 7px 0;color:#6b7280;font-size:14px;vertical-align:top;border-bottom:1px solid #f3f4f6;">${escapeHtml(label)}</td><td style="padding:7px 0;font-size:14px;text-align:right;border-bottom:1px solid #f3f4f6;">${escapeHtml(value)}</td></tr>`).join('')}
+        ${rows.map(([label, value]) => `<tr><td style="padding:7px 12px 7px 0;color:#4b5563;font-size:14px;vertical-align:top;border-bottom:1px solid #f3f4f6;">${escapeHtml(label)}</td><td style="padding:7px 0;font-size:14px;text-align:right;border-bottom:1px solid #f3f4f6;color:#111827;">${escapeHtml(value)}</td></tr>`).join('')}
       </table>
       <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:1px;color:#6b7280;margin:24px 0 8px;">Your message</h3>
       <div style="background:#f4f7fb;border:1px solid #e5e7eb;border-radius:8px;padding:14px;font-size:14px;line-height:1.6;white-space:pre-wrap;">${escapeHtml(d.message)}</div>
@@ -1478,6 +1529,7 @@ async function sendOnboardingPaymentStatusEmail({ userEmail, firstName, type, pa
   }[type];
   if (!details) throw new Error('Unknown onboarding payment email type');
   const reference = payment?.transactionReference || 'Not available';
+  const showKyc = type === 'activated';
   const html = `
     <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
       <h2 style="margin:0 0 4px;">Digital Wealth Partners</h2>
@@ -1488,6 +1540,7 @@ async function sendOnboardingPaymentStatusEmail({ userEmail, firstName, type, pa
         <p style="margin:0 0 6px;"><strong>Transaction reference</strong></p>
         <p style="margin:0;word-break:break-all;font-family:monospace;">${escapeHtml(reference)}</p>
       </div>
+      ${showKyc ? kycInstructionsHtml() : ''}
       <table role="presentation" cellpadding="0" cellspacing="0" style="margin:20px 0;"><tr><td bgcolor="#0033AD" style="border-radius:8px;background:#0033AD;"><a href="${details.url}" class="dwp-btn" style="display:inline-block;padding:12px 24px;font-weight:600;text-decoration:none;color:#ffffff !important;">${details.action}</a></td></tr></table>
       <p>Questions? Contact <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a>.</p>
       <hr style="border-color:#e5e7eb;margin:28px 0;" />
@@ -1495,7 +1548,7 @@ async function sendOnboardingPaymentStatusEmail({ userEmail, firstName, type, pa
     </div>`;
   return transporter.sendMail({
     from: FROM(), replyTo: SUPPORT_EMAIL, to: userEmail, subject: details.subject,
-    text: `${details.heading}\n\nHi ${firstName || 'there'},\n\n${details.message.replace(/<[^>]*>/g, '')}\n\nTransaction reference: ${reference}\n\n${details.url}\n\nDigital Wealth Partners`,
+    text: `${details.heading}\n\nHi ${firstName || 'there'},\n\n${details.message.replace(/<[^>]*>/g, '')}\n\nTransaction reference: ${reference}\n\n${showKyc ? `${kycInstructionsText()}\n\n` : ''}${details.action}: ${details.url}\n\nDigital Wealth Partners`,
     html: themedEmail(html),
   });
 }
@@ -1508,9 +1561,9 @@ async function sendOnboardingPaymentAdminEmail({ adminEmail, user, payment }) {
       <h2 style="margin:0 0 4px;">Onboarding payment submitted</h2>
       <p>${escapeHtml(user.firstName)} ${escapeHtml(user.lastName)} (${escapeHtml(user.email)}) submitted a transaction for review.</p>
       <table style="width:100%;border-collapse:collapse;margin:20px 0;">
-        <tr><td style="padding:6px 0;color:#6b7280;">Quote</td><td style="text-align:right;font-weight:600;">${escapeHtml(payment.assetAmount)} ${escapeHtml(payment.asset)}</td></tr>
-        <tr><td style="padding:6px 0;color:#6b7280;">Network check</td><td style="text-align:right;font-weight:600;">${escapeHtml(payment.verification.state)}</td></tr>
-        <tr><td style="padding:6px 0;color:#6b7280;">Reference</td><td style="text-align:right;word-break:break-all;">${escapeHtml(payment.transactionReference)}</td></tr>
+        <tr><td style="padding:6px 8px 6px 0;color:#4b5563;vertical-align:top;">Quote</td><td style="text-align:right;font-weight:600;color:#111827;">${escapeHtml(payment.assetAmount)} ${escapeHtml(payment.asset)}</td></tr>
+        <tr><td style="padding:6px 8px 6px 0;color:#4b5563;vertical-align:top;">Network check</td><td style="text-align:right;font-weight:600;color:#111827;">${escapeHtml(payment.verification.state)}</td></tr>
+        <tr><td style="padding:6px 8px 6px 0;color:#4b5563;vertical-align:top;">Reference</td><td style="text-align:right;word-break:break-all;color:#111827;">${escapeHtml(payment.transactionReference)}</td></tr>
       </table>
       <a href="${appUrl}/admin/onboarding-payments" class="dwp-btn" style="display:inline-block;background:#0033AD;color:#ffffff !important;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">Review Payment</a>
     </div>`;
@@ -1547,7 +1600,7 @@ async function sendPaymentProofAdminEmail({ adminEmail, proof, accountExists, sc
       <h2 style="margin:0 0 4px;">New onboarding fee payment proof</h2>
       <p>${escapeHtml(proof.fullName)} says they have made the onboarding fee payment. Review the proof and approve or decline it.</p>
       <table style="width:100%;border-collapse:collapse;margin:20px 0;">
-        ${rows.map(([label, value]) => `<tr><td style="padding:6px 8px 6px 0;color:#6b7280;vertical-align:top;white-space:nowrap;">${escapeHtml(label)}</td><td style="padding:6px 0;text-align:right;font-weight:600;word-break:break-all;">${escapeHtml(value)}</td></tr>`).join('')}
+        ${rows.map(([label, value]) => `<tr><td style="padding:6px 8px 6px 0;color:#6b7280;vertical-align:top;white-space:nowrap;">${escapeHtml(label)}</td><td style="padding:6px 0;text-align:right;font-weight:600;word-break:break-all;color:#111827;">${escapeHtml(value)}</td></tr>`).join('')}
       </table>
       <p style="color:#374151;">${accountExists ? 'This email already has a DWP account. Approving will record the payment on it.' : 'No DWP account uses this email yet. If you approve, the payment is applied when they create an account with this email.'}</p>
       <p style="color:#6b7280;font-size:13px;">The screenshot is attached and also shown on the admin page.</p>
@@ -1595,6 +1648,12 @@ async function sendPaymentProofClientEmail({ type, proof, accountActive = false,
     },
   }[type];
   if (!details) throw new Error('Unknown payment proof email type');
+  // Approved: tell them how to set up the account and do KYC. If the account is not active yet, the
+  // steps apply once it is.
+  const kycLead = type !== 'approved' ? null
+    : accountActive ? KYC_INTRO
+      : hasAccount ? `Once your account is active, ${KYC_INTRO.charAt(0).toLowerCase()}${KYC_INTRO.slice(1)}`
+        : `After you create your account with this email, ${KYC_INTRO.charAt(0).toLowerCase()}${KYC_INTRO.slice(1)}`;
   const summary = [
     ['Amount', `${proof.amount} ${proof.asset || 'XRP'}`],
     ['Sent from', proof.senderAddress],
@@ -1609,6 +1668,7 @@ async function sendPaymentProofClientEmail({ type, proof, accountActive = false,
       <div style="background:#f4f7fb;border:1px solid #dbeafe;padding:16px;border-radius:8px;margin:20px 0;">
         ${summary.map(([label, value]) => `<p style="margin:0 0 6px;"><strong>${escapeHtml(label)}:</strong> <span style="word-break:break-all;">${escapeHtml(value)}</span></p>`).join('')}
       </div>
+      ${kycLead ? kycInstructionsHtml(kycLead) : ''}
       <table role="presentation" cellpadding="0" cellspacing="0" style="margin:20px 0;"><tr><td bgcolor="#0033AD" style="border-radius:8px;background:#0033AD;"><a href="${details.url}" class="dwp-btn" style="display:inline-block;padding:12px 24px;font-weight:600;text-decoration:none;color:#ffffff !important;">${details.action}</a></td></tr></table>
       <p>Questions? Contact <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a>.</p>
       <hr style="border-color:#e5e7eb;margin:28px 0;" />
@@ -1616,7 +1676,7 @@ async function sendPaymentProofClientEmail({ type, proof, accountActive = false,
     </div>`;
   return transporter.sendMail({
     from: FROM(), replyTo: SUPPORT_EMAIL, to: proof.email, subject: details.subject,
-    text: `${details.heading}\n\nHi ${firstName},\n\n${details.message.replace(/<[^>]*>/g, '')}\n\n${summary.map(([label, value]) => `${label}: ${value}`).join('\n')}\n\n${details.url}\n\nDigital Wealth Partners`,
+    text: `${details.heading}\n\nHi ${firstName},\n\n${details.message.replace(/<[^>]*>/g, '')}\n\n${summary.map(([label, value]) => `${label}: ${value}`).join('\n')}\n\n${kycLead ? `${kycInstructionsText(kycLead)}\n\n` : ''}${details.action}: ${details.url}\n\nDigital Wealth Partners`,
     html: themedEmail(html),
   });
 }
