@@ -3,9 +3,16 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Check, ChevronDown, X } from 'lucide-react';
 
-// Field: light grey surface like DirectStay's form fields. Open list: plain white panel.
+// Field: light grey surface like DirectStay's form fields.
+// Open list: dark translucent grey panel with white text and a ✓ on chosen items, matching the
+// dropdown menu phones show for the form's single-choice selects (DWP asked for all to match).
 const FIELD = { background: '#F3F3F3A1', border: '#FFFFFF', text: '#2C3236', placeholder: '#606060' };
-const PANEL = { background: '#ffffff', border: '#e5e7eb', divider: '#f1f2f4', text: '#2C3236', muted: '#6b7280' };
+const PANEL = {
+  background: 'rgba(58, 58, 60, 0.9)',
+  text: '#ffffff',
+  muted: 'rgba(255, 255, 255, 0.6)',
+  search: 'rgba(255, 255, 255, 0.12)',
+};
 
 export interface MultiSelectOption {
   value: string;
@@ -127,25 +134,25 @@ export default function MultiSelect({
 
       {open && (
         <div
-          className="absolute z-30 mt-1 w-full overflow-hidden rounded-md border shadow-lg"
-          style={{ backgroundColor: PANEL.background, borderColor: PANEL.border }}
+          className="absolute z-30 mt-2 w-full overflow-hidden rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.28)] backdrop-blur-xl backdrop-saturate-150"
+          style={{ backgroundColor: PANEL.background }}
         >
           {searchable && options.length > 8 && (
-            <div className="border-b p-2" style={{ borderColor: PANEL.divider }}>
+            <div className="px-3 pt-3 pb-1">
               <input
                 type="text"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder={searchPlaceholder}
                 aria-label={searchPlaceholder}
-                className="w-full rounded-md border px-2 py-1.5 text-sm placeholder:text-[#606060]"
-                style={{ backgroundColor: FIELD.background, borderColor: FIELD.border, outline: 'none', color: FIELD.text }}
+                className="w-full rounded-lg border-0 px-3 py-2 text-[15px] placeholder:text-white/55 focus:shadow-[0_0_0_2px_rgba(255,255,255,0.35)]"
+                style={{ backgroundColor: PANEL.search, outline: 'none', color: PANEL.text }}
               />
             </div>
           )}
-          <ul id={listId} role="listbox" aria-multiselectable="true" className="max-h-60 overflow-y-auto py-1">
+          <ul id={listId} role="listbox" aria-multiselectable="true" className="max-h-72 overflow-y-auto py-2">
             {filtered.length === 0 && (
-              <li className="px-3 py-2 text-sm" style={{ color: PANEL.muted }}>
+              <li className="py-2.5 pr-4 pl-11 text-[15px]" style={{ color: PANEL.muted }}>
                 {loading ? loadingText : 'No matches'}
               </li>
             )}
@@ -157,7 +164,7 @@ export default function MultiSelect({
                   role="option"
                   aria-selected={selected}
                   tabIndex={0}
-                  className="flex cursor-pointer items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 focus:bg-gray-50 focus:outline-none"
+                  className="flex cursor-pointer items-start gap-3 py-2.5 pr-4 pl-4 text-[16px] leading-snug hover:bg-white/10 focus:bg-white/10 focus:outline-none"
                   style={{ color: PANEL.text }}
                   onClick={() => toggle(option.value)}
                   onKeyDown={(event) => {
@@ -167,16 +174,10 @@ export default function MultiSelect({
                     }
                   }}
                 >
-                  <span
-                    className="flex h-4 w-4 shrink-0 items-center justify-center border"
-                    style={{
-                      borderColor: selected ? '#2563eb' : '#9ca3af',
-                      backgroundColor: selected ? '#2563eb' : 'transparent',
-                    }}
-                  >
-                    {selected && <Check size={12} color="#ffffff" strokeWidth={3} />}
+                  <span className="flex h-[1.375em] w-4 shrink-0 items-center justify-center" aria-hidden="true">
+                    {selected && <Check size={16} color={PANEL.text} strokeWidth={2.5} />}
                   </span>
-                  {option.label}
+                  <span className="min-w-0">{option.label}</span>
                 </li>
               );
             })}
