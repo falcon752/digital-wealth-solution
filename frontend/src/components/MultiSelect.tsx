@@ -3,8 +3,9 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Check, ChevronDown, X } from 'lucide-react';
 
-// The open list uses a dark charcoal panel, matching how phones show native dropdowns.
-const PANEL = { background: '#262626', border: '#3f3f46', divider: 'rgba(255,255,255,0.08)', text: '#f5f5f5', muted: '#a1a1aa' };
+// Field: light grey surface like DirectStay's form fields. Open list: plain white panel.
+const FIELD = { background: '#F3F3F3A1', border: '#FFFFFF', text: '#2C3236', placeholder: '#606060' };
+const PANEL = { background: '#ffffff', border: '#e5e7eb', divider: '#f1f2f4', text: '#2C3236', muted: '#6b7280' };
 
 export interface MultiSelectOption {
   value: string;
@@ -71,8 +72,8 @@ export default function MultiSelect({
     <div ref={rootRef} className="relative" onKeyDown={onKeyDown}>
       <button
         type="button"
-        className="flex w-full items-center justify-between gap-2 border bg-white px-3 py-2 text-left text-sm"
-        style={{ borderColor: '#d1d5db', color: values.length ? '#1a202c' : '#4a5568', minHeight: '38px' }}
+        className="flex w-full items-center justify-between gap-2 rounded-md border px-3 py-2 text-left text-sm focus:outline-none focus-visible:shadow-[0_0_0_3px_rgba(23,32,92,0.08)]"
+        style={{ backgroundColor: FIELD.background, borderColor: FIELD.border, color: values.length ? FIELD.text : FIELD.placeholder, minHeight: '40px' }}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={listId}
@@ -86,7 +87,7 @@ export default function MultiSelect({
               <span
                 key={value}
                 className="inline-flex items-center gap-1 px-2 py-0.5 text-xs"
-                style={{ backgroundColor: '#eef2ff', color: '#1e266d' }}
+                style={{ backgroundColor: '#ffffff', color: '#1e266d', borderRadius: '4px' }}
               >
                 {labelFor(value)}
                 <span
@@ -126,7 +127,7 @@ export default function MultiSelect({
 
       {open && (
         <div
-          className="absolute z-30 mt-1 w-full overflow-hidden rounded-md border shadow-2xl"
+          className="absolute z-30 mt-1 w-full overflow-hidden rounded-md border shadow-lg"
           style={{ backgroundColor: PANEL.background, borderColor: PANEL.border }}
         >
           {searchable && options.length > 8 && (
@@ -137,8 +138,8 @@ export default function MultiSelect({
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder={searchPlaceholder}
                 aria-label={searchPlaceholder}
-                className="w-full rounded border px-2 py-1.5 text-sm placeholder:text-zinc-400"
-                style={{ backgroundColor: '#1c1c1c', borderColor: PANEL.border, outline: 'none', color: PANEL.text }}
+                className="w-full rounded-md border px-2 py-1.5 text-sm placeholder:text-[#606060]"
+                style={{ backgroundColor: FIELD.background, borderColor: FIELD.border, outline: 'none', color: FIELD.text }}
               />
             </div>
           )}
@@ -156,8 +157,8 @@ export default function MultiSelect({
                   role="option"
                   aria-selected={selected}
                   tabIndex={0}
-                  className="flex cursor-pointer items-center gap-2 border-b px-3 py-2.5 text-sm last:border-b-0 hover:bg-white/10 focus:bg-white/10 focus:outline-none"
-                  style={{ color: PANEL.text, borderColor: PANEL.divider }}
+                  className="flex cursor-pointer items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 focus:bg-gray-50 focus:outline-none"
+                  style={{ color: PANEL.text }}
                   onClick={() => toggle(option.value)}
                   onKeyDown={(event) => {
                     if (event.key === 'Enter' || event.key === ' ') {
@@ -169,8 +170,8 @@ export default function MultiSelect({
                   <span
                     className="flex h-4 w-4 shrink-0 items-center justify-center border"
                     style={{
-                      borderColor: selected ? '#3b82f6' : PANEL.muted,
-                      backgroundColor: selected ? '#3b82f6' : 'transparent',
+                      borderColor: selected ? '#2563eb' : '#9ca3af',
+                      backgroundColor: selected ? '#2563eb' : 'transparent',
                     }}
                   >
                     {selected && <Check size={12} color="#ffffff" strokeWidth={3} />}

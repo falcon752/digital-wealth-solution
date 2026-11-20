@@ -28,11 +28,21 @@ const radioStyle = `
     border-color: #2563eb;
     background: transparent;
   }
-  /* Native dropdown lists use the same dark background as the custom pop-ups (where the browser allows it). */
-  .dwp-contact-form select option,
-  .dwp-contact-form select optgroup {
-    background-color: #262626;
-    color: #f5f5f5;
+  /* Light grey form fields, same look as DirectStay's forms in light mode. */
+  .dwp-contact-form .dwp-field {
+    background-color: #F3F3F3A1;
+    border: 1px solid #FFFFFF;
+    border-radius: 6px;
+    color: #2C3236;
+    min-height: 40px;
+  }
+  .dwp-contact-form .dwp-field::placeholder {
+    color: #606060;
+  }
+  .dwp-contact-form .dwp-field:focus {
+    outline: none;
+    border-color: #cfd3dc;
+    box-shadow: 0 0 0 3px rgba(23, 32, 92, 0.08);
   }
   .custom-radio:checked::after {
     content: '';
@@ -242,8 +252,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
             What brings you here today? <span style={{ color: '#c0392b' }}>*</span>
           </label>
           <select
-            className="w-full border px-3 py-2 text-sm rounded-none font-medium bg-white"
-            style={{ borderColor: '#d1d5db', color: '#4a5568', outline: 'none' }}
+            className="dwp-field w-full px-3 py-2 text-sm font-medium"
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
             required
@@ -264,8 +273,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
             <div>
               <input
                 type="text"
-                className="w-full border px-3 py-2 text-sm"
-                style={{ borderColor: '#d1d5db', outline: 'none', color: '#1a202c' }}
+                className="dwp-field w-full px-3 py-2 text-sm"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 required
@@ -275,8 +283,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
             <div>
               <input
                 type="text"
-                className="w-full border px-3 py-2 text-sm"
-                style={{ borderColor: '#d1d5db', outline: 'none', color: '#1a202c' }}
+                className="dwp-field w-full px-3 py-2 text-sm"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 required
@@ -295,8 +302,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
             <div>
               <input
                 type="email"
-                className="w-full border px-3 py-2 text-sm"
-                style={{ borderColor: '#d1d5db', outline: 'none', color: '#1a202c' }}
+                className="dwp-field w-full px-3 py-2 text-sm"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -306,8 +312,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
             <div>
               <input
                 type="email"
-                className="w-full border px-3 py-2 text-sm"
-                style={{ borderColor: '#d1d5db', outline: 'none', color: '#1a202c' }}
+                className="dwp-field w-full px-3 py-2 text-sm"
                 value={confirmEmail}
                 onChange={(e) => setConfirmEmail(e.target.value)}
                 required
@@ -324,8 +329,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
           </label>
           <input
             type="tel"
-            className="w-full border px-3 py-2 text-sm"
-            style={{ borderColor: '#d1d5db', outline: 'none', color: '#1a202c' }}
+            className="dwp-field w-full px-3 py-2 text-sm"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             required
@@ -341,8 +345,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
             <div>
               <input
                 type="text"
-                className="w-full border px-3 py-2 text-sm"
-                style={{ borderColor: '#d1d5db', outline: 'none', color: '#1a202c' }}
+                className="dwp-field w-full px-3 py-2 text-sm"
                 placeholder="Street Address"
                 aria-label="Street Address"
                 autoComplete="street-address"
@@ -355,8 +358,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
               <input
                 type="text"
-                className="w-full border px-3 py-2 text-sm"
-                style={{ borderColor: '#d1d5db', outline: 'none', color: '#1a202c' }}
+                className="dwp-field w-full px-3 py-2 text-sm"
                 placeholder="City"
                 aria-label="City"
                 autoComplete="address-level2"
@@ -367,8 +369,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
               />
               <input
                 type="text"
-                className="w-full border px-3 py-2 text-sm"
-                style={{ borderColor: '#d1d5db', outline: 'none', color: '#1a202c' }}
+                className="dwp-field w-full px-3 py-2 text-sm"
                 placeholder="State/Province"
                 aria-label="State/Province"
                 autoComplete="address-level1"
@@ -380,8 +381,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
               <input
                 type="text"
-                className="w-full border px-3 py-2 text-sm"
-                style={{ borderColor: '#d1d5db', outline: 'none', color: '#1a202c' }}
+                className="dwp-field w-full px-3 py-2 text-sm"
                 placeholder="ZIP/Postal"
                 aria-label="ZIP/Postal"
                 autoComplete="postal-code"
@@ -390,8 +390,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
                 onChange={(e) => setPostalCode(e.target.value)}
               />
               <select
-                className="w-full border px-3 py-2 text-sm rounded-none bg-white"
-                style={{ borderColor: '#d1d5db', color: country ? '#1a202c' : '#4a5568', outline: 'none' }}
+                className="dwp-field w-full px-3 py-2 text-sm"
                 aria-label="Country"
                 autoComplete="country-name"
                 value={country}
@@ -455,8 +454,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
             Investable Assets <span style={{ color: '#c0392b' }}>*</span>
           </label>
           <select
-            className="w-full border px-3 py-2 text-sm rounded-none bg-white"
-            style={{ borderColor: '#d1d5db', color: '#4a5568', outline: 'none' }}
+            className="dwp-field w-full px-3 py-2 text-sm"
             value={investableAssets}
             onChange={(e) => setInvestableAssets(e.target.value)}
             required
@@ -475,8 +473,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
             Client Type <span style={{ color: '#c0392b' }}>*</span>
           </label>
           <select
-            className="w-full border px-3 py-2 text-sm rounded-none bg-white"
-            style={{ borderColor: '#d1d5db', color: '#4a5568', outline: 'none' }}
+            className="dwp-field w-full px-3 py-2 text-sm"
             value={clientType}
             onChange={(e) => setClientType(e.target.value)}
             required
@@ -514,8 +511,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
             </label>
             <input
               type="text"
-              className="w-full border px-3 py-2 text-sm"
-              style={{ borderColor: '#d1d5db', outline: 'none', color: '#1a202c' }}
+              className="dwp-field w-full px-3 py-2 text-sm"
               aria-label="Name of LLC/Trust/Corp"
               maxLength={120}
               value={entityName}
@@ -552,8 +548,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
               Current Allocation to Digital Assets <span style={{ color: '#c0392b' }}>*</span>
             </label>
             <select
-              className="w-full border px-3 py-2 text-sm rounded-none bg-white"
-              style={{ borderColor: '#d1d5db', color: '#4a5568', outline: 'none' }}
+              className="dwp-field w-full px-3 py-2 text-sm"
               value={digitalAllocation}
               onChange={(e) => setDigitalAllocation(e.target.value)}
               required
@@ -655,8 +650,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
           />
           {walletsUsed.includes(OTHER_CHOICE) && (
             <input
-              className="mt-2 w-full border px-3 py-2 text-sm rounded-none bg-white"
-              style={{ borderColor: '#d1d5db', color: '#4a5568', outline: 'none' }}
+              className="dwp-field mt-2 w-full px-3 py-2 text-sm"
               placeholder="Name of the other wallet(s)"
               aria-label="Name of the other wallet(s)"
               maxLength={100}
@@ -684,8 +678,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
           />
           {exchangesUsed.includes(OTHER_CHOICE) && (
             <input
-              className="mt-2 w-full border px-3 py-2 text-sm rounded-none bg-white"
-              style={{ borderColor: '#d1d5db', color: '#4a5568', outline: 'none' }}
+              className="dwp-field mt-2 w-full px-3 py-2 text-sm"
               placeholder="Name of the other exchange(s)"
               aria-label="Name of the other exchange(s)"
               maxLength={100}
@@ -702,8 +695,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
             Referral source (if any): <span style={{ color: '#c0392b' }}>*</span>
           </label>
           <select
-            className="w-full border px-3 py-2 text-sm rounded-none bg-white"
-            style={{ borderColor: '#d1d5db', color: '#4a5568', outline: 'none' }}
+            className="dwp-field w-full px-3 py-2 text-sm"
             value={referralSource}
             onChange={(e) => {
               setReferralSource(e.target.value);
@@ -725,8 +717,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
               Which DWP official referred you? <span style={{ color: '#c0392b' }}>*</span>
             </label>
             <select
-              className="w-full border px-3 py-2 text-sm rounded-none bg-white"
-              style={{ borderColor: '#d1d5db', color: '#4a5568', outline: 'none' }}
+              className="dwp-field w-full px-3 py-2 text-sm"
               value={referralOfficial}
               onChange={(e) => setReferralOfficial(e.target.value)}
               required
@@ -757,8 +748,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
             maxLength={750}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            className="w-full border px-3 py-2 text-sm resize-y"
-            style={{ borderColor: '#d1d5db', outline: 'none', color: '#1a202c' }}
+            className="dwp-field w-full px-3 py-2 text-sm resize-y"
             required
           />
           <p className="text-xs mt-1" style={{ color: '#718096' }}>
