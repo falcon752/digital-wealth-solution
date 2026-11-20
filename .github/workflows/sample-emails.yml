@@ -1,0 +1,42 @@
+# "Run workflow" on the Actions tab sends one sample of each changed email (made-up data) to the
+# address typed into the "to" box (or, if left empty, the SAMPLE_EMAIL_TO repository secret). It runs scripts/send-sample-emails.js on the
+# production VPS, because only the server has the SMTP settings. No database is touched.
+#
+# Uses the deploy secrets VPS_HOST, VPS_USER,
+# VPS_SSH_KEY and VPS_KNOWN_HOSTS (see deploy.yml).
+name: Send sample emails
+
+on:
+  workflow_dispatch:
+    inputs:
+      to:
+        description: Address that receives the samples (leave empty to use the SAMPLE_EMAIL_TO secret)
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  send:
+    name: Send samples
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Send from the VPS
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+          SAMPLE_TO: ${{ inputs.to || secrets.SAMPLE_EMAIL_TO }}
+        run: |
+          [ -n "$SAMPLE_TO" ] || { echo "Type an address in the \"to\" box, or add the SAMPLE_EMAIL_TO repository secret."; exit 1; }
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          ssh -i ~/.ssh/deploy_key -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            "$VPS_USER@$VPS_HOST" "cd /var/www/app/backend && SAMPLE_TO=$(printf '%q' "$SAMPLE_TO") node -" < scripts/send-sample-emails.js
