@@ -246,10 +246,12 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
     <>
       <style>{radioStyle}</style>
       <form onSubmit={handleSubmit} className="dwp-contact-form space-y-6">
+        <p className="text-sm" style={{ color: '#718096' }}>All fields are required unless marked (optional).</p>
+
         {/* What brings you here */}
         <div>
           <label className="block text-sm font-medium mb-1" style={{ color: '#1a202c' }}>
-            What brings you here today? <span style={{ color: '#c0392b' }}>*</span>
+            What brings you here today?
           </label>
           <select
             className="dwp-field w-full px-3 py-2 text-sm font-medium"
@@ -267,7 +269,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
         {/* Name */}
         <div>
           <label className="block text-sm font-medium mb-1" style={{ color: '#1a202c' }}>
-            Name <span style={{ color: '#c0392b' }}>*</span>
+            Name
           </label>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -296,7 +298,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
         {/* Email */}
         <div>
           <label className="block text-sm font-medium mb-1" style={{ color: '#1a202c' }}>
-            Email <span style={{ color: '#c0392b' }}>*</span>
+            Email
           </label>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -325,7 +327,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
         {/* Phone */}
         <div>
           <label className="block text-sm font-medium mb-1" style={{ color: '#1a202c' }}>
-            Phone Number <span style={{ color: '#c0392b' }}>*</span>
+            Phone Number
           </label>
           <input
             type="tel"
@@ -339,7 +341,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
         {/* Address */}
         <div>
           <label className="block text-sm font-medium mb-1" style={{ color: '#1a202c' }}>
-            Address <span style={{ color: '#c0392b' }}>*</span>
+            Address
           </label>
           <div className="space-y-3">
             <div>
@@ -370,7 +372,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
               <input
                 type="text"
                 className="dwp-field w-full px-3 py-2 text-sm"
-                placeholder="State/Province"
+                placeholder="State/Province (optional)"
                 aria-label="State/Province"
                 autoComplete="address-level1"
                 maxLength={80}
@@ -382,7 +384,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
               <input
                 type="text"
                 className="dwp-field w-full px-3 py-2 text-sm"
-                placeholder="ZIP/Postal"
+                placeholder="ZIP/Postal (optional)"
                 aria-label="ZIP/Postal"
                 autoComplete="postal-code"
                 maxLength={20}
@@ -408,7 +410,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
         <div className="grid grid-cols-2 gap-8">
           <div>
             <label className="block text-sm font-medium mb-2" style={{ color: '#1a202c' }}>
-              Family Status: Are you married? <span style={{ color: '#c0392b' }}>*</span>
+              Family Status: Are you married?
             </label>
             <div className="space-y-1">
               {['Yes', 'No'].map((v) => (
@@ -428,7 +430,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
           </div>
           <div>
             <label className="block text-sm font-medium mb-2" style={{ color: '#1a202c' }}>
-              Family Status: Do you have children? <span style={{ color: '#c0392b' }}>*</span>
+              Family Status: Do you have children?
             </label>
             <div className="space-y-1">
               {['Yes', 'No'].map((v) => (
@@ -451,7 +453,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
         {/* Investable Assets */}
         <div>
           <label className="block text-sm font-medium mb-1" style={{ color: '#1a202c' }}>
-            Investable Assets <span style={{ color: '#c0392b' }}>*</span>
+            Investable Assets
           </label>
           <select
             className="dwp-field w-full px-3 py-2 text-sm"
@@ -470,7 +472,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
         {/* Client type, entity and IRA, in the same order as the DWP application form */}
         <div>
           <label className="block text-sm font-medium mb-1" style={{ color: '#1a202c' }}>
-            Client Type <span style={{ color: '#c0392b' }}>*</span>
+            Client Type
           </label>
           <select
             className="dwp-field w-full px-3 py-2 text-sm"
@@ -485,7 +487,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
 
         <div>
           <label className="block text-sm font-medium mb-2" style={{ color: '#1a202c' }}>
-            Do you have an LLC, Trust, or Corporation? <span style={{ color: '#c0392b' }}>*</span>
+            Do you have an LLC, Trust, or Corporation?
           </label>
           <div className="flex gap-6">
             {['Yes', 'No'].map((v) => (
@@ -507,7 +509,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
         {hasEntity === 'Yes' && (
           <div>
             <label className="block text-sm font-medium mb-1" style={{ color: '#1a202c' }}>
-              Name of LLC/Trust/Corp?
+              Name of LLC/Trust/Corp? <span className="font-normal" style={{ color: '#718096' }}>(optional)</span>
             </label>
             <input
               type="text"
@@ -522,7 +524,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
 
         <div>
           <label className="block text-sm font-medium mb-2" style={{ color: '#1a202c' }}>
-            Do you have a Crypto IRA?
+            Do you have a Crypto IRA? <span className="font-normal" style={{ color: '#718096' }}>(optional)</span>
           </label>
           <div className="flex gap-6">
             {['Yes', 'No'].map((v) => (
@@ -545,7 +547,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
         <div className="grid grid-cols-2 gap-8">
           <div>
             <label className="block text-sm font-medium mb-1" style={{ color: '#1a202c' }}>
-              Current Allocation to Digital Assets <span style={{ color: '#c0392b' }}>*</span>
+              Current Allocation to Digital Assets
             </label>
             <select
               className="dwp-field w-full px-3 py-2 text-sm"
@@ -563,7 +565,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
           </div>
           <div>
             <label className="block text-sm font-medium mb-2" style={{ color: '#1a202c' }}>
-              Do you currently hold 50,000 or more XRP Tokens? <span style={{ color: '#c0392b' }}>*</span>
+              Do you currently hold 50,000 or more XRP Tokens?
             </label>
             <div className="space-y-1">
               {['Yes', 'No'].map((v) => (
@@ -586,7 +588,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
         {/* Existing client */}
         <div>
           <label className="block text-sm font-medium mb-2" style={{ color: '#1a202c' }}>
-            Are you an existing client of Digital Wealth Partners? <span style={{ color: '#c0392b' }}>*</span>
+            Are you an existing client of Digital Wealth Partners?
           </label>
           <div className="space-y-1">
             {['Existing DWP Client', 'Not Currently a DWP Client'].map((v) => (
@@ -622,7 +624,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
         {/* Asset to move to custody */}
         <div>
           <label className="block text-sm font-medium mb-1" style={{ color: '#1a202c' }}>
-            List digital assets you want to move to custody <span style={{ color: '#c0392b' }}>*</span>
+            List digital assets you want to move to custody
           </label>
           <MultiSelect
             options={assetOptions}
@@ -636,7 +638,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
         {/* Wallets the visitor uses */}
         <div>
           <label className="block text-sm font-medium mb-1" style={{ color: '#1a202c' }}>
-            Which digital wallets do you currently use? <span style={{ color: '#c0392b' }}>*</span>
+            Which digital wallets do you currently use?
           </label>
           <MultiSelect
             options={walletOptions}
@@ -664,7 +666,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
         {/* Exchanges the visitor uses */}
         <div>
           <label className="block text-sm font-medium mb-1" style={{ color: '#1a202c' }}>
-            Which cryptocurrency exchanges do you currently use? <span style={{ color: '#c0392b' }}>*</span>
+            Which cryptocurrency exchanges do you currently use?
           </label>
           <MultiSelect
             options={exchangeOptions}
@@ -692,7 +694,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
         {/* Referral source */}
         <div>
           <label className="block text-sm font-medium mb-1" style={{ color: '#1a202c' }}>
-            Referral source (if any): <span style={{ color: '#c0392b' }}>*</span>
+            Referral source (if any):
           </label>
           <select
             className="dwp-field w-full px-3 py-2 text-sm"
@@ -714,7 +716,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
         {referralSource === OFFICIAL_SOURCE && (
           <div>
             <label className="block text-sm font-medium mb-1" style={{ color: '#1a202c' }}>
-              Which DWP official referred you? <span style={{ color: '#c0392b' }}>*</span>
+              Which DWP official referred you?
             </label>
             <select
               className="dwp-field w-full px-3 py-2 text-sm"
@@ -728,7 +730,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
                 return people.length > 0 ? (
                   <optgroup key={group} label={group}>
                     {people.map((official) => (
-                      <option key={official.name} value={official.name}>{official.name} ({official.role})</option>
+                      <option key={official.name} value={official.name}>{official.role ? `${official.name} (${official.role})` : official.name}</option>
                     ))}
                   </optgroup>
                 ) : null;
@@ -741,7 +743,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
         {/* Message */}
         <div>
           <label className="block text-sm font-medium mb-1" style={{ color: '#1a202c' }}>
-            Message <span style={{ color: '#c0392b' }}>*</span>
+            Message
           </label>
           <textarea
             rows={5}
@@ -762,8 +764,7 @@ export default function ContactForm({ onSubmitted }: { onSubmitted?: () => void 
             If you receive any communication outside of our official channels, please report it to
             DWP immediately. We will never request your seed phrase or ask you to send
             cryptocurrency via email, Discord, Telegram, or any other informal platform.
-            Cryptocurrency should only be sent to wallet addresses inside your Onramp portal.{' '}
-            <span style={{ color: '#c0392b' }}>*</span>
+            Cryptocurrency should only be sent to wallet addresses inside your Onramp portal.
           </p>
           <label className="flex items-center gap-2 text-sm select-none cursor-pointer" style={{ color: '#4a5568' }}>
             <input

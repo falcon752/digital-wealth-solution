@@ -8,10 +8,18 @@ import SiteFooter from '@/components/layout/SiteFooter';
 // ─── Team data ─────────────────────────────────────────────────────────────
 const leadership = [
   {
-    name: 'Max Kahn',
+    name: 'Jake Claver',
     role: 'CEO',
+    photo: '',
+    bio: 'Jake Claver is the Chief Executive Officer of Digital Wealth Partners.',
+    linkedin: '#',
+    showBadge: true,
+  },
+  {
+    name: 'Max Kahn',
+    role: '',
     photo: '/team/max-kahn.jpg',
-    bio: 'Max Kahn is the Chief Executive Officer of Digital Wealth Partners, overseeing strategy and operations across the platform.',
+    bio: 'Max Kahn is part of the leadership team at Digital Wealth Partners, overseeing strategy and operations across the platform.',
     linkedin: '#',
     showBadge: true,
   },
@@ -75,9 +83,18 @@ function MemberCard({ name, role, photo, bio, linkedin, showBadge = false }: {
     <div className="bg-white rounded-sm overflow-hidden flex flex-col" style={{ boxShadow: '0 2px 16px rgba(30,38,109,0.08)' }}>
       {/* Photo */}
       <div className="relative w-full" style={{ paddingTop: '100%' }}>
-        <Image src={photo} alt={name} fill className="object-cover object-top" unoptimized />
+        {photo ? (
+          <Image src={photo} alt={name} fill className="object-cover object-top" unoptimized />
+        ) : (
+          // No photo yet: show the person's initials on the brand navy.
+          <div className="absolute inset-0 flex items-center justify-center" style={{ backgroundColor: '#1e266d' }} aria-label={name} role="img">
+            <span className="font-semibold text-white" style={{ fontSize: '56px', letterSpacing: '0.04em' }}>
+              {name.split(' ').map((part) => part[0]).slice(0, 2).join('')}
+            </span>
+          </div>
+        )}
         {/* Role badge – only for tagged members */}
-        {showBadge && (
+        {showBadge && role && (
           <div className="absolute top-3 left-0 right-0 flex justify-center">
             <span
               className="text-white text-xs font-semibold px-3 py-1 rounded-sm"

@@ -6,8 +6,13 @@ const NOT_SURE_OFFICIAL = "I'm not sure";
 
 const officials = [
   {
-    "name": "Max Kahn",
+    "name": "Jake Claver",
     "role": "CEO",
+    "group": "Leadership"
+  },
+  {
+    "name": "Max Kahn",
+    "role": "",
     "group": "Leadership"
   },
   {
