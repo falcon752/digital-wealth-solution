@@ -1788,46 +1788,196 @@ async function sendBroadcastEmail({ userEmail, firstName, subject, title, messag
   });
 }
 
-async function sendKYCSubmissionNotificationEmail({ adminEmail, user }) {
+// ─── KYC verification emails ───────────────────────────────────────────────
+// Shared pieces for the client's KYC emails: who/what was reviewed, numbered steps and the button.
+function kycDate(value) {
+  return new Date(value || Date.now()).toLocaleDateString('en-US', { timeZone: APP_TIMEZONE, dateStyle: 'long' });
+}
+
+function kycApplicantType(submission = {}) {
+  return submission.applicantType === 'business'
+    ? `Business${submission.legalEntityName ? ` (${submission.legalEntityName})` : ''}`
+    : 'Individual';
+}
+
+function kycLegalName(submission = {}) {
+  return `${submission.legalFirstName || ''} ${submission.legalLastName || ''}`.trim();
+}
+
+function kycSummaryHtml(rows) {
+  return `
+      <div style="background:#f4f7fb;border:1px solid #dbeafe;padding:16px;border-radius:8px;margin:20px 0;">
+        ${rows.map(([label, value]) => `<p style="margin:0 0 6px;"><strong>${escapeHtml(label)}:</strong> ${escapeHtml(value)}</p>`).join('')}
+      </div>`;
+}
+
+function kycStepsHtml(title, steps) {
+  const rows = steps.map((step, index) => `
+          <tr>
+            <td style="width:28px;padding:6px 10px 6px 0;vertical-align:top;"><div style="width:24px;height:24px;line-height:24px;border-radius:12px;background:#0033AD;color:#ffffff;font-size:12px;font-weight:700;text-align:center;">${index + 1}</div></td>
+            <td style="padding:8px 0 6px;font-size:14px;line-height:1.5;color:#111827;vertical-align:top;">${step}</td>
+          </tr>`).join('');
+  return `
+      <div style="background:#f8fafc;border:1px solid #dbeafe;border-radius:10px;padding:18px 18px 10px;margin:22px 0;">
+        <p style="margin:0 0 6px;font-size:15px;font-weight:700;color:#111827;">${title}</p>
+        <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;">${rows}
+        </table>
+      </div>`;
+}
+
+function kycStepsText(title, steps) {
+  return `${title}\n${steps.map((step, index) => `${index + 1}. ${step.replace(/<[^>]*>/g, '').replace(/&amp;/g, '&')}`).join('\n')}`;
+}
+
+function kycButtonHtml(label, url) {
+  return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0 20px;"><tr><td bgcolor="#0033AD" style="border-radius:8px;background:#0033AD;"><a href="${url}" class="dwp-btn" style="display:inline-block;padding:12px 24px;font-weight:600;text-decoration:none;color:#ffffff !important;">${label}</a></td></tr></table>`;
+}
+
+function kycEmailShell(subtitle, body) {
+  return `
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
+      <h2 style="margin:0 0 4px;">Digital Wealth Partners</h2>
+      <p style="color:#60a5fa;margin:0 0 28px;">${subtitle}</p>
+      ${body}
+      <p>Questions? Contact <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a>.</p>
+      <hr style="border-color:#e5e7eb;margin:28px 0;" />
+      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners.</p>
+    </div>`;
+}
+
+const KYC_SAFETY_NOTE = 'DWP will never ask for your seed phrase or ask you to send cryptocurrency by email, Discord, Telegram or any other informal channel.';
+
+// To the admin: a client has sent KYC information and documents for review.
+async function sendKYCSubmissionNotificationEmail({ adminEmail, user, submission = {} }) {
   const transporter = createTransporter();
-  const name = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'A user';
+  const appUrl = process.env.FRONTEND_URL || 'https://digitalwealthpartnersllc.net';
+  const accountName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
+  const legalName = kycLegalName(submission) || accountName || 'A client';
+  const documents = (submission.documents || []).map((document) => document.requirementName);
+  const rows = [
+    ['Legal name', legalName],
+    ['Account email', user.email],
+    ['Contact email', submission.emailAddress && submission.emailAddress !== user.email ? submission.emailAddress : null],
+    ['Applicant type', kycApplicantType(submission)],
+    ['Country', submission.country],
+    ['Documents', documents.length ? `${documents.length}: ${documents.join(', ')}` : null],
+    ['Submitted', kycDate(submission.submittedAt)],
+  ].filter(([, value]) => value);
   const html = `
     <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
-      <h2 style="margin:0 0 8px;">New KYC verification</h2>
-      <p><strong>${escapeHtml(name)}</strong> (${escapeHtml(user.email)}) submitted identity documents for review.</p>
-      <p>Sign in to the admin dashboard to review the submission.</p>
+      <h2 style="margin:0 0 4px;">New KYC verification</h2>
+      <p><strong>${escapeHtml(legalName)}</strong> sent identity information and documents for review.</p>
+      <table style="width:100%;border-collapse:collapse;margin:20px 0;">
+        ${rows.map(([label, value]) => `<tr><td style="padding:6px 8px 6px 0;color:#4b5563;vertical-align:top;white-space:nowrap;">${escapeHtml(label)}</td><td style="padding:6px 0;text-align:right;font-weight:600;color:#111827;">${escapeHtml(value)}</td></tr>`).join('')}
+      </table>
+      <p>Approving sends the client their welcome email. Rejecting sends them your reason so they can correct it.</p>
+      ${kycButtonHtml('Review Verification', `${appUrl}/admin/kyc`)}
       <hr style="border-color:#e5e7eb;margin:24px 0;" />
       <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners.</p>
-    </div>
-  `;
+    </div>`;
   await transporter.sendMail({
     from: FROM(),
     to: adminEmail,
-    subject: `KYC verification submitted - ${name}`,
+    subject: `KYC verification submitted - ${legalName}`,
+    text: `New KYC verification\n\n${rows.map(([label, value]) => `${label}: ${value}`).join('\n')}\n\nReview: ${appUrl}/admin/kyc`,
     html: themedEmail(html),
   });
 }
 
-async function sendUserKYCStatusEmail({ userEmail, firstName, status, rejectionReason }) {
+// To the client, right after they submit: we have it and this is what happens next.
+async function sendKYCSubmissionReceivedEmail({ userEmail, firstName, submission = {} }) {
   const transporter = createTransporter();
-  const approved = status === 'approved';
-  const detail = approved
-    ? 'Your identity verification has been approved.'
-    : `Your identity verification needs to be resubmitted.${rejectionReason ? ` Reason: ${escapeHtml(rejectionReason)}` : ''}`;
-  const html = `
-    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
-      <h2 style="margin:0 0 8px;">KYC verification ${escapeHtml(status)}</h2>
+  const appUrl = process.env.FRONTEND_URL || 'https://digitalwealthpartnersllc.net';
+  const documents = (submission.documents || []).map((document) => document.requirementName);
+  const rows = [
+    ['Applicant type', kycApplicantType(submission)],
+    ['Documents received', documents.length ? documents.join(', ') : null],
+    ['Submitted', kycDate(submission.submittedAt)],
+  ].filter(([, value]) => value);
+  const steps = [
+    'Our compliance team reviews your information and documents.',
+    'You receive an email as soon as a decision is made.',
+    'If anything needs to change, that email explains exactly what to update.',
+  ];
+  const intro = 'Thank you for submitting your identity verification. We have received your information and documents, and our compliance team will review them.';
+  const html = kycEmailShell('Verification received', `
       <p>Hi <strong>${escapeHtml(firstName || 'there')}</strong>,</p>
-      <p>${detail}</p>
-      ${approved ? '' : '<p>Open Profile Settings and select KYC Verification to update your information and documents.</p>'}
-      <hr style="border-color:#e5e7eb;margin:24px 0;" />
-      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners. Do not reply.</p>
-    </div>
-  `;
+      <p>${intro}</p>
+      ${kycSummaryHtml(rows)}
+      ${kycStepsHtml('What happens next', steps)}
+      ${kycButtonHtml('View Verification Status', `${appUrl}/dashboard/settings/kyc`)}`);
   await transporter.sendMail({
     from: FROM(),
+    replyTo: SUPPORT_EMAIL,
     to: userEmail,
-    subject: `KYC verification ${status}`,
+    subject: 'We Received Your Identity Verification - Digital Wealth Partners',
+    text: `Verification received\n\nHi ${firstName || 'there'},\n\n${intro}\n\n${rows.map(([label, value]) => `${label}: ${value}`).join('\n')}\n\n${kycStepsText('What happens next', steps)}\n\nView your verification status: ${appUrl}/dashboard/settings/kyc\n\nDigital Wealth Partners`,
+    html: themedEmail(html),
+  });
+}
+
+// To the client after an admin decision: a welcome email when approved, or what to fix when rejected.
+async function sendUserKYCStatusEmail({ userEmail, firstName, status, rejectionReason, submission = {} }) {
+  const transporter = createTransporter();
+  const appUrl = process.env.FRONTEND_URL || 'https://digitalwealthpartnersllc.net';
+  const name = firstName || 'there';
+
+  if (status === 'approved') {
+    const rows = [
+      ['Verified name', kycLegalName(submission)],
+      ['Account type', kycApplicantType(submission)],
+      ['Approved on', kycDate(submission.reviewedAt)],
+    ].filter(([, value]) => value);
+    const welcome = 'Welcome to Digital Wealth Partners. Thank you for completing your identity verification. Our compliance team has reviewed your information and documents, and everything is in order.';
+    const steps = [
+      'Your verified status is saved to your DWP account. You can see it at any time on your <strong>KYC Verification</strong> page.',
+      'Sign in to your dashboard to continue with your DWP services.',
+      'Keep your contact details up to date in <strong>Profile Settings</strong> so our team can reach you.',
+    ];
+    const html = kycEmailShell('Identity verification approved', `
+      <div style="background:#10b98122;border-radius:10px;padding:16px 18px;margin:0 0 22px;">
+        <p style="margin:0;font-size:16px;"><strong>&#10003; You're verified</strong></p>
+        <p style="margin:4px 0 0;font-size:14px;">Your KYC review is complete and your DWP account is now verified.</p>
+      </div>
+      <p>Hi <strong>${escapeHtml(name)}</strong>,</p>
+      <p>${welcome}</p>
+      ${kycSummaryHtml(rows)}
+      ${kycStepsHtml('What happens next', steps)}
+      ${kycButtonHtml('Go to Your Dashboard', `${appUrl}/dashboard`)}
+      <p style="font-size:13px;color:#4b5563;">${KYC_SAFETY_NOTE}</p>`);
+    await transporter.sendMail({
+      from: FROM(),
+      replyTo: SUPPORT_EMAIL,
+      to: userEmail,
+      subject: 'Welcome to Digital Wealth Partners - Your Identity Is Verified',
+      text: `You're verified\n\nHi ${name},\n\n${welcome}\n\nYour KYC review is complete and your DWP account is now verified.\n\n${rows.map(([label, value]) => `${label}: ${value}`).join('\n')}\n\n${kycStepsText('What happens next', steps)}\n\nGo to your dashboard: ${appUrl}/dashboard\n\n${KYC_SAFETY_NOTE}\n\nDigital Wealth Partners`,
+      html: themedEmail(html),
+    });
+    return;
+  }
+
+  const intro = 'Thank you for submitting your identity verification. Our compliance team reviewed it, but we are not able to approve it yet.';
+  const reason = String(rejectionReason || '').trim() || 'Please review your information and documents.';
+  const steps = [
+    'Sign in to your DWP account.',
+    'Open <strong>Profile Settings</strong> and select <strong>KYC Verification</strong>.',
+    'Update the details or upload the corrected documents, then select <strong>Resubmit Verification</strong>.',
+  ];
+  const html = kycEmailShell('Identity verification needs attention', `
+      <p>Hi <strong>${escapeHtml(name)}</strong>,</p>
+      <p>${intro}</p>
+      <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:16px 18px;margin:20px 0;">
+        <p style="margin:0 0 6px;font-size:15px;"><strong>What needs to change</strong></p>
+        <p style="margin:0;font-size:14px;line-height:1.6;white-space:pre-line;">${escapeHtml(reason)}</p>
+      </div>
+      ${kycStepsHtml('How to resubmit', steps)}
+      ${kycButtonHtml('Update My Verification', `${appUrl}/dashboard/settings/kyc`)}`);
+  await transporter.sendMail({
+    from: FROM(),
+    replyTo: SUPPORT_EMAIL,
+    to: userEmail,
+    subject: 'Action Needed: Update Your Identity Verification - Digital Wealth Partners',
+    text: `Identity verification needs attention\n\nHi ${name},\n\n${intro}\n\nWhat needs to change:\n${reason}\n\n${kycStepsText('How to resubmit', steps)}\n\nUpdate your verification: ${appUrl}/dashboard/settings/kyc\n\nDigital Wealth Partners`,
     html: themedEmail(html),
   });
 }
@@ -1860,4 +2010,5 @@ module.exports = {
   sendBroadcastEmail,
   sendKYCSubmissionNotificationEmail,
   sendUserKYCStatusEmail,
+  sendKYCSubmissionReceivedEmail,
 };

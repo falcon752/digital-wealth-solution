@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import {
   Building2, CheckCircle2, Clock3, FileCheck2, FileText, Plus, RefreshCw,
   ShieldCheck, Trash2, Upload, UserRound, XCircle,
@@ -11,6 +12,11 @@ import { useAuth } from '@/context/AuthContext';
 import { kycAPI } from '@/lib/api';
 import { getApiError } from '@/lib/apiError';
 import { KYCRelatedPerson, KYCRequirement, KYCSubmission } from '@/types';
+import { APP_TIMEZONE } from '@/lib/utils';
+
+function formatDate(value?: string | null) {
+  return value ? new Date(value).toLocaleDateString('en-US', { timeZone: APP_TIMEZONE, dateStyle: 'long' }) : '';
+}
 
 const statusDetails = {
   not_verified: { label: 'Not Verified', icon: ShieldCheck, tone: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300' },
@@ -211,7 +217,32 @@ export default function KYCVerificationPage() {
             <div><p className="text-xs font-semibold uppercase text-gray-400">Verification status</p><h1 className="text-xl font-semibold text-gray-900 dark:text-white mt-1">Anchorage account verification</h1><p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Identity, tax, ownership, and supporting-document review.</p></div>
             <div className={`shrink-0 inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold ${statusView.tone}`}><StatusIcon size={17} /> {statusView.label}</div>
           </div>
-          {status === 'rejected' && submission?.rejectionReason && <div className="mt-4 p-4 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/50"><p className="text-sm font-semibold text-red-700 dark:text-red-300">Reason for rejection</p><p className="text-sm text-red-700/80 dark:text-red-200 mt-1">{submission.rejectionReason}</p></div>}
+          {status === 'approved' && (
+            <div className="mt-4 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/50 flex flex-col sm:flex-row sm:items-center gap-3">
+              <CheckCircle2 size={22} className="text-emerald-600 shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-200">You&apos;re verified</p>
+                <p className="text-sm text-emerald-800/80 dark:text-emerald-200/80 mt-0.5">{submission?.reviewedAt ? `Approved on ${formatDate(submission.reviewedAt)}. ` : ''}Welcome to Digital Wealth Partners. Your verified status is saved to your account, and we&apos;ve emailed you a confirmation.</p>
+              </div>
+              <Link href="/dashboard" className="shrink-0 inline-flex h-10 items-center justify-center rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700">Go to Dashboard</Link>
+            </div>
+          )}
+          {status === 'pending' && (
+            <div className="mt-4 p-4 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900/50 flex items-start gap-3">
+              <Clock3 size={20} className="text-amber-600 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold text-amber-800 dark:text-amber-200">Under review{submission?.submittedAt ? ` since ${formatDate(submission.submittedAt)}` : ''}</p>
+                <p className="text-sm text-amber-800/80 dark:text-amber-200/80 mt-0.5">Our compliance team is reviewing your information and documents. We&apos;ll email you as soon as a decision is made.</p>
+              </div>
+            </div>
+          )}
+          {status === 'rejected' && (
+            <div className="mt-4 p-4 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/50">
+              <p className="text-sm font-semibold text-red-700 dark:text-red-300">What needs to change</p>
+              {submission?.rejectionReason && <p className="text-sm text-red-700/90 dark:text-red-200 mt-1 whitespace-pre-line">{submission.rejectionReason}</p>}
+              <p className="text-sm text-red-700/80 dark:text-red-200/80 mt-2">Update the details or documents below, then select Resubmit Verification.</p>
+            </div>
+          )}
         </section>
 
         {!canSubmit && submission ? (
@@ -222,7 +253,7 @@ export default function KYCVerificationPage() {
                 {[['Applicant', `${submission.legalFirstName} ${submission.legalLastName}`], ['Contact email', submission.emailAddress], ['Phone', submission.phoneNumber], ['Country', submission.country], ['Tax classification', submission.taxClassification], ['Tax ID', submission.taxIdentifierLast4 ? `Ending in ${submission.taxIdentifierLast4}` : '-'], ...(submission.applicantType === 'business' ? [['Legal entity', submission.legalEntityName], ['Entity type', submission.entityType], ['EIN/FEIN', submission.businessEinLast4 ? `Ending in ${submission.businessEinLast4}` : '-'], ['Formation jurisdiction', submission.formationJurisdiction]] : [])].map(([label, value]) => <div key={label as string} className="flex justify-between gap-4 py-2 border-b border-gray-100 dark:border-gray-800"><span className="text-gray-500">{label}</span><span className="font-semibold text-gray-900 dark:text-white text-right">{value || '-'}</span></div>)}
               </div>
             </section>
-            <section className="bg-white dark:bg-[#101010] border border-gray-100 dark:border-gray-800 rounded-2xl p-5"><h2 className="text-base font-semibold text-gray-900 dark:text-white mb-4">Submitted documents</h2><div className="divide-y divide-gray-100 dark:divide-gray-800">{submission.documents.map((document) => <button key={document.id} type="button" onClick={() => openDocument(document.id)} className="w-full flex items-center justify-between gap-4 py-3 text-left hover:text-blue-600"><span className="flex items-center gap-3 min-w-0"><FileCheck2 size={19} className="text-blue-500 shrink-0" /><span className="min-w-0"><span className="block text-sm font-semibold text-gray-900 dark:text-white">{document.requirementName}</span><span className="block text-xs text-gray-500 truncate">{document.originalName}</span></span></span><span className="text-xs font-semibold text-blue-600">View</span></button>)}</div>{status === 'pending' && <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">Your submission is being reviewed. You will receive an email when a decision is made.</p>}</section>
+            <section className="bg-white dark:bg-[#101010] border border-gray-100 dark:border-gray-800 rounded-2xl p-5"><h2 className="text-base font-semibold text-gray-900 dark:text-white mb-4">Submitted documents</h2><div className="divide-y divide-gray-100 dark:divide-gray-800">{submission.documents.map((document) => <button key={document.id} type="button" onClick={() => openDocument(document.id)} className="w-full flex items-center justify-between gap-4 py-3 text-left hover:text-blue-600"><span className="flex items-center gap-3 min-w-0"><FileCheck2 size={19} className="text-blue-500 shrink-0" /><span className="min-w-0"><span className="block text-sm font-semibold text-gray-900 dark:text-white">{document.requirementName}</span><span className="block text-xs text-gray-500 truncate">{document.originalName}</span></span></span><span className="text-xs font-semibold text-blue-600">View</span></button>)}</div></section>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-5">

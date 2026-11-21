@@ -32,59 +32,24 @@ nodemailer.createTransport = (options) => {
 
 const email = require(`${process.cwd()}/src/utils/email`);
 
-const proof = {
-  fullName: 'Tom Example',
-  email: TO,
-  amount: '1035',
-  asset: 'XRP',
-  senderAddress: 'rSAMPLExxxxxxxxxxxxxxxxxxxxxxxxxxx',
-  transactionHash: 'A1B2C3D4E5F6A7B8C9D0E1F2A3B4C5D6E7F8A9B0C1D2E3F4A5B6C7D8E9F0A1B2',
-  walletUsed: 'Xaman Wallet',
-  expected: { amount: '1028.20' },
-  ledgerCheck: { state: 'manual_review' },
-  note: 'Sample note from the client.',
-};
-
-const consultation = {
-  topic: 'Become a Client',
-  firstName: 'Amara',
-  lastName: 'Example',
-  email: TO,
-  phone: '+234 800 000 0000',
-  married: 'Yes',
-  children: 'No',
-  investableAssets: '$1M+',
-  digitalAllocation: '1–10%',
-  holdsXRP: 'Yes',
-  existingClient: 'Not Currently a DWP Client',
-  streetAddress: '12 Sample Road',
-  city: 'Lagos',
-  stateProvince: 'Lagos State',
-  postalCode: '101001',
-  country: 'Nigeria',
-  clientType: 'Family Office',
-  hasEntity: 'Yes',
-  entityName: 'Example Holdings LLC',
-  hasCryptoIRA: 'No',
-  areasOfInterest: ['Custody', 'Staking'],
-  custodyAssets: ['XRP', 'BTC'],
-  walletsUsed: ['Ledger', 'Xaman Wallet', 'Other'],
-  walletOther: 'Atomic Wallet',
-  exchangesUsed: ['Kraken'],
-  exchangeOther: null,
-  referralSource: 'Social media',
-  referralOfficial: null,
-  message: 'This is a sample consultation request.',
+// Earlier batches (payment-accepted KYC steps, faded-values fix, consultation fields) were reviewed
+// in Nov 2026 and are in git history. This batch: the KYC verification emails.
+const kycSubmission = {
+  applicantType: 'individual',
+  legalFirstName: 'Tom',
+  legalLastName: 'Example',
+  emailAddress: TO,
+  country: 'United States',
+  documents: [{ requirementName: 'Government-issued photo ID' }, { requirementName: 'Proof of address' }, { requirementName: 'Tax certification' }],
+  submittedAt: new Date(Date.now() - 86400000),
+  reviewedAt: new Date(),
 };
 
 const samples = [
-  ['Payment accepted, account active (KYC steps)', () => email.sendPaymentProofClientEmail({ type: 'approved', proof, accountActive: true })],
-  ['Payment accepted, no account yet (KYC steps)', () => email.sendPaymentProofClientEmail({ type: 'approved', proof })],
-  ['Your DWP account is active (KYC steps)', () => email.sendOnboardingPaymentStatusEmail({ userEmail: TO, firstName: 'Tom', type: 'activated', payment: { transactionReference: proof.transactionHash } })],
-  ['Admin: payment proof (faded values fix)', () => email.sendPaymentProofAdminEmail({ adminEmail: TO, proof, accountExists: true })],
-  ['Admin: onboarding payment submitted (faded values fix)', () => email.sendOnboardingPaymentAdminEmail({ adminEmail: TO, user: { firstName: 'Paul', lastName: 'Example', email: 'paul@example.com' }, payment: { assetAmount: '1028.20', asset: 'XRP', verification: { state: 'verified' }, transactionReference: proof.transactionHash } })],
-  ['Admin: new consultation (address, LLC, IRA)', () => email.sendGeneralContactEmail({ adminEmail: TO, contactData: consultation })],
-  ['Applicant: consultation request received (address, LLC, IRA)', () => email.sendConsultationReceivedEmail({ contactData: consultation })],
+  ['Client: KYC received', () => email.sendKYCSubmissionReceivedEmail({ userEmail: TO, firstName: 'Tom', submission: kycSubmission })],
+  ['Client: KYC approved (welcome)', () => email.sendUserKYCStatusEmail({ userEmail: TO, firstName: 'Tom', status: 'approved', submission: kycSubmission })],
+  ['Client: KYC needs attention', () => email.sendUserKYCStatusEmail({ userEmail: TO, firstName: 'Tom', status: 'rejected', rejectionReason: 'Your proof of address is older than 90 days. Please upload a utility bill or bank statement from the last 90 days.', submission: kycSubmission })],
+  ['Admin: new KYC verification', () => email.sendKYCSubmissionNotificationEmail({ adminEmail: TO, user: { firstName: 'Tom', lastName: 'Example', email: 'tom@example.com' }, submission: kycSubmission })],
 ];
 
 (async () => {

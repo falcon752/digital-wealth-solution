@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Building2, Check, Eye, EyeOff, FileText, Plus, Save, Settings2, ShieldCheck, UserRound, X } from 'lucide-react';
+import { Building2, Check, CheckCircle2, Eye, EyeOff, FileText, Plus, Save, Settings2, ShieldCheck, UserRound, X, XCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import Modal from '@/components/ui/Modal';
@@ -11,6 +11,17 @@ import { KYCRelatedPerson, KYCRequirement, KYCSubmission } from '@/types';
 import { APP_TIMEZONE } from '@/lib/utils';
 
 type SensitiveData = { taxIdentifier: string | null; businessEin: string | null };
+type StatusFilter = 'pending' | 'approved' | 'rejected' | 'all';
+const FILTERS: { key: StatusFilter; label: string }[] = [
+  { key: 'pending', label: 'Pending' },
+  { key: 'approved', label: 'Approved' },
+  { key: 'rejected', label: 'Rejected' },
+  { key: 'all', label: 'All' },
+];
+
+function formatDate(value?: string | null) {
+  return value ? new Date(value).toLocaleDateString('en-US', { timeZone: APP_TIMEZONE, dateStyle: 'medium' }) : '-';
+}
 
 function applicant(submission: KYCSubmission) {
   if (typeof submission.userId === 'string') {
@@ -58,6 +69,8 @@ export default function AdminKYCPage() {
   const [requirements, setRequirements] = useState<KYCRequirement[]>([]);
   const [loading, setLoading] = useState(true);
   const [reviewing, setReviewing] = useState<KYCSubmission | null>(null);
+  const [filter, setFilter] = useState<StatusFilter>('pending');
+  const [changingDecision, setChangingDecision] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
   const [saving, setSaving] = useState(false);
   const [sensitiveData, setSensitiveData] = useState<SensitiveData | null>(null);
@@ -73,7 +86,10 @@ export default function AdminKYCPage() {
         kycAPI.adminSubmissions(),
         kycAPI.getRequirements(),
       ]);
-      setSubmissions(submissionsResponse.data.submissions);
+      const loaded: KYCSubmission[] = submissionsResponse.data.submissions;
+      setSubmissions(loaded);
+      // Open on the review queue when something is waiting, otherwise show everything.
+      setFilter(loaded.some((item) => item.status === 'pending') ? 'pending' : 'all');
       setRequirements(requirementsResponse.data.requirements);
     } catch {
       toast.error('Failed to load KYC administration');
@@ -88,6 +104,7 @@ export default function AdminKYCPage() {
     setReviewing(submission);
     setRejectionReason(submission.rejectionReason || '');
     setSensitiveData(null);
+    setChangingDecision(false);
   };
 
   const closeReview = () => {
@@ -135,7 +152,7 @@ export default function AdminKYCPage() {
       const response = await kycAPI.adminReview(reviewing.id, { status, rejectionReason: rejectionReason.trim() || undefined });
       setSubmissions((current) => current.map((item) => item.id === reviewing.id ? response.data.submission : item));
       closeReview();
-      toast.success(`Verification ${status}`);
+      toast.success(response.data.message || `Verification ${status}`);
     } catch (error: unknown) {
       toast.error(getApiError(error, 'Failed to review verification'));
     } finally {
@@ -176,6 +193,10 @@ export default function AdminKYCPage() {
     }
   };
 
+  const visibleSubmissions = filter === 'all' ? submissions : submissions.filter((item) => item.status === filter);
+  const decided = reviewing ? reviewing.status === 'approved' || reviewing.status === 'rejected' : false;
+  const showDecisionButtons = !decided || changingDecision;
+
   return (
     <div className="min-h-full bg-[#f9f9fb] pb-20 dark:bg-[#050505]">
       <DashboardHeader title="KYC Verification" subtitle="Review identity submissions and manage required documents" logo="dwp" />
@@ -189,21 +210,32 @@ export default function AdminKYCPage() {
           <div className="flex h-56 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" /></div>
         ) : tab === 'submissions' ? (
           <section className="overflow-hidden rounded-lg border border-gray-100 bg-white dark:border-gray-800 dark:bg-[#101010]">
+            <div className="flex flex-wrap gap-2 border-b border-gray-100 p-3 dark:border-gray-800">
+              {FILTERS.map(({ key, label }) => {
+                const count = key === 'all' ? submissions.length : submissions.filter((item) => item.status === key).length;
+                return (
+                  <button key={key} type="button" onClick={() => setFilter(key)} className={`inline-flex h-8 items-center gap-2 rounded-md px-3 text-xs font-semibold ${filter === key ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 dark:bg-[#181818] dark:text-gray-300'}`}>
+                    {label}
+                    <span className={`rounded px-1.5 py-0.5 text-[11px] ${filter === key ? 'bg-white/20' : key === 'pending' && count ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200' : 'bg-white dark:bg-[#101010]'}`}>{count}</span>
+                  </button>
+                );
+              })}
+            </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead className="bg-gray-50 text-xs uppercase text-gray-500 dark:bg-[#181818]"><tr><th className="px-4 py-3">Applicant</th><th className="px-4 py-3">Type</th><th className="px-4 py-3">Submitted</th><th className="px-4 py-3">Documents</th><th className="px-4 py-3">Status</th><th className="px-4 py-3 text-right">Review</th></tr></thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                  {submissions.map((submission) => { const user = applicant(submission); return (
+                  {visibleSubmissions.map((submission) => { const user = applicant(submission); return (
                     <tr key={submission.id} className="text-sm">
                       <td className="px-4 py-4"><p className="font-semibold text-gray-900 dark:text-white">{user.firstName} {user.lastName}</p><p className="text-xs text-gray-500">{user.email}</p></td>
                       <td className="px-4 py-4"><span className="inline-flex items-center gap-1.5 capitalize text-gray-700 dark:text-gray-200">{submission.applicantType === 'business' ? <Building2 size={15} /> : <UserRound size={15} />}{submission.applicantType}</span></td>
                       <td className="px-4 py-4 text-gray-600 dark:text-gray-300">{submission.submittedAt ? new Date(submission.submittedAt).toLocaleDateString('en-US', { timeZone: APP_TIMEZONE }) : '-'}</td>
                       <td className="px-4 py-4 text-gray-600 dark:text-gray-300">{submission.documents.length}</td>
-                      <td className="px-4 py-4"><span className={`inline-flex rounded-md px-2.5 py-1 text-xs font-semibold capitalize ${statusClass(submission.status)}`}>{submission.status.replace('_', ' ')}</span></td>
+                      <td className="px-4 py-4"><span className={`inline-flex rounded-md px-2.5 py-1 text-xs font-semibold capitalize ${statusClass(submission.status)}`}>{submission.status.replace('_', ' ')}</span>{submission.status !== 'pending' && submission.reviewedAt && <p className="mt-1 text-xs text-gray-500">{formatDate(submission.reviewedAt)}</p>}</td>
                       <td className="px-4 py-4 text-right"><button type="button" onClick={() => openReview(submission)} className="inline-flex rounded-md p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20" title="Review verification"><Eye size={17} /></button></td>
                     </tr>
                   ); })}
-                  {!submissions.length && <tr><td colSpan={6} className="px-4 py-12 text-center text-sm text-gray-500">No verification submissions yet.</td></tr>}
+                  {!visibleSubmissions.length && <tr><td colSpan={6} className="px-4 py-12 text-center text-sm text-gray-500">{submissions.length ? (filter === 'pending' ? 'Nothing is waiting for review.' : `No ${filter} verifications.`) : 'No verification submissions yet.'}</td></tr>}
                 </tbody>
               </table>
             </div>
@@ -295,8 +327,34 @@ export default function AdminKYCPage() {
               </div>
             </section>
 
-            <label className="block space-y-1.5"><span className="text-sm font-semibold text-gray-900 dark:text-white">Rejection reason</span><textarea rows={4} value={rejectionReason} onChange={(event) => setRejectionReason(event.target.value)} placeholder="Required when rejecting a submission" className="w-full resize-none rounded-lg border border-gray-200 bg-transparent p-3 text-sm text-gray-900 dark:border-gray-700 dark:text-white" /></label>
-            <div className="grid grid-cols-2 gap-3"><button type="button" disabled={saving} onClick={() => review('rejected')} className="flex h-11 items-center justify-center gap-2 rounded-lg border border-red-200 text-sm font-semibold text-red-600 hover:bg-red-50 disabled:opacity-60"><X size={17} /> Reject</button><button type="button" disabled={saving} onClick={() => review('approved')} className="flex h-11 items-center justify-center gap-2 rounded-lg bg-emerald-600 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"><Check size={17} /> Approve</button></div>
+            {decided && (
+              <div className={`rounded-lg border p-4 ${reviewing.status === 'approved' ? 'border-emerald-200 bg-emerald-50 dark:border-emerald-900/50 dark:bg-emerald-950/30' : 'border-red-200 bg-red-50 dark:border-red-900/50 dark:bg-red-950/30'}`}>
+                <div className="flex items-start gap-3">
+                  {reviewing.status === 'approved' ? <CheckCircle2 size={20} className="mt-0.5 shrink-0 text-emerald-600" /> : <XCircle size={20} className="mt-0.5 shrink-0 text-red-600" />}
+                  <div className="min-w-0 flex-1">
+                    <p className={`text-sm font-semibold ${reviewing.status === 'approved' ? 'text-emerald-800 dark:text-emerald-200' : 'text-red-800 dark:text-red-200'}`}>
+                      {reviewing.status === 'approved' ? 'Approved' : 'Rejected'} on {formatDate(reviewing.reviewedAt)}
+                    </p>
+                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+                      {reviewing.status === 'approved' ? 'The client was sent their welcome email.' : 'The client was emailed your reason and can resubmit.'}
+                    </p>
+                    {reviewing.status === 'rejected' && reviewing.rejectionReason && <p className="mt-2 whitespace-pre-line text-sm text-gray-800 dark:text-gray-100">{reviewing.rejectionReason}</p>}
+                  </div>
+                  {!changingDecision && <button type="button" onClick={() => setChangingDecision(true)} className="shrink-0 text-xs font-semibold text-blue-600 hover:underline">Change decision</button>}
+                </div>
+              </div>
+            )}
+
+            {showDecisionButtons && (
+              <>
+                {reviewing.status !== 'rejected' && <label className="block space-y-1.5"><span className="text-sm font-semibold text-gray-900 dark:text-white">Rejection reason</span><textarea rows={4} value={rejectionReason} onChange={(event) => setRejectionReason(event.target.value)} placeholder="Required when rejecting. The client sees this in their email." className="w-full resize-none rounded-lg border border-gray-200 bg-transparent p-3 text-sm text-gray-900 dark:border-gray-700 dark:text-white" /></label>}
+                <div className={`grid gap-3 ${decided ? 'grid-cols-1' : 'grid-cols-2'}`}>
+                  {reviewing.status !== 'rejected' && <button type="button" disabled={saving} onClick={() => review('rejected')} className="flex h-11 items-center justify-center gap-2 rounded-lg border border-red-200 text-sm font-semibold text-red-600 hover:bg-red-50 disabled:opacity-60"><X size={17} /> Reject</button>}
+                  {reviewing.status !== 'approved' && <button type="button" disabled={saving} onClick={() => review('approved')} className="flex h-11 items-center justify-center gap-2 rounded-lg bg-emerald-600 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"><Check size={17} /> {saving ? 'Saving…' : 'Approve'}</button>}
+                </div>
+                <p className="text-xs text-gray-500">Approving emails the client a welcome email. Rejecting emails them your reason so they can correct it.</p>
+              </>
+            )}
           </div>
         )}
       </Modal>

@@ -7,7 +7,7 @@ const { authenticate, requireAdmin } = require('../middleware/auth');
 const { kycUpload } = require('../middleware/upload');
 const { logActivity } = require('../utils/activity');
 const { encryptSensitiveValue, decryptSensitiveValue } = require('../utils/sensitiveData');
-const { sendKYCSubmissionNotificationEmail, sendUserKYCStatusEmail } = require('../utils/email');
+const { sendKYCSubmissionNotificationEmail, sendKYCSubmissionReceivedEmail, sendUserKYCStatusEmail } = require('../utils/email');
 
 const router = express.Router();
 const privateKycDirectory = path.join(__dirname, '../../private_uploads/kyc');
@@ -283,10 +283,13 @@ router.post('/submit', authenticate, kycUpload.any(), async (req, res) => {
     if (process.env.KYC_ADMIN_EMAIL_NOTIFICATIONS !== 'false') {
       const adminEmail = process.env.ADMIN_NOTIFY_EMAIL || process.env.ADMIN_EMAIL;
       if (adminEmail) {
-        sendKYCSubmissionNotificationEmail({ adminEmail, user: req.user })
+        sendKYCSubmissionNotificationEmail({ adminEmail, user: req.user, submission })
           .catch((error) => console.error('KYC notification email failed:', error.message));
       }
     }
+    // Let the client know it arrived and what happens next.
+    sendKYCSubmissionReceivedEmail({ userEmail: req.user.email, firstName: req.user.firstName, submission })
+      .catch((error) => console.error('KYC received email failed:', error.message));
 
     res.status(201).json({ message: 'Verification submitted for review', submission: serializeSubmission(submission) });
   } catch (error) {
@@ -319,7 +322,9 @@ router.get('/admin/submissions', authenticate, requireAdmin, async (req, res) =>
     const submissions = await KYCSubmission.find()
       .populate('userId', 'firstName lastName email')
       .sort({ submittedAt: -1 });
-    res.json({ submissions: submissions.map(serializeSubmission) });
+    // Waiting for review first, newest first within each group.
+    const pendingFirst = [...submissions].sort((a, b) => Number(b.status === 'pending') - Number(a.status === 'pending'));
+    res.json({ submissions: pendingFirst.map(serializeSubmission) });
   } catch (error) {
     res.status(500).json({ error: 'Failed to load KYC submissions' });
   }
@@ -351,6 +356,12 @@ router.put('/admin/submissions/:id', authenticate, requireAdmin, [
     return res.status(400).json({ error: 'A rejection reason is required' });
   }
   try {
+    // The same decision twice would only send the client a duplicate email.
+    const current = await KYCSubmission.findById(req.params.id).select('status');
+    if (!current) return res.status(404).json({ error: 'Verification submission not found' });
+    if (current.status === req.body.status) {
+      return res.status(409).json({ error: `This verification is already ${req.body.status}` });
+    }
     const submission = await KYCSubmission.findByIdAndUpdate(
       req.params.id,
       {
@@ -368,8 +379,14 @@ router.put('/admin/submissions/:id', authenticate, requireAdmin, [
       firstName: submission.userId.firstName,
       status: submission.status,
       rejectionReason: submission.rejectionReason,
+      submission,
     }).catch((error) => console.error('KYC status email failed:', error.message));
-    res.json({ message: `Verification ${submission.status}`, submission: serializeSubmission(submission) });
+    res.json({
+      message: submission.status === 'approved'
+        ? `Approved. Welcome email sent to ${submission.userId.email}`
+        : `Rejected. ${submission.userId.email} was emailed your reason`,
+      submission: serializeSubmission(submission),
+    });
   } catch (error) {
     res.status(500).json({ error: 'Failed to review verification' });
   }
