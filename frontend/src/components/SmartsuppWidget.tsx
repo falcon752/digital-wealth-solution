@@ -63,7 +63,27 @@ export default function SmartsuppWidget() {
   const [showWelcome, setShowWelcome] = useState(false);
   const [welcomeMessageIndex, setWelcomeMessageIndex] = useState(0);
   const welcomeMessage = WELCOME_MESSAGES[welcomeMessageIndex];
-  const shouldShowWelcome = showWelcome && pathname !== '/chat';
+  // Staff pages have no customer chat: no greeting, and the chat button is hidden there.
+  const isAdminPage = pathname === '/admin' || pathname.startsWith('/admin/');
+  const shouldShowWelcome = showWelcome && pathname !== '/chat' && !isAdminPage;
+
+  useEffect(() => {
+    let attempts = 0;
+    const apply = () => {
+      if (typeof window.smartsupp === 'function') {
+        window.smartsupp(isAdminPage ? 'chat:hide' : 'chat:show');
+        return true;
+      }
+      return false;
+    };
+    if (apply()) return;
+    // The chat script loads after the page; try again for a few seconds.
+    const timer = window.setInterval(() => {
+      attempts += 1;
+      if (apply() || attempts > 20) window.clearInterval(timer);
+    }, 500);
+    return () => window.clearInterval(timer);
+  }, [isAdminPage]);
 
   useEffect(() => {
     let attempts = 0;
@@ -117,7 +137,7 @@ export default function SmartsuppWidget() {
   }, [pathname, user]);
 
   useEffect(() => {
-    if (pathname === '/chat') return;
+    if (pathname === '/chat' || isAdminPage) return;
 
     const showTimer = window.setTimeout(() => {
       setWelcomeMessageIndex(0);
@@ -125,7 +145,7 @@ export default function SmartsuppWidget() {
     }, 1200);
 
     return () => window.clearTimeout(showTimer);
-  }, [pathname]);
+  }, [pathname, isAdminPage]);
 
   useEffect(() => {
     if (!shouldShowWelcome) return;
@@ -147,6 +167,8 @@ export default function SmartsuppWidget() {
 
   return (
     <>
+      {/* Belt and braces: the chat script can load after the hide command above. */}
+      {isAdminPage && <style>{'#chat-application, #smartsupp-widget-container { display: none !important; }'}</style>}
       {shouldShowWelcome && (
         <div
           className="fixed bottom-[94px] right-5 z-[2147483000] max-w-[calc(100vw-32px)] sm:right-6"

@@ -1,106 +1,167 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { adminAPI } from '@/lib/api';
-import { AdminStats } from '@/types';
-import DashboardHeader from '@/components/layout/DashboardHeader';
-import StatCard from '@/components/ui/StatCard';
-import { formatCurrency, formatDate } from '@/lib/utils';
-import { Users, Package, ArrowDownToLine, ArrowUpFromLine, TrendingUp, Activity } from 'lucide-react';
 import Link from 'next/link';
-import Button from '@/components/ui/Button';
+import Card from '@mui/material/Card';
+import Divider from '@mui/material/Divider';
+import Grid from '@mui/material/Grid';
+import Skeleton from '@mui/material/Skeleton';
+import AdminPage from '@/components/admin/shell/AdminPage';
+import StatCard from '@/components/admin/ui/StatCard';
+import Icon from '@/components/admin/ui/Icon';
+import MDBox from '@/components/admin/components/MDBox';
+import MDButton from '@/components/admin/components/MDButton';
+import MDTypography from '@/components/admin/components/MDTypography';
+import { useAccent } from '@/components/admin/ui/useAccent';
+import { useAdminStats, waitingItems } from '@/components/admin/shell/useAdminStats';
+import { errorMessage } from '@/components/admin/lib/errors';
+import { humanize } from '@/components/admin/lib/format';
+import { formatCurrency, formatDate } from '@/lib/utils';
+import type { AdminQueues } from '@/types';
+
+/** Every queue, including empty ones, so the card shows what is clear too. */
+interface Queue {
+  key: keyof AdminQueues;
+  label: string;
+  icon: string;
+  href: string;
+  /** Red when not empty (money or identity waiting on us). */
+  urgent?: boolean;
+}
+
+const QUEUES: Queue[] = [
+  { key: 'kyc', label: 'KYC verifications', icon: 'verified_user', href: '/admin/kyc', urgent: true },
+  { key: 'paymentProofs', label: 'Payment proofs', icon: 'request_quote', href: '/admin/payment-proofs', urgent: true },
+  { key: 'onboardingPayments', label: 'Onboarding fees', icon: 'paid', href: '/admin/onboarding-payments' },
+  { key: 'deposits', label: 'Pending deposits', icon: 'south_west', href: '/admin/deposits?status=pending' },
+  { key: 'withdrawals', label: 'Pending withdrawals', icon: 'outbound', href: '/admin/withdrawals?status=pending', urgent: true },
+  { key: 'accessRequests', label: 'Access requests', icon: 'key', href: '/admin/access-requests' },
+  { key: 'consultations', label: 'New consultations', icon: 'forum', href: '/admin/consultations' },
+  { key: 'llc', label: 'LLC applications', icon: 'business', href: '/admin/llc' },
+  { key: 'loans', label: 'Loan requests', icon: 'account_balance', href: '/admin/loans' },
+  { key: 'cards', label: 'Card requests', icon: 'payment', href: '/admin/cards' },
+];
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState<AdminStats | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    adminAPI.getDashboardStats()
-      .then((r) => setStats(r.data))
-      .finally(() => setLoading(false));
-  }, []);
+  const accent = useAccent();
+  const { data: stats, loading, error, refresh } = useAdminStats();
+  const firstLoad = loading && !stats;
+  const waiting = waitingItems(stats).reduce((sum, item) => sum + item.count, 0);
 
   return (
-    <div className="flex flex-col min-h-full bg-[#f9f9fb] dark:bg-[#050505]">
-      <DashboardHeader title="Admin Dashboard" subtitle="Platform overview" logo="dwp" />
+    <AdminPage title="Overview" description="What's happening on Digital Wealth Partners right now.">
+      {error && !stats ? (
+        <Card>
+          <MDBox p={3} display="flex" alignItems="center" justifyContent="space-between" gap={2} flexWrap="wrap">
+            <MDTypography variant="button" color="error">{errorMessage(error, 'Could not load the overview.')}</MDTypography>
+            <MDButton variant="outlined" color="info" size="small" onClick={() => void refresh()}>Try again</MDButton>
+          </MDBox>
+        </Card>
+      ) : (
+        <>
+          {/* Headline numbers */}
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={6} lg={3}>
+              <MDBox mb={1.5}>
+                <StatCard loading={firstLoad} color={accent} icon="group" title="Total users" value={stats?.totalUsers ?? 0}
+                  href="/admin/users" footnote={{ amount: String(stats?.activeUsers ?? 0), label: 'active accounts', color: 'success' }} />
+              </MDBox>
+            </Grid>
+            <Grid item xs={12} md={6} lg={3}>
+              <MDBox mb={1.5}>
+                <StatCard loading={firstLoad} color="warning" icon="pending_actions" title="Waiting for review" value={waiting}
+                  footnote={{ label: waiting ? 'items across all queues' : 'all queues are clear', color: waiting ? 'warning' : 'success' }} />
+              </MDBox>
+            </Grid>
+            <Grid item xs={12} md={6} lg={3}>
+              <MDBox mb={1.5}>
+                <StatCard loading={firstLoad} color="success" icon="south_west" title="Total deposited" value={formatCurrency(stats?.totalDepositedUSD || 0)}
+                  href="/admin/deposits" footnote={{ amount: String(stats?.pendingDeposits ?? 0), label: 'deposits pending', color: 'info' }} />
+              </MDBox>
+            </Grid>
+            <Grid item xs={12} md={6} lg={3}>
+              <MDBox mb={1.5}>
+                <StatCard loading={firstLoad} color="info" icon="outbound" title="Total withdrawn" value={formatCurrency(stats?.totalWithdrawnUSD || 0)}
+                  href="/admin/withdrawals" footnote={{ amount: String(stats?.pendingWithdrawals ?? 0), label: 'withdrawals pending', color: 'warning' }} />
+              </MDBox>
+            </Grid>
+          </Grid>
 
-      <div className="flex-1 p-6 space-y-6">
-        {loading ? (
-          <div className="flex items-center justify-center h-48">
-            <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-          </div>
-        ) : (
-          <>
-            {/* Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <StatCard label="Total Users" value={stats?.totalUsers || 0} icon={<Users size={20} />} />
-              <StatCard label="Active Users" value={stats?.activeUsers || 0} icon={<Users size={20} />} />
-              <StatCard label="Active Assets" value={stats?.totalAssets || 0} icon={<Package size={20} />} />
-              <StatCard label="Total Deposited" value={formatCurrency(stats?.totalDepositedUSD || 0)} icon={<TrendingUp size={20} />} />
-            </div>
+          <MDBox mt={4.5}>
+            <Grid container spacing={3}>
+              {/* Work queues */}
+              <Grid item xs={12} lg={5}>
+                <Card sx={{ height: '100%' }}>
+                  <MDBox pt={3} px={3}>
+                    <MDTypography variant="h6" fontWeight="medium">Waiting for the team</MDTypography>
+                    <MDTypography variant="button" color="text" fontWeight="regular">Each line opens the list that clears it.</MDTypography>
+                  </MDBox>
+                  <MDBox p={2}>
+                    {QUEUES.map((queue) => {
+                      const count = firstLoad ? null : (stats?.queues?.[queue.key] ?? 0);
+                      const color = !count ? 'success' : queue.urgent ? 'error' : 'warning';
+                      return (
+                        <MDBox
+                          key={queue.key}
+                          component={Link}
+                          href={queue.href}
+                          display="flex"
+                          alignItems="center"
+                          justifyContent="space-between"
+                          py={1.25}
+                          px={1}
+                          borderRadius="md"
+                          sx={({ palette: { grey } }) => ({ textDecoration: 'none', '&:hover': { backgroundColor: grey[100] } })}
+                        >
+                          <MDBox display="flex" alignItems="center" gap={1.5}>
+                            <MDBox display="grid" sx={{ placeItems: 'center' }} width="2rem" height="2rem" borderRadius="md" variant="gradient" bgColor={color} color="white">
+                              <Icon fontSize="small">{queue.icon}</Icon>
+                            </MDBox>
+                            <MDTypography variant="button" fontWeight="medium">{queue.label}</MDTypography>
+                          </MDBox>
+                          {count === null ? <Skeleton width={24} /> : <MDTypography variant="h6" color={count === 0 ? 'text' : color}>{count}</MDTypography>}
+                        </MDBox>
+                      );
+                    })}
+                  </MDBox>
+                </Card>
+              </Grid>
 
-            {/* Pending Actions */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-white dark:bg-[#101010] border border-gray-200 dark:border-gray-700/50 rounded-2xl p-5">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-amber-500/15 flex items-center justify-center">
-                      <ArrowDownToLine size={16} className="text-amber-400" />
-                    </div>
-                    <span className="font-semibold text-gray-900 dark:text-white">Pending Deposits</span>
-                  </div>
-                  <span className="text-2xl font-semibold text-amber-400">{stats?.pendingDeposits || 0}</span>
-                </div>
-                <Link href="/admin/deposits?status=pending">
-                  <Button variant="secondary" size="sm" className="w-full">Review Deposits</Button>
-                </Link>
-              </div>
-
-              <div className="bg-white dark:bg-[#101010] border border-gray-200 dark:border-gray-700/50 rounded-2xl p-5">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-blue-500/15 flex items-center justify-center">
-                      <ArrowUpFromLine size={16} className="text-blue-400" />
-                    </div>
-                    <span className="font-semibold text-gray-900 dark:text-white">Pending Withdrawals</span>
-                  </div>
-                  <span className="text-2xl font-semibold text-blue-400">{stats?.pendingWithdrawals || 0}</span>
-                </div>
-                <Link href="/admin/withdrawals?status=pending">
-                  <Button variant="secondary" size="sm" className="w-full">Review Withdrawals</Button>
-                </Link>
-              </div>
-            </div>
-
-            {/* Recent Activity */}
-            <div className="bg-white dark:bg-[#101010] border border-gray-200 dark:border-gray-700/50 rounded-2xl p-6">
-              <div className="flex items-center justify-between mb-5">
-                <h2 className="font-semibold text-[var(--text-primary)] flex items-center gap-2">
-                  <Activity size={18} className="text-brand-400" /> Recent Activity
-                </h2>
-                <Link href="/admin/activity">
-                  <Button variant="ghost" size="sm">View all</Button>
-                </Link>
-              </div>
-              <div className="space-y-2">
-                {stats?.recentActivity?.map((log, i) => (
-                  <div key={i} className="flex items-start justify-between py-2.5 px-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                    <div>
-                      <p className="text-sm text-gray-900 dark:text-white font-medium">{log.action.replace(/_/g, ' ')}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {log.email || 'System'} · {log.ipAddress || 'N/A'}
-                      </p>
-                    </div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap ml-4">
-                      {formatDate(log.createdAt)}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
+              {/* Recent activity */}
+              <Grid item xs={12} lg={7}>
+                <Card sx={{ height: '100%' }}>
+                  <MDBox pt={3} px={3} display="flex" justifyContent="space-between" alignItems="flex-start" gap={2}>
+                    <MDBox>
+                      <MDTypography variant="h6" fontWeight="medium">Recent activity</MDTypography>
+                      <MDTypography variant="button" color="text" fontWeight="regular">The latest sign-ins and actions across the platform.</MDTypography>
+                    </MDBox>
+                    <MDButton component={Link} href="/admin/activity" variant="text" color="info" size="small">View all</MDButton>
+                  </MDBox>
+                  <MDBox p={2}>
+                    {firstLoad && Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} height={44} />)}
+                    {!firstLoad && !stats?.recentActivity?.length && (
+                      <MDTypography variant="button" color="text" px={1}>No activity yet.</MDTypography>
+                    )}
+                    {stats?.recentActivity?.map((log, i) => (
+                      <MDBox key={i}>
+                        {i > 0 && <Divider sx={{ my: 0.5 }} />}
+                        <MDBox display="flex" justifyContent="space-between" alignItems="flex-start" gap={2} py={1} px={1}>
+                          <MDBox minWidth={0}>
+                            <MDTypography variant="button" fontWeight="medium" display="block">{humanize(log.action)}</MDTypography>
+                            <MDTypography variant="caption" color="text" display="block" noWrap>
+                              {log.email || 'System'} · {log.ipAddress || 'N/A'}
+                            </MDTypography>
+                          </MDBox>
+                          <MDTypography variant="caption" color="text" whiteSpace="nowrap">{formatDate(log.createdAt)}</MDTypography>
+                        </MDBox>
+                      </MDBox>
+                    ))}
+                  </MDBox>
+                </Card>
+              </Grid>
+            </Grid>
+          </MDBox>
+        </>
+      )}
+    </AdminPage>
   );
 }

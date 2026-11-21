@@ -132,6 +132,21 @@ export interface AdminStats {
   totalDepositedUSD: number;
   totalWithdrawnUSD: number;
   recentActivity: ActivityLog[];
+  /** Work waiting for the team. Missing from servers older than the admin redesign. */
+  queues?: AdminQueues;
+}
+
+export interface AdminQueues {
+  kyc: number;
+  paymentProofs: number;
+  onboardingPayments: number;
+  accessRequests: number;
+  llc: number;
+  consultations: number;
+  loans: number;
+  cards: number;
+  deposits: number;
+  withdrawals: number;
 }
 
 export interface LLCApplication {

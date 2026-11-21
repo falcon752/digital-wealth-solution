@@ -1,7 +1,10 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const { body, validationResult } = require('express-validator');
-const { User, Asset, Deposit, Withdrawal, ActivityLog, Card } = require('../database');
+const {
+  User, Asset, Deposit, Withdrawal, ActivityLog, Card,
+  KYCSubmission, PaymentProof, OnboardingPayment, AccessRequest, LLCApplication, Loan, ContactSubmission,
+} = require('../database');
 const { authenticate, requireAdmin } = require('../middleware/auth');
 const { logActivity } = require('../utils/activity');
 const { 
@@ -22,7 +25,7 @@ router.get('/dashboard-stats', authenticate, requireAdmin, async (req, res) => {
   try {
     const [
       totalUsers, activeUsers, pendingDeposits, pendingWithdrawals, totalAssets,
-      depositedAgg, withdrawnAgg, recentActivity,
+      depositedAgg, withdrawnAgg, recentActivity, queueCounts,
     ] = await Promise.all([
       User.countDocuments({ role: 'user' }),
       User.countDocuments({ role: 'user', isActive: true }),
@@ -42,7 +45,19 @@ router.get('/dashboard-stats', authenticate, requireAdmin, async (req, res) => {
         .limit(10)
         .populate('userId', 'firstName lastName email')
         .lean(),
+      // Work waiting for the team (the admin's notification bell and overview).
+      Promise.all([
+        KYCSubmission.countDocuments({ status: 'pending' }),
+        PaymentProof.countDocuments({ status: 'pending' }),
+        OnboardingPayment.countDocuments({ status: 'under_review' }),
+        AccessRequest.countDocuments({ status: 'pending' }),
+        LLCApplication.countDocuments({ status: 'pending' }),
+        ContactSubmission.countDocuments({ status: 'pending' }),
+        Loan.countDocuments({ status: 'pending' }),
+        Card.countDocuments({ status: 'pending' }),
+      ]),
     ]);
+    const [kyc, paymentProofs, onboardingPayments, accessRequests, llc, consultations, loans, cards] = queueCounts;
 
     const recentActivityMapped = recentActivity.map((a) => ({
       action: a.action,
@@ -63,6 +78,11 @@ router.get('/dashboard-stats', authenticate, requireAdmin, async (req, res) => {
       totalDepositedUSD: depositedAgg[0]?.total || 0,
       totalWithdrawnUSD: withdrawnAgg[0]?.total || 0,
       recentActivity: recentActivityMapped,
+      queues: {
+        kyc, paymentProofs, onboardingPayments, accessRequests, llc, consultations, loans, cards,
+        deposits: pendingDeposits,
+        withdrawals: pendingWithdrawals,
+      },
     });
   } catch (err) {
     console.error('Admin stats error:', err);
