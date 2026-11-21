@@ -262,7 +262,8 @@ const colors: ThemeColors = {
     dark: "#000000",
   },
 
-  inputBorderColor: "#333333",
+  // Lighter than the template so outlined fields stay visible on the near-black cards and dialogs.
+  inputBorderColor: "#7A7A7A",
 
   tabs: {
     indicator: { boxShadow: "#000000" },

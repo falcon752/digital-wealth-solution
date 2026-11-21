@@ -2,8 +2,17 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
-import { Activity, MapPin, Navigation, Clock, Globe } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import Card from '@mui/material/Card';
+import Divider from '@mui/material/Divider';
+import Grid from '@mui/material/Grid';
+import { keyframes } from '@mui/material/styles';
+import AdminPage from '@/components/admin/shell/AdminPage';
+import Icon from '@/components/admin/ui/Icon';
+import StatCard from '@/components/admin/ui/StatCard';
+import { useAccent } from '@/components/admin/ui/useAccent';
+import MDBox from '@/components/admin/components/MDBox';
+import MDTypography from '@/components/admin/components/MDTypography';
 
 interface PageHistory {
   path: string;
@@ -21,7 +30,112 @@ interface Visitor {
   lastActive: number;
 }
 
+const ping = keyframes`
+  0% { transform: scale(1); opacity: 0.75; }
+  75%, 100% { transform: scale(2.2); opacity: 0; }
+`;
+
+/** The pulsing "live" dot. */
+function LiveDot() {
+  return (
+    <MDBox position="relative" display="inline-flex" width="0.75rem" height="0.75rem" flexShrink={0}>
+      <MDBox
+        component="span"
+        position="absolute"
+        width="100%"
+        height="100%"
+        borderRadius="50%"
+        bgColor="success"
+        sx={{ animation: `${ping} 1.5s cubic-bezier(0, 0, 0.2, 1) infinite` }}
+      />
+      <MDBox component="span" position="relative" width="100%" height="100%" borderRadius="50%" bgColor="success" />
+    </MDBox>
+  );
+}
+
+function SectionLabel({ children }: { children: string }) {
+  return (
+    <MDTypography variant="caption" color="secondary" fontWeight="bold" textTransform="uppercase" display="block" mb={1}>
+      {children}
+    </MDTypography>
+  );
+}
+
+function VisitorCard({ visitor }: { visitor: Visitor }) {
+  const accent = useAccent();
+  return (
+    <Card sx={{ height: '100%' }}>
+      <MDBox p={3}>
+        <MDBox display="flex" alignItems="center" gap={1.5} mb={2.5}>
+          <MDBox
+            display="grid"
+            width="2.75rem"
+            height="2.75rem"
+            borderRadius="lg"
+            variant="gradient"
+            bgColor={accent}
+            coloredShadow={accent}
+            color="white"
+            flexShrink={0}
+            sx={{ placeItems: 'center' }}
+          >
+            <Icon fontSize="medium">language</Icon>
+          </MDBox>
+          <MDBox minWidth={0}>
+            <MDTypography variant="h6" lineHeight={1.3}>Visitor #{visitor.visitorId.slice(-6)}</MDTypography>
+            <MDTypography variant="caption" color="text" display="flex" alignItems="center" gap={0.5} noWrap>
+              <Icon sx={{ fontSize: '0.9rem !important' }}>place</Icon> {visitor.location} ({visitor.ip})
+            </MDTypography>
+          </MDBox>
+        </MDBox>
+
+        <SectionLabel>Current Page</SectionLabel>
+        <MDBox
+          display="flex"
+          alignItems="center"
+          gap={1}
+          p={1.5}
+          borderRadius="md"
+          mb={2.5}
+          sx={({ palette }) => ({ backgroundColor: palette.grey[100] })}
+        >
+          <Icon fontSize="small" color="info" sx={{ flexShrink: 0 }}>route</Icon>
+          <MDTypography variant="button" fontWeight="medium" noWrap title={visitor.currentPath}>{visitor.currentPath}</MDTypography>
+        </MDBox>
+
+        <SectionLabel>Session Info</SectionLabel>
+        <MDBox display="flex" flexWrap="wrap" columnGap={3} rowGap={1} mb={visitor.history.length > 0 ? 2.5 : 0}>
+          <MDTypography variant="button" color="text" fontWeight="regular" display="flex" alignItems="center" gap={0.75}>
+            <Icon fontSize="small">schedule</Icon> Started {formatDistanceToNow(visitor.connectedAt)} ago
+          </MDTypography>
+          <MDTypography variant="button" color="text" fontWeight="regular" display="flex" alignItems="center" gap={0.75}>
+            <Icon fontSize="small">bar_chart</Icon> {visitor.history.length} pageviews
+          </MDTypography>
+        </MDBox>
+
+        {visitor.history.length > 0 && (
+          <>
+            <SectionLabel>Recent History</SectionLabel>
+            <MDBox maxHeight="8rem" pr={1} sx={{ overflowY: 'auto' }}>
+              {visitor.history.slice().reverse().slice(0, 5).map((h, i) => (
+                <MDBox key={i}>
+                  {i > 0 && <Divider sx={{ my: 0.5 }} />}
+                  <MDBox display="flex" justifyContent="space-between" alignItems="center" gap={2}>
+                    <MDTypography variant="caption" color="text" noWrap title={h.path}>{h.path}</MDTypography>
+                    <MDTypography variant="caption" color="secondary" whiteSpace="nowrap">{formatDistanceToNow(h.timestamp)} ago</MDTypography>
+                  </MDBox>
+                </MDBox>
+              ))}
+            </MDBox>
+          </>
+        )}
+      </MDBox>
+    </Card>
+  );
+}
+
 export default function LiveVisitorsPage() {
+  const accent = useAccent();
   const [visitors, setVisitors] = useState<Visitor[]>([]);
   const socketRef = useRef<Socket | null>(null);
 
@@ -68,94 +182,71 @@ export default function LiveVisitorsPage() {
     };
   }, []);
 
+  const pageviews = visitors.reduce((sum, v) => sum + v.history.length, 0);
+  const places = new Set(visitors.map((v) => v.location).filter(Boolean)).size;
+
   return (
-    <div className="p-6 md:p-8 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <Activity className="w-6 h-6 text-blue-500" />
-            Live Visitors
-          </h1>
-          <p className="text-gray-500 mt-1">Monitor real-time traffic and user activity on the website.</p>
-        </div>
-        <div className="bg-blue-50 dark:bg-blue-900/20 px-4 py-2 rounded-xl flex items-center gap-3 border border-blue-100 dark:border-blue-900">
-          <div className="relative flex w-3 h-3">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full w-3 h-3 bg-blue-500"></span>
-          </div>
-          <span className="font-bold text-blue-700 dark:text-blue-400">
-            {visitors.length} Active Now
-          </span>
-        </div>
-      </div>
-
-      {visitors.length === 0 ? (
-        <div className="bg-white dark:bg-[#101010] border border-gray-200 dark:border-gray-800 rounded-2xl p-12 text-center">
-          <Globe className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-700 mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">No active visitors</h3>
-          <p className="text-gray-500">When someone visits the website, they will appear here in real-time.</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-          {visitors.map((visitor) => (
-            <div key={visitor.visitorId} className="bg-white dark:bg-[#101010] border border-gray-200 dark:border-gray-800 rounded-2xl p-6 shadow-sm">
-              <div className="flex justify-between items-start mb-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                    <Globe className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                  </div>
-                  <div>
-                    <div className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                      Visitor #{visitor.visitorId.slice(-6)}
-                    </div>
-                    <div className="text-[13px] text-gray-500 flex items-center gap-1">
-                      <MapPin className="w-3 h-3" /> {visitor.location} ({visitor.ip})
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <div className="text-[12px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Current Page</div>
-                  <div className="font-medium text-gray-900 dark:text-white flex items-center gap-2 bg-gray-50 dark:bg-[#1a1a1a] p-3 rounded-lg truncate">
-                    <Navigation className="w-4 h-4 text-blue-500 shrink-0" />
-                    {visitor.currentPath}
-                  </div>
-                </div>
-
-                <div>
-                  <div className="text-[12px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Session Info</div>
-                  <div className="flex items-center gap-4 text-[14px]">
-                    <div className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400">
-                      <Clock className="w-4 h-4 text-gray-400" />
-                      Started {formatDistanceToNow(visitor.connectedAt)} ago
-                    </div>
-                    <div className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400">
-                      <Activity className="w-4 h-4 text-gray-400" />
-                      {visitor.history.length} pageviews
-                    </div>
-                  </div>
-                </div>
-
-                {visitor.history.length > 0 && (
-                  <div>
-                    <div className="text-[12px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Recent History</div>
-                    <div className="space-y-2 max-h-32 overflow-y-auto pr-2">
-                      {visitor.history.slice().reverse().slice(0, 5).map((h, i) => (
-                        <div key={i} className="flex justify-between items-center text-[13px]">
-                          <span className="text-gray-600 dark:text-gray-400 truncate pr-4">{h.path}</span>
-                          <span className="text-gray-400 shrink-0">{formatDistanceToNow(h.timestamp)} ago</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
+    <AdminPage
+      title="Live Visitors"
+      description="Monitor real-time traffic and user activity on the website."
+      actions={(
+        <MDBox
+          display="flex"
+          alignItems="center"
+          gap={1.5}
+          px={2}
+          py={1}
+          borderRadius="lg"
+          shadow="sm"
+          sx={({ palette }) => ({ backgroundColor: palette.background.card })}
+        >
+          <LiveDot />
+          <MDTypography variant="button" fontWeight="bold" color="success">{visitors.length} Active Now</MDTypography>
+        </MDBox>
       )}
-    </div>
+    >
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={4}>
+          <MDBox mb={1.5}>
+            <StatCard color="success" icon="group" title="Active now" value={visitors.length}
+              footnote={{ label: 'updates live as people come and go', color: 'secondary' }} />
+          </MDBox>
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <MDBox mb={1.5}>
+            <StatCard color={accent} icon="bar_chart" title="Pageviews" value={pageviews}
+              footnote={{ label: 'across the current sessions', color: 'secondary' }} />
+          </MDBox>
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <MDBox mb={1.5}>
+            <StatCard color="info" icon="place" title="Locations" value={places}
+              footnote={{ label: 'where current visitors are', color: 'secondary' }} />
+          </MDBox>
+        </Grid>
+      </Grid>
+
+      <MDBox mt={3}>
+        {visitors.length === 0 ? (
+          <Card>
+            <MDBox p={6} textAlign="center">
+              <Icon sx={{ fontSize: '4rem !important', color: 'text.disabled' }}>language</Icon>
+              <MDTypography variant="h6" mt={2}>No active visitors</MDTypography>
+              <MDTypography variant="button" color="text" fontWeight="regular">
+                When someone visits the website, they will appear here in real-time.
+              </MDTypography>
+            </MDBox>
+          </Card>
+        ) : (
+          <Grid container spacing={3}>
+            {visitors.map((visitor) => (
+              <Grid item xs={12} lg={6} xl={4} key={visitor.visitorId}>
+                <VisitorCard visitor={visitor} />
+              </Grid>
+            ))}
+          </Grid>
+        )}
+      </MDBox>
+    </AdminPage>
   );
 }

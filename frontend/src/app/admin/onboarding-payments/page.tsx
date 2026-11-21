@@ -1,16 +1,42 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { CheckCircle2, Eye, MailCheck, MailWarning, RefreshCw, Save, Settings2, ShieldCheck, XCircle } from 'lucide-react';
+import { useEffect, useMemo, useState, type ChangeEvent, type ReactNode, type SyntheticEvent } from 'react';
 import toast from 'react-hot-toast';
-import DashboardHeader from '@/components/layout/DashboardHeader';
-import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
+import Card from '@mui/material/Card';
+import CircularProgress from '@mui/material/CircularProgress';
+import Divider from '@mui/material/Divider';
+import Grid from '@mui/material/Grid';
+import IconButton from '@mui/material/IconButton';
+import Skeleton from '@mui/material/Skeleton';
+import Tab from '@mui/material/Tab';
+import Tabs from '@mui/material/Tabs';
+import Tooltip from '@mui/material/Tooltip';
+import AdminPage from '@/components/admin/shell/AdminPage';
+import AdminDialog from '@/components/admin/ui/AdminDialog';
+import DataTableCard, { type Column } from '@/components/admin/ui/DataTableCard';
+import { SearchField, SelectFilter } from '@/components/admin/ui/Filters';
+import Icon from '@/components/admin/ui/Icon';
+import StatCard from '@/components/admin/ui/StatCard';
+import StatusBadge, { type BadgeColor } from '@/components/admin/ui/StatusBadge';
+import { useAccent } from '@/components/admin/ui/useAccent';
+import MDBox from '@/components/admin/components/MDBox';
+import MDButton from '@/components/admin/components/MDButton';
+import MDInput from '@/components/admin/components/MDInput';
+import MDTypography from '@/components/admin/components/MDTypography';
+import { humanize } from '@/components/admin/lib/format';
 import { onboardingAPI } from '@/lib/api';
 import { getApiError } from '@/lib/apiError';
 import { OnboardingConfig, OnboardingPayment } from '@/types';
 
 type Filter = 'all' | 'under_review' | 'confirmed' | 'rejected';
+type PageTab = 'payments' | 'configuration';
+
+const FILTERS: { value: Filter; label: string; icon: string; color: 'warning' | 'success' | 'error' | 'dark' }[] = [
+  { value: 'under_review', label: 'Under review', icon: 'pending_actions', color: 'warning' },
+  { value: 'confirmed', label: 'Confirmed', icon: 'task_alt', color: 'success' },
+  { value: 'rejected', label: 'Rejected', icon: 'cancel', color: 'error' },
+  { value: 'all', label: 'All', icon: 'paid', color: 'dark' },
+];
 
 function paymentUser(payment: OnboardingPayment) {
   return typeof payment.userId === 'string'
@@ -18,15 +44,76 @@ function paymentUser(payment: OnboardingPayment) {
     : payment.userId;
 }
 
-function statusTone(status: string) {
-  if (status === 'confirmed' || status === 'account_active' || status === 'verified') return 'bg-emerald-50 text-emerald-700';
-  if (status === 'rejected' || status === 'failed') return 'bg-red-50 text-red-700';
-  if (status === 'under_review' || status === 'pending_network' || status === 'manual_review') return 'bg-amber-50 text-amber-700';
-  return 'bg-gray-100 text-gray-700';
+/** Badge colour for payment statuses and network-check states (amber while waiting, red when it failed). */
+function statusTone(status: string): BadgeColor {
+  if (status === 'confirmed' || status === 'account_active' || status === 'verified') return 'success';
+  if (status === 'rejected' || status === 'failed') return 'error';
+  if (status === 'under_review' || status === 'pending_network' || status === 'manual_review') return 'warning';
+  return 'secondary';
 }
 
+function Status({ value }: { value: string }) {
+  return <StatusBadge status={value} label={humanize(value)} color={statusTone(value)} />;
+}
+
+/** A statistics card that also picks the list filter; the chosen one is outlined. */
+function FilterStat({ selected, onSelect, children }: { selected: boolean; onSelect: () => void; children: ReactNode }) {
+  return (
+    <MDBox
+      role="button"
+      tabIndex={0}
+      aria-pressed={selected}
+      onClick={onSelect}
+      onKeyDown={(event: React.KeyboardEvent) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onSelect(); } }}
+      sx={({ palette, borders: { borderRadius } }) => ({
+        cursor: 'pointer',
+        borderRadius: borderRadius.xl,
+        outline: selected ? `2px solid ${palette.info.main}` : '2px solid transparent',
+        outlineOffset: 2,
+        transition: 'outline-color 150ms ease',
+        '&:hover': { opacity: 0.94 },
+      })}
+    >
+      {children}
+    </MDBox>
+  );
+}
+
+/** One label/value line in the review dialog. */
+function Row({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <MDBox
+      display="grid"
+      gridTemplateColumns={{ xs: '1fr', sm: '130px 1fr' }}
+      gap={{ xs: 0.25, sm: 1.5 }}
+      py={1.25}
+      sx={({ palette }) => ({ borderBottom: `1px solid ${palette.divider}` })}
+    >
+      <MDTypography variant="caption" color="secondary" fontWeight="bold" textTransform="uppercase" pt={0.25}>{label}</MDTypography>
+      <MDTypography variant="button" color="text" fontWeight="medium" component="div" sx={{ wordBreak: 'break-word', minWidth: 0 }}>
+        {children}
+      </MDTypography>
+    </MDBox>
+  );
+}
+
+/** A bordered list (history, email delivery) in the review dialog. */
+function ListBox({ children }: { children: ReactNode }) {
+  return (
+    <MDBox borderRadius="lg" px={2} sx={({ palette }) => ({ border: `1px solid ${palette.divider}` })}>
+      {children}
+    </MDBox>
+  );
+}
+
+const mono = { fontFamily: 'monospace', wordBreak: 'break-all' } as const;
+
+// The public site's globals.css paints `.dark form label` white; keep the theme's label colour.
+const FORM_LABELS = { '& label.MuiInputLabel-root:not(.Mui-focused):not(.Mui-error)': { color: 'text.main' } } as const;
+
 export default function AdminOnboardingPaymentsPage() {
-  const [tab, setTab] = useState<'payments' | 'configuration'>('payments');
+  const accent = useAccent();
+  const [tab, setTab] = useState<PageTab>('payments');
   const [payments, setPayments] = useState<OnboardingPayment[]>([]);
   const [config, setConfig] = useState<OnboardingConfig | null>(null);
   const [reviewing, setReviewing] = useState<OnboardingPayment | null>(null);
@@ -152,56 +239,307 @@ export default function AdminOnboardingPaymentsPage() {
   const reviewingUser = reviewing ? paymentUser(reviewing) : null;
   const accountActive = reviewingUser?.onboardingStatus === 'account_active';
 
+  const openReview = (payment: OnboardingPayment) => {
+    setReviewing(payment);
+    setRejectionReason(payment.rejectionReason || '');
+  };
+
+  const columns: Column<OnboardingPayment>[] = [
+    {
+      key: 'client',
+      header: 'Client',
+      render: (payment) => {
+        const user = paymentUser(payment);
+        return (
+          <MDBox lineHeight={1.2}>
+            <MDTypography variant="button" fontWeight="medium" display="block">{user.firstName} {user.lastName}</MDTypography>
+            <MDTypography variant="caption" color="text" display="block" sx={{ overflowWrap: 'anywhere' }}>{user.email}</MDTypography>
+            {/* Phones: the quote and payment columns are hidden, so show them here. */}
+            <MDBox display={{ xs: 'flex', md: 'none' }} alignItems="center" flexWrap="wrap" gap={1} mt={0.5}>
+              <MDTypography variant="caption" fontWeight="bold">{payment.assetAmount} {payment.asset} · ${payment.feeUsd.toLocaleString()}</MDTypography>
+              <Status value={payment.status} />
+            </MDBox>
+          </MDBox>
+        );
+      },
+    },
+    {
+      key: 'quote',
+      header: 'Quote',
+      hideOnMobile: true,
+      render: (payment) => (
+        <MDBox lineHeight={1.2}>
+          <MDTypography variant="button" fontWeight="medium" display="block" whiteSpace="nowrap">{payment.assetAmount} {payment.asset}</MDTypography>
+          <MDTypography variant="caption" color="text" display="block">${payment.feeUsd.toLocaleString()}</MDTypography>
+        </MDBox>
+      ),
+    },
+    { key: 'network', header: 'Network Check', hideOnMobile: true, render: (payment) => <Status value={payment.verification.state} /> },
+    { key: 'payment', header: 'Payment', hideOnMobile: true, render: (payment) => <Status value={payment.status} /> },
+    {
+      key: 'email',
+      header: 'Email',
+      hideOnMobile: true,
+      render: (payment) => {
+        const lastEmail = payment.emailDeliveries.at(-1);
+        return (
+          <Tooltip title={lastEmail?.success ? 'Last email submitted' : lastEmail ? 'Last email failed' : 'No email sent yet'}>
+            <Icon color={lastEmail?.success ? 'success' : 'warning'}>{lastEmail?.success ? 'mail' : 'warning'}</Icon>
+          </Tooltip>
+        );
+      },
+    },
+    {
+      key: 'review',
+      header: 'Review',
+      align: 'right',
+      render: (payment) => (
+        <Tooltip title="Review payment">
+          <IconButton size="small" color="info" onClick={() => openReview(payment)} aria-label="Review payment">
+            <Icon fontSize="small">visibility</Icon>
+          </IconButton>
+        </Tooltip>
+      ),
+    },
+  ];
+
+  const field = (label: string, input: ReactNode, wide = false) => (
+    <Grid item xs={12} sm={wide ? 12 : 6} key={label}>{input}</Grid>
+  );
+
   return (
-    <div className="min-h-full bg-[#f9f9fb] pb-20 dark:bg-[#050505]">
-      <DashboardHeader title="Onboarding Payments" subtitle="Verify transactions, confirm payments, and activate eligible accounts" logo="dwp" />
-      <main className="mx-auto max-w-7xl space-y-5 p-4 md:p-6">
-        <div className="inline-flex rounded-lg bg-gray-100 p-1 dark:bg-[#181818]">
-          <button type="button" onClick={() => setTab('payments')} className={`flex h-9 items-center gap-2 rounded-md px-4 text-sm font-semibold ${tab === 'payments' ? 'bg-white text-blue-600 shadow-sm dark:bg-[#101010]' : 'text-gray-500'}`}><ShieldCheck size={16} /> Payments</button>
-          <button type="button" onClick={() => setTab('configuration')} className={`flex h-9 items-center gap-2 rounded-md px-4 text-sm font-semibold ${tab === 'configuration' ? 'bg-white text-blue-600 shadow-sm dark:bg-[#101010]' : 'text-gray-500'}`}><Settings2 size={16} /> Quote Configuration</button>
-        </div>
+    <AdminPage title="Onboarding Payments" description="Verify transactions, confirm payments, and activate eligible accounts">
+      <MDBox mb={5} maxWidth={{ xs: '100%', md: 480 }}>
+        <Tabs value={tab} onChange={(_event: SyntheticEvent, next: PageTab) => setTab(next)} variant="fullWidth">
+          <Tab value="payments" label="Payments" icon={<Icon fontSize="small" sx={{ mt: -0.25 }}>verified_user</Icon>} iconPosition="start" />
+          <Tab value="configuration" label="Quote Configuration" icon={<Icon fontSize="small" sx={{ mt: -0.25 }}>tune</Icon>} iconPosition="start" />
+        </Tabs>
+      </MDBox>
 
-        {loading ? <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" /></div> : tab === 'payments' ? (
-          <>
-            <section className="grid gap-3 sm:grid-cols-4">
-              {(['under_review', 'confirmed', 'rejected', 'all'] as Filter[]).map((item) => <button key={item} type="button" onClick={() => setFilter(item)} className={`border px-4 py-4 text-left ${filter === item ? 'border-blue-300 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30' : 'border-gray-200 bg-white dark:border-gray-800 dark:bg-[#101010]'}`}><p className="text-xs font-semibold capitalize text-gray-500">{item.replace('_', ' ')}</p><p className="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">{counts[item]}</p></button>)}
-            </section>
-            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search client, email, or transaction hash" className="h-11 w-full max-w-md border border-gray-200 bg-white px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-[#101010] dark:text-white" />
-            <section className="overflow-hidden border border-gray-200 bg-white dark:border-gray-800 dark:bg-[#101010]">
-              <div className="overflow-x-auto"><table className="w-full text-left"><thead className="bg-gray-50 text-xs uppercase text-gray-500 dark:bg-[#181818]"><tr><th className="px-4 py-3">Client</th><th className="px-4 py-3">Quote</th><th className="px-4 py-3">Network Check</th><th className="px-4 py-3">Payment</th><th className="px-4 py-3">Email</th><th className="px-4 py-3 text-right">Review</th></tr></thead><tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                {visiblePayments.map((payment) => { const user = paymentUser(payment); const lastEmail = payment.emailDeliveries.at(-1); return <tr key={payment.id} className="text-sm"><td className="px-4 py-4"><p className="font-semibold text-gray-900 dark:text-white">{user.firstName} {user.lastName}</p><p className="text-xs text-gray-500">{user.email}</p></td><td className="px-4 py-4"><p className="font-semibold text-gray-900 dark:text-white">{payment.assetAmount} {payment.asset}</p><p className="text-xs text-gray-500">${payment.feeUsd.toLocaleString()}</p></td><td className="px-4 py-4"><span className={`inline-flex rounded-md px-2 py-1 text-xs font-semibold capitalize ${statusTone(payment.verification.state)}`}>{payment.verification.state.replace('_', ' ')}</span></td><td className="px-4 py-4"><span className={`inline-flex rounded-md px-2 py-1 text-xs font-semibold capitalize ${statusTone(payment.status)}`}>{payment.status.replace('_', ' ')}</span></td><td className="px-4 py-4">{lastEmail?.success ? <MailCheck size={18} className="text-emerald-600" /> : <MailWarning size={18} className="text-amber-600" />}</td><td className="px-4 py-4 text-right"><button type="button" onClick={() => { setReviewing(payment); setRejectionReason(payment.rejectionReason || ''); }} className="rounded-md p-2 text-blue-600 hover:bg-blue-50" title="Review payment"><Eye size={17} /></button></td></tr>; })}
-                {!visiblePayments.length && <tr><td colSpan={6} className="px-4 py-12 text-center text-sm text-gray-500">No onboarding payments match this view.</td></tr>}
-              </tbody></table></div>
-            </section>
-          </>
-        ) : config ? (
-          <form onSubmit={saveConfig} className="max-w-3xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-[#101010]">
-            <div className="mb-6"><h2 className="text-lg font-semibold text-gray-900 dark:text-white">Active payment quote</h2><p className="mt-1 text-sm text-gray-500">Clients can submit only while this quote is valid. Changes affect new payments; existing records retain their original snapshot.</p></div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Initial fee (USD)<input type="number" min="0" required value={config.feeUsd} onChange={(event) => updateConfig({ feeUsd: Number(event.target.value) })} className="mt-1.5 h-11 w-full border border-gray-200 bg-transparent px-3 dark:border-gray-700" /></label>
-              <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Renewal fee (USD)<input type="number" min="0" required value={config.renewalFeeUsd} onChange={(event) => updateConfig({ renewalFeeUsd: Number(event.target.value) })} className="mt-1.5 h-11 w-full border border-gray-200 bg-transparent px-3 dark:border-gray-700" /></label>
-              <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Coverage (months)<input type="number" min="1" max="120" required value={config.coverageMonths} onChange={(event) => updateConfig({ coverageMonths: Number(event.target.value) })} className="mt-1.5 h-11 w-full border border-gray-200 bg-transparent px-3 dark:border-gray-700" /></label>
-              <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Fallback XRP amount (used only if the live price is unavailable)<input required value={config.assetAmount} onChange={(event) => updateConfig({ assetAmount: event.target.value })} className="mt-1.5 h-11 w-full border border-gray-200 bg-transparent px-3 dark:border-gray-700" /></label>
-              <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Asset<input required readOnly value={config.asset} className="mt-1.5 h-11 w-full border border-gray-200 bg-gray-50 px-3 dark:border-gray-700 dark:bg-[#181818]" /></label>
-              <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Network<input required value={config.network} onChange={(event) => updateConfig({ network: event.target.value })} className="mt-1.5 h-11 w-full border border-gray-200 bg-transparent px-3 dark:border-gray-700" /></label>
-              <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 sm:col-span-2">Official XRP destination<input required value={config.destinationAddress} onChange={(event) => updateConfig({ destinationAddress: event.target.value.trim() })} className="mt-1.5 h-11 w-full border border-gray-200 bg-transparent px-3 font-mono text-sm dark:border-gray-700" /></label>
-              <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Destination tag (optional)<input type="number" min="0" value={config.destinationTag ?? ''} onChange={(event) => updateConfig({ destinationTag: event.target.value ? Number(event.target.value) : null })} className="mt-1.5 h-11 w-full border border-gray-200 bg-transparent px-3 dark:border-gray-700" /></label>
-            </div>
-            <Button type="submit" loading={saving} className="mt-6 bg-blue-600! text-white"><Save size={16} /> Save Payment Details</Button>
-          </form>
-        ) : null}
-      </main>
+      {tab === 'payments' ? (
+        <>
+          <Grid container spacing={3}>
+            {FILTERS.map((item) => (
+              <Grid item xs={6} lg={3} key={item.value}>
+                <MDBox mb={1.5}>
+                  <FilterStat selected={filter === item.value} onSelect={() => setFilter(item.value)}>
+                    <StatCard
+                      loading={loading}
+                      color={item.value === 'all' ? accent : item.color}
+                      icon={item.icon}
+                      title={item.label}
+                      value={counts[item.value]}
+                      footnote={{ label: filter === item.value ? 'In the list below' : 'Click to show', color: 'secondary' }}
+                    />
+                  </FilterStat>
+                </MDBox>
+              </Grid>
+            ))}
+          </Grid>
 
-      <Modal isOpen={!!reviewing} onClose={() => setReviewing(null)} title="Review Onboarding Payment" size="lg">
-        {reviewing && reviewingUser && <div className="space-y-5">
-          <div className="grid gap-3 sm:grid-cols-2"><div className="bg-gray-50 p-3 dark:bg-[#181818]"><p className="text-xs text-gray-500">Client</p><p className="mt-1 font-semibold text-gray-900 dark:text-white">{reviewingUser.firstName} {reviewingUser.lastName}</p><p className="text-xs text-gray-500">{reviewingUser.email}</p></div><div className="bg-gray-50 p-3 dark:bg-[#181818]"><p className="text-xs text-gray-500">Account status</p><p className="mt-1 font-semibold capitalize text-gray-900 dark:text-white">{reviewingUser.onboardingStatus?.replaceAll('_', ' ') || '-'}</p></div></div>
-          <dl className="divide-y divide-gray-100 border-y border-gray-100 text-sm dark:divide-gray-800 dark:border-gray-800"><div className="grid grid-cols-[130px_1fr] gap-3 py-3"><dt className="text-gray-500">Transaction</dt><dd className="break-all font-mono text-xs text-gray-900 dark:text-white">{reviewing.transactionReference.startsWith('MANUAL-') ? 'Not provided (confirmed from a payment proof)' : reviewing.transactionReference}</dd></div><div className="grid grid-cols-[130px_1fr] gap-3 py-3"><dt className="text-gray-500">Destination</dt><dd className="break-all font-mono text-xs text-gray-900 dark:text-white">{reviewing.destinationAddress}</dd></div><div className="grid grid-cols-[130px_1fr] gap-3 py-3"><dt className="text-gray-500">Quote</dt><dd className="font-semibold text-gray-900 dark:text-white">{reviewing.assetAmount} {reviewing.asset} (${reviewing.feeUsd.toLocaleString()})</dd></div><div className="grid grid-cols-[130px_1fr] gap-3 py-3"><dt className="text-gray-500">Verification</dt><dd><span className={`inline-flex rounded-md px-2 py-1 text-xs font-semibold capitalize ${statusTone(reviewing.verification.state)}`}>{reviewing.verification.state.replace('_', ' ')}</span>{reviewing.verification.failureReason && <p className="mt-2 text-xs text-red-600">{reviewing.verification.failureReason}</p>}</dd></div></dl>
-          <div className="flex flex-wrap gap-2"><Button variant="outline" onClick={reverify} loading={saving}><RefreshCw size={15} /> Recheck Ledger</Button>{reviewing.status === 'under_review' && <Button onClick={() => review('confirmed')} disabled={!['verified', 'legacy_manual'].includes(reviewing.verification.state)} loading={saving} className="bg-emerald-600! text-white"><CheckCircle2 size={15} /> Confirm Payment</Button>}{reviewing.status === 'confirmed' && !accountActive && <Button onClick={activate} loading={saving} className="bg-blue-600! text-white"><ShieldCheck size={15} /> Activate Account</Button>}</div>
-          {reviewing.status === 'under_review' && <div className="space-y-2"><label className="text-sm font-semibold text-gray-800 dark:text-gray-200">Rejection reason</label><textarea rows={3} value={rejectionReason} onChange={(event) => setRejectionReason(event.target.value)} className="w-full border border-gray-200 bg-transparent p-3 text-sm dark:border-gray-700" placeholder="Explain what the client needs to correct" /><Button variant="outline" onClick={() => review('rejected')} loading={saving} className="border-red-200 text-red-600"><XCircle size={15} /> Reject Payment</Button></div>}
-          <section><h3 className="text-sm font-semibold text-gray-900 dark:text-white">History</h3><div className="mt-2 divide-y divide-gray-100 border border-gray-100 px-3 dark:divide-gray-800 dark:border-gray-800">{reviewing.statusHistory.map((entry, index) => <div key={`${entry.status}-${index}`} className="flex justify-between gap-4 py-3 text-xs"><span className="font-semibold capitalize text-gray-800 dark:text-gray-200">{entry.status.replaceAll('_', ' ')}</span><span className="text-gray-500">{new Date(entry.changedAt).toLocaleString()}</span></div>)}</div></section>
-          <section><h3 className="text-sm font-semibold text-gray-900 dark:text-white">Email delivery</h3><div className="mt-2 divide-y divide-gray-100 border border-gray-100 px-3 dark:divide-gray-800 dark:border-gray-800">{reviewing.emailDeliveries.map((delivery, index) => <div key={`${delivery.template}-${index}`} className="flex items-start justify-between gap-4 py-3 text-xs"><div><p className="font-semibold text-gray-800 dark:text-gray-200">{delivery.template.replaceAll('_', ' ')}</p>{delivery.error && <p className="mt-1 text-red-600">{delivery.error}</p>}</div><span className={delivery.success ? 'text-emerald-600' : 'text-red-600'}>{delivery.success ? 'Submitted' : 'Failed'}</span></div>)}{!reviewing.emailDeliveries.length && <p className="py-3 text-xs text-gray-500">No email attempts recorded.</p>}</div></section>
-        </div>}
-      </Modal>
-    </div>
+          <MDBox mt={6}>
+            <DataTableCard
+              title="Onboarding payments"
+              subtitle={`${visiblePayments.length} ${filter === 'all' ? 'in total' : humanize(filter).toLowerCase()}`}
+              columns={columns}
+              rows={visiblePayments}
+              rowKey={(payment) => payment.id}
+              isLoading={loading}
+              emptyMessage="No onboarding payments match this view."
+              toolbar={(
+                <>
+                  <SearchField value={search} onChange={setSearch} placeholder="Search client, email, or transaction hash" width={340} />
+                  <SelectFilter<Exclude<Filter, 'all'>>
+                    label="Payment"
+                    value={filter === 'all' ? '' : filter}
+                    anyLabel={`All (${counts.all})`}
+                    options={FILTERS.filter((item) => item.value !== 'all').map((item) => ({ value: item.value as Exclude<Filter, 'all'>, label: `${item.label} (${counts[item.value]})` }))}
+                    onChange={(value) => setFilter(value || 'all')}
+                  />
+                </>
+              )}
+            />
+          </MDBox>
+        </>
+      ) : (
+        <Card sx={{ maxWidth: 820 }}>
+          <MDBox p={3}>
+            <MDTypography variant="h6">Active payment quote</MDTypography>
+            <MDTypography variant="button" color="text" fontWeight="regular" display="block" mb={3}>
+              Clients can submit only while this quote is valid. Changes affect new payments; existing records retain their original snapshot.
+            </MDTypography>
+            {loading ? (
+              <Grid container spacing={2}>
+                {Array.from({ length: 8 }).map((_, i) => <Grid item xs={12} sm={6} key={i}><Skeleton height={56} /></Grid>)}
+              </Grid>
+            ) : config ? (
+              <MDBox component="form" onSubmit={saveConfig} sx={FORM_LABELS}>
+                <Grid container spacing={2}>
+                  {field('Initial fee (USD)', (
+                    <MDInput label="Initial fee (USD)" type="number" inputProps={{ min: 0 }} required fullWidth value={config.feeUsd}
+                      onChange={(event: ChangeEvent<HTMLInputElement>) => updateConfig({ feeUsd: Number(event.target.value) })} />
+                  ))}
+                  {field('Renewal fee (USD)', (
+                    <MDInput label="Renewal fee (USD)" type="number" inputProps={{ min: 0 }} required fullWidth value={config.renewalFeeUsd}
+                      onChange={(event: ChangeEvent<HTMLInputElement>) => updateConfig({ renewalFeeUsd: Number(event.target.value) })} />
+                  ))}
+                  {field('Coverage (months)', (
+                    <MDInput label="Coverage (months)" type="number" inputProps={{ min: 1, max: 120 }} required fullWidth value={config.coverageMonths}
+                      onChange={(event: ChangeEvent<HTMLInputElement>) => updateConfig({ coverageMonths: Number(event.target.value) })} />
+                  ))}
+                  {field('Fallback XRP amount', (
+                    <MDInput label="Fallback XRP amount" helperText="Used only if the live price is unavailable." required fullWidth value={config.assetAmount}
+                      onChange={(event: ChangeEvent<HTMLInputElement>) => updateConfig({ assetAmount: event.target.value })} />
+                  ))}
+                  {field('Asset', (
+                    <MDInput label="Asset" required fullWidth value={config.asset} InputProps={{ readOnly: true }} disabled />
+                  ))}
+                  {field('Network', (
+                    <MDInput label="Network" required fullWidth value={config.network}
+                      onChange={(event: ChangeEvent<HTMLInputElement>) => updateConfig({ network: event.target.value })} />
+                  ))}
+                  {field('Official XRP destination', (
+                    <MDInput label="Official XRP destination" required fullWidth value={config.destinationAddress}
+                      inputProps={{ style: { fontFamily: 'monospace' } }}
+                      onChange={(event: ChangeEvent<HTMLInputElement>) => updateConfig({ destinationAddress: event.target.value.trim() })} />
+                  ), true)}
+                  {field('Destination tag (optional)', (
+                    <MDInput label="Destination tag (optional)" type="number" inputProps={{ min: 0 }} fullWidth value={config.destinationTag ?? ''}
+                      onChange={(event: ChangeEvent<HTMLInputElement>) => updateConfig({ destinationTag: event.target.value ? Number(event.target.value) : null })} />
+                  ))}
+                </Grid>
+                <MDBox mt={3}>
+                  <MDButton type="submit" variant="gradient" color={accent} disabled={saving}>
+                    {saving ? <CircularProgress size={14} color="inherit" /> : <Icon>save</Icon>}&nbsp;Save Payment Details
+                  </MDButton>
+                </MDBox>
+              </MDBox>
+            ) : null}
+          </MDBox>
+        </Card>
+      )}
+
+      <AdminDialog
+        isOpen={!!reviewing}
+        onClose={() => setReviewing(null)}
+        title="Review Onboarding Payment"
+        size="lg"
+        actions={reviewing ? (
+          <MDBox display="flex" gap={1} flexWrap="wrap" justifyContent="flex-end" width="100%">
+            <MDButton variant="text" color="dark" onClick={() => setReviewing(null)} disabled={saving} sx={{ display: { xs: "none", sm: "inline-flex" } }}>Close</MDButton>
+            <MDButton variant="outlined" color="info" onClick={reverify} disabled={saving}>
+              <Icon>refresh</Icon>&nbsp;Recheck Ledger
+            </MDButton>
+            {reviewing.status === 'under_review' && (
+              <MDButton variant="gradient" color="success" onClick={() => review('confirmed')}
+                disabled={saving || !['verified', 'legacy_manual'].includes(reviewing.verification.state)}>
+                <Icon>check_circle</Icon>&nbsp;Confirm Payment
+              </MDButton>
+            )}
+            {reviewing.status === 'confirmed' && !accountActive && (
+              <MDButton variant="gradient" color={accent} onClick={activate} disabled={saving}>
+                <Icon>verified_user</Icon>&nbsp;Activate Account
+              </MDButton>
+            )}
+          </MDBox>
+        ) : undefined}
+      >
+        {reviewing && reviewingUser && (
+          <MDBox>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <MDBox p={2} borderRadius="lg" height="100%" sx={({ palette }) => ({ backgroundColor: palette.grey[100] })}>
+                  <MDTypography variant="caption" color="secondary" fontWeight="bold" textTransform="uppercase">Client</MDTypography>
+                  <MDTypography variant="button" fontWeight="medium" display="block" mt={0.5}>{reviewingUser.firstName} {reviewingUser.lastName}</MDTypography>
+                  <MDTypography variant="caption" color="text" display="block">{reviewingUser.email}</MDTypography>
+                </MDBox>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <MDBox p={2} borderRadius="lg" height="100%" sx={({ palette }) => ({ backgroundColor: palette.grey[100] })}>
+                  <MDTypography variant="caption" color="secondary" fontWeight="bold" textTransform="uppercase">Account status</MDTypography>
+                  <MDBox mt={0.5}>
+                    {reviewingUser.onboardingStatus ? <Status value={reviewingUser.onboardingStatus} /> : <MDTypography variant="button" color="text">-</MDTypography>}
+                  </MDBox>
+                </MDBox>
+              </Grid>
+            </Grid>
+
+            <MDBox mt={2} sx={({ palette }) => ({ borderTop: `1px solid ${palette.divider}` })}>
+              <Row label="Transaction">
+                <MDTypography variant="caption" fontWeight="medium" sx={mono}>
+                  {reviewing.transactionReference.startsWith('MANUAL-') ? 'Not provided (confirmed from a payment proof)' : reviewing.transactionReference}
+                </MDTypography>
+              </Row>
+              <Row label="Destination">
+                <MDTypography variant="caption" fontWeight="medium" sx={mono}>{reviewing.destinationAddress}</MDTypography>
+              </Row>
+              <Row label="Quote">{reviewing.assetAmount} {reviewing.asset} (${reviewing.feeUsd.toLocaleString()})</Row>
+              <Row label="Verification">
+                <Status value={reviewing.verification.state} />
+                {reviewing.verification.failureReason && (
+                  <MDTypography variant="caption" color="error" display="block" mt={1}>{reviewing.verification.failureReason}</MDTypography>
+                )}
+              </Row>
+            </MDBox>
+
+            {reviewing.status === 'under_review' && (
+              <MDBox mt={3}>
+                <MDInput
+                  label="Rejection reason"
+                  placeholder="Explain what the client needs to correct"
+                  value={rejectionReason}
+                  onChange={(event: ChangeEvent<HTMLInputElement>) => setRejectionReason(event.target.value)}
+                  multiline
+                  minRows={3}
+                  fullWidth
+                  InputLabelProps={{ shrink: true }}
+                />
+                <MDBox mt={1.5}>
+                  <MDButton variant="outlined" color="error" size="small" onClick={() => review('rejected')} disabled={saving}>
+                    <Icon>cancel</Icon>&nbsp;Reject Payment
+                  </MDButton>
+                </MDBox>
+              </MDBox>
+            )}
+
+            <MDBox mt={3}>
+              <MDTypography variant="h6" mb={1}>History</MDTypography>
+              <ListBox>
+                {reviewing.statusHistory.map((entry, index) => (
+                  <MDBox key={`${entry.status}-${index}`}>
+                    {index > 0 && <Divider sx={{ my: 0 }} />}
+                    <MDBox display="flex" justifyContent="space-between" gap={2} py={1.25}>
+                      <MDTypography variant="caption" fontWeight="bold">{humanize(entry.status)}</MDTypography>
+                      <MDTypography variant="caption" color="text">{new Date(entry.changedAt).toLocaleString()}</MDTypography>
+                    </MDBox>
+                  </MDBox>
+                ))}
+              </ListBox>
+            </MDBox>
+
+            <MDBox mt={3}>
+              <MDTypography variant="h6" mb={1}>Email delivery</MDTypography>
+              <ListBox>
+                {reviewing.emailDeliveries.map((delivery, index) => (
+                  <MDBox key={`${delivery.template}-${index}`}>
+                    {index > 0 && <Divider sx={{ my: 0 }} />}
+                    <MDBox display="flex" alignItems="flex-start" justifyContent="space-between" gap={2} py={1.25}>
+                      <MDBox>
+                        <MDTypography variant="caption" fontWeight="bold" display="block">{delivery.template.replaceAll('_', ' ')}</MDTypography>
+                        {delivery.error && <MDTypography variant="caption" color="error" display="block" mt={0.5}>{delivery.error}</MDTypography>}
+                      </MDBox>
+                      <StatusBadge status={delivery.success ? 'sent' : 'failed'} label={delivery.success ? 'Submitted' : 'Failed'} />
+                    </MDBox>
+                  </MDBox>
+                ))}
+                {!reviewing.emailDeliveries.length && (
+                  <MDTypography variant="caption" color="text" display="block" py={1.25}>No email attempts recorded.</MDTypography>
+                )}
+              </ListBox>
+            </MDBox>
+          </MDBox>
+        )}
+      </AdminDialog>
+    </AdminPage>
   );
 }

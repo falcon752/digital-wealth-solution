@@ -5,11 +5,17 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import toast from 'react-hot-toast';
-import { Eye, EyeOff, Lock } from 'lucide-react';
+import CircularProgress from '@mui/material/CircularProgress';
+import IconButton from '@mui/material/IconButton';
+import InputAdornment from '@mui/material/InputAdornment';
 import { authAPI } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
+import MDBox from '@/components/admin/components/MDBox';
+import MDButton from '@/components/admin/components/MDButton';
+import MDInput from '@/components/admin/components/MDInput';
+import MDTypography from '@/components/admin/components/MDTypography';
+import Icon from '@/components/admin/ui/Icon';
+import { useAccent } from '@/components/admin/ui/useAccent';
 
 const adminLoginSchema = z.object({
   email: z.string().email('Enter a valid email'),
@@ -19,7 +25,15 @@ const adminLoginSchema = z.object({
 
 type AdminLoginForm = z.infer<typeof adminLoginSchema>;
 
+// The public site's globals.css paints `.dark form label` white; keep the theme's label colour.
+const FORM_LABELS = { '& label.MuiInputLabel-root:not(.Mui-focused):not(.Mui-error)': { color: 'text.main' } } as const;
+
+/**
+ * The admin sign-in form (email, password, then a 2FA code when the account needs one).
+ * Shown inside the sign-in card; once signed in, the /admin layout sends the admin on.
+ */
 export default function AdminLoginForm() {
+  const accent = useAccent();
   const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [requires2FA, setRequires2FA] = useState(false);
@@ -51,79 +65,99 @@ export default function AdminLoginForm() {
 
       login(res.data.token, res.data.user);
       toast.success(`Welcome back, ${res.data.user.firstName}!`);
-    } catch (err: any) {
-      const msg = err.response?.data?.error || 'Sign-in failed';
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Sign-in failed';
       toast.error(msg);
     } finally {
       setIsLoading(false);
     }
   };
 
+  // MUI puts the forwarded ref on the wrapper; the form library needs the <input> itself.
+  const { ref: emailRef, ...email } = register('email');
+  const { ref: passwordRef, ...password } = register('password');
+  const { ref: totpRef, ...totp } = register('totpCode');
+
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-10 bg-[#f9f9fb] dark:bg-[#050505]">
-      <div className="w-full max-w-md space-y-4">
-        <div className="text-center">
-          <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-blue-900 to-blue-600 flex items-center justify-center mx-auto mb-6 shadow-xl shadow-blue-900/40">
-            <Lock size={36} className="text-white" strokeWidth={2} />
-          </div>
-          <h1 className="text-3xl font-semibold text-(--text-primary)">Admin Sign In</h1>
-          <p className="text-(--text-muted) text-sm mt-2 max-w-xs mx-auto">
-            Restricted access. Authorized Digital Wealth Partners administrators only.
-          </p>
-        </div>
-
-        <div className="bg-white dark:bg-[#101010] border border-gray-200 dark:border-gray-700/50 rounded-2xl shadow-sm p-8">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <Input
-              label="Admin Email"
-              type="email"
-              placeholder="you@example.com"
-              autoComplete="email"
-              error={errors.email?.message}
-              {...register('email')}
-            />
-
-            <Input
-              label="Password"
-              type={showPassword ? 'text' : 'password'}
-              placeholder="••••••••"
-              autoComplete="current-password"
-              rightElement={
-                <button
-                  type="button"
+    <MDBox component="form" role="form" onSubmit={handleSubmit(onSubmit)} noValidate sx={FORM_LABELS}>
+      <MDBox mb={2}>
+        <MDInput
+          {...email}
+          inputRef={emailRef}
+          type="email"
+          label="Admin Email"
+          placeholder="you@example.com"
+          autoComplete="email"
+          fullWidth
+          error={Boolean(errors.email)}
+          helperText={errors.email?.message}
+          FormHelperTextProps={{ sx: { color: 'error.main' } }}
+        />
+      </MDBox>
+      <MDBox mb={2}>
+        <MDInput
+          {...password}
+          inputRef={passwordRef}
+          type={showPassword ? 'text' : 'password'}
+          label="Password"
+          placeholder="••••••••"
+          autoComplete="current-password"
+          fullWidth
+          // Not `error`: MDInput's error icon would sit on top of the show-password button.
+          helperText={errors.password?.message}
+          FormHelperTextProps={{ sx: { color: 'error.main' } }}
+          sx={errors.password ? { '& .MuiOutlinedInput-notchedOutline': { borderColor: 'error.main' } } : undefined}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton
+                  size="small"
+                  edge="end"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="text-(--text-muted) hover:text-(--text-primary) transition-colors"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              }
-              error={errors.password?.message}
-              {...register('password')}
-            />
+                  <Icon fontSize="small">{showPassword ? 'visibility_off' : 'visibility'}</Icon>
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
+        />
+      </MDBox>
 
-            {requires2FA && (
-              <Input
-                label="2FA Code"
-                type="text"
-                placeholder="000000"
-                maxLength={6}
-                inputMode="numeric"
-                error={errors.totpCode?.message}
-                {...register('totpCode')}
-              />
-            )}
+      {requires2FA && (
+        <MDBox mb={2}>
+          <MDInput
+            {...totp}
+            inputRef={totpRef}
+            type="text"
+            label="2FA Code"
+            placeholder="000000"
+            autoFocus
+            fullWidth
+            inputProps={{ maxLength: 6, inputMode: 'numeric', autoComplete: 'one-time-code' }}
+            error={Boolean(errors.totpCode)}
+            helperText={errors.totpCode?.message ?? 'The 6-digit code from your authenticator app.'}
+            FormHelperTextProps={errors.totpCode ? { sx: { color: 'error.main' } } : undefined}
+          />
+        </MDBox>
+      )}
 
-            <Button type="submit" className="w-full mt-2 bg-blue-600! hover:bg-blue-700! shadow-blue-600/30! text-white" size="lg" loading={isLoading}>
-              {requires2FA ? 'Verify & Sign In' : 'Sign In to Admin Portal'}
-            </Button>
-          </form>
-        </div>
+      <MDBox mt={3} mb={1}>
+        <MDButton type="submit" variant="gradient" color={accent} fullWidth disabled={isLoading}>
+          {isLoading && <CircularProgress size={14} color="inherit" sx={{ mr: 1 }} />}
+          {requires2FA ? 'Verify & Sign In' : 'Sign In to Admin Portal'}
+        </MDButton>
+      </MDBox>
 
-        <p className="text-center text-xs text-(--text-muted)">
+      <MDBox mt={3} textAlign="center">
+        <MDTypography variant="caption" color="text" fontWeight="regular" component="p" lineHeight={1.6}>
           This portal is for platform administrators. If you are a client, please use the{' '}
-          <a href="/login" className="text-blue-600 hover:text-blue-500 font-medium">standard sign-in page</a>.
-        </p>
-      </div>
-    </div>
+          <MDTypography component="a" href="/login" variant="caption" color={accent} fontWeight="medium" textGradient>
+            standard sign-in page
+          </MDTypography>
+          .
+        </MDTypography>
+      </MDBox>
+    </MDBox>
   );
 }

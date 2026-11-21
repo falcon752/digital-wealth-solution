@@ -1,18 +1,35 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, type ChangeEvent } from 'react';
+import Divider from '@mui/material/Divider';
+import Grid from '@mui/material/Grid';
+import MenuItem from '@mui/material/MenuItem';
+import toast from 'react-hot-toast';
 import { llcAPI } from '@/lib/api';
 import { LLCApplication } from '@/types';
-import DashboardHeader from '@/components/layout/DashboardHeader';
-import Button from '@/components/ui/Button';
-import Badge from '@/components/ui/Badge';
-import Modal from '@/components/ui/Modal';
-import Input from '@/components/ui/Input';
 import { formatDate, formatCurrency } from '@/lib/utils';
-import { Edit, ChevronLeft, ChevronRight } from 'lucide-react';
-import toast from 'react-hot-toast';
+import AdminPage from '@/components/admin/shell/AdminPage';
+import AdminDialog from '@/components/admin/ui/AdminDialog';
+import DataTableCard, { type Column } from '@/components/admin/ui/DataTableCard';
+import DetailGrid from '@/components/admin/ui/DetailGrid';
+import Icon from '@/components/admin/ui/Icon';
+import StatusBadge from '@/components/admin/ui/StatusBadge';
+import { useAccent } from '@/components/admin/ui/useAccent';
+import MDBox from '@/components/admin/components/MDBox';
+import MDButton from '@/components/admin/components/MDButton';
+import MDInput from '@/components/admin/components/MDInput';
+import MDTypography from '@/components/admin/components/MDTypography';
 
 type PopulatedUser = { firstName?: string; lastName?: string; email?: string };
+
+const PAGE_SIZE = 10;
+
+const STATUS_OPTIONS: { value: LLCApplication['status']; label: string }[] = [
+  { value: 'pending', label: 'Pending' },
+  { value: 'processing', label: 'Processing' },
+  { value: 'approved', label: 'Approved' },
+  { value: 'rejected', label: 'Rejected' },
+];
 
 function getApplicant(app: LLCApplication): PopulatedUser {
   const populated = (app as unknown as { userId?: PopulatedUser }).userId;
@@ -24,8 +41,10 @@ function getApplicant(app: LLCApplication): PopulatedUser {
 }
 
 export default function AdminLLCPage() {
+  const accent = useAccent();
   const [applications, setApplications] = useState<LLCApplication[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<unknown>(null);
 
   const [editTarget, setEditTarget] = useState<LLCApplication | null>(null);
   const [status, setStatus] = useState<LLCApplication['status']>('pending');
@@ -33,16 +52,19 @@ export default function AdminLLCPage() {
   const [adminNote, setAdminNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const PAGE_SIZE = 10;
 
   const load = useCallback(() => {
     setLoading(true);
+    setLoadError(null);
     llcAPI.adminList()
       .then((r) => {
         setApplications(r.data.applications ?? r.data);
         setCurrentPage(1);
       })
-      .catch(() => toast.error('Failed to load LLC applications'))
+      .catch((err) => {
+        setLoadError(err);
+        toast.error('Failed to load LLC applications');
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -78,134 +100,138 @@ export default function AdminLLCPage() {
   const totalPages = Math.max(1, Math.ceil(applications.length / PAGE_SIZE));
   const paginatedApplications = applications.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
+  const columns: Column<LLCApplication>[] = [
+    {
+      key: 'user',
+      header: 'User',
+      hideOnMobile: true,
+      render: (app) => {
+        const applicant = getApplicant(app);
+        return (
+          <MDBox>
+            <MDTypography variant="button" fontWeight="medium" display="block">
+              {applicant.firstName && applicant.lastName ? `${applicant.firstName} ${applicant.lastName}` : '—'}
+            </MDTypography>
+            <MDTypography variant="caption" color="text" display="block">{applicant.email || '—'}</MDTypography>
+          </MDBox>
+        );
+      },
+    },
+    {
+      key: 'company',
+      header: 'Company Name',
+      render: (app) => {
+        const applicant = getApplicant(app);
+        return (
+          <MDBox>
+            <MDTypography variant="button" fontWeight="bold" display="block">{app.companyName}</MDTypography>
+            {/* On phones the User and Status columns are hidden, so they show here. */}
+            <MDTypography variant="caption" color="text" sx={{ display: { xs: 'block', md: 'none' } }}>
+              {applicant.email || '—'}
+            </MDTypography>
+            <MDBox sx={{ display: { xs: 'block', md: 'none' } }} mt={0.5}>
+              <StatusBadge status={app.status} />
+            </MDBox>
+          </MDBox>
+        );
+      },
+    },
+    {
+      key: 'entity',
+      header: 'Entity & Type',
+      hideOnMobile: true,
+      render: (app) => (
+        <MDBox>
+          <MDTypography variant="button" fontWeight="regular" display="block">{app.entityType}</MDTypography>
+          <MDTypography variant="caption" color="text" display="block" textTransform="capitalize">{app.companyType}</MDTypography>
+        </MDBox>
+      ),
+    },
+    {
+      key: 'state',
+      header: 'State & Fee',
+      render: (app) => (
+        <MDBox>
+          <MDTypography variant="button" fontWeight="regular" display="block">{app.state}</MDTypography>
+          <MDTypography variant="caption" color="text" display="block">{app.stateFee ? formatCurrency(app.stateFee) : '—'}</MDTypography>
+        </MDBox>
+      ),
+    },
+    { key: 'status', header: 'Status', hideOnMobile: true, render: (app) => <StatusBadge status={app.status} /> },
+    {
+      key: 'date',
+      header: 'Date',
+      hideOnMobile: true,
+      render: (app) => <MDTypography variant="caption" color="text" whiteSpace="nowrap">{formatDate(app.createdAt)}</MDTypography>,
+    },
+    {
+      key: 'actions',
+      header: '',
+      align: 'right',
+      render: (app) => (
+        <MDButton variant="text" color={accent} size="small" onClick={() => openEdit(app)} title="Edit LLC Application">
+          <Icon>edit</Icon>
+          <MDBox component="span" sx={{ display: { xs: 'none', md: 'inline' } }}>&nbsp;Review</MDBox>
+        </MDButton>
+      ),
+    },
+  ];
+
   return (
-    <div className="flex flex-col min-h-full">
-      <DashboardHeader title="LLC Applications" subtitle="Manage and approve user LLC applications" logo="dwp" />
+    <AdminPage title="LLC Applications" description="Manage and approve user LLC applications">
+      <MDBox mt={4}>
+        <DataTableCard
+          title="Applications"
+          subtitle={applications.length > 0
+            ? `Showing ${(currentPage - 1) * PAGE_SIZE + 1}–${Math.min(currentPage * PAGE_SIZE, applications.length)} of ${applications.length}`
+            : 'LLC formation requests from clients'}
+          columns={columns}
+          rows={paginatedApplications}
+          rowKey={(app) => app.id}
+          isLoading={loading && applications.length === 0}
+          isFetching={loading && applications.length > 0}
+          error={applications.length === 0 ? loadError : null}
+          onRetry={load}
+          emptyMessage="No LLC applications found."
+          paging={{
+            page: currentPage,
+            hasPrevious: currentPage > 1,
+            hasNext: currentPage < totalPages,
+            onPrevious: () => setCurrentPage((p) => Math.max(1, p - 1)),
+            onNext: () => setCurrentPage((p) => Math.min(totalPages, p + 1)),
+          }}
+        />
+      </MDBox>
 
-      <div className="flex-1 p-6 space-y-5">
-        {loading ? (
-          <div className="flex items-center justify-center h-48">
-            <div className="w-8 h-8 border-2 border-brand-400 border-t-transparent rounded-full animate-spin" />
-          </div>
-        ) : (
-          <div className="glass rounded-2xl overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-[var(--border)]">
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">User</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Company Name</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Entity &amp; Type</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">State &amp; Fee</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Status</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider hidden md:table-cell">Date</th>
-                    <th className="px-4 py-3" />
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedApplications.map((app) => {
-                    const applicant = getApplicant(app);
-                    return (
-                    <tr
-                      key={app.id}
-                      className="border-b border-[var(--border)] last:border-0 hover:bg-brand-500/5 transition-colors"
-                    >
-                      <td className="px-4 py-3">
-                        <div className="text-sm font-medium text-[var(--text-primary)]">
-                          {applicant.firstName && applicant.lastName ? `${applicant.firstName} ${applicant.lastName}` : '—'}
-                        </div>
-                        <div className="text-xs text-[var(--text-muted)]">
-                          {applicant.email || '—'}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="text-sm font-semibold text-[var(--text-primary)]">{app.companyName}</div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="text-sm text-[var(--text-primary)]">{app.entityType}</div>
-                        <div className="text-xs text-[var(--text-muted)] capitalize">{app.companyType}</div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="text-sm text-[var(--text-primary)]">{app.state}</div>
-                        <div className="text-xs text-[var(--text-muted)]">{app.stateFee ? formatCurrency(app.stateFee) : '—'}</div>
-                      </td>
-                      <td className="px-4 py-3"><Badge status={app.status} /></td>
-                      <td className="px-4 py-3 hidden md:table-cell text-xs text-[var(--text-muted)]">{formatDate(app.createdAt)}</td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2 justify-end">
-                          <button
-                            onClick={() => openEdit(app)}
-                            className="p-1.5 rounded-lg hover:bg-blue-500/10 text-[var(--text-muted)] hover:text-blue-400 transition-colors"
-                            title="Edit LLC Application"
-                          >
-                            <Edit size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                    );
-                  })}
-                  {applications.length === 0 && (
-                    <tr><td colSpan={7} className="px-4 py-12 text-center text-[var(--text-muted)]">No LLC applications found.</td></tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            {applications.length > 0 && (
-              <div className="flex items-center justify-between gap-4 px-4 py-4 border-t border-[var(--border)]">
-                <p className="text-xs text-[var(--text-muted)]">
-                  Showing {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, applications.length)} of {applications.length}
-                </p>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                    disabled={currentPage === 1}
-                    className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-muted)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-brand-500/5 transition-colors"
-                    aria-label="Previous page"
-                  >
-                    <ChevronLeft size={16} />
-                  </button>
-                  <span className="text-xs font-medium text-[var(--text-secondary)]">
-                    Page {currentPage} of {totalPages}
-                  </span>
-                  <button
-                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                    disabled={currentPage === totalPages}
-                    className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-muted)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-brand-500/5 transition-colors"
-                    aria-label="Next page"
-                  >
-                    <ChevronRight size={16} />
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
+      {/* Update dialog */}
+      <AdminDialog
+        isOpen={!!editTarget}
+        onClose={() => setEditTarget(null)}
+        title="Update LLC Application"
+        size="md"
+        actions={editTarget && (
+          <>
+            <MDButton variant="text" color="dark" onClick={() => setEditTarget(null)} disabled={submitting}>Cancel</MDButton>
+            <MDButton variant="gradient" color={accent} onClick={handleUpdate} disabled={submitting}>
+              {submitting ? 'Saving…' : 'Save Changes'}
+            </MDButton>
+          </>
         )}
-      </div>
-
-      {/* Edit Modal */}
-      <Modal isOpen={!!editTarget} onClose={() => setEditTarget(null)} title="Update LLC Application" size="sm">
+      >
         {editTarget && (
-          <div className="space-y-4">
-            <div className="bg-[var(--bg-secondary)] rounded-xl p-4 space-y-2 text-sm mb-4">
-              <div className="flex justify-between">
-                <span className="text-[var(--text-muted)]">Company</span>
-                <span className="font-semibold text-[var(--text-primary)]">{editTarget.companyName}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[var(--text-muted)]">State</span>
-                <span className="font-medium text-[var(--text-primary)]">{editTarget.state}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[var(--text-muted)]">Type</span>
-                <span className="font-medium text-[var(--text-primary)] capitalize">{editTarget.companyType}</span>
-              </div>
-            </div>
+          <MDBox>
+            <DetailGrid
+              items={[
+                { label: 'Company', value: editTarget.companyName, span: 4 },
+                { label: 'State', value: editTarget.state, span: 4 },
+                { label: 'Type', value: editTarget.companyType ? editTarget.companyType.charAt(0).toUpperCase() + editTarget.companyType.slice(1) : null, span: 4 },
+              ]}
+            />
 
-            <div className="bg-[var(--bg-secondary)] rounded-xl p-4 space-y-3 text-sm">
-              <h3 className="font-semibold text-[var(--text-primary)]">Application Details</h3>
-              {[
+            <Divider sx={{ my: 3 }} />
+            <MDTypography variant="h6" fontWeight="medium" mb={1.5}>Application Details</MDTypography>
+            <DetailGrid
+              items={[
                 ['Business Ending', editTarget.businessEnding],
                 ['Contact Name', [editTarget.contactFirstName, editTarget.contactLastName].filter(Boolean).join(' ')],
                 ['Contact Username', editTarget.contactUsername],
@@ -217,52 +243,50 @@ export default function AdminLLCPage() {
                 ['Country', editTarget.country],
                 ['Postal Code', editTarget.postalCode],
                 ['Partner Code', editTarget.partnerCode],
-              ].map(([label, value]) => (
-                <div key={label} className="flex justify-between gap-4">
-                  <span className="text-[var(--text-muted)]">{label}</span>
-                  <span className="font-medium text-[var(--text-primary)] text-right break-words">{value || '—'}</span>
-                </div>
-              ))}
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-[var(--text-primary)]">Status</label>
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value as LLCApplication['status'])}
-                className="w-full px-4 py-3 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/50"
-              >
-                <option value="pending">Pending</option>
-                <option value="processing">Processing</option>
-                <option value="approved">Approved</option>
-                <option value="rejected">Rejected</option>
-              </select>
-            </div>
-
-            <Input
-              label="State Fee (USD)"
-              type="number"
-              step="any"
-              placeholder="e.g. 500"
-              value={stateFee}
-              onChange={(e) => setStateFee(e.target.value)}
-            />
-            <Input
-              label="Admin Note (optional)"
-              placeholder="E.g. Sent to state authority..."
-              value={adminNote}
-              onChange={(e) => setAdminNote(e.target.value)}
+              ].map(([label, value]) => ({ label: label as string, value: value || '—', span: 6 as const }))}
             />
 
-            <div className="flex gap-3 mt-6">
-              <Button variant="outline" className="flex-1" onClick={() => setEditTarget(null)}>Cancel</Button>
-              <Button className="flex-1 bg-brand-600 hover:bg-brand-700 text-white" onClick={handleUpdate} loading={submitting}>
-                Save Changes
-              </Button>
-            </div>
-          </div>
+            <Divider sx={{ my: 3 }} />
+            <MDTypography variant="h6" fontWeight="medium" mb={2}>Decision</MDTypography>
+            <Grid container spacing={2.5}>
+              <Grid item xs={12} sm={6}>
+                <MDInput
+                  select
+                  fullWidth
+                  label="Status"
+                  SelectProps={{ sx: { height: 44 } }}
+                  value={status}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => setStatus(e.target.value as LLCApplication['status'])}
+                >
+                  {STATUS_OPTIONS.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
+                  ))}
+                </MDInput>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <MDInput
+                  fullWidth
+                  label="State Fee (USD)"
+                  type="number"
+                  inputProps={{ step: 'any' }}
+                  placeholder="e.g. 500"
+                  value={stateFee}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => setStateFee(e.target.value)}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <MDInput
+                  fullWidth
+                  label="Admin Note (optional)"
+                  placeholder="E.g. Sent to state authority..."
+                  value={adminNote}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => setAdminNote(e.target.value)}
+                />
+              </Grid>
+            </Grid>
+          </MDBox>
         )}
-      </Modal>
-    </div>
+      </AdminDialog>
+    </AdminPage>
   );
 }

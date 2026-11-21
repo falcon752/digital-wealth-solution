@@ -168,7 +168,7 @@ export default function SmartsuppWidget() {
   return (
     <>
       {/* Belt and braces: the chat script can load after the hide command above. */}
-      {isAdminPage && <style>{'#chat-application, #smartsupp-widget-container { display: none !important; }'}</style>}
+      {isAdminPage && <style>{'#chat-application, #chat-application-iframe, #smartsupp-widget-container { display: none !important; }'}</style>}
       {shouldShowWelcome && (
         <div
           className="fixed bottom-[94px] right-5 z-[2147483000] max-w-[calc(100vw-32px)] sm:right-6"

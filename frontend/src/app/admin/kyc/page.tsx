@@ -1,23 +1,54 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Building2, Check, CheckCircle2, Eye, EyeOff, FileText, Plus, Save, Settings2, ShieldCheck, UserRound, X, XCircle } from 'lucide-react';
+import { useEffect, useState, type ChangeEvent, type FormEvent, type KeyboardEvent, type ReactNode, type SyntheticEvent } from 'react';
+import AppBar from '@mui/material/AppBar';
+import Card from '@mui/material/Card';
+import Checkbox from '@mui/material/Checkbox';
+import Divider from '@mui/material/Divider';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Grid from '@mui/material/Grid';
+import IconButton from '@mui/material/IconButton';
+import MenuItem from '@mui/material/MenuItem';
+import Skeleton from '@mui/material/Skeleton';
+import Tab from '@mui/material/Tab';
+import Tabs from '@mui/material/Tabs';
+import Tooltip from '@mui/material/Tooltip';
 import toast from 'react-hot-toast';
-import DashboardHeader from '@/components/layout/DashboardHeader';
-import Modal from '@/components/ui/Modal';
 import { kycAPI } from '@/lib/api';
 import { getApiError } from '@/lib/apiError';
 import { KYCRelatedPerson, KYCRequirement, KYCSubmission } from '@/types';
 import { APP_TIMEZONE } from '@/lib/utils';
+import AdminPage from '@/components/admin/shell/AdminPage';
+import AdminDialog from '@/components/admin/ui/AdminDialog';
+import DataTableCard, { type Column } from '@/components/admin/ui/DataTableCard';
+import DetailGrid from '@/components/admin/ui/DetailGrid';
+import { SelectFilter } from '@/components/admin/ui/Filters';
+import Icon from '@/components/admin/ui/Icon';
+import PersonAvatar from '@/components/admin/ui/PersonAvatar';
+import StatCard from '@/components/admin/ui/StatCard';
+import StatusBadge from '@/components/admin/ui/StatusBadge';
+import { useAccent } from '@/components/admin/ui/useAccent';
+import MDAlert from '@/components/admin/components/MDAlert';
+import MDBox from '@/components/admin/components/MDBox';
+import MDButton from '@/components/admin/components/MDButton';
+import MDInput from '@/components/admin/components/MDInput';
+import MDTypography from '@/components/admin/components/MDTypography';
 
 type SensitiveData = { taxIdentifier: string | null; businessEin: string | null };
 type StatusFilter = 'pending' | 'approved' | 'rejected' | 'all';
-const FILTERS: { key: StatusFilter; label: string }[] = [
+type StatusOption = Exclude<StatusFilter, 'all'>;
+const FILTERS: { key: StatusOption; label: string }[] = [
   { key: 'pending', label: 'Pending' },
   { key: 'approved', label: 'Approved' },
   { key: 'rejected', label: 'Rejected' },
-  { key: 'all', label: 'All' },
 ];
+const APPLIES_TO: { value: KYCRequirement['appliesTo']; label: string }[] = [
+  { value: 'all', label: 'All applicants' },
+  { value: 'individual', label: 'Individuals only' },
+  { value: 'business', label: 'Businesses only' },
+];
+
+type Input = ChangeEvent<HTMLInputElement>;
 
 function formatDate(value?: string | null) {
   return value ? new Date(value).toLocaleDateString('en-US', { timeZone: APP_TIMEZONE, dateStyle: 'medium' }) : '-';
@@ -30,40 +61,45 @@ function applicant(submission: KYCSubmission) {
   return submission.userId;
 }
 
-function statusClass(status: KYCSubmission['status']) {
-  if (status === 'approved') return 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300';
-  if (status === 'rejected') return 'bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300';
-  return 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300';
+/** A small rounded icon tile, as on the Overview's queue list. */
+function IconTile({ icon, color }: { icon: string; color: 'info' | 'success' | 'error' | 'dark' | 'primary' | 'warning' }) {
+  return (
+    <MDBox display="grid" sx={{ placeItems: 'center', flexShrink: 0 }} width="2.25rem" height="2.25rem" borderRadius="md" variant="gradient" bgColor={color} color="white">
+      <Icon fontSize="small">{icon}</Icon>
+    </MDBox>
+  );
 }
 
-function Detail({ label, value }: { label: string; value?: string | number | null }) {
-  return (
-    <div className="min-w-0 rounded-lg bg-gray-50 p-3 dark:bg-[#181818]">
-      <p className="text-xs text-gray-500">{label}</p>
-      <p className="mt-1 break-words text-sm font-semibold text-gray-900 dark:text-white">{value || '-'}</p>
-    </div>
-  );
+function SectionTitle({ children }: { children: ReactNode }) {
+  return <MDTypography variant="h6" fontWeight="medium" mb={1.5}>{children}</MDTypography>;
 }
 
 function PeopleList({ title, people, showOwnership = false }: { title: string; people?: KYCRelatedPerson[]; showOwnership?: boolean }) {
   if (!people?.length) return null;
   return (
-    <section>
-      <h3 className="mb-2 text-sm font-semibold text-gray-900 dark:text-white">{title}</h3>
-      <div className="divide-y divide-gray-100 overflow-hidden rounded-lg border border-gray-100 dark:divide-gray-800 dark:border-gray-800">
-        {people.map((person, index) => (
-          <div key={`${person.fullName}-${index}`} className="grid gap-2 p-3 text-sm sm:grid-cols-[1fr_1fr_auto]">
-            <div><p className="font-semibold text-gray-900 dark:text-white">{person.fullName}</p><p className="text-xs text-gray-500">{person.title || 'No title provided'}</p></div>
-            <p className="self-center break-all text-gray-600 dark:text-gray-300">{person.email || 'No email provided'}</p>
-            {showOwnership && <p className="self-center font-semibold text-gray-900 dark:text-white">{person.ownershipPercentage}%</p>}
-          </div>
-        ))}
-      </div>
-    </section>
+    <MDBox mt={3}>
+      <SectionTitle>{title}</SectionTitle>
+      {people.map((person, index) => (
+        <MDBox key={`${person.fullName}-${index}`}>
+          {index > 0 && <Divider sx={{ my: 0 }} />}
+          <MDBox display="flex" alignItems="center" gap={2} py={1.25} flexWrap="wrap">
+            <MDBox flex="1 1 160px" minWidth={0} lineHeight={1.2}>
+              <MDTypography variant="button" fontWeight="medium" display="block">{person.fullName}</MDTypography>
+              <MDTypography variant="caption" color="text">{person.title || 'No title provided'}</MDTypography>
+            </MDBox>
+            <MDTypography variant="button" color="text" fontWeight="regular" flex="1 1 160px" sx={{ wordBreak: 'break-all' }}>
+              {person.email || 'No email provided'}
+            </MDTypography>
+            {showOwnership && <MDTypography variant="button" fontWeight="bold">{person.ownershipPercentage}%</MDTypography>}
+          </MDBox>
+        </MDBox>
+      ))}
+    </MDBox>
   );
 }
 
 export default function AdminKYCPage() {
+  const accent = useAccent();
   const [tab, setTab] = useState<'submissions' | 'requirements'>('submissions');
   const [submissions, setSubmissions] = useState<KYCSubmission[]>([]);
   const [requirements, setRequirements] = useState<KYCRequirement[]>([]);
@@ -160,7 +196,7 @@ export default function AdminKYCPage() {
     }
   };
 
-  const addRequirement = async (event: React.FormEvent) => {
+  const addRequirement = async (event: FormEvent) => {
     event.preventDefault();
     try {
       const response = await kycAPI.createRequirement({ ...newRequirement, sortOrder: requirements.length * 10 + 10 });
@@ -193,171 +229,411 @@ export default function AdminKYCPage() {
     }
   };
 
+  const countFor = (key: StatusFilter) => key === 'all' ? submissions.length : submissions.filter((item) => item.status === key).length;
   const visibleSubmissions = filter === 'all' ? submissions : submissions.filter((item) => item.status === filter);
   const decided = reviewing ? reviewing.status === 'approved' || reviewing.status === 'rejected' : false;
   const showDecisionButtons = !decided || changingDecision;
 
+  const columns: Column<KYCSubmission>[] = [
+    {
+      key: 'applicant',
+      header: 'Applicant',
+      render: (submission) => {
+        const user = applicant(submission);
+        return (
+          <MDBox display="flex" alignItems="center" gap={1.5} minWidth={0}>
+            <PersonAvatar name={`${user.firstName} ${user.lastName}`} email={user.email} photoUrl={null} />
+            <MDBox lineHeight={1.2} minWidth={0}>
+              <MDTypography variant="button" fontWeight="medium" display="block">{user.firstName} {user.lastName}</MDTypography>
+              <MDTypography variant="caption" color="text" display="block" sx={{ wordBreak: 'break-all' }}>{user.email}</MDTypography>
+              {/* Phones: the status here, since its column is hidden. */}
+              <MDBox display={{ xs: 'block', md: 'none' }} mt={0.5}><StatusBadge status={submission.status} /></MDBox>
+            </MDBox>
+          </MDBox>
+        );
+      },
+    },
+    {
+      key: 'type',
+      header: 'Type',
+      hideOnMobile: true,
+      render: (submission) => (
+        <MDBox display="flex" alignItems="center" gap={0.75} textTransform="capitalize">
+          <Icon fontSize="small">{submission.applicantType === 'business' ? 'business' : 'person'}</Icon>
+          {submission.applicantType}
+        </MDBox>
+      ),
+    },
+    {
+      key: 'submitted',
+      header: 'Submitted',
+      hideOnMobile: true,
+      render: (submission) => submission.submittedAt ? new Date(submission.submittedAt).toLocaleDateString('en-US', { timeZone: APP_TIMEZONE }) : '-',
+    },
+    { key: 'documents', header: 'Documents', hideOnMobile: true, align: 'center', render: (submission) => submission.documents.length },
+    {
+      key: 'status',
+      header: 'Status',
+      hideOnMobile: true,
+      render: (submission) => (
+        <MDBox lineHeight={1.2}>
+          <StatusBadge status={submission.status} />
+          {submission.status !== 'pending' && submission.reviewedAt && (
+            <MDTypography variant="caption" color="text" display="block" mt={0.5}>{formatDate(submission.reviewedAt)}</MDTypography>
+          )}
+        </MDBox>
+      ),
+    },
+    {
+      key: 'review',
+      header: 'Review',
+      align: 'right',
+      render: (submission) => (
+        <Tooltip title="Review verification">
+          <IconButton size="small" aria-label="Review verification" onClick={() => openReview(submission)}>
+            <Icon>visibility</Icon>
+          </IconButton>
+        </Tooltip>
+      ),
+    },
+  ];
+
+  const statCards: { key: StatusOption; title: string; icon: string; color: 'warning' | 'success' | 'error' }[] = [
+    { key: 'pending', title: 'Waiting for review', icon: 'pending_actions', color: 'warning' },
+    { key: 'approved', title: 'Approved', icon: 'verified_user', color: 'success' },
+    { key: 'rejected', title: 'Rejected', icon: 'block', color: 'error' },
+  ];
+
   return (
-    <div className="min-h-full bg-[#f9f9fb] pb-20 dark:bg-[#050505]">
-      <DashboardHeader title="KYC Verification" subtitle="Review identity submissions and manage required documents" logo="dwp" />
-      <main className="mx-auto max-w-7xl space-y-5 p-4 md:p-6">
-        <div className="inline-flex rounded-lg bg-gray-100 p-1 dark:bg-[#181818]">
-          <button type="button" onClick={() => setTab('submissions')} className={`flex h-9 items-center gap-2 rounded-md px-4 text-sm font-semibold ${tab === 'submissions' ? 'bg-white text-blue-600 shadow-sm dark:bg-[#101010]' : 'text-gray-500'}`}><ShieldCheck size={16} /> Submissions</button>
-          <button type="button" onClick={() => setTab('requirements')} className={`flex h-9 items-center gap-2 rounded-md px-4 text-sm font-semibold ${tab === 'requirements' ? 'bg-white text-blue-600 shadow-sm dark:bg-[#101010]' : 'text-gray-500'}`}><Settings2 size={16} /> Requirements</button>
-        </div>
+    <AdminPage title="KYC Verification" description="Review identity submissions and manage required documents">
+      <MDBox maxWidth={480} mb={5}>
+        <AppBar position="static">
+          <Tabs value={tab} onChange={(_: SyntheticEvent, value: 'submissions' | 'requirements') => setTab(value)}>
+            <Tab value="submissions" label="Submissions" icon={<Icon fontSize="small" sx={{ mt: -0.25 }}>verified_user</Icon>} iconPosition="start" />
+            <Tab value="requirements" label="Requirements" icon={<Icon fontSize="small" sx={{ mt: -0.25 }}>tune</Icon>} iconPosition="start" />
+          </Tabs>
+        </AppBar>
+      </MDBox>
 
-        {loading ? (
-          <div className="flex h-56 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" /></div>
-        ) : tab === 'submissions' ? (
-          <section className="overflow-hidden rounded-lg border border-gray-100 bg-white dark:border-gray-800 dark:bg-[#101010]">
-            <div className="flex flex-wrap gap-2 border-b border-gray-100 p-3 dark:border-gray-800">
-              {FILTERS.map(({ key, label }) => {
-                const count = key === 'all' ? submissions.length : submissions.filter((item) => item.status === key).length;
-                return (
-                  <button key={key} type="button" onClick={() => setFilter(key)} className={`inline-flex h-8 items-center gap-2 rounded-md px-3 text-xs font-semibold ${filter === key ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 dark:bg-[#181818] dark:text-gray-300'}`}>
-                    {label}
-                    <span className={`rounded px-1.5 py-0.5 text-[11px] ${filter === key ? 'bg-white/20' : key === 'pending' && count ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200' : 'bg-white dark:bg-[#101010]'}`}>{count}</span>
-                  </button>
-                );
-              })}
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead className="bg-gray-50 text-xs uppercase text-gray-500 dark:bg-[#181818]"><tr><th className="px-4 py-3">Applicant</th><th className="px-4 py-3">Type</th><th className="px-4 py-3">Submitted</th><th className="px-4 py-3">Documents</th><th className="px-4 py-3">Status</th><th className="px-4 py-3 text-right">Review</th></tr></thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                  {visibleSubmissions.map((submission) => { const user = applicant(submission); return (
-                    <tr key={submission.id} className="text-sm">
-                      <td className="px-4 py-4"><p className="font-semibold text-gray-900 dark:text-white">{user.firstName} {user.lastName}</p><p className="text-xs text-gray-500">{user.email}</p></td>
-                      <td className="px-4 py-4"><span className="inline-flex items-center gap-1.5 capitalize text-gray-700 dark:text-gray-200">{submission.applicantType === 'business' ? <Building2 size={15} /> : <UserRound size={15} />}{submission.applicantType}</span></td>
-                      <td className="px-4 py-4 text-gray-600 dark:text-gray-300">{submission.submittedAt ? new Date(submission.submittedAt).toLocaleDateString('en-US', { timeZone: APP_TIMEZONE }) : '-'}</td>
-                      <td className="px-4 py-4 text-gray-600 dark:text-gray-300">{submission.documents.length}</td>
-                      <td className="px-4 py-4"><span className={`inline-flex rounded-md px-2.5 py-1 text-xs font-semibold capitalize ${statusClass(submission.status)}`}>{submission.status.replace('_', ' ')}</span>{submission.status !== 'pending' && submission.reviewedAt && <p className="mt-1 text-xs text-gray-500">{formatDate(submission.reviewedAt)}</p>}</td>
-                      <td className="px-4 py-4 text-right"><button type="button" onClick={() => openReview(submission)} className="inline-flex rounded-md p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20" title="Review verification"><Eye size={17} /></button></td>
-                    </tr>
-                  ); })}
-                  {!visibleSubmissions.length && <tr><td colSpan={6} className="px-4 py-12 text-center text-sm text-gray-500">{submissions.length ? (filter === 'pending' ? 'Nothing is waiting for review.' : `No ${filter} verifications.`) : 'No verification submissions yet.'}</td></tr>}
-                </tbody>
-              </table>
-            </div>
-          </section>
+      {tab === 'submissions' ? (
+        <>
+          <Grid container spacing={3} sx={{ display: { xs: 'none', md: 'flex' } }}>
+            {statCards.map((card) => (
+              <Grid item xs={12} md={4} key={card.key}>
+                <MDBox
+                  mb={1.5}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setFilter(card.key)}
+                  onKeyDown={(event: KeyboardEvent) => { if (event.key === 'Enter' || event.key === ' ') setFilter(card.key); }}
+                  sx={{ cursor: 'pointer', '&:hover': { opacity: 0.92 } }}
+                >
+                  <StatCard
+                    loading={loading}
+                    color={card.color}
+                    icon={card.icon}
+                    title={card.title}
+                    value={countFor(card.key)}
+                    footnote={{ label: filter === card.key ? 'Shown below' : 'Click to show these', color: filter === card.key ? card.color : 'secondary' }}
+                  />
+                </MDBox>
+              </Grid>
+            ))}
+          </Grid>
+
+          <MDBox mt={{ xs: 2, md: 4.5 }}>
+            <DataTableCard
+              title="Verification submissions"
+              subtitle={filter === 'pending' ? 'Waiting for review' : filter === 'all' ? 'Every submission' : `${FILTERS.find((f) => f.key === filter)?.label} verifications`}
+              columns={columns}
+              rows={visibleSubmissions}
+              rowKey={(submission) => submission.id}
+              isLoading={loading}
+              emptyMessage={submissions.length ? (filter === 'pending' ? 'Nothing is waiting for review.' : `No ${filter} verifications.`) : 'No verification submissions yet.'}
+              toolbar={
+                <SelectFilter<StatusOption>
+                  label="Status"
+                  value={filter === 'all' ? '' : filter}
+                  options={FILTERS.map(({ key, label }) => ({ value: key, label: `${label} (${countFor(key)})` }))}
+                  anyLabel={`All (${countFor('all')})`}
+                  onChange={(value) => setFilter(value || 'all')}
+                  width={200}
+                />
+              }
+            />
+          </MDBox>
+        </>
+      ) : (
+        <Grid container spacing={3} alignItems="flex-start">
+          <Grid item xs={12} lg={8}>
+            {loading && Array.from({ length: 3 }).map((_, i) => (
+              <Card key={i} sx={{ mb: 2 }}><MDBox p={3}><Skeleton height={40} /><Skeleton height={40} /><Skeleton width="40%" /></MDBox></Card>
+            ))}
+            {!loading && requirements.map((requirement) => (
+              <Card key={requirement.id} sx={{ mb: 2 }}>
+                <MDBox p={3} display="flex" alignItems="flex-start" gap={2}>
+                  <IconTile icon="description" color={accent} />
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6}>
+                      <MDInput
+                        label="Document type"
+                        value={requirement.name}
+                        onChange={(event: Input) => changeRequirement(requirement.id, { name: event.target.value })}
+                        fullWidth
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <MDInput
+                        select
+                        label="Applies to"
+                        value={requirement.appliesTo || 'all'}
+                        onChange={(event: Input) => changeRequirement(requirement.id, { appliesTo: event.target.value as KYCRequirement['appliesTo'] })}
+                        SelectProps={{ sx: { height: 44 } }}
+                        fullWidth
+                      >
+                        {APPLIES_TO.map((option) => <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>)}
+                      </MDInput>
+                    </Grid>
+                    <Grid item xs={12}>
+                      <MDInput
+                        label="Description"
+                        value={requirement.description || ''}
+                        onChange={(event: Input) => changeRequirement(requirement.id, { description: event.target.value })}
+                        placeholder="Description"
+                        fullWidth
+                      />
+                    </Grid>
+                    <Grid item xs={12}>
+                      <MDBox display="flex" alignItems="center" flexWrap="wrap" gap={1}>
+                        <FormControlLabel
+                          control={<Checkbox checked={requirement.required} onChange={(event: Input) => changeRequirement(requirement.id, { required: event.target.checked })} />}
+                          label={<MDTypography variant="button" color="text" fontWeight="regular">Required</MDTypography>}
+                        />
+                        <FormControlLabel
+                          control={<Checkbox checked={requirement.active} onChange={(event: Input) => changeRequirement(requirement.id, { active: event.target.checked })} />}
+                          label={<MDTypography variant="button" color="text" fontWeight="regular">Active</MDTypography>}
+                        />
+                        <MDBox ml="auto">
+                          <MDButton variant="gradient" color={accent} size="small" onClick={() => updateRequirement(requirement)}>
+                            <Icon>save</Icon>&nbsp;Save
+                          </MDButton>
+                        </MDBox>
+                      </MDBox>
+                    </Grid>
+                  </Grid>
+                </MDBox>
+              </Card>
+            ))}
+            {!loading && !requirements.length && (
+              <Card><MDBox p={4} textAlign="center"><MDTypography variant="button" color="text">No document requirements yet. Add the first one.</MDTypography></MDBox></Card>
+            )}
+          </Grid>
+          <Grid item xs={12} lg={4}>
+            <Card component="form" onSubmit={addRequirement} sx={{ position: { lg: 'sticky' }, top: { lg: 96 } }}>
+              <MDBox p={3}>
+                <MDTypography variant="h6" fontWeight="medium">Add requirement</MDTypography>
+                <MDTypography variant="button" color="text" fontWeight="regular" display="block" mb={3}>
+                  Create a document type and choose who must provide it.
+                </MDTypography>
+                <MDBox mb={2}>
+                  <MDInput
+                    required
+                    label="Document type"
+                    value={newRequirement.name}
+                    onChange={(event: Input) => setNewRequirement((current) => ({ ...current, name: event.target.value }))}
+                    fullWidth
+                  />
+                </MDBox>
+                <MDBox mb={2}>
+                  <MDInput
+                    select
+                    label="Applies to"
+                    value={newRequirement.appliesTo}
+                    onChange={(event: Input) => setNewRequirement((current) => ({ ...current, appliesTo: event.target.value as KYCRequirement['appliesTo'] }))}
+                    SelectProps={{ sx: { height: 44 } }}
+                    fullWidth
+                  >
+                    {APPLIES_TO.map((option) => <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>)}
+                  </MDInput>
+                </MDBox>
+                <MDBox mb={1}>
+                  <MDInput
+                    label="Description or instructions"
+                    multiline
+                    minRows={3}
+                    value={newRequirement.description}
+                    onChange={(event: Input) => setNewRequirement((current) => ({ ...current, description: event.target.value }))}
+                    fullWidth
+                  />
+                </MDBox>
+                <FormControlLabel
+                  control={<Checkbox checked={newRequirement.required} onChange={(event: Input) => setNewRequirement((current) => ({ ...current, required: event.target.checked }))} />}
+                  label={<MDTypography variant="button" color="text" fontWeight="regular">Required document</MDTypography>}
+                />
+                <MDBox mt={2}>
+                  <MDButton type="submit" variant="gradient" color={accent} fullWidth>
+                    <Icon>add</Icon>&nbsp;Add Requirement
+                  </MDButton>
+                </MDBox>
+              </MDBox>
+            </Card>
+          </Grid>
+        </Grid>
+      )}
+
+      <AdminDialog
+        isOpen={!!reviewing}
+        onClose={closeReview}
+        title="Review KYC Verification"
+        size="lg"
+        actions={reviewing && (showDecisionButtons ? (
+          <>
+            <MDButton variant="text" color="dark" onClick={closeReview} disabled={saving}>Cancel</MDButton>
+            {reviewing.status !== 'rejected' && (
+              <MDButton variant="outlined" color="error" disabled={saving} onClick={() => review('rejected')}>
+                <Icon>close</Icon>&nbsp;Reject
+              </MDButton>
+            )}
+            {reviewing.status !== 'approved' && (
+              <MDButton variant="gradient" color="success" disabled={saving} onClick={() => review('approved')}>
+                <Icon>check</Icon>&nbsp;{saving ? 'Saving…' : 'Approve'}
+              </MDButton>
+            )}
+          </>
         ) : (
-          <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
-            <section className="space-y-3">
-              {requirements.map((requirement) => (
-                <div key={requirement.id} className="rounded-lg border border-gray-100 bg-white p-4 dark:border-gray-800 dark:bg-[#101010]">
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-blue-50 text-blue-600 dark:bg-blue-900/20"><FileText size={18} /></div>
-                    <div className="grid flex-1 gap-3 sm:grid-cols-2">
-                      <input value={requirement.name} onChange={(event) => changeRequirement(requirement.id, { name: event.target.value })} className="h-10 rounded-md border border-gray-200 bg-transparent px-3 text-sm font-semibold text-gray-900 dark:border-gray-700 dark:text-white" />
-                      <select value={requirement.appliesTo || 'all'} onChange={(event) => changeRequirement(requirement.id, { appliesTo: event.target.value as KYCRequirement['appliesTo'] })} className="h-10 rounded-md border border-gray-200 bg-transparent px-3 text-sm text-gray-900 dark:border-gray-700 dark:bg-[#101010] dark:text-white"><option value="all">All applicants</option><option value="individual">Individuals only</option><option value="business">Businesses only</option></select>
-                      <input value={requirement.description || ''} onChange={(event) => changeRequirement(requirement.id, { description: event.target.value })} placeholder="Description" className="h-10 rounded-md border border-gray-200 bg-transparent px-3 text-sm text-gray-900 dark:border-gray-700 dark:text-white sm:col-span-2" />
-                      <div className="flex flex-wrap items-center gap-4 sm:col-span-2">
-                        <label className="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300"><input type="checkbox" checked={requirement.required} onChange={(event) => changeRequirement(requirement.id, { required: event.target.checked })} /> Required</label>
-                        <label className="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300"><input type="checkbox" checked={requirement.active} onChange={(event) => changeRequirement(requirement.id, { active: event.target.checked })} /> Active</label>
-                        <button type="button" onClick={() => updateRequirement(requirement)} className="ml-auto inline-flex h-9 items-center gap-2 rounded-md bg-blue-600 px-3 text-xs font-semibold text-white"><Save size={14} /> Save</button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </section>
-            <form onSubmit={addRequirement} className="space-y-4 rounded-lg border border-gray-100 bg-white p-5 dark:border-gray-800 dark:bg-[#101010] lg:sticky lg:top-20">
-              <div><h2 className="font-semibold text-gray-900 dark:text-white">Add requirement</h2><p className="mt-1 text-xs text-gray-500">Create a document type and choose who must provide it.</p></div>
-              <input required value={newRequirement.name} onChange={(event) => setNewRequirement((current) => ({ ...current, name: event.target.value }))} placeholder="Document type" className="h-11 w-full rounded-md border border-gray-200 bg-transparent px-3 text-sm text-gray-900 dark:border-gray-700 dark:text-white" />
-              <select value={newRequirement.appliesTo} onChange={(event) => setNewRequirement((current) => ({ ...current, appliesTo: event.target.value as KYCRequirement['appliesTo'] }))} className="h-11 w-full rounded-md border border-gray-200 bg-transparent px-3 text-sm text-gray-900 dark:border-gray-700 dark:bg-[#101010] dark:text-white"><option value="all">All applicants</option><option value="individual">Individuals only</option><option value="business">Businesses only</option></select>
-              <textarea rows={3} value={newRequirement.description} onChange={(event) => setNewRequirement((current) => ({ ...current, description: event.target.value }))} placeholder="Description or instructions" className="w-full resize-none rounded-md border border-gray-200 bg-transparent p-3 text-sm text-gray-900 dark:border-gray-700 dark:text-white" />
-              <label className="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300"><input type="checkbox" checked={newRequirement.required} onChange={(event) => setNewRequirement((current) => ({ ...current, required: event.target.checked }))} /> Required document</label>
-              <button type="submit" className="flex h-11 w-full items-center justify-center gap-2 rounded-md bg-blue-600 text-sm font-semibold text-white"><Plus size={16} /> Add Requirement</button>
-            </form>
-          </div>
-        )}
-      </main>
-
-      <Modal isOpen={!!reviewing} onClose={closeReview} title="Review KYC Verification" size="lg">
+          <MDButton variant="text" color="dark" onClick={closeReview}>Close</MDButton>
+        ))}
+      >
         {reviewing && (
-          <div className="space-y-5">
-            <div className="flex items-center justify-between gap-3 rounded-lg border border-gray-100 p-3 dark:border-gray-800">
-              <div className="flex min-w-0 items-center gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-blue-50 text-blue-600 dark:bg-blue-900/20">{reviewing.applicantType === 'business' ? <Building2 size={18} /> : <UserRound size={18} />}</div>
-                <div><p className="font-semibold capitalize text-gray-900 dark:text-white">{reviewing.applicantType} application</p><p className="text-xs text-gray-500">Sensitive identifier access is recorded in the activity log.</p></div>
-              </div>
-              <button type="button" disabled={revealing} onClick={revealSensitiveData} className="inline-flex h-9 shrink-0 items-center gap-2 rounded-md border border-gray-200 px-3 text-xs font-semibold text-gray-700 disabled:opacity-60 dark:border-gray-700 dark:text-gray-200">{sensitiveData ? <EyeOff size={15} /> : <Eye size={15} />}{sensitiveData ? 'Hide IDs' : revealing ? 'Loading' : 'Reveal IDs'}</button>
-            </div>
+          <>
+            <MDBox display="flex" alignItems="center" justifyContent="space-between" gap={2} flexWrap="wrap" mb={3}>
+              <MDBox display="flex" alignItems="center" gap={1.5} minWidth={0}>
+                <IconTile icon={reviewing.applicantType === 'business' ? 'business' : 'person'} color={accent} />
+                <MDBox lineHeight={1.2}>
+                  <MDTypography variant="button" fontWeight="bold" display="block" textTransform="capitalize">{reviewing.applicantType} application</MDTypography>
+                  <MDTypography variant="caption" color="text">Sensitive identifier access is recorded in the activity log.</MDTypography>
+                </MDBox>
+              </MDBox>
+              <MDButton variant="outlined" color="dark" size="small" disabled={revealing} onClick={revealSensitiveData}>
+                <Icon>{sensitiveData ? 'visibility_off' : 'visibility'}</Icon>&nbsp;{sensitiveData ? 'Hide IDs' : revealing ? 'Loading' : 'Reveal IDs'}
+              </MDButton>
+            </MDBox>
 
-            <section>
-              <h3 className="mb-2 text-sm font-semibold text-gray-900 dark:text-white">Applicant information</h3>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <Detail label="Legal name" value={`${reviewing.legalFirstName} ${reviewing.legalLastName}`} />
-                <Detail label="Date of birth" value={new Date(reviewing.dateOfBirth).toLocaleDateString('en-US', { timeZone: 'UTC' })} />
-                <Detail label="Email" value={reviewing.emailAddress} />
-                <Detail label="Phone" value={reviewing.phoneNumber} />
-                <Detail label="Country" value={reviewing.country} />
-                <Detail label="Residential address" value={reviewing.residentialAddress} />
-                <Detail label="Tax classification" value={reviewing.taxClassification} />
-                <Detail label="Tax identifier" value={sensitiveData?.taxIdentifier || (reviewing.taxIdentifierLast4 ? `Ending in ${reviewing.taxIdentifierLast4}` : null)} />
-              </div>
-            </section>
+            <SectionTitle>Applicant information</SectionTitle>
+            <DetailGrid items={[
+              { label: 'Legal name', value: `${reviewing.legalFirstName} ${reviewing.legalLastName}`, span: 6 },
+              { label: 'Date of birth', value: new Date(reviewing.dateOfBirth).toLocaleDateString('en-US', { timeZone: 'UTC' }), span: 6 },
+              { label: 'Email', value: reviewing.emailAddress, span: 6 },
+              { label: 'Phone', value: reviewing.phoneNumber, span: 6 },
+              { label: 'Country', value: reviewing.country, span: 6 },
+              { label: 'Residential address', value: reviewing.residentialAddress, span: 6 },
+              { label: 'Tax classification', value: reviewing.taxClassification, span: 6 },
+              { label: 'Tax identifier', value: sensitiveData?.taxIdentifier || (reviewing.taxIdentifierLast4 ? `Ending in ${reviewing.taxIdentifierLast4}` : null), span: 6 },
+            ]} />
 
             {reviewing.applicantType === 'business' && (
               <>
-                <section>
-                  <h3 className="mb-2 text-sm font-semibold text-gray-900 dark:text-white">Entity information</h3>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <Detail label="Legal entity name" value={reviewing.legalEntityName} />
-                    <Detail label="Entity type" value={reviewing.entityType} />
-                    <Detail label="EIN / FEIN" value={sensitiveData?.businessEin || (reviewing.businessEinLast4 ? `Ending in ${reviewing.businessEinLast4}` : null)} />
-                    <Detail label="Formation jurisdiction" value={reviewing.formationJurisdiction} />
-                    <Detail label="Principal address" value={reviewing.principalAddress} />
-                    <Detail label="Business description" value={reviewing.businessDescription} />
-                    <Detail label="Affiliated entities" value={reviewing.affiliatedEntities} />
-                    <Detail label="KYC / AML program" value={reviewing.kycAmlProgramDetails} />
-                    <div className="sm:col-span-2"><Detail label="Financial history" value={reviewing.financialHistorySummary} /></div>
-                  </div>
-                </section>
+                <Divider sx={{ my: 3 }} />
+                <SectionTitle>Entity information</SectionTitle>
+                <DetailGrid items={[
+                  { label: 'Legal entity name', value: reviewing.legalEntityName, span: 6 },
+                  { label: 'Entity type', value: reviewing.entityType, span: 6 },
+                  { label: 'EIN / FEIN', value: sensitiveData?.businessEin || (reviewing.businessEinLast4 ? `Ending in ${reviewing.businessEinLast4}` : null), span: 6 },
+                  { label: 'Formation jurisdiction', value: reviewing.formationJurisdiction, span: 6 },
+                  { label: 'Principal address', value: reviewing.principalAddress, span: 6 },
+                  { label: 'Business description', value: reviewing.businessDescription, span: 6 },
+                  { label: 'Affiliated entities', value: reviewing.affiliatedEntities, span: 6 },
+                  { label: 'KYC / AML program', value: reviewing.kycAmlProgramDetails, span: 6 },
+                  { label: 'Financial history', value: reviewing.financialHistorySummary, span: 12 },
+                ]} />
                 <PeopleList title="Beneficial owners" people={reviewing.beneficialOwners} showOwnership />
                 <PeopleList title="Authorized representatives" people={reviewing.authorizedRepresentatives} />
               </>
             )}
 
-            <section>
-              <h3 className="mb-2 text-sm font-semibold text-gray-900 dark:text-white">Documents</h3>
-              <div className="divide-y divide-gray-100 rounded-lg border border-gray-100 px-3 dark:divide-gray-800 dark:border-gray-800">
-                {reviewing.documents.map((document) => <button key={document.id} type="button" onClick={() => openDocument(reviewing.id, document.id)} className="flex w-full items-center justify-between gap-3 py-3 text-left"><span className="flex min-w-0 items-center gap-2"><FileText size={17} className="shrink-0 text-blue-600" /><span className="truncate text-sm font-medium text-gray-900 dark:text-white">{document.requirementName}: {document.originalName}</span></span><Eye size={16} className="shrink-0 text-gray-400" /></button>)}
-                {!reviewing.documents.length && <p className="py-4 text-sm text-gray-500">No documents were uploaded.</p>}
-              </div>
-            </section>
+            <Divider sx={{ my: 3 }} />
+            <SectionTitle>Documents</SectionTitle>
+            {reviewing.documents.map((document, index) => (
+              <MDBox key={document.id}>
+                {index > 0 && <Divider sx={{ my: 0 }} />}
+                <MDBox
+                  component="button"
+                  type="button"
+                  onClick={() => openDocument(reviewing.id, document.id)}
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="space-between"
+                  gap={1.5}
+                  width="100%"
+                  py={1.25}
+                  px={1}
+                  borderRadius="md"
+                  sx={({ palette }) => ({
+                    border: 0,
+                    background: 'none',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    '&:hover': { backgroundColor: palette.action.hover },
+                  })}
+                >
+                  <MDBox display="flex" alignItems="center" gap={1.5} minWidth={0}>
+                    <Icon color="info">{document.mimeType === 'application/pdf' ? 'picture_as_pdf' : document.mimeType?.startsWith('image/') ? 'image' : 'description'}</Icon>
+                    <MDTypography variant="button" fontWeight="medium" noWrap>{document.requirementName}: {document.originalName}</MDTypography>
+                  </MDBox>
+                  <Icon fontSize="small" sx={{ color: 'text.secondary', flexShrink: 0 }}>open_in_new</Icon>
+                </MDBox>
+              </MDBox>
+            ))}
+            {!reviewing.documents.length && <MDTypography variant="button" color="text">No documents were uploaded.</MDTypography>}
 
             {decided && (
-              <div className={`rounded-lg border p-4 ${reviewing.status === 'approved' ? 'border-emerald-200 bg-emerald-50 dark:border-emerald-900/50 dark:bg-emerald-950/30' : 'border-red-200 bg-red-50 dark:border-red-900/50 dark:bg-red-950/30'}`}>
-                <div className="flex items-start gap-3">
-                  {reviewing.status === 'approved' ? <CheckCircle2 size={20} className="mt-0.5 shrink-0 text-emerald-600" /> : <XCircle size={20} className="mt-0.5 shrink-0 text-red-600" />}
-                  <div className="min-w-0 flex-1">
-                    <p className={`text-sm font-semibold ${reviewing.status === 'approved' ? 'text-emerald-800 dark:text-emerald-200' : 'text-red-800 dark:text-red-200'}`}>
+              <MDAlert color={reviewing.status === 'approved' ? 'success' : 'error'} mt={3} mb={0} sx={{ '& > div:first-of-type': { flex: 1 } }}>
+                <MDBox display="flex" alignItems="flex-start" gap={1.5} width="100%" flexWrap="wrap">
+                  <Icon sx={{ mt: 0.25, flexShrink: 0 }}>{reviewing.status === 'approved' ? 'check_circle' : 'cancel'}</Icon>
+                  <MDBox flex="1 1 240px" minWidth={0}>
+                    <MDTypography variant="button" color="white" fontWeight="bold" display="block">
                       {reviewing.status === 'approved' ? 'Approved' : 'Rejected'} on {formatDate(reviewing.reviewedAt)}
-                    </p>
-                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+                    </MDTypography>
+                    <MDTypography variant="button" color="white" fontWeight="regular" display="block" opacity={0.9}>
                       {reviewing.status === 'approved' ? 'The client was sent their welcome email.' : 'The client was emailed your reason and can resubmit.'}
-                    </p>
-                    {reviewing.status === 'rejected' && reviewing.rejectionReason && <p className="mt-2 whitespace-pre-line text-sm text-gray-800 dark:text-gray-100">{reviewing.rejectionReason}</p>}
-                  </div>
-                  {!changingDecision && <button type="button" onClick={() => setChangingDecision(true)} className="shrink-0 text-xs font-semibold text-blue-600 hover:underline">Change decision</button>}
-                </div>
-              </div>
+                    </MDTypography>
+                    {reviewing.status === 'rejected' && reviewing.rejectionReason && (
+                      <MDTypography variant="button" color="white" fontWeight="regular" display="block" mt={1} whiteSpace="pre-line">
+                        {reviewing.rejectionReason}
+                      </MDTypography>
+                    )}
+                  </MDBox>
+                  {!changingDecision && (
+                    <MDButton variant="outlined" color="white" size="small" onClick={() => setChangingDecision(true)}>
+                      Change decision
+                    </MDButton>
+                  )}
+                </MDBox>
+              </MDAlert>
             )}
 
             {showDecisionButtons && (
-              <>
-                {reviewing.status !== 'rejected' && <label className="block space-y-1.5"><span className="text-sm font-semibold text-gray-900 dark:text-white">Rejection reason</span><textarea rows={4} value={rejectionReason} onChange={(event) => setRejectionReason(event.target.value)} placeholder="Required when rejecting. The client sees this in their email." className="w-full resize-none rounded-lg border border-gray-200 bg-transparent p-3 text-sm text-gray-900 dark:border-gray-700 dark:text-white" /></label>}
-                <div className={`grid gap-3 ${decided ? 'grid-cols-1' : 'grid-cols-2'}`}>
-                  {reviewing.status !== 'rejected' && <button type="button" disabled={saving} onClick={() => review('rejected')} className="flex h-11 items-center justify-center gap-2 rounded-lg border border-red-200 text-sm font-semibold text-red-600 hover:bg-red-50 disabled:opacity-60"><X size={17} /> Reject</button>}
-                  {reviewing.status !== 'approved' && <button type="button" disabled={saving} onClick={() => review('approved')} className="flex h-11 items-center justify-center gap-2 rounded-lg bg-emerald-600 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"><Check size={17} /> {saving ? 'Saving…' : 'Approve'}</button>}
-                </div>
-                <p className="text-xs text-gray-500">Approving emails the client a welcome email. Rejecting emails them your reason so they can correct it.</p>
-              </>
+              <MDBox mt={3}>
+                {reviewing.status !== 'rejected' && (
+                  <MDInput
+                    label="Rejection reason"
+                    multiline
+                    minRows={4}
+                    value={rejectionReason}
+                    onChange={(event: Input) => setRejectionReason(event.target.value)}
+                    placeholder="Required when rejecting. The client sees this in their email."
+                    InputLabelProps={{ shrink: true }}
+                    fullWidth
+                  />
+                )}
+                <MDTypography variant="caption" color="text" display="block" mt={1.5}>
+                  Approving emails the client a welcome email. Rejecting emails them your reason so they can correct it.
+                </MDTypography>
+              </MDBox>
             )}
-          </div>
+          </>
         )}
-      </Modal>
-    </div>
+      </AdminDialog>
+    </AdminPage>
   );
 }

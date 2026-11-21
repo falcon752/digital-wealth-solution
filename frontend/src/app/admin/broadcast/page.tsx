@@ -1,15 +1,26 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import DashboardHeader from '@/components/layout/DashboardHeader';
-import Button from '@/components/ui/Button';
+import { useCallback, useEffect, useMemo, useState, type ChangeEvent } from 'react';
+import Card from '@mui/material/Card';
+import Checkbox from '@mui/material/Checkbox';
+import Divider from '@mui/material/Divider';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Grid from '@mui/material/Grid';
+import MenuItem from '@mui/material/MenuItem';
+import Skeleton from '@mui/material/Skeleton';
+import Switch from '@mui/material/Switch';
+import AdminPage from '@/components/admin/shell/AdminPage';
+import { SearchField } from '@/components/admin/ui/Filters';
+import Icon from '@/components/admin/ui/Icon';
+import PersonAvatar from '@/components/admin/ui/PersonAvatar';
+import StatusBadge from '@/components/admin/ui/StatusBadge';
+import { useAccent } from '@/components/admin/ui/useAccent';
+import MDAlert from '@/components/admin/components/MDAlert';
+import MDBox from '@/components/admin/components/MDBox';
+import MDButton from '@/components/admin/components/MDButton';
+import MDInput from '@/components/admin/components/MDInput';
+import MDTypography from '@/components/admin/components/MDTypography';
 import { adminAPI } from '@/lib/api';
-import {
-  Check,
-  Search,
-  Send,
-  Users,
-} from 'lucide-react';
 import toast from 'react-hot-toast';
 
 type RecipientMode = 'selected' | 'all';
@@ -23,12 +34,22 @@ interface NoticeUser {
   createdAt: string;
 }
 
+const LIMITS = { subject: 160, title: 120, message: 5000 } as const;
+
+const MODES: { value: RecipientMode; label: string; help: string }[] = [
+  { value: 'selected', label: 'Selected users', help: 'Only the users you tick below get it.' },
+  { value: 'all', label: 'All users', help: 'Every matching platform user gets it.' },
+];
+
 const getErrorMessage = (err: unknown, fallback: string) =>
   (err as { response?: { data?: { error?: string; message?: string } } })?.response?.data?.error ||
   (err as { response?: { data?: { error?: string; message?: string } } })?.response?.data?.message ||
   fallback;
 
+const counter = (length: number, limit: number) => `${length}/${limit.toLocaleString('en-US')}`;
+
 export default function AdminBroadcastPage() {
+  const accent = useAccent();
   const [users, setUsers] = useState<NoticeUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
@@ -112,190 +133,244 @@ export default function AdminBroadcastPage() {
     }
   };
 
+  const recipientsLabel = `recipient${recipientCount === 1 ? '' : 's'}`;
+  const mode = MODES.find((m) => m.value === recipientMode);
+
   return (
-    <div className="flex min-h-full flex-col bg-[#f9f9fb] dark:bg-[#050505]">
-      <DashboardHeader title="Account Notices" subtitle="Send plain account notices to selected users or every client" logo="dwp" />
+    <AdminPage title="Account Notices" description="Send plain account notices to selected users or every client">
+      <Grid container spacing={3}>
+        {/* Left: the message and who gets it */}
+        <Grid item xs={12} lg={8}>
+          <Card>
+            <MDBox p={3}>
+              <MDTypography variant="h6">Compose Notice</MDTypography>
+              <MDTypography variant="button" color="text" fontWeight="regular" display="block" mb={3}>
+                Write a simple account notice. Paste links directly in the message body.
+              </MDTypography>
 
-      <div className="flex-1 space-y-5 p-6">
-        <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
-          <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-[#101010]">
-            <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <h2 className="text-base font-semibold text-gray-900 dark:text-white">Compose Notice</h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Write a simple account notice. Paste links directly in the message body.</p>
-              </div>
-              <div className="rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700 dark:border-blue-900 dark:bg-blue-950/30 dark:text-blue-300">
-                {recipientCount} recipient{recipientCount === 1 ? '' : 's'}
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-200">Subject</label>
-                <input
+              <MDBox display="flex" flexDirection="column" gap={2.5}>
+                <MDInput
+                  fullWidth
+                  label="Subject"
                   value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
-                  maxLength={160}
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none transition-colors focus:border-blue-400 dark:border-gray-800 dark:bg-[#0b0b0b] dark:text-white"
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => setSubject(e.target.value)}
+                  inputProps={{ maxLength: LIMITS.subject }}
+                  helperText={`The email subject line. ${counter(subject.length, LIMITS.subject)}`}
                 />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-200">Header</label>
-                <input
+                <MDInput
+                  fullWidth
+                  label="Header"
                   value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  maxLength={120}
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none transition-colors focus:border-blue-400 dark:border-gray-800 dark:bg-[#0b0b0b] dark:text-white"
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => setTitle(e.target.value)}
+                  inputProps={{ maxLength: LIMITS.title }}
+                  helperText={`The heading inside the email; the subject is used when left empty. ${counter(title.length, LIMITS.title)}`}
                 />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-200">Message</label>
-                <textarea
+                <MDInput
+                  fullWidth
+                  multiline
+                  minRows={12}
+                  label="Message"
                   value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  rows={12}
-                  maxLength={5000}
-                  className="w-full resize-y rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm leading-6 text-gray-900 outline-none transition-colors focus:border-blue-400 dark:border-gray-800 dark:bg-[#0b0b0b] dark:text-white"
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => setMessage(e.target.value)}
+                  inputProps={{ maxLength: LIMITS.message }}
+                  helperText={`Blank lines create paragraphs. Paste any URL directly in the message as plain text. ${counter(message.length, LIMITS.message)}`}
                 />
-                <p className="text-xs text-gray-500 dark:text-gray-400">Blank lines create paragraphs. Paste any URL directly in the message as plain text.</p>
-              </div>
+              </MDBox>
 
-              <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-[#0b0b0b]">
-                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Preview</p>
-                <h3 className="mt-3 text-lg font-semibold text-gray-900 dark:text-white">{title || subject}</h3>
-                <div className="mt-3 whitespace-pre-line text-sm leading-6 text-gray-600 dark:text-gray-300">{message}</div>
-              </div>
-            </div>
-          </section>
-
-          <section className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-[#101010]">
-            <div className="mb-4 flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-green-500/10 text-green-500">
-                <Users size={18} />
-              </div>
-              <div>
-                <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Recipients</h2>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Choose all users or selected clients.</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2 rounded-xl bg-gray-100 p-1 dark:bg-[#0b0b0b]">
-              {(['selected', 'all'] as const).map((mode) => (
-                <button
-                  key={mode}
-                  type="button"
-                  onClick={() => setRecipientMode(mode)}
-                  className={`rounded-lg px-3 py-2 text-sm font-semibold capitalize transition-colors ${
-                    recipientMode === mode
-                      ? 'bg-blue-600 text-white shadow-sm'
-                      : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
-                  }`}
+              <Divider />
+              <MDTypography variant="caption" color="secondary" fontWeight="bold" textTransform="uppercase">
+                Preview
+              </MDTypography>
+              <MDBox
+                mt={1.5}
+                p={2.5}
+                borderRadius="lg"
+                sx={({ palette }) => ({ border: `1px solid ${palette.divider}` })}
+              >
+                <MDTypography variant="h5">{title || subject}</MDTypography>
+                <MDTypography
+                  variant="body2"
+                  color="text"
+                  mt={1.5}
+                  component="div"
+                  sx={{ whiteSpace: 'pre-line', lineHeight: 1.7, wordBreak: 'break-word' }}
                 >
-                  {mode}
-                </button>
-              ))}
-            </div>
+                  {message || ' '}
+                </MDTypography>
+              </MDBox>
+            </MDBox>
+          </Card>
 
-            <label className="mt-4 flex cursor-pointer items-center gap-2 rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-700 dark:border-gray-800 dark:text-gray-300">
-              <input
-                type="checkbox"
-                checked={activeOnly}
-                onChange={(e) => setActiveOnly(e.target.checked)}
-                className="h-4 w-4 rounded border-gray-300 text-blue-600"
-              />
-              Active users only
-            </label>
+          <MDBox mt={3}>
+            <Card>
+              <MDBox p={3}>
+                <MDTypography variant="h6">Recipients</MDTypography>
+                <MDTypography variant="button" color="text" fontWeight="regular" display="block" mb={3}>
+                  Choose all users or selected clients.
+                </MDTypography>
 
-            {recipientMode === 'selected' && (
-              <>
-                <div className="mt-4 flex gap-2">
-                  <div className="relative flex-1">
-                    <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <input
-                      value={search}
-                      onChange={(e) => setSearch(e.target.value)}
-                      placeholder="Search users"
-                      className="w-full rounded-xl border border-gray-200 bg-gray-50 py-2.5 pl-9 pr-3 text-sm text-gray-900 outline-none focus:border-blue-400 dark:border-gray-800 dark:bg-[#0b0b0b] dark:text-white"
+                <Grid container spacing={2} alignItems="flex-start">
+                  <Grid item xs={12} md={6}>
+                    <MDInput
+                      select
+                      fullWidth
+                      label="Send to"
+                      value={recipientMode}
+                      helperText={mode?.help}
+                      onChange={(e: ChangeEvent<HTMLInputElement>) => setRecipientMode(e.target.value as RecipientMode)}
+                      SelectProps={{ sx: { height: 44 } }}
+                    >
+                      {MODES.map((m) => (
+                        <MenuItem key={m.value} value={m.value}>{m.label}</MenuItem>
+                      ))}
+                    </MDInput>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <FormControlLabel
+                      control={<Switch checked={activeOnly} onChange={(_, checked) => setActiveOnly(checked)} />}
+                      label={<MDTypography variant="button" color="text">Active users only</MDTypography>}
                     />
-                  </div>
-                </div>
+                  </Grid>
+                </Grid>
 
-                <div className="mt-3 flex items-center justify-between text-xs">
-                  <button type="button" onClick={selectVisible} className="font-semibold text-blue-600 hover:text-blue-500">
-                    Select visible
-                  </button>
-                  <button type="button" onClick={clearSelection} className="font-semibold text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
-                    Clear
-                  </button>
-                </div>
+                {recipientMode === 'selected' && (
+                  <MDBox mt={2}>
+                    <MDBox display="flex" alignItems="center" justifyContent="space-between" gap={2} flexWrap="wrap">
+                      <SearchField value={search} onChange={setSearch} placeholder="Search users" delayMs={0} width="min(320px, 100%)" />
+                      <MDBox display="flex" gap={1}>
+                        <MDButton variant="text" color={accent} size="small" onClick={selectVisible}>
+                          Select visible
+                        </MDButton>
+                        <MDButton variant="text" color="secondary" size="small" onClick={clearSelection}>
+                          Clear
+                        </MDButton>
+                      </MDBox>
+                    </MDBox>
 
-                <div className="mt-3 max-h-[520px] space-y-2 overflow-y-auto pr-1">
-                  {loading ? (
-                    <div className="flex h-32 items-center justify-center">
-                      <div className="h-7 w-7 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
-                    </div>
-                  ) : filteredUsers.length ? (
-                    filteredUsers.map((user) => {
-                      const checked = selectedIds.includes(user.id);
-                      return (
-                        <button
-                          key={user.id}
-                          type="button"
-                          onClick={() => toggleRecipient(user.id)}
-                          className={`flex w-full items-center gap-3 rounded-xl border p-3 text-left transition-colors ${
-                            checked
-                              ? 'border-blue-400 bg-blue-50 dark:border-blue-700 dark:bg-blue-950/30'
-                              : 'border-gray-200 bg-white hover:border-blue-200 dark:border-gray-800 dark:bg-[#151515]'
-                          }`}
-                        >
-                          <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border ${
-                            checked ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-300 dark:border-gray-700'
-                          }`}>
-                            {checked && <Check size={13} />}
-                          </span>
-                          <span className="min-w-0 flex-1">
-                            <span className="block truncate text-sm font-semibold text-gray-900 dark:text-white">
-                              {user.firstName} {user.lastName}
-                            </span>
-                            <span className="block truncate text-xs text-gray-500 dark:text-gray-400">{user.email}</span>
-                          </span>
-                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                            user.isActive ? 'bg-green-500/10 text-green-600' : 'bg-gray-500/10 text-gray-500'
-                          }`}>
-                            {user.isActive ? 'Active' : 'Inactive'}
-                          </span>
-                        </button>
-                      );
-                    })
-                  ) : (
-                    <div className="rounded-xl border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 dark:border-gray-800">
-                      No users match this filter.
-                    </div>
-                  )}
-                </div>
-              </>
-            )}
+                    <MDBox
+                      mt={2}
+                      maxHeight={520}
+                      overflow="auto"
+                      borderRadius="lg"
+                      sx={({ palette }) => ({ border: `1px solid ${palette.divider}` })}
+                    >
+                      {loading ? (
+                        <MDBox p={2}>
+                          {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} height={48} />)}
+                        </MDBox>
+                      ) : filteredUsers.length ? (
+                        filteredUsers.map((user, i) => {
+                          const checked = selectedIds.includes(user.id);
+                          return (
+                            <MDBox key={user.id}>
+                              {i > 0 && <Divider sx={{ my: 0 }} />}
+                              <MDBox
+                                component="label"
+                                display="flex"
+                                alignItems="center"
+                                gap={1.5}
+                                py={1}
+                                px={1.5}
+                                sx={({ palette, functions: { rgba } }) => ({
+                                  cursor: 'pointer',
+                                  backgroundColor: checked ? rgba(palette[accent].main, 0.08) : 'transparent',
+                                  '&:hover': { backgroundColor: rgba(palette[accent].main, checked ? 0.12 : 0.04) },
+                                })}
+                              >
+                                <Checkbox checked={checked} onChange={() => toggleRecipient(user.id)} sx={{ p: 0.5 }} />
+                                <PersonAvatar name={`${user.firstName ?? ''} ${user.lastName ?? ''}`} email={user.email} photoUrl={null} size="xs" />
+                                <MDBox minWidth={0} flex={1} lineHeight={1.2}>
+                                  <MDTypography variant="button" fontWeight="medium" display="block" noWrap>
+                                    {user.firstName} {user.lastName}
+                                  </MDTypography>
+                                  <MDTypography variant="caption" color="text" display="block" noWrap>{user.email}</MDTypography>
+                                </MDBox>
+                                <StatusBadge status={user.isActive ? 'active' : 'inactive'} />
+                              </MDBox>
+                            </MDBox>
+                          );
+                        })
+                      ) : (
+                        <MDBox p={4} textAlign="center">
+                          <Icon fontSize="large" sx={{ color: 'text.disabled' }}>search_off</Icon>
+                          <MDTypography variant="button" color="text" display="block" mt={1}>
+                            No users match this filter.
+                          </MDTypography>
+                        </MDBox>
+                      )}
+                    </MDBox>
+                  </MDBox>
+                )}
 
-            {recipientMode === 'all' && (
-              <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-900/70 dark:bg-amber-950/20 dark:text-amber-300">
-                This notice will go to every matching platform user. Review the message carefully before sending.
-              </div>
-            )}
+                {recipientMode === 'all' && (
+                  <MDBox mt={2}>
+                    <MDAlert color="warning">
+                      <MDBox display="flex" alignItems="flex-start" gap={1.5}>
+                        <Icon fontSize="small" sx={{ color: 'white.main', mt: 0.25 }}>warning</Icon>
+                        <MDTypography variant="button" color="white" fontWeight="regular" display="block">
+                          This notice will go to every matching platform user. Review the message carefully before sending.
+                        </MDTypography>
+                      </MDBox>
+                    </MDAlert>
+                  </MDBox>
+                )}
+              </MDBox>
+            </Card>
+          </MDBox>
+        </Grid>
 
-            <div className="mt-5 border-t border-gray-200 pt-4 dark:border-gray-800">
-              <Button onClick={handleSend} loading={sending} disabled={sending || recipientCount === 0} className="w-full">
-                <Send size={16} />
-                Send Notice
-              </Button>
-              <p className="mt-3 text-center text-xs text-gray-500 dark:text-gray-400">
-                Sending to {recipientCount} recipient{recipientCount === 1 ? '' : 's'}.
-              </p>
-            </div>
-          </section>
-        </div>
-      </div>
-    </div>
+        {/* Right: how many get it, and send */}
+        <Grid item xs={12} lg={4}>
+          <MDBox position={{ lg: 'sticky' }} top={{ lg: 96 }}>
+            <Card>
+              <MDBox p={3}>
+                <MDBox display="flex" alignItems="center" gap={1} mb={1}>
+                  <Icon sx={{ color: `${accent}.main` }}>groups</Icon>
+                  <MDTypography variant="h6">Recipients right now</MDTypography>
+                </MDBox>
+                {loading ? (
+                  <>
+                    <Skeleton variant="text" width="40%" height={44} />
+                    <Skeleton variant="text" width="70%" height={18} />
+                  </>
+                ) : (
+                  <>
+                    <MDTypography variant="h3">{recipientCount}</MDTypography>
+                    <MDTypography variant="button" color="text" display="block">
+                      {recipientsLabel}
+                      {recipientMode === 'all' ? (activeOnly ? ', every active user' : ', every user') : ' selected'}
+                    </MDTypography>
+                  </>
+                )}
+                <MDTypography variant="caption" color="text" display="block" mt={2}>
+                  {activeOnly
+                    ? 'Only active accounts get it; inactive users are left out.'
+                    : 'Active and inactive accounts both get it. Turn on “Active users only” to leave inactive users out.'}
+                </MDTypography>
+              </MDBox>
+            </Card>
+
+            <MDBox mt={3}>
+              <Card>
+                <MDBox p={3} display="flex" flexDirection="column" gap={1.5}>
+                  <MDButton
+                    variant="gradient"
+                    color={accent}
+                    fullWidth
+                    onClick={() => void handleSend()}
+                    disabled={sending || recipientCount === 0}
+                  >
+                    <Icon>send</Icon>&nbsp;{sending ? 'Sending…' : 'Send Notice'}
+                  </MDButton>
+                  <MDTypography variant="caption" color="text" textAlign="center">
+                    Sending to {recipientCount} {recipientsLabel}.
+                  </MDTypography>
+                </MDBox>
+              </Card>
+            </MDBox>
+          </MDBox>
+        </Grid>
+      </Grid>
+    </AdminPage>
   );
 }

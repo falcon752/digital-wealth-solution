@@ -1,146 +1,213 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
+import { keyframes } from '@mui/material/styles';
 import { adminAPI } from '@/lib/api';
 import { ActivityLog } from '@/types';
-import DashboardHeader from '@/components/layout/DashboardHeader';
 import { formatDate } from '@/lib/utils';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import Button from '@/components/ui/Button';
+import AdminPage from '@/components/admin/shell/AdminPage';
+import DataTableCard, { type Column } from '@/components/admin/ui/DataTableCard';
+import MDBox from '@/components/admin/components/MDBox';
+import MDTypography from '@/components/admin/components/MDTypography';
 
-const ACTION_COLORS: Record<string, string> = {
+type ActionColor = 'success' | 'error' | 'warning' | 'info' | 'primary' | 'text';
+
+interface ActionStyle {
+  color: ActionColor;
+  bold?: boolean;
+  /** Something the team should act on (pulses, as before). */
+  pulse?: boolean;
+}
+
+const ACTION_COLORS: Record<string, ActionStyle> = {
   // Authentication & Registrations
-  USER_REGISTERED: 'text-green-500 font-semibold',
-  LOGIN_SUCCESS: 'text-brand-500',
-  LOGIN_FAILED: 'text-red-500 font-semibold',
-  LOGIN_2FA_FAILED: 'text-red-400 font-semibold',
-  PASSWORD_RESET: 'text-yellow-500 font-semibold',
-  '2FA_ENABLED': 'text-emerald-500 font-semibold',
-  '2FA_DISABLED': 'text-red-500 font-semibold',
+  USER_REGISTERED: { color: 'success', bold: true },
+  LOGIN_SUCCESS: { color: 'info' },
+  LOGIN_FAILED: { color: 'error', bold: true },
+  LOGIN_2FA_FAILED: { color: 'error', bold: true },
+  PASSWORD_RESET: { color: 'warning', bold: true },
+  '2FA_ENABLED': { color: 'success', bold: true },
+  '2FA_DISABLED': { color: 'error', bold: true },
 
   // Onboarding Fee Approvals
-  ONBOARDING_FEE_SUBMITTED: 'text-orange-500 font-semibold animate-pulse',
-  USER_PAYMENT_VERIFIED: 'text-green-500 font-semibold',
-  INQUIRY_SUBMITTED: 'text-teal-500 font-semibold animate-pulse',
+  ONBOARDING_FEE_SUBMITTED: { color: 'warning', bold: true, pulse: true },
+  USER_PAYMENT_VERIFIED: { color: 'success', bold: true },
+  INQUIRY_SUBMITTED: { color: 'info', bold: true, pulse: true },
 
   // Deposits
-  DEPOSIT_SUBMITTED: 'text-amber-500 font-semibold animate-pulse',
-  DEPOSIT_CONFIRMED: 'text-green-600 font-semibold',
-  DEPOSIT_REJECTED: 'text-red-600 font-semibold',
+  DEPOSIT_SUBMITTED: { color: 'warning', bold: true, pulse: true },
+  DEPOSIT_CONFIRMED: { color: 'success', bold: true },
+  DEPOSIT_REJECTED: { color: 'error', bold: true },
 
   // Withdrawals
-  WITHDRAWAL_SUBMITTED: 'text-orange-500 font-semibold',
-  WITHDRAWAL_VERIFIED: 'text-blue-500 font-semibold',
-  WITHDRAWAL_APPROVED: 'text-indigo-500 font-semibold',
-  WITHDRAWAL_COMPLETED: 'text-emerald-600 font-semibold',
-  WITHDRAWAL_REJECTED: 'text-red-600 font-semibold',
-  WITHDRAWAL_OTP_FAILED: 'text-red-400',
+  WITHDRAWAL_SUBMITTED: { color: 'warning', bold: true },
+  WITHDRAWAL_VERIFIED: { color: 'info', bold: true },
+  WITHDRAWAL_APPROVED: { color: 'primary', bold: true },
+  WITHDRAWAL_COMPLETED: { color: 'success', bold: true },
+  WITHDRAWAL_REJECTED: { color: 'error', bold: true },
+  WITHDRAWAL_OTP_FAILED: { color: 'error' },
 
   // Admin Actions
-  USER_ACTIVATED: 'text-green-500 font-semibold',
-  USER_DEACTIVATED: 'text-red-500 font-semibold',
-  BALANCE_ADJUSTED: 'text-purple-500 font-semibold',
-  ADMIN_CREATED_USER: 'text-blue-500 font-semibold',
+  USER_ACTIVATED: { color: 'success', bold: true },
+  USER_DEACTIVATED: { color: 'error', bold: true },
+  BALANCE_ADJUSTED: { color: 'primary', bold: true },
+  ADMIN_CREATED_USER: { color: 'info', bold: true },
 };
+
+const pulse = keyframes`
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+`;
+
+function parseDetails(log: ActivityLog): Record<string, unknown> {
+  try { return log.details ? JSON.parse(log.details as unknown as string) : {}; } catch { return {}; }
+}
+
+const columns: Column<ActivityLog>[] = [
+  {
+    key: 'user',
+    header: 'User',
+    render: (log) => (
+      <MDBox lineHeight={1.2}>
+        <MDTypography variant="button" fontWeight="medium" display="block" sx={{ overflowWrap: 'anywhere' }}>
+          {log.email || `User #${log.userId}`}
+        </MDTypography>
+        {/* Phones: the time column is hidden, so show it here. */}
+        <MDTypography variant="caption" color="text" display={{ xs: 'block', md: 'none' }} mt={0.25}>{formatDate(log.createdAt)}</MDTypography>
+      </MDBox>
+    ),
+  },
+  {
+    key: 'action',
+    header: 'Action',
+    render: (log) => {
+      const style = ACTION_COLORS[log.action] ?? { color: 'text' as const };
+      return (
+        <MDBox display="inline-flex" alignItems="center" gap={0.75}>
+          {style.pulse && (
+            <MDBox
+              component="span"
+              width="0.5rem"
+              height="0.5rem"
+              borderRadius="50%"
+              bgColor={style.color}
+              flexShrink={0}
+              sx={{ animation: `${pulse} 2s ease-in-out infinite` }}
+            />
+          )}
+          <MDTypography
+            variant="button"
+            color={style.color}
+            fontWeight={style.bold ? 'bold' : 'medium'}
+            sx={{ fontFamily: 'monospace' }}
+          >
+            {log.action.replace(/_/g, ' ')}
+          </MDTypography>
+        </MDBox>
+      );
+    },
+  },
+  {
+    key: 'details',
+    header: 'Details',
+    hideOnMobile: true,
+    render: (log) => {
+      const parsedDetails = parseDetails(log);
+      if (Object.keys(parsedDetails).length === 0) return <MDTypography variant="caption" color="text">—</MDTypography>;
+      return (
+        <MDBox display="flex" flexWrap="wrap" gap={0.5} maxWidth={420}>
+          {Object.entries(parsedDetails).map(([k, v]) => (
+            <MDBox
+              key={k}
+              component="span"
+              px={1}
+              py={0.25}
+              borderRadius="md"
+              sx={({ palette, typography }) => ({
+                backgroundColor: palette.grey[200],
+                fontSize: typography.size.xs,
+                lineHeight: 1.5,
+                color: palette.text.main,
+                whiteSpace: 'nowrap',
+              })}
+            >
+              {k}: {String(v).slice(0, 20)}
+            </MDBox>
+          ))}
+        </MDBox>
+      );
+    },
+  },
+  {
+    key: 'ip',
+    header: 'IP Address',
+    hideOnMobile: true,
+    render: (log) => (
+      <MDTypography variant="caption" color="text" sx={{ fontFamily: 'monospace' }}>{log.ipAddress || '—'}</MDTypography>
+    ),
+  },
+  {
+    key: 'time',
+    header: 'Time',
+    hideOnMobile: true,
+    render: (log) => <MDTypography variant="caption" color="text" whiteSpace="nowrap">{formatDate(log.createdAt)}</MDTypography>,
+  },
+];
 
 export default function AdminActivityPage() {
   const [logs, setLogs] = useState<ActivityLog[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState<unknown>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  // Bumped by "Try again"; the request for the current page + attempt is loading until it settles.
+  const [attempt, setAttempt] = useState(0);
+  const [settledKey, setSettledKey] = useState<string | null>(null);
+  const requestKey = `${page}:${attempt}`;
+  const loading = settledKey !== requestKey;
   const limit = 30;
 
-  const load = useCallback(() => {
-    setLoading(true);
+  useEffect(() => {
+    let cancelled = false;
     adminAPI.getActivityLogs({ page, limit })
       .then((r) => {
+        if (cancelled) return;
         setLogs(r.data.logs || r.data);
         if (r.data.total) setTotalPages(Math.ceil(r.data.total / limit));
+        setLoaded(true);
+        setError(null);
       })
-      .finally(() => setLoading(false));
-  }, [page]);
+      .catch((e: unknown) => { if (!cancelled) setError(e); })
+      .finally(() => { if (!cancelled) setSettledKey(`${page}:${attempt}`); });
+    return () => { cancelled = true; };
+  }, [page, attempt]);
 
-  useEffect(load, [load]);
+  // Entries may not carry a unique id: key rows by their position, as before.
+  const rowKeys = new Map(logs.map((log, i) => [log, String(i)]));
 
   return (
-    <div className="flex flex-col min-h-full">
-      <DashboardHeader title="Activity Log" subtitle="All user and system activity events" logo="dwp" />
-
-      <div className="flex-1 p-6 space-y-5">
-        {loading ? (
-          <div className="flex items-center justify-center h-48">
-            <div className="w-8 h-8 border-2 border-brand-400 border-t-transparent rounded-full animate-spin" />
-          </div>
-        ) : (
-          <div className="glass rounded-2xl overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-[var(--border)]">
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">User</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Action</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider hidden lg:table-cell">Details</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider hidden md:table-cell">IP Address</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Time</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {logs.map((log, i) => {
-                    let parsedDetails: Record<string, unknown> = {};
-                    try { parsedDetails = log.details ? JSON.parse(log.details as unknown as string) : {}; } catch { /* ignore */ }
-                    const actionColor = ACTION_COLORS[log.action] || 'text-[var(--text-secondary)]';
-                    return (
-                      <tr key={i} className="border-b border-[var(--border)] last:border-0 hover:bg-brand-500/5 transition-colors">
-                        <td className="px-4 py-3">
-                          <div className="text-sm font-medium text-[var(--text-primary)]">{(log as any).email || `User #${log.userId}`}</div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className={`text-sm font-mono font-medium ${actionColor}`}>{log.action.replace(/_/g, ' ')}</span>
-                        </td>
-                        <td className="px-4 py-3 hidden lg:table-cell">
-                          {Object.keys(parsedDetails).length > 0 ? (
-                            <div className="flex flex-wrap gap-1">
-                              {Object.entries(parsedDetails).map(([k, v]) => (
-                                <span key={k} className="text-xs bg-brand-500/10 text-brand-300 px-2 py-0.5 rounded-full">
-                                  {k}: {String(v).slice(0, 20)}
-                                </span>
-                              ))}
-                            </div>
-                          ) : (
-                            <span className="text-xs text-[var(--text-muted)]">—</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 hidden md:table-cell">
-                          <code className="text-xs text-[var(--text-muted)]">{log.ipAddress || '—'}</code>
-                        </td>
-                        <td className="px-4 py-3 text-xs text-[var(--text-muted)] whitespace-nowrap">{formatDate(log.createdAt)}</td>
-                      </tr>
-                    );
-                  })}
-                  {logs.length === 0 && (
-                    <tr><td colSpan={5} className="px-4 py-12 text-center text-[var(--text-muted)]">No activity yet.</td></tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between pt-2">
-            <span className="text-sm text-[var(--text-muted)]">Page {page} of {totalPages}</span>
-            <div className="flex gap-2">
-              <Button variant="ghost" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>
-                <ChevronLeft size={15} />
-              </Button>
-              <Button variant="ghost" size="sm" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}>
-                <ChevronRight size={15} />
-              </Button>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
+    <AdminPage title="Activity Log" description="All user and system activity events">
+      <MDBox mt={3}>
+        <DataTableCard
+          title="Activity"
+          subtitle={totalPages > 1 ? `Newest first · page ${page} of ${totalPages}` : 'Newest first'}
+          columns={columns}
+          rows={logs}
+          rowKey={(log) => rowKeys.get(log) ?? log.id}
+          isLoading={loading && !loaded}
+          isFetching={loading}
+          error={error}
+          onRetry={() => setAttempt((a) => a + 1)}
+          emptyMessage="No activity yet."
+          paging={totalPages > 1 ? {
+            page,
+            hasPrevious: page > 1,
+            hasNext: page < totalPages,
+            onPrevious: () => setPage((p) => Math.max(1, p - 1)),
+            onNext: () => setPage((p) => Math.min(totalPages, p + 1)),
+          } : undefined}
+        />
+      </MDBox>
+    </AdminPage>
   );
 }

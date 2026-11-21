@@ -1,16 +1,28 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, type ChangeEvent } from 'react';
 import Link from 'next/link';
+import Grid from '@mui/material/Grid';
+import IconButton from '@mui/material/IconButton';
+import InputAdornment from '@mui/material/InputAdornment';
+import MenuItem from '@mui/material/MenuItem';
+import Tooltip from '@mui/material/Tooltip';
 import { adminAPI, assetsAPI } from '@/lib/api';
 import { Asset } from '@/types';
-import DashboardHeader from '@/components/layout/DashboardHeader';
-import Button from '@/components/ui/Button';
-import Badge from '@/components/ui/Badge';
-import Modal from '@/components/ui/Modal';
-import Input from '@/components/ui/Input';
+import AdminPage from '@/components/admin/shell/AdminPage';
+import DataTableCard, { type Column } from '@/components/admin/ui/DataTableCard';
+import AdminDialog from '@/components/admin/ui/AdminDialog';
+import { SearchField } from '@/components/admin/ui/Filters';
+import PersonAvatar from '@/components/admin/ui/PersonAvatar';
+import StatusBadge from '@/components/admin/ui/StatusBadge';
+import Icon from '@/components/admin/ui/Icon';
+import { useAccent } from '@/components/admin/ui/useAccent';
+import MDBox from '@/components/admin/components/MDBox';
+import MDButton from '@/components/admin/components/MDButton';
+import MDInput from '@/components/admin/components/MDInput';
+import MDTypography from '@/components/admin/components/MDTypography';
+import { humanize } from '@/components/admin/lib/format';
 import { formatDate, formatCurrency } from '@/lib/utils';
-import { Search, ToggleLeft, ToggleRight, DollarSign, CheckCircle, Clock, ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface UserRow {
@@ -26,14 +38,17 @@ interface UserRow {
   createdAt: string;
 }
 
+const PAGE_SIZE = 10;
 
 export default function AdminUsersPage() {
+  const accent = useAccent();
   const [users, setUsers] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadedOnce, setLoadedOnce] = useState(false);
+  const [loadError, setLoadError] = useState<unknown>(null);
+  // The search box waits until typing pauses (350 ms) before it reports the text.
   const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const PAGE_SIZE = 10;
 
   // Balance modal
   const [balanceTarget, setBalanceTarget] = useState<UserRow | null>(null);
@@ -45,21 +60,20 @@ export default function AdminUsersPage() {
   const [adminNote, setAdminNote] = useState('');
   const [submittingBalance, setSubmittingBalance] = useState(false);
 
-
-  useEffect(() => {
-    const t = setTimeout(() => setDebouncedSearch(search), 350);
-    return () => clearTimeout(t);
-  }, [search]);
-
   const load = useCallback(() => {
     setLoading(true);
-    adminAPI.getUsers({ limit: 1000, ...(debouncedSearch ? { search: debouncedSearch } : {}) })
+    setLoadError(null);
+    adminAPI.getUsers({ limit: 1000, ...(search ? { search } : {}) })
       .then((r) => {
         setUsers(Array.isArray(r.data) ? r.data : (r.data.users ?? []));
         setCurrentPage(1);
       })
-      .finally(() => setLoading(false));
-  }, [debouncedSearch]);
+      .catch((err: unknown) => setLoadError(err))
+      .finally(() => {
+        setLoading(false);
+        setLoadedOnce(true);
+      });
+  }, [search]);
 
   useEffect(load, [load]);
 
@@ -115,181 +129,199 @@ export default function AdminUsersPage() {
     } finally { setSubmittingBalance(false); }
   };
 
-
   const totalPages = Math.max(1, Math.ceil(users.length / PAGE_SIZE));
   const paginatedUsers = users.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
+  const columns: Column<UserRow>[] = [
+    {
+      key: 'user',
+      header: 'User',
+      render: (u) => (
+        <MDBox display="flex" alignItems="center" gap={1.5}>
+          <PersonAvatar name={`${u.firstName ?? ''} ${u.lastName ?? ''}`} email={u.email} photoUrl={null} />
+          <MDBox lineHeight={1.2} minWidth={0}>
+            <MDTypography variant="button" fontWeight="medium" display="block">
+              {u.firstName} {u.lastName}
+            </MDTypography>
+            <MDTypography variant="caption" color="text">{u.email}</MDTypography>
+            {/* Phones: the balance and status columns are hidden, so show them here. */}
+            <MDBox display={{ xs: 'flex', md: 'none' }} alignItems="center" gap={1} mt={0.75}>
+              <MDTypography variant="caption" fontWeight="medium">{formatCurrency(u.balance || 0)}</MDTypography>
+              <StatusBadge status={u.isActive ? 'active' : 'inactive'} />
+            </MDBox>
+          </MDBox>
+        </MDBox>
+      ),
+    },
+    {
+      key: 'role',
+      header: 'Role',
+      hideOnMobile: true,
+      render: (u) => <StatusBadge status={u.role} label={u.role} color={u.role === 'admin' ? 'info' : 'secondary'} />,
+    },
+    { key: 'balance', header: 'Balance', hideOnMobile: true, render: (u) => formatCurrency(u.balance || 0) },
+    {
+      key: 'payment',
+      header: 'Payment',
+      hideOnMobile: true,
+      render: (u) => (
+        <MDTypography
+          variant="caption"
+          fontWeight="medium"
+          color={u.onboardingFeePaid ? 'success' : 'warning'}
+          display="inline-flex"
+          alignItems="center"
+          gap={0.5}
+          whiteSpace="nowrap"
+        >
+          <Icon fontSize="small">{u.onboardingFeePaid ? 'check_circle' : 'schedule'}</Icon>
+          {humanize(u.onboardingStatus || (u.onboardingFeePaid ? 'account_active' : 'payment_pending'))}
+        </MDTypography>
+      ),
+    },
+    { key: 'status', header: 'Status', hideOnMobile: true, render: (u) => <StatusBadge status={u.isActive ? 'active' : 'inactive'} /> },
+    { key: 'joined', header: 'Joined', hideOnMobile: true, render: (u) => <MDBox component="span" whiteSpace="nowrap">{formatDate(u.createdAt)}</MDBox> },
+    {
+      key: 'actions',
+      header: '',
+      align: 'right',
+      render: (u) => (
+        <MDBox display="flex" flexDirection={{ xs: 'column', md: 'row' }} alignItems="center" justifyContent="flex-end" gap={0.5}>
+          <Tooltip title="Edit balance">
+            <IconButton size="small" onClick={() => openBalance(u)} aria-label="Edit balance">
+              <Icon fontSize="small">paid</Icon>
+            </IconButton>
+          </Tooltip>
+          {u.role !== 'admin' && (
+            <>
+              <Tooltip title="Review onboarding payment and activation">
+                <IconButton size="small" component={Link} href="/admin/onboarding-payments" aria-label="Review onboarding payment and activation">
+                  <Icon fontSize="small">open_in_new</Icon>
+                </IconButton>
+              </Tooltip>
+              <Tooltip title={u.isActive ? 'Suspend' : 'Activate'}>
+                <IconButton
+                  size="small"
+                  color={u.isActive ? 'success' : 'default'}
+                  onClick={() => void toggleStatus(u)}
+                  aria-label={u.isActive ? 'Suspend' : 'Activate'}
+                >
+                  <Icon>{u.isActive ? 'toggle_on' : 'toggle_off'}</Icon>
+                </IconButton>
+              </Tooltip>
+            </>
+          )}
+        </MDBox>
+      ),
+    },
+  ];
+
   return (
-    <div className="flex flex-col min-h-full">
-      <DashboardHeader title="Users" subtitle="Manage platform users" logo="dwp" />
-
-      <div className="flex-1 p-6 space-y-5">
-
-        {/* Top bar — search + create */}
-        <div className="flex items-center gap-3 flex-wrap">
-          <div className="relative flex-1 max-w-sm">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
-            <input
-              type="text"
-              placeholder="Search by email or name…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-brand-400 transition-colors text-sm"
-            />
-          </div>
-
-        </div>
-
-        {/* Users table */}
-        {loading ? (
-          <div className="flex items-center justify-center h-48">
-            <div className="w-8 h-8 border-2 border-brand-400 border-t-transparent rounded-full animate-spin" />
-          </div>
-        ) : (
-          <div className="glass rounded-2xl overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-[var(--border)]">
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">User</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Role</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Balance</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Payment</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Status</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider hidden md:table-cell">Joined</th>
-                    <th className="px-4 py-3" />
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedUsers.map((u) => (
-                    <tr key={u.id} className="border-b border-[var(--border)] last:border-0 hover:bg-brand-500/5 transition-colors">
-                      <td className="px-4 py-3">
-                        <div className="font-medium text-sm text-[var(--text-primary)]">{u.firstName} {u.lastName}</div>
-                        <div className="text-xs text-[var(--text-muted)]">{u.email}</div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${u.role === 'admin' ? 'bg-blue-500/20 text-blue-300' : 'bg-brand-500/10 text-brand-400'}`}>
-                          {u.role}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-[var(--text-primary)]">{formatCurrency(u.balance || 0)}</td>
-                      <td className="px-4 py-3">
-                        <span className={`flex items-center gap-1.5 text-xs font-medium ${u.onboardingFeePaid ? 'text-green-500' : 'text-amber-500'}`}>
-                          {u.onboardingFeePaid ? <CheckCircle size={14} /> : <Clock size={14} />}
-                          {(u.onboardingStatus || (u.onboardingFeePaid ? 'account_active' : 'payment_pending')).replaceAll('_', ' ')}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3"><Badge status={u.isActive ? 'active' : 'inactive'} /></td>
-                      <td className="px-4 py-3 hidden md:table-cell text-xs text-[var(--text-muted)]">{formatDate(u.createdAt)}</td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2 justify-end">
-                          <button onClick={() => openBalance(u)} className="p-1.5 rounded-lg hover:bg-brand-500/10 text-[var(--text-muted)] hover:text-brand-400 transition-colors" title="Edit balance">
-                            <DollarSign size={15} />
-                          </button>
-                          {u.role !== 'admin' && (
-                            <>
-                              <Link
-                                href="/admin/onboarding-payments"
-                                className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-blue-500 hover:bg-blue-500/10 transition-colors"
-                                title="Review onboarding payment and activation"
-                              >
-                                <ExternalLink size={15} />
-                              </Link>
-                              <button onClick={() => toggleStatus(u)} className={`p-1.5 rounded-lg transition-colors ${u.isActive ? 'hover:bg-red-500/10 text-[var(--text-muted)] hover:text-red-400' : 'hover:bg-green-500/10 text-[var(--text-muted)] hover:text-green-400'}`} title={u.isActive ? 'Suspend' : 'Activate'}>
-                                {u.isActive ? <ToggleRight size={16} /> : <ToggleLeft size={16} />}
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                  {users.length === 0 && (
-                    <tr><td colSpan={6} className="px-4 py-12 text-center text-[var(--text-muted)]">No users found.</td></tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            {users.length > 0 && (
-              <div className="flex items-center justify-between gap-4 px-4 py-4 border-t border-[var(--border)]">
-                <p className="text-xs text-[var(--text-muted)]">
-                  Showing {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, users.length)} of {users.length}
-                </p>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                    disabled={currentPage === 1}
-                    className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-muted)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-brand-500/5 transition-colors"
-                    aria-label="Previous page"
-                  >
-                    <ChevronLeft size={16} />
-                  </button>
-                  <span className="text-xs font-medium text-[var(--text-secondary)]">
-                    Page {currentPage} of {totalPages}
-                  </span>
-                  <button
-                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                    disabled={currentPage === totalPages}
-                    className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-muted)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-brand-500/5 transition-colors"
-                    aria-label="Next page"
-                  >
-                    <ChevronRight size={16} />
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+    <AdminPage title="Users" description="Manage platform users">
+      <MDBox mt={4}>
+        <DataTableCard
+          title="All users"
+          subtitle={
+            users.length
+              ? `Showing ${(currentPage - 1) * PAGE_SIZE + 1}–${Math.min(currentPage * PAGE_SIZE, users.length)} of ${users.length} · page ${currentPage} of ${totalPages}`
+              : 'Newest first'
+          }
+          columns={columns}
+          rows={paginatedUsers}
+          rowKey={(u) => String(u.id)}
+          isLoading={loading && !loadedOnce}
+          isFetching={loading}
+          error={loadError}
+          onRetry={load}
+          emptyMessage="No users found."
+          toolbar={<SearchField value={search} onChange={setSearch} placeholder="Search by email or name…" width="min(320px, 100%)" />}
+          paging={{
+            page: currentPage,
+            hasPrevious: currentPage > 1,
+            hasNext: currentPage < totalPages,
+            onPrevious: () => setCurrentPage((p) => Math.max(1, p - 1)),
+            onNext: () => setCurrentPage((p) => Math.min(totalPages, p + 1)),
+          }}
+        />
+      </MDBox>
 
       {/* ── Balance Modal ─────────────────────────────────────────────────────── */}
-      <Modal isOpen={!!balanceTarget} onClose={() => setBalanceTarget(null)} title="Edit Balance" size="sm">
-        <p className="text-sm text-[var(--text-secondary)] mb-4">
-          Credit or deduct a selected asset for <strong className="text-[var(--text-primary)]">{balanceTarget?.email}</strong>.
-        </p>
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-2 rounded-xl bg-[var(--bg-secondary)] p-1">
-            {(['credit', 'deduct'] as const).map((action) => (
-              <button
-                key={action}
-                type="button"
+      <AdminDialog
+        isOpen={!!balanceTarget}
+        onClose={() => setBalanceTarget(null)}
+        title="Edit Balance"
+        size="sm"
+        actions={
+          <>
+            <MDButton variant="text" color="dark" onClick={() => setBalanceTarget(null)} disabled={submittingBalance}>Cancel</MDButton>
+            <MDButton variant="gradient" color={accent} onClick={() => void handleSetBalance()} disabled={submittingBalance}>
+              {submittingBalance ? 'Updating…' : 'Update Balance'}
+            </MDButton>
+          </>
+        }
+      >
+        <MDTypography variant="button" color="text" fontWeight="regular" display="block" mb={2.5}>
+          Credit or deduct a selected asset for{' '}
+          <MDTypography component="strong" variant="button" fontWeight="bold">{balanceTarget?.email}</MDTypography>.
+        </MDTypography>
+
+        <Grid container spacing={1} mb={2.5}>
+          {(['credit', 'deduct'] as const).map((action) => (
+            <Grid item xs={6} key={action}>
+              <MDButton
+                fullWidth
+                variant={adjustmentAction === action ? 'gradient' : 'outlined'}
+                color={action === 'credit' ? 'success' : 'error'}
                 onClick={() => setAdjustmentAction(action)}
-                className={`rounded-lg px-3 py-2 text-sm font-semibold capitalize transition-colors ${
-                  adjustmentAction === action
-                    ? 'bg-brand-600 text-white'
-                    : 'text-[var(--text-secondary)] hover:bg-white/5'
-                }`}
+                aria-pressed={adjustmentAction === action}
               >
                 {action}
-              </button>
+              </MDButton>
+            </Grid>
+          ))}
+        </Grid>
+
+        <MDBox display="flex" flexDirection="column" gap={2.5}>
+          <MDInput
+            select
+            fullWidth
+            label="Select Asset"
+            value={selectedAssetId}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setSelectedAssetId(e.target.value)}
+            SelectProps={{ displayEmpty: true, sx: { height: 44 } }}
+            InputLabelProps={{ shrink: true }}
+          >
+            <MenuItem value="">Select asset...</MenuItem>
+            {assets.map((asset) => (
+              <MenuItem key={asset.id} value={asset.id}>{asset.name} ({asset.symbol})</MenuItem>
             ))}
-          </div>
+          </MDInput>
 
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-[var(--text-primary)]">Select Asset</label>
-            <select
-              value={selectedAssetId}
-              onChange={(e) => setSelectedAssetId(e.target.value)}
-              className="w-full px-4 py-3 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-xl text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-brand-500/50"
-            >
-              <option value="">Select asset...</option>
-              {assets.map((asset) => (
-                <option key={asset.id} value={asset.id}>{asset.name} ({asset.symbol})</option>
-              ))}
-            </select>
-          </div>
-
-          <Input label="Asset Amount" type="number" step="any" value={assetAmount} onChange={(e) => setAssetAmount(e.target.value)} />
-          <Input label="USD Value" type="number" step="0.01" value={usdValue} onChange={(e) => setUsdValue(e.target.value)} leftIcon={<DollarSign size={15} />} />
-          <Input label="Admin Note (optional)" value={adminNote} onChange={(e) => setAdminNote(e.target.value)} />
-        </div>
-        <div className="flex gap-3 mt-5">
-          <Button variant="outline" className="flex-1" onClick={() => setBalanceTarget(null)}>Cancel</Button>
-          <Button className="flex-1" onClick={handleSetBalance} loading={submittingBalance}>Update Balance</Button>
-        </div>
-      </Modal>
-
-    </div>
+          <MDInput
+            fullWidth
+            label="Asset Amount"
+            type="number"
+            inputProps={{ step: 'any' }}
+            value={assetAmount}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setAssetAmount(e.target.value)}
+          />
+          <MDInput
+            fullWidth
+            label="USD Value"
+            type="number"
+            inputProps={{ step: '0.01' }}
+            value={usdValue}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setUsdValue(e.target.value)}
+            InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }}
+          />
+          <MDInput
+            fullWidth
+            label="Admin Note (optional)"
+            value={adminNote}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setAdminNote(e.target.value)}
+          />
+        </MDBox>
+      </AdminDialog>
+    </AdminPage>
   );
 }

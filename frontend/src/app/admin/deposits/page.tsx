@@ -1,26 +1,65 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef, type ChangeEvent, type ReactNode } from 'react';
 import { useSearchParams } from 'next/navigation';
+import Divider from '@mui/material/Divider';
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
+import { alpha } from '@mui/material/styles';
+import toast from 'react-hot-toast';
 import { depositsAPI } from '@/lib/api';
 import { Deposit } from '@/types';
-import DashboardHeader from '@/components/layout/DashboardHeader';
-import Button from '@/components/ui/Button';
-import Badge from '@/components/ui/Badge';
-import Modal from '@/components/ui/Modal';
-import Input from '@/components/ui/Input';
 import { formatDate, formatCurrency } from '@/lib/utils';
-import { CheckCircle, XCircle, ExternalLink, Zap, ChevronLeft, ChevronRight } from 'lucide-react';
-import toast from 'react-hot-toast';
+import AdminPage from '@/components/admin/shell/AdminPage';
+import AdminDialog from '@/components/admin/ui/AdminDialog';
+import DataTableCard, { type Column } from '@/components/admin/ui/DataTableCard';
+import { SelectFilter } from '@/components/admin/ui/Filters';
+import Icon from '@/components/admin/ui/Icon';
+import StatusBadge from '@/components/admin/ui/StatusBadge';
+import MDAlert from '@/components/admin/components/MDAlert';
+import MDBox from '@/components/admin/components/MDBox';
+import MDButton from '@/components/admin/components/MDButton';
+import MDInput from '@/components/admin/components/MDInput';
+import MDTypography from '@/components/admin/components/MDTypography';
 
-const TABS = ['all', 'pending', 'confirmed', 'rejected'] as const;
-type Tab = (typeof TABS)[number];
+type Tab = 'all' | 'pending' | 'confirmed' | 'rejected';
+type StatusOption = Exclude<Tab, 'all'>;
+const STATUS_OPTIONS: { value: StatusOption; label: string }[] = [
+  { value: 'pending', label: 'Pending' },
+  { value: 'confirmed', label: 'Confirmed' },
+  { value: 'rejected', label: 'Rejected' },
+];
+
+/** One line of the deposit summary in the confirm dialog. */
+function SummaryRow({ label, children, divider = true }: { label: string; children: ReactNode; divider?: boolean }) {
+  return (
+    <>
+      {divider && <Divider sx={{ my: 0 }} />}
+      <MDBox display="flex" justifyContent="space-between" alignItems="flex-start" gap={2} py={1}>
+        <MDTypography variant="button" color="text" fontWeight="regular">{label}</MDTypography>
+        <MDTypography variant="button" fontWeight="medium" textAlign="right" component="div" sx={{ wordBreak: 'break-all' }}>
+          {children}
+        </MDTypography>
+      </MDBox>
+    </>
+  );
+}
+
+function apiError(err: unknown, fallback: string) {
+  return (err as { response?: { data?: { error?: string; message?: string } } })?.response?.data?.error
+    || (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+    || fallback;
+}
 
 export default function AdminDepositsPage() {
   const searchParams = useSearchParams();
   const highlightId = searchParams.get('highlight');
 
-  const [activeTab, setActiveTab] = useState<Tab>('all');
+  // ?status=pending (the Overview's "Pending deposits" link) opens on that filter.
+  const initialStatus = searchParams.get('status');
+  const [activeTab, setActiveTab] = useState<Tab>(
+    initialStatus === 'pending' || initialStatus === 'confirmed' || initialStatus === 'rejected' ? initialStatus : 'all'
+  );
   const [deposits, setDeposits] = useState<Deposit[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -30,8 +69,8 @@ export default function AdminDepositsPage() {
   const [adminNote, setAdminNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  // Row refs for scrolling to highlighted deposit
-  const rowRefs = useRef<Record<string, HTMLTableRowElement | null>>({});
+  // A marker inside each row; scrolling uses the row (<tr>) that holds it.
+  const rowRefs = useRef<Record<string, HTMLElement | null>>({});
   // Track whether we've already auto-opened the modal for this highlight
   const didAutoOpen = useRef(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -72,9 +111,9 @@ export default function AdminDepositsPage() {
     }
 
     // Scroll the row into view
-    const row = rowRefs.current[highlightId];
-    if (row) {
-      row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const marker = rowRefs.current[highlightId];
+    if (marker) {
+      (marker.closest('tr') ?? marker).scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     // Auto-open confirm modal if still pending
@@ -102,10 +141,7 @@ export default function AdminDepositsPage() {
       setConfirmTarget(null);
       load();
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { error?: string; message?: string } } })?.response?.data?.error
-        || (err as { response?: { data?: { message?: string } } })?.response?.data?.message
-        || 'Failed to confirm deposit';
-      toast.error(msg);
+      toast.error(apiError(err, 'Failed to confirm deposit'));
     } finally { setSubmitting(false); }
   };
 
@@ -118,264 +154,271 @@ export default function AdminDepositsPage() {
       setRejectTarget(null);
       load();
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { error?: string; message?: string } } })?.response?.data?.error
-        || (err as { response?: { data?: { message?: string } } })?.response?.data?.message
-        || 'Failed to reject deposit';
-      toast.error(msg);
+      toast.error(apiError(err, 'Failed to reject deposit'));
     } finally { setSubmitting(false); }
   };
 
   const totalPages = Math.max(1, Math.ceil(deposits.length / PAGE_SIZE));
   const paginatedDeposits = deposits.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const highlighted = highlightId ? deposits.find((d) => d.id === highlightId) : undefined;
+
+  const columns: Column<Deposit>[] = [
+    {
+      key: 'user',
+      header: 'User',
+      render: (d) => (
+        <MDBox
+          lineHeight={1.2}
+          ref={(el: HTMLElement | null) => { rowRefs.current[d.id] = el; }}
+          data-highlighted={d.id === highlightId ? 'true' : undefined}
+        >
+          <MDTypography variant="button" fontWeight="medium" display="block">
+            {d.firstName && d.lastName ? `${d.firstName} ${d.lastName}` : d.userEmail || '—'}
+          </MDTypography>
+          {d.firstName && <MDTypography variant="caption" color="text" display="block">{d.userEmail}</MDTypography>}
+          {/* Phones: amount and status here, since their columns are hidden. */}
+          <MDBox display={{ xs: 'block', md: 'none' }} mt={0.5}>
+            <MDTypography variant="caption" color="text" display="block" mb={0.5}>
+              {d.amount} {d.assetSymbol}{d.usdValue ? ` · ${formatCurrency(d.usdValue)}` : ''}
+            </MDTypography>
+            <StatusBadge status={d.status} />
+          </MDBox>
+        </MDBox>
+      ),
+    },
+    {
+      key: 'asset',
+      header: 'Asset',
+      hideOnMobile: true,
+      render: (d) => (
+        <MDBox lineHeight={1.2}>
+          <MDTypography variant="button" fontWeight="regular" display="block">{d.assetName || '—'}</MDTypography>
+          <MDTypography variant="caption" color="text">{d.assetSymbol}</MDTypography>
+        </MDBox>
+      ),
+    },
+    {
+      key: 'source',
+      header: 'Source',
+      hideOnMobile: true,
+      render: (d) => (
+        <MDBox lineHeight={1.2}>
+          <MDTypography variant="button" fontWeight="regular" display="block">
+            {d.provider || (d.sourceType === 'exchange' ? 'Exchange' : d.sourceType === 'provider' ? 'Provider' : 'Wallet')}
+          </MDTypography>
+          <MDTypography variant="caption" color="text" whiteSpace="nowrap">
+            {d.sourceType === 'exchange' ? 'Exchange login' : d.sourceType === 'provider' ? 'Offsite provider' : 'Direct transfer'}
+          </MDTypography>
+        </MDBox>
+      ),
+    },
+    {
+      key: 'ref',
+      header: 'Tx / Ref',
+      hideOnMobile: true,
+      render: (d) => (
+        <MDBox display="flex" alignItems="center" gap={0.5}>
+          <MDTypography variant="caption" color="text" sx={{ fontFamily: 'monospace' }} whiteSpace="nowrap">
+            {d.txHash ? d.txHash.slice(0, 12) + '…' : d.providerReference ? d.providerReference.slice(0, 12) + '…' : '—'}
+          </MDTypography>
+          {(d.txHash || d.providerReference) && (
+            <Tooltip title="Copy tx hash or reference">
+              <IconButton
+                size="small"
+                aria-label="Copy tx hash or reference"
+                onClick={() => navigator.clipboard.writeText(d.txHash || d.providerReference || '')}
+              >
+                <Icon sx={{ fontSize: '0.9rem !important' }}>content_copy</Icon>
+              </IconButton>
+            </Tooltip>
+          )}
+        </MDBox>
+      ),
+    },
+    {
+      key: 'amount',
+      header: 'Amount\u00a0/\u00a0USD',
+      hideOnMobile: true,
+      render: (d) => (
+        <MDBox lineHeight={1.2} whiteSpace="nowrap">
+          <MDTypography variant="button" fontWeight="medium" display="block">{d.amount} {d.assetSymbol}</MDTypography>
+          {d.usdValue && <MDTypography variant="caption" color="text">{formatCurrency(d.usdValue)}</MDTypography>}
+        </MDBox>
+      ),
+    },
+    { key: 'status', header: 'Status', hideOnMobile: true, render: (d) => <StatusBadge status={d.status} /> },
+    {
+      key: 'date',
+      header: 'Date',
+      hideOnMobile: true,
+      render: (d) => <MDTypography variant="caption" color="text">{formatDate(d.createdAt)}</MDTypography>,
+    },
+    {
+      key: 'actions',
+      header: '',
+      align: 'right',
+      render: (d) => d.status === 'pending' && (
+        <MDBox display="flex" gap={0.5} justifyContent="flex-end">
+          <Tooltip title="Confirm deposit">
+            <IconButton size="small" aria-label="Confirm deposit" onClick={() => openConfirm(d)}>
+              <Icon color="success">check_circle</Icon>
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Reject deposit">
+            <IconButton size="small" aria-label="Reject deposit" onClick={() => openReject(d)}>
+              <Icon color="error">cancel</Icon>
+            </IconButton>
+          </Tooltip>
+        </MDBox>
+      ),
+    },
+  ];
 
   return (
-    <div className="flex flex-col min-h-full">
-      <DashboardHeader title="Deposits" subtitle="Review and confirm user deposits" logo="dwp" />
+    <AdminPage title="Deposits" description="Review and confirm user deposits">
+      {/* Deep-link banner */}
+      {highlightId && !loading && (
+        <MDAlert color="info" mb={4}>
+          <Icon fontSize="small" sx={{ mr: 1.5, flexShrink: 0 }}>bolt</Icon>
+          <MDTypography variant="button" color="white" fontWeight="regular">
+            Opened from email notification — the deposit is highlighted below.
+            {highlighted?.status === 'pending'
+              ? ' The approval dialog has been opened automatically.'
+              : ` Status: ${highlighted?.status ?? 'not found'}.`}
+          </MDTypography>
+        </MDAlert>
+      )}
 
-      <div className="flex-1 p-6 space-y-5">
-
-        {/* Deep-link banner */}
-        {highlightId && !loading && (
-          <div className="flex items-center gap-3 bg-blue-500/10 border border-blue-500/30 rounded-xl px-4 py-3">
-            <Zap size={16} className="text-blue-400 flex-shrink-0" />
-            <p className="text-sm text-blue-300">
-              Opened from email notification — the deposit is highlighted below.
-              {deposits.find(d => d.id === highlightId)?.status === 'pending'
-                ? ' The approval dialog has been opened automatically.'
-                : ` Status: ${deposits.find(d => d.id === highlightId)?.status ?? 'not found'}.`}
-            </p>
-          </div>
-        )}
-
-        {/* Tabs */}
-        <div className="flex flex-wrap gap-1 p-1 bg-[var(--bg-secondary)] rounded-xl w-fit">
-          {TABS.map((t) => (
-            <button
-              key={t}
-              onClick={() => setActiveTab(t)}
-              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all capitalize
-                ${activeTab === t ? 'bg-brand-600 text-white shadow' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
-
-        {loading ? (
-          <div className="flex items-center justify-center h-48">
-            <div className="w-8 h-8 border-2 border-brand-400 border-t-transparent rounded-full animate-spin" />
-          </div>
-        ) : (
-          <div className="glass rounded-2xl overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-[var(--border)]">
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">User</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Asset</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Source</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Tx / Ref</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Amount / USD</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Status</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider hidden md:table-cell">Date</th>
-                    <th className="px-4 py-3" />
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedDeposits.map((d) => {
-                    const isHighlighted = d.id === highlightId;
-                    return (
-                      <tr
-                        key={d.id}
-                        ref={(el) => { rowRefs.current[d.id] = el; }}
-                        className={`border-b border-[var(--border)] last:border-0 transition-colors
-                          ${isHighlighted
-                            ? 'bg-blue-500/10 ring-1 ring-inset ring-blue-500/40'
-                            : 'hover:bg-brand-500/5'}`}
-                      >
-                        <td className="px-4 py-3">
-                          <div className="text-sm font-medium text-[var(--text-primary)]">
-                            {d.firstName && d.lastName ? `${d.firstName} ${d.lastName}` : d.userEmail || '—'}
-                          </div>
-                          {d.firstName && <div className="text-xs text-[var(--text-muted)]">{d.userEmail}</div>}
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="text-sm text-[var(--text-primary)]">{d.assetName || '—'}</div>
-                          <div className="text-xs text-[var(--text-muted)]">{d.assetSymbol}</div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="text-sm text-[var(--text-primary)]">{d.provider || (d.sourceType === 'exchange' ? 'Exchange' : d.sourceType === 'provider' ? 'Provider' : 'Wallet')}</div>
-                          <div className="text-xs text-[var(--text-muted)]">{d.sourceType === 'exchange' ? 'Exchange login' : d.sourceType === 'provider' ? 'Offsite provider' : 'Direct transfer'}</div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-1">
-                            <code className="text-xs bg-brand-500/10 text-brand-300 px-2 py-0.5 rounded-lg">
-                              {d.txHash ? d.txHash.slice(0, 12) + '…' : d.providerReference ? d.providerReference.slice(0, 12) + '…' : '—'}
-                            </code>
-                            {(d.txHash || d.providerReference) && (
-                              <button
-                                onClick={() => navigator.clipboard.writeText(d.txHash || d.providerReference || '')}
-                                className="text-[var(--text-muted)] hover:text-brand-400 transition-colors"
-                                title="Copy tx hash or reference"
-                              >
-                                <ExternalLink size={12} />
-                              </button>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="text-sm text-[var(--text-primary)]">{d.amount} {d.assetSymbol}</div>
-                          {d.usdValue && <div className="text-xs text-[var(--text-muted)]">{formatCurrency(d.usdValue)}</div>}
-                        </td>
-                        <td className="px-4 py-3"><Badge status={d.status} /></td>
-                        <td className="px-4 py-3 hidden md:table-cell text-xs text-[var(--text-muted)]">{formatDate(d.createdAt)}</td>
-                        <td className="px-4 py-3">
-                          {d.status === 'pending' && (
-                            <div className="flex items-center gap-2 justify-end">
-                              <button
-                                onClick={() => openConfirm(d)}
-                                className="p-1.5 rounded-lg hover:bg-green-500/10 text-[var(--text-muted)] hover:text-green-400 transition-colors"
-                                title="Confirm deposit"
-                              >
-                                <CheckCircle size={16} />
-                              </button>
-                              <button
-                                onClick={() => openReject(d)}
-                                className="p-1.5 rounded-lg hover:bg-red-500/10 text-[var(--text-muted)] hover:text-red-400 transition-colors"
-                                title="Reject deposit"
-                              >
-                                <XCircle size={16} />
-                              </button>
-                            </div>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                  {deposits.length === 0 && (
-                    <tr><td colSpan={8} className="px-4 py-12 text-center text-[var(--text-muted)]">No deposits found.</td></tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            {deposits.length > 0 && (
-              <div className="flex items-center justify-between gap-4 px-4 py-4 border-t border-[var(--border)]">
-                <p className="text-xs text-[var(--text-muted)]">
-                  Showing {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, deposits.length)} of {deposits.length}
-                </p>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                    disabled={currentPage === 1}
-                    className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-muted)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-brand-500/5 transition-colors"
-                    aria-label="Previous page"
-                  >
-                    <ChevronLeft size={16} />
-                  </button>
-                  <span className="text-xs font-medium text-[var(--text-secondary)]">
-                    Page {currentPage} of {totalPages}
-                  </span>
-                  <button
-                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                    disabled={currentPage === totalPages}
-                    className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-muted)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-brand-500/5 transition-colors"
-                    aria-label="Next page"
-                  >
-                    <ChevronRight size={16} />
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Confirm Modal */}
-      <Modal isOpen={!!confirmTarget} onClose={() => setConfirmTarget(null)} title="Confirm Deposit" size="sm">
-        {confirmTarget && (
-          <div className="space-y-4">
-            {/* Deposit summary */}
-            <div className="bg-[var(--bg-secondary)] rounded-xl p-4 space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-[var(--text-muted)]">User</span>
-                <span className="font-medium text-[var(--text-primary)]">
-                  {confirmTarget.firstName} {confirmTarget.lastName}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[var(--text-muted)]">Asset</span>
-                <span className="font-medium text-[var(--text-primary)]">
-                  {confirmTarget.assetName} ({confirmTarget.assetSymbol})
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[var(--text-muted)]">Amount</span>
-                <span className="font-semibold text-[var(--text-primary)]">
-                  {confirmTarget.amount} {confirmTarget.assetSymbol}
-                </span>
-              </div>
-              <div className="flex justify-between gap-4">
-                <span className="text-[var(--text-muted)]">Source</span>
-                <span className="font-medium text-[var(--text-primary)] text-right">
-                  {confirmTarget.provider || confirmTarget.sourceType || 'Wallet'}
-                </span>
-              </div>
-              {(confirmTarget.txHash || confirmTarget.providerReference) && (
-                <div className="flex justify-between gap-4">
-                  <span className="text-[var(--text-muted)]">Tx / Ref</span>
-                  <span className="font-mono text-xs text-[var(--text-primary)] text-right break-all">
-                    {confirmTarget.txHash || confirmTarget.providerReference}
-                  </span>
-                </div>
-              )}
-            </div>
-
-            <p className="text-sm text-[var(--text-secondary)]">
-              Enter the <strong>USD equivalent</strong> to credit the user&apos;s balance. This will be added immediately.
-            </p>
-
-            <Input
-              label="USD Value *"
-              type="number"
-              step="any"
-              placeholder="e.g. 500.00"
-              value={usdValue}
-              onChange={(e) => setUsdValue(e.target.value)}
+      <MDBox
+        mt={5}
+        sx={({ palette }) => ({
+          '& tr:has([data-highlighted="true"])': {
+            backgroundColor: alpha(palette.info.main, 0.08),
+            boxShadow: `inset 0 0 0 2px ${palette.info.main}`,
+          },
+        })}
+      >
+        <DataTableCard
+          title={activeTab === 'all' ? 'All deposits' : `${STATUS_OPTIONS.find((o) => o.value === activeTab)?.label} deposits`}
+          subtitle={deposits.length > 0
+            ? `Showing ${(currentPage - 1) * PAGE_SIZE + 1}–${Math.min(currentPage * PAGE_SIZE, deposits.length)} of ${deposits.length}`
+            : undefined}
+          columns={columns}
+          rows={paginatedDeposits}
+          rowKey={(d) => d.id}
+          isLoading={loading}
+          emptyMessage="No deposits found."
+          toolbar={
+            <SelectFilter<StatusOption>
+              label="Status"
+              value={activeTab === 'all' ? '' : activeTab}
+              options={STATUS_OPTIONS}
+              anyLabel="All"
+              onChange={(value) => setActiveTab(value || 'all')}
             />
-            <Input
+          }
+          paging={{
+            page: currentPage,
+            hasPrevious: currentPage > 1,
+            hasNext: currentPage < totalPages,
+            onPrevious: () => setCurrentPage((p) => Math.max(1, p - 1)),
+            onNext: () => setCurrentPage((p) => Math.min(totalPages, p + 1)),
+          }}
+        />
+      </MDBox>
+
+      {/* Confirm dialog */}
+      <AdminDialog
+        isOpen={!!confirmTarget}
+        onClose={() => setConfirmTarget(null)}
+        title="Confirm Deposit"
+        size="sm"
+        actions={
+          <>
+            <MDButton variant="text" color="dark" onClick={() => setConfirmTarget(null)} disabled={submitting}>Cancel</MDButton>
+            <MDButton variant="gradient" color="success" onClick={handleConfirm} disabled={submitting}>
+              {submitting ? 'Working…' : 'Confirm & Credit Balance'}
+            </MDButton>
+          </>
+        }
+      >
+        {confirmTarget && (
+          <>
+            {/* Deposit summary */}
+            <MDBox
+              borderRadius="lg"
+              px={2}
+              py={1}
+              mb={2}
+              sx={({ palette }) => ({ backgroundColor: palette.background.default })}
+            >
+              <SummaryRow label="User" divider={false}>{confirmTarget.firstName} {confirmTarget.lastName}</SummaryRow>
+              <SummaryRow label="Asset">{confirmTarget.assetName} ({confirmTarget.assetSymbol})</SummaryRow>
+              <SummaryRow label="Amount">
+                <MDTypography variant="button" fontWeight="bold">{confirmTarget.amount} {confirmTarget.assetSymbol}</MDTypography>
+              </SummaryRow>
+              <SummaryRow label="Source">{confirmTarget.provider || confirmTarget.sourceType || 'Wallet'}</SummaryRow>
+              {(confirmTarget.txHash || confirmTarget.providerReference) && (
+                <SummaryRow label="Tx / Ref">
+                  <MDTypography variant="caption" sx={{ fontFamily: 'monospace' }}>
+                    {confirmTarget.txHash || confirmTarget.providerReference}
+                  </MDTypography>
+                </SummaryRow>
+              )}
+            </MDBox>
+
+            <MDTypography variant="body2" color="text" mb={2.5}>
+              Enter the <strong>USD equivalent</strong>{'\u00a0'}to credit the user&apos;s balance. This will be added immediately.
+            </MDTypography>
+
+            <MDBox mb={2}>
+              <MDInput
+                label="USD Value *"
+                type="number"
+                inputProps={{ step: 'any' }}
+                placeholder="e.g. 500.00"
+                value={usdValue}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setUsdValue(e.target.value)}
+                fullWidth
+              />
+            </MDBox>
+            <MDInput
               label="Admin Note (optional)"
               placeholder="Verified on blockchain…"
               value={adminNote}
-              onChange={(e) => setAdminNote(e.target.value)}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setAdminNote(e.target.value)}
+              fullWidth
             />
-
-            <div className="flex gap-3 mt-5">
-              <Button variant="outline" className="flex-1" onClick={() => setConfirmTarget(null)}>Cancel</Button>
-              <Button className="flex-1 bg-green-600! hover:bg-green-700!" onClick={handleConfirm} loading={submitting}>
-                Confirm &amp; Credit Balance
-              </Button>
-            </div>
-          </div>
+          </>
         )}
-      </Modal>
+      </AdminDialog>
 
-      {/* Reject Modal */}
-      <Modal isOpen={!!rejectTarget} onClose={() => setRejectTarget(null)} title="Reject Deposit" size="sm">
-        <p className="text-sm text-[var(--text-secondary)] mb-4">
+      {/* Reject dialog */}
+      <AdminDialog
+        isOpen={!!rejectTarget}
+        onClose={() => setRejectTarget(null)}
+        title="Reject Deposit"
+        size="sm"
+        actions={
+          <>
+            <MDButton variant="text" color="dark" onClick={() => setRejectTarget(null)} disabled={submitting}>Cancel</MDButton>
+            <MDButton variant="gradient" color="error" onClick={handleReject} disabled={submitting}>
+              {submitting ? 'Working…' : 'Reject'}
+            </MDButton>
+          </>
+        }
+      >
+        <MDTypography variant="body2" color="text" mb={2}>
           Provide a reason for rejecting this deposit (optional).
-        </p>
-        <Input
+        </MDTypography>
+        <MDInput
           label="Admin Note"
           placeholder="Invalid transaction hash…"
           value={adminNote}
-          onChange={(e) => setAdminNote(e.target.value)}
+          onChange={(e: ChangeEvent<HTMLInputElement>) => setAdminNote(e.target.value)}
+          fullWidth
         />
-        <div className="flex gap-3 mt-5">
-          <Button variant="outline" className="flex-1" onClick={() => setRejectTarget(null)}>Cancel</Button>
-          <Button variant="danger" className="flex-1" onClick={handleReject} loading={submitting}>Reject</Button>
-        </div>
-      </Modal>
-    </div>
+      </AdminDialog>
+    </AdminPage>
   );
 }

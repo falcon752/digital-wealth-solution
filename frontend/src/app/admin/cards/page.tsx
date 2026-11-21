@@ -1,31 +1,67 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import api from '@/lib/api';
-import DashboardHeader from '@/components/layout/DashboardHeader';
-import Button from '@/components/ui/Button';
+import { useEffect, useState, type ChangeEvent } from 'react';
+import Tooltip from '@mui/material/Tooltip';
 import toast from 'react-hot-toast';
+import api from '@/lib/api';
 import { formatDate } from '@/lib/utils';
-import { Check, X, CreditCard, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
-import Modal from '@/components/ui/Modal';
+import AdminPage from '@/components/admin/shell/AdminPage';
+import AdminDialog from '@/components/admin/ui/AdminDialog';
+import ConfirmDialog from '@/components/admin/ui/ConfirmDialog';
+import DataTableCard, { type Column } from '@/components/admin/ui/DataTableCard';
+import DetailGrid from '@/components/admin/ui/DetailGrid';
+import Icon from '@/components/admin/ui/Icon';
+import StatusBadge, { type BadgeColor } from '@/components/admin/ui/StatusBadge';
+import { useAccent } from '@/components/admin/ui/useAccent';
+import MDBox from '@/components/admin/components/MDBox';
+import MDButton from '@/components/admin/components/MDButton';
+import MDInput from '@/components/admin/components/MDInput';
+import MDTypography from '@/components/admin/components/MDTypography';
+
+/** A card application as GET /admin/cards returns it (the user is populated). */
+interface CardApplication {
+  id: string;
+  _id?: string;
+  userId?: { firstName?: string; lastName?: string; email?: string } | null;
+  cardHolderName?: string;
+  cardNumber?: string;
+  cardType?: string;
+  status: string;
+  createdAt: string;
+}
+
+const PAGE_SIZE = 10;
+
+/** Same colours as before: approved green, rejected/disabled red, anything else amber. */
+function cardStatusColor(status: string): BadgeColor {
+  if (status === 'approved') return 'success';
+  if (status === 'rejected' || status === 'disabled') return 'error';
+  return 'warning';
+}
 
 export default function AdminCardsPage() {
-  const [cards, setCards] = useState<any[]>([]);
+  const accent = useAccent();
+  const [cards, setCards] = useState<CardApplication[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCard, setSelectedCard] = useState<any>(null);
+  const [loadError, setLoadError] = useState<unknown>(null);
+  const [selectedCard, setSelectedCard] = useState<CardApplication | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<CardApplication | null>(null);
   const [adminNote, setAdminNote] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const PAGE_SIZE = 10;
 
   const fetchCards = () => {
     setLoading(true);
+    setLoadError(null);
     api.get('/admin/cards', { params: { limit: 1000 } })
       .then(res => {
         setCards(res.data.cards);
         setCurrentPage(1);
       })
-      .catch(() => toast.error('Failed to load cards'))
+      .catch((err) => {
+        setLoadError(err);
+        toast.error('Failed to load cards');
+      })
       .finally(() => setLoading(false));
   };
 
@@ -42,7 +78,7 @@ export default function AdminCardsPage() {
       setSelectedCard(null);
       setAdminNote('');
       fetchCards();
-    } catch (error) {
+    } catch {
       toast.error('Failed to update card');
     } finally {
       setIsUpdating(false);
@@ -50,12 +86,11 @@ export default function AdminCardsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('Are you sure you want to completely delete this card application?')) return;
     try {
       await api.delete(`/admin/cards/${id}`);
       toast.success('Card deleted successfully');
       fetchCards();
-    } catch (error) {
+    } catch {
       toast.error('Failed to delete card');
     }
   };
@@ -63,162 +98,165 @@ export default function AdminCardsPage() {
   const totalPages = Math.max(1, Math.ceil(cards.length / PAGE_SIZE));
   const paginatedCards = cards.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
-  return (
-    <div className="flex flex-col min-h-full">
-      <DashboardHeader title="Manage Cards" logo="dwp" />
-
-      <div className="flex-1 p-6">
-        <div className="glass rounded-2xl overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-[var(--bg-card)] text-[var(--text-muted)] uppercase text-xs">
-                <tr>
-                  <th className="px-6 py-4 font-medium">User</th>
-                  <th className="px-6 py-4 font-medium">Card Name</th>
-                  <th className="px-6 py-4 font-medium">Card Number</th>
-                  <th className="px-6 py-4 font-medium">Type</th>
-                  <th className="px-6 py-4 font-medium">Date</th>
-                  <th className="px-6 py-4 font-medium">Status</th>
-                  <th className="px-6 py-4 font-medium text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[var(--border-color)]">
-                {paginatedCards.map(card => (
-                  <tr key={card.id} className="hover:bg-[var(--bg-hover)] transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="font-medium text-[var(--text-primary)]">
-                        {card.userId?.firstName} {card.userId?.lastName}
-                      </div>
-                      <div className="text-xs text-[var(--text-muted)]">{card.userId?.email}</div>
-                    </td>
-                    <td className="px-6 py-4 font-medium text-[var(--text-primary)]">{card.cardHolderName}</td>
-                    <td className="px-6 py-4 font-mono text-[var(--text-primary)]">{card.cardNumber}</td>
-                    <td className="px-6 py-4 text-[var(--text-primary)]">{card.cardType}</td>
-                    <td className="px-6 py-4 text-[var(--text-muted)]">{formatDate(card.createdAt)}</td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
-                        card.status === 'approved' ? 'bg-green-500/10 text-green-500' :
-                        (card.status === 'rejected' || card.status === 'disabled') ? 'bg-red-500/10 text-red-500' :
-                        'bg-amber-500/10 text-amber-500'
-                      }`}>
-                        {card.status.toUpperCase()}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        {card.status === 'pending' && (
-                          <Button 
-                            size="sm" 
-                            variant="secondary"
-                            onClick={() => setSelectedCard(card)}
-                          >
-                            Review
-                          </Button>
-                        )}
-                        <button
-                          onClick={() => handleDelete(card._id || card.id)}
-                          className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition"
-                          title="Delete Card"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-                {cards.length === 0 && !loading && (
-                  <tr>
-                    <td colSpan={7} className="px-6 py-8 text-center text-[var(--text-muted)]">
-                      No card applications found.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {cards.length > 0 && (
-            <div className="flex items-center justify-between gap-4 px-6 py-4 border-t border-[var(--border-color)]">
-              <p className="text-xs text-[var(--text-muted)]">
-                Showing {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, cards.length)} of {cards.length}
-              </p>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  className="p-2 rounded-lg border border-[var(--border-color)] text-[var(--text-muted)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[var(--bg-hover)] transition-colors"
-                  aria-label="Previous page"
-                >
-                  <ChevronLeft size={16} />
-                </button>
-                <span className="text-xs font-medium text-[var(--text-primary)]">
-                  Page {currentPage} of {totalPages}
-                </span>
-                <button
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={currentPage === totalPages}
-                  className="p-2 rounded-lg border border-[var(--border-color)] text-[var(--text-muted)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[var(--bg-hover)] transition-colors"
-                  aria-label="Next page"
-                >
-                  <ChevronRight size={16} />
-                </button>
-              </div>
-            </div>
+  const columns: Column<CardApplication>[] = [
+    {
+      key: 'user',
+      header: 'User',
+      render: (card) => (
+        <MDBox>
+          <MDTypography variant="button" fontWeight="medium" display="block">
+            {card.userId?.firstName} {card.userId?.lastName}
+          </MDTypography>
+          <MDTypography variant="caption" color="text" display="block" sx={{ overflowWrap: 'break-word' }}>{card.userId?.email}</MDTypography>
+          {/* On phones the other columns are hidden, so the card and status show here. */}
+          <MDBox sx={{ display: { xs: 'block', md: 'none' } }} mt={0.5}>
+            <MDTypography variant="caption" color="text" display="block" mb={0.5}>{card.cardType} · {card.cardNumber}</MDTypography>
+            <StatusBadge status={card.status} label={card.status.toUpperCase()} color={cardStatusColor(card.status)} />
+          </MDBox>
+        </MDBox>
+      ),
+    },
+    {
+      key: 'name',
+      header: 'Card Name',
+      hideOnMobile: true,
+      render: (card) => <MDTypography variant="button" fontWeight="medium">{card.cardHolderName}</MDTypography>,
+    },
+    {
+      key: 'number',
+      header: 'Card Number',
+      hideOnMobile: true,
+      render: (card) => <MDBox component="span" sx={{ fontFamily: 'monospace', whiteSpace: 'nowrap' }}>{card.cardNumber}</MDBox>,
+    },
+    { key: 'type', header: 'Type', hideOnMobile: true, render: (card) => card.cardType },
+    {
+      key: 'date',
+      header: 'Date',
+      hideOnMobile: true,
+      render: (card) => <MDTypography variant="caption" color="text" whiteSpace="nowrap">{formatDate(card.createdAt)}</MDTypography>,
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      hideOnMobile: true,
+      render: (card) => <StatusBadge status={card.status} label={card.status.toUpperCase()} color={cardStatusColor(card.status)} />,
+    },
+    {
+      key: 'actions',
+      header: 'Action',
+      align: 'right',
+      render: (card) => (
+        <MDBox display="flex" justifyContent="flex-end" alignItems="center" gap={0.5}>
+          {card.status === 'pending' && (
+            <MDButton variant="gradient" color={accent} size="small" onClick={() => setSelectedCard(card)} sx={{ minWidth: 0, px: { xs: 1.5, md: 2 } }}>
+              Review
+            </MDButton>
           )}
-        </div>
-      </div>
+          <Tooltip title="Delete Card">
+            <MDButton variant="text" color="error" size="small" iconOnly onClick={() => setDeleteTarget(card)} aria-label="Delete card">
+              <Icon>delete</Icon>
+            </MDButton>
+          </Tooltip>
+        </MDBox>
+      ),
+    },
+  ];
 
-      <Modal isOpen={!!selectedCard} onClose={() => setSelectedCard(null)} title="Review Card Application">
-        {selectedCard && (
-          <div className="space-y-4 pt-2">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-xs text-gray-500 mb-1">User</p>
-                <p className="font-semibold text-gray-900 dark:text-white">
-                  {selectedCard.userId?.firstName} {selectedCard.userId?.lastName}
-                </p>
-                <p className="text-sm text-gray-500">{selectedCard.userId?.email}</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-500 mb-1">Card Details</p>
-                <p className="font-semibold text-gray-900 dark:text-white">{selectedCard.cardType}</p>
-                <p className="font-mono text-sm text-gray-500">{selectedCard.cardNumber}</p>
-              </div>
-            </div>
+  return (
+    <AdminPage title="Manage Cards" description="Review card applications from clients.">
+      <MDBox mt={4}>
+        <DataTableCard
+          title="Card applications"
+          subtitle={cards.length > 0
+            ? `Showing ${(currentPage - 1) * PAGE_SIZE + 1}–${Math.min(currentPage * PAGE_SIZE, cards.length)} of ${cards.length}`
+            : undefined}
+          columns={columns}
+          rows={paginatedCards}
+          rowKey={(card) => card._id || card.id}
+          isLoading={loading && cards.length === 0}
+          isFetching={loading && cards.length > 0}
+          error={cards.length === 0 ? loadError : null}
+          onRetry={fetchCards}
+          emptyMessage="No card applications found."
+          paging={{
+            page: currentPage,
+            hasPrevious: currentPage > 1,
+            hasNext: currentPage < totalPages,
+            onPrevious: () => setCurrentPage((p) => Math.max(1, p - 1)),
+            onNext: () => setCurrentPage((p) => Math.min(totalPages, p + 1)),
+          }}
+        />
+      </MDBox>
 
-            <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">
-                Admin Note (Optional)
-              </label>
-              <textarea
-                value={adminNote}
-                onChange={(e) => setAdminNote(e.target.value)}
-                placeholder="Reason for rejection, or additional notes..."
-                className="w-full bg-[#f4f5f8] dark:bg-gray-900 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
-                rows={3}
-              />
-            </div>
-
-            <div className="flex gap-3 pt-4">
-              <Button 
-                variant="outline" 
-                className="flex-1 text-red-500 border-red-200 hover:bg-red-50"
-                onClick={() => handleUpdate('rejected')}
-                loading={isUpdating}
-              >
-                <X size={16} className="mr-1.5" /> Reject
-              </Button>
-              <Button 
-                className="flex-1 bg-green-500 hover:bg-green-600 text-white"
-                onClick={() => handleUpdate('approved')}
-                loading={isUpdating}
-              >
-                <Check size={16} className="mr-1.5" /> Approve
-              </Button>
-            </div>
-          </div>
+      {/* Review dialog */}
+      <AdminDialog
+        isOpen={!!selectedCard}
+        onClose={() => setSelectedCard(null)}
+        title="Review Card Application"
+        actions={selectedCard && (
+          <>
+            <MDButton variant="outlined" color="error" onClick={() => handleUpdate('rejected')} disabled={isUpdating}>
+              <Icon>close</Icon>&nbsp;Reject
+            </MDButton>
+            <MDButton variant="gradient" color="success" onClick={() => handleUpdate('approved')} disabled={isUpdating}>
+              <Icon>check</Icon>&nbsp;Approve
+            </MDButton>
+          </>
         )}
-      </Modal>
-    </div>
+      >
+        {selectedCard && (
+          <MDBox>
+            <DetailGrid
+              items={[
+                {
+                  label: 'User',
+                  span: 6,
+                  value: (
+                    <>
+                      <MDTypography variant="button" fontWeight="medium" display="block">
+                        {selectedCard.userId?.firstName} {selectedCard.userId?.lastName}
+                      </MDTypography>
+                      <MDTypography variant="caption" color="text" display="block">{selectedCard.userId?.email}</MDTypography>
+                    </>
+                  ),
+                },
+                {
+                  label: 'Card Details',
+                  span: 6,
+                  value: (
+                    <>
+                      <MDTypography variant="button" fontWeight="medium" display="block">{selectedCard.cardType}</MDTypography>
+                      <MDTypography variant="caption" color="text" display="block" sx={{ fontFamily: 'monospace' }}>{selectedCard.cardNumber}</MDTypography>
+                    </>
+                  ),
+                },
+              ]}
+            />
+            <MDBox mt={3}>
+              <MDInput
+                fullWidth
+                multiline
+                minRows={3}
+                label="Admin Note (Optional)"
+                placeholder="Reason for rejection, or additional notes..."
+                value={adminNote}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setAdminNote(e.target.value)}
+              />
+            </MDBox>
+          </MDBox>
+        )}
+      </AdminDialog>
+
+      {/* Delete confirmation */}
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Delete card application"
+        tone="error"
+        confirmLabel="Delete"
+        message="Are you sure you want to completely delete this card application?"
+        onConfirm={() => (deleteTarget ? handleDelete(deleteTarget._id || deleteTarget.id) : Promise.resolve())}
+        onClose={() => setDeleteTarget(null)}
+      />
+    </AdminPage>
   );
 }

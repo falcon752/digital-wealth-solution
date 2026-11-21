@@ -46,6 +46,13 @@ function Gate({ children }: { children: ReactNode }) {
 }
 
 export default function AdminFrame({ children, initialTheme }: { children: ReactNode; initialTheme: ThemeChoice }) {
+  // Marks the page as admin so the public site's dark-mode CSS (globals.css) leaves it alone,
+  // including pop-ups, which render outside this tree.
+  useEffect(() => {
+    document.documentElement.classList.add("dwp-admin");
+    return () => document.documentElement.classList.remove("dwp-admin");
+  }, []);
+
   return (
     <AdminProviders initialTheme={initialTheme}>
       {/* Material Dashboard's font (Roboto), as in the KIK Konnect admin. */}

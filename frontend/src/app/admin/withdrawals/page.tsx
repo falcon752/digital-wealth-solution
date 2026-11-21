@@ -1,24 +1,39 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef, type ChangeEvent } from 'react';
 import { useSearchParams } from 'next/navigation';
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
+import { alpha } from '@mui/material/styles';
+import toast from 'react-hot-toast';
 import { withdrawalsAPI } from '@/lib/api';
 import { Withdrawal } from '@/types';
-import DashboardHeader from '@/components/layout/DashboardHeader';
-import Button from '@/components/ui/Button';
-import Badge from '@/components/ui/Badge';
-import Modal from '@/components/ui/Modal';
-import Input from '@/components/ui/Input';
 import { formatDate, formatCurrency } from '@/lib/utils';
-import { CheckCircle, ArrowRight, XCircle, ChevronLeft, ChevronRight } from 'lucide-react';
-import toast from 'react-hot-toast';
+import AdminPage from '@/components/admin/shell/AdminPage';
+import AdminDialog from '@/components/admin/ui/AdminDialog';
+import DataTableCard, { type Column } from '@/components/admin/ui/DataTableCard';
+import { SelectFilter } from '@/components/admin/ui/Filters';
+import Icon from '@/components/admin/ui/Icon';
+import StatusBadge from '@/components/admin/ui/StatusBadge';
+import { useAccent } from '@/components/admin/ui/useAccent';
+import MDBox from '@/components/admin/components/MDBox';
+import MDButton from '@/components/admin/components/MDButton';
+import MDInput from '@/components/admin/components/MDInput';
+import MDTypography from '@/components/admin/components/MDTypography';
 
-const TABS = ['all', 'pending', 'approved', 'completed', 'rejected'] as const;
-type Tab = (typeof TABS)[number];
+type Tab = 'all' | 'pending' | 'approved' | 'completed' | 'rejected';
+type StatusOption = Exclude<Tab, 'all'>;
+const STATUS_OPTIONS: { value: StatusOption; label: string }[] = [
+  { value: 'pending', label: 'Pending' },
+  { value: 'approved', label: 'Approved' },
+  { value: 'completed', label: 'Completed' },
+  { value: 'rejected', label: 'Rejected' },
+];
 
 type ActionType = 'approve' | 'complete' | 'reject' | null;
 
 export default function AdminWithdrawalsPage() {
+  const accent = useAccent();
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<Tab>((searchParams.get('status') as Tab) || 'all');
   const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
@@ -32,7 +47,8 @@ export default function AdminWithdrawalsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
 
-  const rowRefs = useRef<Record<string, HTMLTableRowElement | null>>({});
+  // A marker inside each row; scrolling uses the row (<tr>) that holds it.
+  const rowRefs = useRef<Record<string, HTMLElement | null>>({});
   const didAutoOpen = useRef(false);
   const [currentPage, setCurrentPage] = useState(1);
   const PAGE_SIZE = 10;
@@ -65,7 +81,8 @@ export default function AdminWithdrawalsPage() {
     didAutoOpen.current = true;
     setHighlightedId(highlightId);
     setTimeout(() => {
-      rowRefs.current[highlightId]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const marker = rowRefs.current[highlightId];
+      (marker?.closest('tr') ?? marker)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 150);
     if (target.status === 'pending') {
       setActionTarget(target);
@@ -80,6 +97,8 @@ export default function AdminWithdrawalsPage() {
     setAdminNote('');
   };
 
+  const closeAction = () => { setActionTarget(null); setActionType(null); };
+
   const handleAction = async () => {
     if (!actionTarget || !actionType) return;
     setSubmitting(true);
@@ -92,153 +111,176 @@ export default function AdminWithdrawalsPage() {
       setActionTarget(null);
       setActionType(null);
       load();
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed');
+    } catch (err: unknown) {
+      toast.error((err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed');
     } finally { setSubmitting(false); }
   };
 
   const actionLabel = actionType === 'approve' ? 'Approve' : actionType === 'complete' ? 'Mark Complete' : 'Reject';
-  const actionColor = actionType === 'reject' ? 'danger' : 'primary';
+  const actionColor = actionType === 'reject' ? 'error' : accent;
 
   const totalPages = Math.max(1, Math.ceil(withdrawals.length / PAGE_SIZE));
   const paginatedWithdrawals = withdrawals.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
+  const columns: Column<Withdrawal>[] = [
+    {
+      key: 'user',
+      header: 'User',
+      render: (w) => (
+        <MDBox
+          ref={(el: HTMLElement | null) => { rowRefs.current[w.id] = el; }}
+          data-highlighted={highlightedId === w.id ? 'true' : undefined}
+        >
+          <MDTypography variant="button" fontWeight="medium" display="block">{w.userEmail || '—'}</MDTypography>
+          {/* Phones: amount and status here, since their columns are hidden. */}
+          <MDBox display={{ xs: 'block', md: 'none' }} mt={0.5}>
+            <MDTypography variant="caption" color="text" display="block" mb={0.5}>
+              {w.amount} {w.assetSymbol}{w.usdValue ? ` · ${formatCurrency(w.usdValue)}` : ''}
+            </MDTypography>
+            <StatusBadge status={w.status} />
+          </MDBox>
+        </MDBox>
+      ),
+    },
+    {
+      key: 'asset',
+      header: 'Asset',
+      hideOnMobile: true,
+      render: (w) => (
+        <MDBox lineHeight={1.2}>
+          <MDTypography variant="button" fontWeight="regular" display="block">{w.assetName || '—'}</MDTypography>
+          <MDTypography variant="caption" color="text">{w.assetSymbol}</MDTypography>
+        </MDBox>
+      ),
+    },
+    {
+      key: 'amount',
+      header: 'Amount',
+      hideOnMobile: true,
+      render: (w) => (
+        <MDBox lineHeight={1.2} whiteSpace="nowrap">
+          <MDTypography variant="button" fontWeight="medium" display="block">{w.amount} {w.assetSymbol}</MDTypography>
+          {w.usdValue && <MDTypography variant="caption" color="text">{formatCurrency(w.usdValue)}</MDTypography>}
+        </MDBox>
+      ),
+    },
+    {
+      key: 'destination',
+      header: 'Destination',
+      hideOnMobile: true,
+      render: (w) => (
+        <MDTypography variant="caption" color="text" sx={{ fontFamily: 'monospace' }} title={w.destinationAddress || undefined}>
+          {w.destinationAddress ? w.destinationAddress.slice(0, 16) + '…' : '—'}
+        </MDTypography>
+      ),
+    },
+    { key: 'status', header: 'Status', hideOnMobile: true, render: (w) => <StatusBadge status={w.status} /> },
+    {
+      key: 'date',
+      header: 'Date',
+      hideOnMobile: true,
+      render: (w) => <MDTypography variant="caption" color="text" whiteSpace="nowrap">{formatDate(w.createdAt)}</MDTypography>,
+    },
+    {
+      key: 'actions',
+      header: '',
+      align: 'right',
+      render: (w) => (
+        <MDBox display="flex" gap={0.5} justifyContent="flex-end">
+          {w.status === 'pending' && (
+            <Tooltip title="Approve">
+              <IconButton size="small" aria-label="Approve" onClick={() => openAction(w, 'approve')}>
+                <Icon color="success">check_circle</Icon>
+              </IconButton>
+            </Tooltip>
+          )}
+          {w.status === 'approved' && (
+            <Tooltip title="Mark Complete">
+              <IconButton size="small" aria-label="Mark Complete" onClick={() => openAction(w, 'complete')}>
+                <Icon color="info">arrow_forward</Icon>
+              </IconButton>
+            </Tooltip>
+          )}
+          {(w.status === 'pending' || w.status === 'approved') && (
+            <Tooltip title="Reject">
+              <IconButton size="small" aria-label="Reject" onClick={() => openAction(w, 'reject')}>
+                <Icon color="error">cancel</Icon>
+              </IconButton>
+            </Tooltip>
+          )}
+        </MDBox>
+      ),
+    },
+  ];
+
   return (
-    <div className="flex flex-col min-h-full">
-      <DashboardHeader title="Withdrawals" subtitle="Approve and process user withdrawals" logo="dwp" />
+    <AdminPage title="Withdrawals" description="Approve and process user withdrawals">
+      <MDBox
+        mt={5}
+        sx={({ palette }) => ({
+          '& tr:has([data-highlighted="true"])': {
+            backgroundColor: alpha(palette.info.main, 0.08),
+            boxShadow: `inset 0 0 0 2px ${palette.info.main}`,
+          },
+        })}
+      >
+        <DataTableCard
+          title={activeTab === 'all' ? 'All withdrawals' : `${STATUS_OPTIONS.find((o) => o.value === activeTab)?.label ?? activeTab} withdrawals`}
+          subtitle={withdrawals.length > 0
+            ? `Showing ${(currentPage - 1) * PAGE_SIZE + 1}–${Math.min(currentPage * PAGE_SIZE, withdrawals.length)} of ${withdrawals.length}`
+            : undefined}
+          columns={columns}
+          rows={paginatedWithdrawals}
+          rowKey={(w) => w.id}
+          isLoading={loading}
+          emptyMessage="No withdrawals found."
+          toolbar={
+            <SelectFilter<StatusOption>
+              label="Status"
+              value={activeTab === 'all' ? '' : activeTab}
+              options={STATUS_OPTIONS}
+              anyLabel="All"
+              onChange={(value) => setActiveTab(value || 'all')}
+            />
+          }
+          paging={{
+            page: currentPage,
+            hasPrevious: currentPage > 1,
+            hasNext: currentPage < totalPages,
+            onPrevious: () => setCurrentPage((p) => Math.max(1, p - 1)),
+            onNext: () => setCurrentPage((p) => Math.min(totalPages, p + 1)),
+          }}
+        />
+      </MDBox>
 
-      <div className="flex-1 p-6 space-y-5">
-        {/* Tabs */}
-        <div className="flex flex-wrap gap-1 p-1 bg-[var(--bg-secondary)] rounded-xl w-fit">
-          {TABS.map((t) => (
-            <button
-              key={t}
-              onClick={() => setActiveTab(t)}
-              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all capitalize
-                ${activeTab === t ? 'bg-brand-600 text-white shadow' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
-
-        {loading ? (
-          <div className="flex items-center justify-center h-48">
-            <div className="w-8 h-8 border-2 border-brand-400 border-t-transparent rounded-full animate-spin" />
-          </div>
-        ) : (
-          <div className="glass rounded-2xl overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-[var(--border)]">
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">User</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Asset</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Amount</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider hidden md:table-cell">Destination</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Status</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider hidden md:table-cell">Date</th>
-                    <th className="px-4 py-3" />
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedWithdrawals.map((w) => (
-                    <tr
-                        key={w.id}
-                        ref={(el) => { rowRefs.current[w.id] = el; }}
-                        className={`border-b border-[var(--border)] last:border-0 hover:bg-brand-500/5 transition-colors ${highlightedId === w.id ? 'ring-2 ring-inset ring-blue-500 bg-blue-500/5' : ''}`}
-                      >
-                      <td className="px-4 py-3">
-                        <div className="text-sm font-medium text-[var(--text-primary)]">{w.userEmail || '—'}</div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="text-sm text-[var(--text-primary)]">{w.assetName || '—'}</div>
-                        <div className="text-xs text-[var(--text-muted)]">{w.assetSymbol}</div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="text-sm text-[var(--text-primary)]">{w.amount} {w.assetSymbol}</div>
-                        {w.usdValue && <div className="text-xs text-[var(--text-muted)]">{formatCurrency(w.usdValue)}</div>}
-                      </td>
-                      <td className="px-4 py-3 hidden md:table-cell">
-                        <code className="text-xs bg-brand-500/10 text-brand-300 px-2 py-0.5 rounded-lg">
-                          {w.destinationAddress ? w.destinationAddress.slice(0, 16) + '…' : '—'}
-                        </code>
-                      </td>
-                      <td className="px-4 py-3"><Badge status={w.status} /></td>
-                      <td className="px-4 py-3 hidden md:table-cell text-xs text-[var(--text-muted)]">{formatDate(w.createdAt)}</td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-1.5 justify-end">
-                          {w.status === 'pending' && (
-                            <button onClick={() => openAction(w, 'approve')} className="p-1.5 rounded-lg hover:bg-green-500/10 text-[var(--text-muted)] hover:text-green-400 transition-colors" title="Approve">
-                              <CheckCircle size={16} />
-                            </button>
-                          )}
-                          {w.status === 'approved' && (
-                            <button onClick={() => openAction(w, 'complete')} className="p-1.5 rounded-lg hover:bg-brand-500/10 text-[var(--text-muted)] hover:text-brand-400 transition-colors" title="Mark Complete">
-                              <ArrowRight size={16} />
-                            </button>
-                          )}
-                          {(w.status === 'pending' || w.status === 'approved') && (
-                            <button onClick={() => openAction(w, 'reject')} className="p-1.5 rounded-lg hover:bg-red-500/10 text-[var(--text-muted)] hover:text-red-400 transition-colors" title="Reject">
-                              <XCircle size={16} />
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                  {withdrawals.length === 0 && (
-                    <tr><td colSpan={7} className="px-4 py-12 text-center text-[var(--text-muted)]">No withdrawals found.</td></tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            {withdrawals.length > 0 && (
-              <div className="flex items-center justify-between gap-4 px-4 py-4 border-t border-[var(--border)]">
-                <p className="text-xs text-[var(--text-muted)]">
-                  Showing {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, withdrawals.length)} of {withdrawals.length}
-                </p>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                    disabled={currentPage === 1}
-                    className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-muted)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-brand-500/5 transition-colors"
-                    aria-label="Previous page"
-                  >
-                    <ChevronLeft size={16} />
-                  </button>
-                  <span className="text-xs font-medium text-[var(--text-secondary)]">
-                    Page {currentPage} of {totalPages}
-                  </span>
-                  <button
-                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                    disabled={currentPage === totalPages}
-                    className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-muted)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-brand-500/5 transition-colors"
-                    aria-label="Next page"
-                  >
-                    <ChevronRight size={16} />
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Action Modal */}
-      <Modal isOpen={!!actionTarget} onClose={() => { setActionTarget(null); setActionType(null); }} title={actionLabel} size="sm">
-        <p className="text-sm text-[var(--text-secondary)] mb-4">
+      {/* Action dialog */}
+      <AdminDialog
+        isOpen={!!actionTarget}
+        onClose={closeAction}
+        title={actionLabel}
+        size="sm"
+        actions={
+          <>
+            <MDButton variant="text" color="dark" onClick={closeAction} disabled={submitting}>Cancel</MDButton>
+            <MDButton variant="gradient" color={actionColor} onClick={handleAction} disabled={submitting}>
+              {submitting ? 'Working…' : actionLabel}
+            </MDButton>
+          </>
+        }
+      >
+        <MDTypography variant="body2" color="text" mb={2}>
           {actionType === 'approve' && 'Approving will notify the user that their withdrawal is being processed.'}
           {actionType === 'complete' && 'Marking as complete confirms the funds have been sent. This will deduct from the user balance.'}
           {actionType === 'reject' && 'Rejecting will cancel this withdrawal request.'}
-        </p>
-        <Input label="Admin Note (optional)" placeholder="Add a note…" value={adminNote} onChange={(e) => setAdminNote(e.target.value)} />
-        <div className="flex gap-3 mt-5">
-          <Button variant="outline" className="flex-1" onClick={() => { setActionTarget(null); setActionType(null); }}>Cancel</Button>
-          <Button variant={actionColor} className="flex-1" onClick={handleAction} loading={submitting}>{actionLabel}</Button>
-        </div>
-      </Modal>
-    </div>
+        </MDTypography>
+        <MDInput
+          label="Admin Note (optional)"
+          placeholder="Add a note…"
+          value={adminNote}
+          onChange={(e: ChangeEvent<HTMLInputElement>) => setAdminNote(e.target.value)}
+          fullWidth
+        />
+      </AdminDialog>
+    </AdminPage>
   );
 }

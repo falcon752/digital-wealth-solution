@@ -1,35 +1,68 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, type ChangeEvent } from 'react';
+import Divider from '@mui/material/Divider';
+import MenuItem from '@mui/material/MenuItem';
+import Tooltip from '@mui/material/Tooltip';
+import toast from 'react-hot-toast';
 import { contactAPI } from '@/lib/api';
 import { ContactSubmission } from '@/types';
-import DashboardHeader from '@/components/layout/DashboardHeader';
-import Button from '@/components/ui/Button';
-import Badge from '@/components/ui/Badge';
-import Modal from '@/components/ui/Modal';
 import { APP_TIMEZONE, formatDate } from '@/lib/utils';
-import { Edit, ChevronLeft, ChevronRight, MailCheck, MailWarning } from 'lucide-react';
-import toast from 'react-hot-toast';
+import AdminPage from '@/components/admin/shell/AdminPage';
+import AdminDialog from '@/components/admin/ui/AdminDialog';
+import DataTableCard, { type Column } from '@/components/admin/ui/DataTableCard';
+import DetailGrid from '@/components/admin/ui/DetailGrid';
+import Icon from '@/components/admin/ui/Icon';
+import StatusBadge from '@/components/admin/ui/StatusBadge';
+import { useAccent } from '@/components/admin/ui/useAccent';
+import MDBox from '@/components/admin/components/MDBox';
+import MDButton from '@/components/admin/components/MDButton';
+import MDInput from '@/components/admin/components/MDInput';
+import MDTypography from '@/components/admin/components/MDTypography';
+
+const PAGE_SIZE = 10;
+
+const STATUS_OPTIONS: { value: ContactSubmission['status']; label: string }[] = [
+  { value: 'pending', label: 'Pending' },
+  { value: 'processing', label: 'Processing' },
+  { value: 'approved', label: 'Approved' },
+  { value: 'rejected', label: 'Rejected' },
+];
+
+/** A small heading for a block inside the review dialog. */
+function SectionTitle({ title, hint }: { title: string; hint?: string }) {
+  return (
+    <MDBox mb={1.5}>
+      <MDTypography variant="h6" fontWeight="medium">{title}</MDTypography>
+      {hint && <MDTypography variant="caption" color="text" display="block">{hint}</MDTypography>}
+    </MDBox>
+  );
+}
 
 export default function AdminConsultationsPage() {
+  const accent = useAccent();
   const [submissions, setSubmissions] = useState<ContactSubmission[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<unknown>(null);
 
   const [editTarget, setEditTarget] = useState<ContactSubmission | null>(null);
   const [status, setStatus] = useState<ContactSubmission['status']>('pending');
   const [adminNote, setAdminNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const PAGE_SIZE = 10;
 
   const load = useCallback(() => {
     setLoading(true);
+    setLoadError(null);
     contactAPI.adminList()
       .then((r) => {
         setSubmissions(r.data.submissions ?? r.data);
         setCurrentPage(1);
       })
-      .catch(() => toast.error('Failed to load consultation submissions'))
+      .catch((err) => {
+        setLoadError(err);
+        toast.error('Failed to load consultation submissions');
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -71,215 +104,195 @@ export default function AdminConsultationsPage() {
   const totalPages = Math.max(1, Math.ceil(submissions.length / PAGE_SIZE));
   const paginatedSubmissions = submissions.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
+  const columns: Column<ContactSubmission>[] = [
+    {
+      key: 'applicant',
+      header: 'Applicant',
+      render: (s) => (
+        <MDBox minWidth={0}>
+          <MDTypography variant="button" fontWeight="medium" display="block">{s.firstName} {s.lastName}</MDTypography>
+          <MDTypography variant="caption" color="text" display="block" sx={{ overflowWrap: 'break-word' }}>{s.email}</MDTypography>
+          {/* On phones the Topic and Status columns are hidden, so they show here. */}
+          <MDBox sx={{ display: { xs: 'block', md: 'none' } }} mt={0.5}>
+            <MDTypography variant="caption" color="text" display="block" mb={0.5}>{s.topic}</MDTypography>
+            <StatusBadge status={s.status} />
+          </MDBox>
+        </MDBox>
+      ),
+    },
+    { key: 'topic', header: 'Topic', hideOnMobile: true, render: (s) => s.topic },
+    {
+      key: 'message',
+      header: 'Message',
+      hideOnMobile: true,
+      render: (s) => (
+        <MDTypography variant="caption" color="text" display="block" noWrap sx={{ maxWidth: 260 }}>{s.message}</MDTypography>
+      ),
+    },
+    { key: 'status', header: 'Status', hideOnMobile: true, render: (s) => <StatusBadge status={s.status} /> },
+    {
+      key: 'date',
+      header: 'Date',
+      hideOnMobile: true,
+      render: (s) => <MDTypography variant="caption" color="text" whiteSpace="nowrap">{formatDate(s.createdAt)}</MDTypography>,
+    },
+    {
+      key: 'actions',
+      header: '',
+      align: 'right',
+      render: (s) => (
+        <Tooltip title="Review submission">
+          <MDButton variant="text" color={accent} size="small" onClick={() => openEdit(s)}>
+            <Icon>edit</Icon>
+            <MDBox component="span" sx={{ display: { xs: 'none', md: 'inline' } }}>&nbsp;Review</MDBox>
+          </MDButton>
+        </Tooltip>
+      ),
+    },
+  ];
+
+  const detailItems = editTarget
+    ? [
+        ['Address', [editTarget.streetAddress, [editTarget.city, [editTarget.stateProvince, editTarget.postalCode].filter(Boolean).join(' ')].filter(Boolean).join(', '), editTarget.country].filter(Boolean).join(', ') || null],
+        ['Investable Assets', editTarget.investableAssets],
+        ['Digital Allocation', editTarget.digitalAllocation],
+        ['Holds 50k+ XRP', editTarget.holdsXRP],
+        ['Married', editTarget.married],
+        ['Children', editTarget.children],
+        ['DWP Client', editTarget.existingClient],
+        ['Client Type', editTarget.clientType],
+        ['Has LLC, Trust or Corp', editTarget.hasEntity ? `${editTarget.hasEntity}${editTarget.hasEntity === 'Yes' && editTarget.entityName ? ` (${editTarget.entityName})` : ''}` : null],
+        ['Has a Crypto IRA', editTarget.hasCryptoIRA],
+        ['Areas of Interest', editTarget.areasOfInterest?.length ? editTarget.areasOfInterest.join(', ') : null],
+        ['Assets to Move to Custody', editTarget.custodyAssets?.length ? editTarget.custodyAssets.join(', ') : editTarget.custodyAsset],
+        ['Referral Source', editTarget.referralSource],
+        ['Referred by (DWP official)', editTarget.referralOfficial],
+        ['Wallets Used', editTarget.walletsUsed?.length ? editTarget.walletsUsed.map((value) => (value === 'Other' && editTarget.walletOther ? `Other: ${editTarget.walletOther}` : value)).join(', ') : null],
+        ['Exchanges Used', editTarget.exchangesUsed?.length ? editTarget.exchangesUsed.map((value) => (value === 'Other' && editTarget.exchangeOther ? `Other: ${editTarget.exchangeOther}` : value)).join(', ') : null],
+      ].map(([label, value]) => ({ label: label as string, value: value || '—', span: (label === 'Address' ? 12 : 4) as 4 | 12 }))
+    : [];
+
   return (
-    <div className="flex flex-col min-h-full">
-      <DashboardHeader title="Consultations" subtitle="Review and approve consultation requests" logo="dwp" />
+    <AdminPage title="Consultations" description="Review and approve consultation requests">
+      <MDBox mt={4}>
+        <DataTableCard
+          title="Consultation requests"
+          subtitle={submissions.length > 0
+            ? `Showing ${(currentPage - 1) * PAGE_SIZE + 1}–${Math.min(currentPage * PAGE_SIZE, submissions.length)} of ${submissions.length}`
+            : 'Newest requests from the website contact form'}
+          columns={columns}
+          rows={paginatedSubmissions}
+          rowKey={(s) => s.id}
+          isLoading={loading && submissions.length === 0}
+          isFetching={loading && submissions.length > 0}
+          error={submissions.length === 0 ? loadError : null}
+          onRetry={load}
+          emptyMessage="No consultation submissions found."
+          paging={{
+            page: currentPage,
+            hasPrevious: currentPage > 1,
+            hasNext: currentPage < totalPages,
+            onPrevious: () => setCurrentPage((p) => Math.max(1, p - 1)),
+            onNext: () => setCurrentPage((p) => Math.min(totalPages, p + 1)),
+          }}
+        />
+      </MDBox>
 
-      <div className="flex-1 p-6 space-y-5">
-        {loading ? (
-          <div className="flex items-center justify-center h-48">
-            <div className="w-8 h-8 border-2 border-brand-400 border-t-transparent rounded-full animate-spin" />
-          </div>
-        ) : (
-          <div className="glass rounded-2xl overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-[var(--border)]">
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Applicant</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Topic</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Message</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Status</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider hidden md:table-cell">Date</th>
-                    <th className="px-4 py-3" />
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedSubmissions.map((s) => (
-                    <tr
-                      key={s.id}
-                      className="border-b border-[var(--border)] last:border-0 hover:bg-brand-500/5 transition-colors"
-                    >
-                      <td className="px-4 py-3">
-                        <div className="text-sm font-medium text-[var(--text-primary)]">
-                          {s.firstName} {s.lastName}
-                        </div>
-                        <div className="text-xs text-[var(--text-muted)]">{s.email}</div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="text-sm text-[var(--text-primary)]">{s.topic}</div>
-                      </td>
-                      <td className="px-4 py-3 max-w-xs">
-                        <div className="text-xs text-[var(--text-muted)] truncate">{s.message}</div>
-                      </td>
-                      <td className="px-4 py-3"><Badge status={s.status} /></td>
-                      <td className="px-4 py-3 hidden md:table-cell text-xs text-[var(--text-muted)]">{formatDate(s.createdAt)}</td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2 justify-end">
-                          <button
-                            onClick={() => openEdit(s)}
-                            className="p-1.5 rounded-lg hover:bg-blue-500/10 text-[var(--text-muted)] hover:text-blue-400 transition-colors"
-                            title="Review Submission"
-                          >
-                            <Edit size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                  {submissions.length === 0 && (
-                    <tr><td colSpan={6} className="px-4 py-12 text-center text-[var(--text-muted)]">No consultation submissions found.</td></tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            {submissions.length > 0 && (
-              <div className="flex items-center justify-between gap-4 px-4 py-4 border-t border-[var(--border)]">
-                <p className="text-xs text-[var(--text-muted)]">
-                  Showing {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, submissions.length)} of {submissions.length}
-                </p>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                    disabled={currentPage === 1}
-                    className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-muted)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-brand-500/5 transition-colors"
-                    aria-label="Previous page"
-                  >
-                    <ChevronLeft size={16} />
-                  </button>
-                  <span className="text-xs font-medium text-[var(--text-secondary)]">
-                    Page {currentPage} of {totalPages}
-                  </span>
-                  <button
-                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                    disabled={currentPage === totalPages}
-                    className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-muted)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-brand-500/5 transition-colors"
-                    aria-label="Next page"
-                  >
-                    <ChevronRight size={16} />
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
+      {/* Review dialog */}
+      <AdminDialog
+        isOpen={!!editTarget}
+        onClose={() => setEditTarget(null)}
+        title="Review Consultation Request"
+        size="lg"
+        actions={editTarget && (
+          <>
+            <MDButton variant="text" color="dark" onClick={() => setEditTarget(null)} disabled={submitting}>Cancel</MDButton>
+            <MDButton variant="gradient" color={accent} onClick={handleUpdate} disabled={submitting}>
+              {submitting ? 'Saving…' : 'Save Changes'}
+            </MDButton>
+          </>
         )}
-      </div>
-
-      {/* Edit Modal */}
-      <Modal isOpen={!!editTarget} onClose={() => setEditTarget(null)} title="Review Consultation Request" size="sm">
+      >
         {editTarget && (
-          <div className="space-y-4">
-            <div className="bg-[var(--bg-secondary)] rounded-xl p-4 space-y-2 text-sm mb-4">
-              <div className="flex justify-between">
-                <span className="text-[var(--text-muted)]">Applicant</span>
-                <span className="font-semibold text-[var(--text-primary)]">{editTarget.firstName} {editTarget.lastName}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[var(--text-muted)]">Email</span>
-                <span className="font-medium text-[var(--text-primary)]">{editTarget.email}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[var(--text-muted)]">Phone</span>
-                <span className="font-medium text-[var(--text-primary)]">{editTarget.phone}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[var(--text-muted)]">Topic</span>
-                <span className="font-medium text-[var(--text-primary)]">{editTarget.topic}</span>
-              </div>
-            </div>
+          <MDBox>
+            <DetailGrid
+              items={[
+                { label: 'Applicant', value: `${editTarget.firstName} ${editTarget.lastName}`, span: 6 },
+                { label: 'Email', value: editTarget.email, span: 6 },
+                { label: 'Phone', value: editTarget.phone, span: 6 },
+                { label: 'Topic', value: editTarget.topic, span: 6 },
+              ]}
+            />
 
-            <div className="bg-[var(--bg-secondary)] rounded-xl p-4 space-y-3 text-sm">
-              <h3 className="font-semibold text-[var(--text-primary)]">Submission Details</h3>
-              {[
-                ['Address', [editTarget.streetAddress, [editTarget.city, [editTarget.stateProvince, editTarget.postalCode].filter(Boolean).join(' ')].filter(Boolean).join(', '), editTarget.country].filter(Boolean).join(', ') || null],
-                ['Investable Assets', editTarget.investableAssets],
-                ['Digital Allocation', editTarget.digitalAllocation],
-                ['Holds 50k+ XRP', editTarget.holdsXRP],
-                ['Married', editTarget.married],
-                ['Children', editTarget.children],
-                ['DWP Client', editTarget.existingClient],
-                ['Client Type', editTarget.clientType],
-                ['Has LLC, Trust or Corp', editTarget.hasEntity ? `${editTarget.hasEntity}${editTarget.hasEntity === 'Yes' && editTarget.entityName ? ` (${editTarget.entityName})` : ''}` : null],
-                ['Has a Crypto IRA', editTarget.hasCryptoIRA],
-                ['Areas of Interest', editTarget.areasOfInterest?.length ? editTarget.areasOfInterest.join(', ') : null],
-                ['Assets to Move to Custody', editTarget.custodyAssets?.length ? editTarget.custodyAssets.join(', ') : editTarget.custodyAsset],
-                ['Referral Source', editTarget.referralSource],
-                ['Referred by (DWP official)', editTarget.referralOfficial],
-                ['Wallets Used', editTarget.walletsUsed?.length ? editTarget.walletsUsed.map((value) => (value === 'Other' && editTarget.walletOther ? `Other: ${editTarget.walletOther}` : value)).join(', ') : null],
-                ['Exchanges Used', editTarget.exchangesUsed?.length ? editTarget.exchangesUsed.map((value) => (value === 'Other' && editTarget.exchangeOther ? `Other: ${editTarget.exchangeOther}` : value)).join(', ') : null],
-              ].map(([label, value]) => (
-                <div key={label} className="flex justify-between gap-4">
-                  <span className="text-[var(--text-muted)]">{label}</span>
-                  <span className="font-medium text-[var(--text-primary)] text-right break-words">{value || '—'}</span>
-                </div>
+            <Divider sx={{ my: 3 }} />
+            <SectionTitle title="Submission Details" />
+            <DetailGrid items={detailItems} />
+            <MDBox mt={2}>
+              <MDTypography variant="caption" color="secondary" fontWeight="bold" textTransform="uppercase">Message</MDTypography>
+              <MDTypography variant="button" color="text" fontWeight="regular" component="p" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                {editTarget.message}
+              </MDTypography>
+            </MDBox>
+
+            <Divider sx={{ my: 3 }} />
+            <SectionTitle title="Email Delivery" hint="Provider submission results for automated consultation notifications." />
+            {editTarget.emailDeliveries?.map((delivery, index) => (
+              <MDBox key={`${delivery.template}-${index}`}>
+                {index > 0 && <Divider sx={{ my: 0 }} />}
+                <MDBox display="flex" alignItems="flex-start" justifyContent="space-between" gap={2} py={1.25}>
+                  <MDBox display="flex" alignItems="flex-start" gap={1.5} minWidth={0}>
+                    <Icon fontSize="small" color={delivery.success ? 'success' : 'error'} sx={{ mt: 0.25, flexShrink: 0 }}>
+                      {delivery.success ? 'check_circle' : 'error_outline'}
+                    </Icon>
+                    <MDBox minWidth={0}>
+                      <MDTypography variant="button" fontWeight="medium" display="block" textTransform="capitalize">
+                        {delivery.template.replaceAll('_', ' ')}
+                      </MDTypography>
+                      <MDTypography variant="caption" color="text" display="block">
+                        {new Date(delivery.attemptedAt).toLocaleString('en-US', { timeZone: APP_TIMEZONE })}
+                      </MDTypography>
+                      {delivery.error && (
+                        <MDTypography variant="caption" color="error" display="block" sx={{ wordBreak: 'break-word' }}>{delivery.error}</MDTypography>
+                      )}
+                    </MDBox>
+                  </MDBox>
+                  <StatusBadge status={delivery.success ? 'sent' : 'failed'} label={delivery.success ? 'Submitted' : 'Failed'} />
+                </MDBox>
+              </MDBox>
+            ))}
+            {!editTarget.emailDeliveries?.length && (
+              <MDTypography variant="caption" color="text">No provider delivery attempts recorded for this legacy request.</MDTypography>
+            )}
+
+            <Divider sx={{ my: 3 }} />
+            <SectionTitle title="Decision" />
+            <MDInput
+              select
+              fullWidth
+              label="Status"
+              SelectProps={{ sx: { height: 44 } }}
+              value={status}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => handleStatusChange(e.target.value as ContactSubmission['status'])}
+            >
+              {STATUS_OPTIONS.map((option) => (
+                <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
               ))}
-              <div className="pt-2 border-t border-[var(--border)]">
-                <span className="text-[var(--text-muted)] block mb-1">Message</span>
-                <p className="text-[var(--text-primary)] whitespace-pre-wrap">{editTarget.message}</p>
-              </div>
-            </div>
-
-            <div className="border border-[var(--border)] rounded-xl overflow-hidden">
-              <div className="px-4 py-3 bg-[var(--bg-secondary)]">
-                <h3 className="text-sm font-semibold text-[var(--text-primary)]">Email Delivery</h3>
-                <p className="text-xs text-[var(--text-muted)] mt-1">Provider submission results for automated consultation notifications.</p>
-              </div>
-              <div className="divide-y divide-[var(--border)] px-4">
-                {editTarget.emailDeliveries?.map((delivery, index) => (
-                  <div key={`${delivery.template}-${index}`} className="flex items-start justify-between gap-3 py-3 text-xs">
-                    <div className="flex items-start gap-2 min-w-0">
-                      {delivery.success ? <MailCheck size={16} className="text-emerald-500 shrink-0" /> : <MailWarning size={16} className="text-red-500 shrink-0" />}
-                      <div className="min-w-0">
-                        <p className="font-semibold capitalize text-[var(--text-primary)]">{delivery.template.replaceAll('_', ' ')}</p>
-                        <p className="text-[var(--text-muted)] mt-0.5">{new Date(delivery.attemptedAt).toLocaleString('en-US', { timeZone: APP_TIMEZONE })}</p>
-                        {delivery.error && <p className="text-red-500 mt-1 break-words">{delivery.error}</p>}
-                      </div>
-                    </div>
-                    <span className={delivery.success ? 'text-emerald-500' : 'text-red-500'}>{delivery.success ? 'Submitted' : 'Failed'}</span>
-                  </div>
-                ))}
-                {!editTarget.emailDeliveries?.length && <p className="py-4 text-xs text-[var(--text-muted)]">No provider delivery attempts recorded for this legacy request.</p>}
-              </div>
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-[var(--text-primary)]">Status</label>
-              <select
-                value={status}
-                onChange={(e) => handleStatusChange(e.target.value as ContactSubmission['status'])}
-                className="w-full px-4 py-3 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/50"
-              >
-                <option value="pending">Pending</option>
-                <option value="processing">Processing</option>
-                <option value="approved">Approved</option>
-                <option value="rejected">Rejected</option>
-              </select>
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-[var(--text-primary)]">Additional Note (optional)</label>
-              <p className="text-xs text-[var(--text-muted)]">
-                A standard status email is sent automatically. Anything you add here appears as an extra note below it.
-              </p>
-              <textarea
-                rows={6}
+            </MDInput>
+            <MDBox mt={3}>
+              <MDInput
+                fullWidth
+                multiline
+                minRows={6}
+                label="Additional Note (optional)"
                 placeholder="Optional — add any personalized context for this client..."
                 value={adminNote}
-                onChange={(e) => setAdminNote(e.target.value)}
-                className="w-full px-4 py-3 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-xl text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-brand-500/50 resize-y"
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setAdminNote(e.target.value)}
+                helperText="A standard status email is sent automatically. Anything you add here appears as an extra note below it."
               />
-            </div>
-
-            <div className="flex gap-3 mt-6">
-              <Button variant="outline" className="flex-1" onClick={() => setEditTarget(null)}>Cancel</Button>
-              <Button className="flex-1 bg-brand-600 hover:bg-brand-700 text-white" onClick={handleUpdate} loading={submitting}>
-                Save Changes
-              </Button>
-            </div>
-          </div>
+            </MDBox>
+          </MDBox>
         )}
-      </Modal>
-    </div>
+      </AdminDialog>
+    </AdminPage>
   );
 }

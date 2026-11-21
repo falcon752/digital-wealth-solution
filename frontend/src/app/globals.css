@@ -124,6 +124,7 @@ body {
   --bg-card:        #101010;
 }
 
-.dark form label {
+/* Public site only: the admin (html.dwp-admin) takes its colours from its own light/dark theme. */
+.dark:not(.dwp-admin) form label {
   color: #ffffff;
 }

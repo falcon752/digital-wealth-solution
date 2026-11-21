@@ -1,15 +1,22 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, type ChangeEvent } from 'react';
+import Grid from '@mui/material/Grid';
+import Tooltip from '@mui/material/Tooltip';
+import toast from 'react-hot-toast';
 import { assetsAPI } from '@/lib/api';
 import { Asset } from '@/types';
-import DashboardHeader from '@/components/layout/DashboardHeader';
-import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
-import Input from '@/components/ui/Input';
-import Badge from '@/components/ui/Badge';
-import { Plus, Pencil, Trash2, Upload, Image as ImageIcon, ChevronLeft, ChevronRight } from 'lucide-react';
-import toast from 'react-hot-toast';
+import AdminPage from '@/components/admin/shell/AdminPage';
+import AdminDialog from '@/components/admin/ui/AdminDialog';
+import ConfirmDialog from '@/components/admin/ui/ConfirmDialog';
+import DataTableCard, { type Column } from '@/components/admin/ui/DataTableCard';
+import Icon from '@/components/admin/ui/Icon';
+import StatusBadge from '@/components/admin/ui/StatusBadge';
+import { useAccent } from '@/components/admin/ui/useAccent';
+import MDBox from '@/components/admin/components/MDBox';
+import MDButton from '@/components/admin/components/MDButton';
+import MDInput from '@/components/admin/components/MDInput';
+import MDTypography from '@/components/admin/components/MDTypography';
 
 interface AssetFormData {
   name: string;
@@ -21,8 +28,13 @@ interface AssetFormData {
 }
 
 const empty: AssetFormData = { name: '', symbol: '', walletAddress: '', network: '', memo: '', minDeposit: '0.001' };
+const PAGE_SIZE = 10;
+const API_ORIGIN = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '');
+
+type ApiError = { response?: { data?: { message?: string } } };
 
 export default function AdminAssetsPage() {
+  const accent = useAccent();
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -34,7 +46,6 @@ export default function AdminAssetsPage() {
   const [deleteTarget, setDeleteTarget] = useState<Asset | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const PAGE_SIZE = 10;
 
   const load = () => {
     setLoading(true);
@@ -64,7 +75,7 @@ export default function AdminAssetsPage() {
     setShowModal(true);
   };
 
-  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
     if (!f) return;
     setQrFile(f);
@@ -91,8 +102,8 @@ export default function AdminAssetsPage() {
       }
       setShowModal(false);
       load();
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to save asset');
+    } catch (err: unknown) {
+      toast.error((err as ApiError).response?.data?.message || 'Failed to save asset');
     } finally {
       setSubmitting(false);
     }
@@ -105,176 +116,215 @@ export default function AdminAssetsPage() {
       toast.success('Asset deleted');
       setDeleteTarget(null);
       load();
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to delete');
+    } catch (err: unknown) {
+      toast.error((err as ApiError).response?.data?.message || 'Failed to delete');
+      throw err;
     }
   };
 
   const totalPages = Math.max(1, Math.ceil(assets.length / PAGE_SIZE));
   const paginatedAssets = assets.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
-  return (
-    <div className="flex flex-col min-h-full">
-      <DashboardHeader title="Crypto Assets" subtitle="Manage deposit wallets" logo="dwp" />
+  const set = (key: keyof AssetFormData) => (e: ChangeEvent<HTMLInputElement>) =>
+    setForm({ ...form, [key]: key === 'symbol' ? e.target.value.toUpperCase() : e.target.value });
 
-      <div className="flex-1 p-6">
-        <div className="flex justify-end mb-5">
-          <Button onClick={openAdd}>
-            <Plus size={16} className="mr-1" /> Add Asset
-          </Button>
-        </div>
-
-        {loading ? (
-          <div className="flex items-center justify-center h-48">
-            <div className="w-8 h-8 border-2 border-brand-400 border-t-transparent rounded-full animate-spin" />
-          </div>
+  const columns: Column<Asset>[] = [
+    {
+      key: 'asset',
+      header: 'Asset',
+      render: (a) => (
+        <MDBox>
+          <MDTypography variant="button" fontWeight="medium" display="block">{a.name}</MDTypography>
+          <MDTypography variant="caption" color="text" display="block">{a.symbol}</MDTypography>
+          {/* On phones the Status column is hidden, so it shows here. */}
+          <MDBox sx={{ display: { xs: 'block', md: 'none' } }} mt={0.5}>
+            <StatusBadge status={a.isActive ? 'active' : 'inactive'} />
+          </MDBox>
+        </MDBox>
+      ),
+    },
+    { key: 'network', header: 'Network', hideOnMobile: true, render: (a) => a.network },
+    {
+      key: 'wallet',
+      header: 'Wallet Address',
+      hideOnMobile: true,
+      render: (a) => (
+        <MDBox
+          component="code"
+          px={1}
+          py={0.25}
+          borderRadius="md"
+          sx={({ palette: { grey }, typography: { size } }) => ({ fontSize: size.xs, backgroundColor: grey[200], fontFamily: 'monospace' })}
+        >
+          {a.walletAddress ? `${a.walletAddress.slice(0, 20)}…` : "—"}
+        </MDBox>
+      ),
+    },
+    { key: 'min', header: 'Min Deposit', hideOnMobile: true, render: (a) => a.minDeposit },
+    {
+      key: 'qr',
+      header: 'QR',
+      render: (a) =>
+        a.qrCodeUrl ? (
+          <MDBox component="img" src={`${API_ORIGIN}${a.qrCodeUrl}`} alt="QR" width="2.5rem" height="2.5rem" borderRadius="md" bgColor="white" display="block" sx={{ objectFit: 'contain' }} />
         ) : (
-          <div className="glass rounded-2xl overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-[var(--border)]">
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Asset</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Network</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider hidden md:table-cell">Wallet Address</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Min Deposit</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">QR</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Status</th>
-                    <th className="px-4 py-3" />
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedAssets.map((a) => (
-                    <tr key={a.id} className="border-b border-[var(--border)] last:border-0 hover:bg-brand-500/5 transition-colors">
-                      <td className="px-4 py-3">
-                        <div className="font-semibold text-[var(--text-primary)]">{a.name}</div>
-                        <div className="text-xs text-[var(--text-muted)]">{a.symbol}</div>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-[var(--text-secondary)]">{a.network}</td>
-                      <td className="px-4 py-3 hidden md:table-cell">
-                        <code className="text-xs bg-brand-500/10 text-brand-300 px-2 py-0.5 rounded-lg">{a.walletAddress.slice(0, 20)}…</code>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-[var(--text-secondary)]">{a.minDeposit}</td>
-                      <td className="px-4 py-3">
-                        {a.qrCodeUrl ? (
-                          <img src={`${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}${a.qrCodeUrl}`} alt="QR" className="w-10 h-10 rounded-lg object-contain bg-white" />
-                        ) : (
-                          <div className="w-10 h-10 rounded-lg bg-brand-500/10 flex items-center justify-center">
-                            <ImageIcon size={16} className="text-[var(--text-muted)]" />
-                          </div>
-                        )}
-                      </td>
-                      <td className="px-4 py-3">
-                        <Badge status={a.isActive ? 'active' : 'inactive'} />
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2 justify-end">
-                          <button onClick={() => openEdit(a)} className="p-1.5 rounded-lg hover:bg-brand-500/10 text-[var(--text-muted)] hover:text-brand-400 transition-colors">
-                            <Pencil size={15} />
-                          </button>
-                          <button onClick={() => setDeleteTarget(a)} className="p-1.5 rounded-lg hover:bg-red-500/10 text-[var(--text-muted)] hover:text-red-400 transition-colors">
-                            <Trash2 size={15} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                  {assets.length === 0 && (
-                    <tr><td colSpan={7} className="px-4 py-12 text-center text-[var(--text-muted)]">No assets yet. Add your first crypto asset.</td></tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+          <MDBox width="2.5rem" height="2.5rem" borderRadius="md" bgColor="grey-200" display="grid" sx={{ placeItems: 'center' }}>
+            <Icon fontSize="small" sx={{ color: 'text.disabled' }}>image</Icon>
+          </MDBox>
+        ),
+    },
+    { key: 'status', header: 'Status', hideOnMobile: true, render: (a) => <StatusBadge status={a.isActive ? 'active' : 'inactive'} /> },
+    {
+      key: 'actions',
+      header: '',
+      align: 'right',
+      render: (a) => (
+        <MDBox display="flex" justifyContent="flex-end" gap={0.5}>
+          <Tooltip title="Edit asset">
+            <MDButton variant="text" color="dark" size="small" iconOnly onClick={() => openEdit(a)} aria-label={`Edit ${a.name}`}>
+              <Icon>edit</Icon>
+            </MDButton>
+          </Tooltip>
+          <Tooltip title="Delete asset">
+            <MDButton variant="text" color="error" size="small" iconOnly onClick={() => setDeleteTarget(a)} aria-label={`Delete ${a.name}`}>
+              <Icon>delete</Icon>
+            </MDButton>
+          </Tooltip>
+        </MDBox>
+      ),
+    },
+  ];
 
-            {assets.length > 0 && (
-              <div className="flex items-center justify-between gap-4 px-4 py-4 border-t border-[var(--border)]">
-                <p className="text-xs text-[var(--text-muted)]">
-                  Showing {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, assets.length)} of {assets.length}
-                </p>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                    disabled={currentPage === 1}
-                    className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-muted)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-brand-500/5 transition-colors"
-                    aria-label="Previous page"
-                  >
-                    <ChevronLeft size={16} />
-                  </button>
-                  <span className="text-xs font-medium text-[var(--text-secondary)]">
-                    Page {currentPage} of {totalPages}
-                  </span>
-                  <button
-                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                    disabled={currentPage === totalPages}
-                    className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-muted)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-brand-500/5 transition-colors"
-                    aria-label="Next page"
-                  >
-                    <ChevronRight size={16} />
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+  return (
+    <AdminPage
+      title="Crypto Assets"
+      description="Manage deposit wallets"
+      actions={
+        <MDButton variant="gradient" color={accent} onClick={openAdd}>
+          <Icon>add</Icon>&nbsp;Add Asset
+        </MDButton>
+      }
+    >
+      <MDBox mt={4}>
+        <DataTableCard
+          title="Deposit wallets"
+          subtitle={assets.length > 0
+            ? `Showing ${(currentPage - 1) * PAGE_SIZE + 1}–${Math.min(currentPage * PAGE_SIZE, assets.length)} of ${assets.length}`
+            : 'Where clients send each crypto asset'}
+          columns={columns}
+          rows={paginatedAssets}
+          rowKey={(a) => a.id}
+          isLoading={loading && assets.length === 0}
+          isFetching={loading && assets.length > 0}
+          emptyMessage="No assets yet. Add your first crypto asset."
+          paging={{
+            page: currentPage,
+            hasPrevious: currentPage > 1,
+            hasNext: currentPage < totalPages,
+            onPrevious: () => setCurrentPage((p) => Math.max(1, p - 1)),
+            onNext: () => setCurrentPage((p) => Math.min(totalPages, p + 1)),
+          }}
+        />
+      </MDBox>
 
-      {/* Add / Edit Modal */}
-      <Modal isOpen={showModal} onClose={() => setShowModal(false)} title={editing ? 'Edit Asset' : 'Add Asset'} size="lg">
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <Input label="Name" placeholder="Bitcoin" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-            <Input label="Symbol" placeholder="BTC" value={form.symbol} onChange={(e) => setForm({ ...form, symbol: e.target.value.toUpperCase() })} />
-          </div>
-          <Input label="Wallet Address" placeholder="0x..." value={form.walletAddress} onChange={(e) => setForm({ ...form, walletAddress: e.target.value })} />
-          <div className="grid grid-cols-2 gap-4">
-            <Input label="Network" placeholder="ERC-20, TRC-20, BEP-20…" value={form.network} onChange={(e) => setForm({ ...form, network: e.target.value })} />
-            <Input label="Min Deposit" type="number" step="any" value={form.minDeposit} onChange={(e) => setForm({ ...form, minDeposit: e.target.value })} />
-          </div>
-          <Input label="Memo / Tag (Optional)" placeholder="e.g. 123456789" value={form.memo} onChange={(e) => setForm({ ...form, memo: e.target.value })} />
+      {/* Add / Edit dialog */}
+      <AdminDialog
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        title={editing ? 'Edit Asset' : 'Add Asset'}
+        size="lg"
+        actions={
+          <>
+            <MDButton variant="text" color="dark" onClick={() => setShowModal(false)} disabled={submitting}>Cancel</MDButton>
+            <MDButton variant="gradient" color={accent} onClick={handleSubmit} disabled={submitting}>
+              {submitting ? 'Saving…' : editing ? 'Save Changes' : 'Create Asset'}
+            </MDButton>
+          </>
+        }
+      >
+        <MDBox pt={1}>
+          <Grid container spacing={2.5}>
+            <Grid item xs={12} sm={6}>
+              <MDInput fullWidth label="Name" placeholder="Bitcoin" value={form.name} onChange={set('name')} InputLabelProps={{ shrink: true }} />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <MDInput fullWidth label="Symbol" placeholder="BTC" value={form.symbol} onChange={set('symbol')} InputLabelProps={{ shrink: true }} />
+            </Grid>
+            <Grid item xs={12}>
+              <MDInput fullWidth label="Wallet Address" placeholder="0x..." value={form.walletAddress} onChange={set('walletAddress')} InputLabelProps={{ shrink: true }} />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <MDInput fullWidth label="Network" placeholder="ERC-20, TRC-20, BEP-20…" value={form.network} onChange={set('network')} InputLabelProps={{ shrink: true }} />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <MDInput fullWidth label="Min Deposit" type="number" inputProps={{ step: 'any' }} value={form.minDeposit} onChange={set('minDeposit')} InputLabelProps={{ shrink: true }} />
+            </Grid>
+            <Grid item xs={12}>
+              <MDInput fullWidth label="Memo / Tag (Optional)" placeholder="e.g. 123456789" value={form.memo} onChange={set('memo')} InputLabelProps={{ shrink: true }} />
+            </Grid>
 
-          {/* QR Code Upload */}
-          <div>
-            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">QR Code Image</label>
-            <div
-              onClick={() => fileRef.current?.click()}
-              className="border-2 border-dashed border-[var(--border)] rounded-xl p-4 cursor-pointer hover:border-brand-400 transition-colors flex flex-col items-center gap-3"
-            >
-              {qrPreview ? (
-                <img
-                  src={qrPreview.startsWith('blob:') ? qrPreview : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}${qrPreview}`}
-                  alt="QR Preview"
-                  className="w-32 h-32 object-contain rounded-lg"
-                />
-              ) : (
-                <>
-                  <Upload size={24} className="text-[var(--text-muted)]" />
-                  <p className="text-sm text-[var(--text-muted)]">Click to upload QR code image</p>
-                </>
-              )}
-              <p className="text-xs text-[var(--text-muted)]">PNG, JPG up to 5MB</p>
-            </div>
-            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
-          </div>
+            {/* QR code upload */}
+            <Grid item xs={12}>
+              <MDTypography variant="caption" color="secondary" fontWeight="bold" textTransform="uppercase" display="block" mb={1}>
+                QR Code Image
+              </MDTypography>
+              <MDBox
+                role="button"
+                tabIndex={0}
+                onClick={() => fileRef.current?.click()}
+                onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') fileRef.current?.click(); }}
+                p={2}
+                borderRadius="lg"
+                display="flex"
+                flexDirection="column"
+                alignItems="center"
+                gap={1.5}
+                sx={({ palette: { grey, info } }) => ({
+                  cursor: 'pointer',
+                  border: `2px dashed ${grey[300]}`,
+                  transition: 'border-color 150ms',
+                  '&:hover': { borderColor: info.main },
+                })}
+              >
+                {qrPreview ? (
+                  <MDBox
+                    component="img"
+                    src={qrPreview.startsWith('blob:') ? qrPreview : `${API_ORIGIN}${qrPreview}`}
+                    alt="QR Preview"
+                    width="8rem"
+                    height="8rem"
+                    borderRadius="md"
+                    bgColor="white"
+                    sx={{ objectFit: 'contain' }}
+                  />
+                ) : (
+                  <>
+                    <Icon fontSize="medium" sx={{ color: 'text.secondary' }}>publish</Icon>
+                    <MDTypography variant="button" color="text" fontWeight="regular">Click to upload QR code image</MDTypography>
+                  </>
+                )}
+                <MDTypography variant="caption" color="text">PNG, JPG up to 5MB</MDTypography>
+              </MDBox>
+              <input ref={fileRef} type="file" accept="image/*" hidden onChange={onFileChange} />
+            </Grid>
+          </Grid>
+        </MDBox>
+      </AdminDialog>
 
-          <div className="flex gap-3 pt-2">
-            <Button variant="outline" className="flex-1" onClick={() => setShowModal(false)}>Cancel</Button>
-            <Button className="flex-1" onClick={handleSubmit} loading={submitting}>
-              {editing ? 'Save Changes' : 'Create Asset'}
-            </Button>
-          </div>
-        </div>
-      </Modal>
-
-      {/* Delete Confirm */}
-      <Modal isOpen={!!deleteTarget} onClose={() => setDeleteTarget(null)} title="Delete Asset" size="sm">
-        <p className="text-[var(--text-secondary)] mb-5">
-          Are you sure you want to delete <strong className="text-[var(--text-primary)]">{deleteTarget?.name}</strong>? This will deactivate the asset.
-        </p>
-        <div className="flex gap-3">
-          <Button variant="outline" className="flex-1" onClick={() => setDeleteTarget(null)}>Cancel</Button>
-          <Button variant="danger" className="flex-1" onClick={handleDelete}>Delete</Button>
-        </div>
-      </Modal>
-    </div>
+      {/* Delete confirmation */}
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Delete Asset"
+        tone="error"
+        confirmLabel="Delete"
+        message={
+          <>
+            Are you sure you want to delete <strong>{deleteTarget?.name}</strong>? This will deactivate the asset.
+          </>
+        }
+        onConfirm={handleDelete}
+        onClose={() => setDeleteTarget(null)}
+      />
+    </AdminPage>
   );
 }
