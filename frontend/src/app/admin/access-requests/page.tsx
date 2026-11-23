@@ -158,7 +158,7 @@ export default function AdminAccessRequestsPage() {
       align: 'right',
       render: (r) => (
         <Tooltip title="Review Request">
-          <IconButton size="small" color="info" onClick={() => openReview(r)} aria-label="Review Request">
+          <IconButton size="small" color="info" onClick={(event) => { event.stopPropagation(); openReview(r); }} aria-label="Review Request">
             <Icon fontSize="small">visibility</Icon>
           </IconButton>
         </Tooltip>
@@ -195,6 +195,7 @@ export default function AdminAccessRequestsPage() {
           columns={columns}
           rows={paginatedRequests}
           rowKey={(r) => r.id}
+          rowHref={(r) => `/admin/access-requests/${r.id}`}
           isLoading={loading}
           emptyMessage="No access requests yet."
           paging={{

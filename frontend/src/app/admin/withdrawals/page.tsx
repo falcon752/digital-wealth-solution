@@ -20,6 +20,7 @@ import MDBox from '@/components/admin/components/MDBox';
 import MDButton from '@/components/admin/components/MDButton';
 import MDInput from '@/components/admin/components/MDInput';
 import MDTypography from '@/components/admin/components/MDTypography';
+import { stopRowClick } from '@/components/admin/money/MoneyKit';
 
 type Tab = 'all' | 'pending' | 'approved' | 'completed' | 'rejected';
 type StatusOption = Exclude<Tab, 'all'>;
@@ -186,7 +187,7 @@ export default function AdminWithdrawalsPage() {
       header: '',
       align: 'right',
       render: (w) => (
-        <MDBox display="flex" gap={0.5} justifyContent="flex-end">
+        <MDBox display="flex" gap={0.5} justifyContent="flex-end" onClick={stopRowClick}>
           {w.status === 'pending' && (
             <Tooltip title="Approve">
               <IconButton size="small" aria-label="Approve" onClick={() => openAction(w, 'approve')}>
@@ -232,6 +233,7 @@ export default function AdminWithdrawalsPage() {
           columns={columns}
           rows={paginatedWithdrawals}
           rowKey={(w) => w.id}
+          rowHref={(w) => `/admin/withdrawals/${w.id}`}
           isLoading={loading}
           emptyMessage="No withdrawals found."
           toolbar={

@@ -28,6 +28,7 @@ import MDBox from '@/components/admin/components/MDBox';
 import MDButton from '@/components/admin/components/MDButton';
 import MDInput from '@/components/admin/components/MDInput';
 import MDTypography from '@/components/admin/components/MDTypography';
+import { stopRowClick } from '@/components/admin/money/MoneyKit';
 import { APP_TIMEZONE, formatCurrency } from '@/lib/utils';
 
 interface ReferralPerson {
@@ -286,7 +287,7 @@ export default function AdminReferralsPage() {
     const actions = NEXT_ACTIONS[c.status];
     if (!actions.length) return inline ? null : <MDTypography variant="caption" color="text">—</MDTypography>;
     return (
-      <MDBox display="flex" flexDirection={inline ? 'row' : 'column'} alignItems={inline ? 'center' : 'flex-end'} flexWrap="wrap" gap={inline ? 0.5 : 0}>
+      <MDBox display="flex" flexDirection={inline ? 'row' : 'column'} alignItems={inline ? 'center' : 'flex-end'} flexWrap="wrap" gap={inline ? 0.5 : 0} onClick={stopRowClick}>
         {actions.map((action) => (
           <MDButton
             key={action}
@@ -475,6 +476,7 @@ export default function AdminReferralsPage() {
           columns={commissionColumns}
           rows={commissions}
           rowKey={(c) => c.id}
+          rowHref={(c) => `/admin/referrals/${c.id}`}
           isLoading={commissionsLoading && !commissionsLoaded}
           isFetching={commissionsLoading}
           error={commissionsError}
@@ -511,6 +513,7 @@ export default function AdminReferralsPage() {
           columns={REFERRAL_COLUMNS}
           rows={referrals}
           rowKey={(r) => String(r.id)}
+          rowHref={(r) => `/admin/users/${r.id}`}
           isLoading={loading && !loadedOnce}
           isFetching={loading}
           error={loadError}

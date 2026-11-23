@@ -17,6 +17,7 @@ import MDBox from '@/components/admin/components/MDBox';
 import MDButton from '@/components/admin/components/MDButton';
 import MDInput from '@/components/admin/components/MDInput';
 import MDTypography from '@/components/admin/components/MDTypography';
+import { stopRowClick } from '@/components/admin/money/MoneyKit';
 
 /** A card application as GET /admin/cards returns it (the user is populated). */
 interface CardApplication {
@@ -146,7 +147,7 @@ export default function AdminCardsPage() {
       header: 'Action',
       align: 'right',
       render: (card) => (
-        <MDBox display="flex" justifyContent="flex-end" alignItems="center" gap={0.5}>
+        <MDBox display="flex" justifyContent="flex-end" alignItems="center" gap={0.5} onClick={stopRowClick}>
           {card.status === 'pending' && (
             <MDButton variant="gradient" color={accent} size="small" onClick={() => setSelectedCard(card)} sx={{ minWidth: 0, px: { xs: 1.5, md: 2 } }}>
               Review
@@ -173,6 +174,7 @@ export default function AdminCardsPage() {
           columns={columns}
           rows={paginatedCards}
           rowKey={(card) => card._id || card.id}
+          rowHref={(card) => `/admin/cards/${card._id || card.id}`}
           isLoading={loading && cards.length === 0}
           isFetching={loading && cards.length > 0}
           error={cards.length === 0 ? loadError : null}

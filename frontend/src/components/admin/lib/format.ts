@@ -8,7 +8,7 @@ export function humanize(value: string | null | undefined): string {
     .trim();
   const sentence = words.charAt(0).toUpperCase() + words.slice(1);
   // Keep the acronyms DWP uses as acronyms: "Kyc submitted" → "KYC submitted".
-  return sentence.replace(/\b(kyc|llc|otp|usd|xrp|btc|eth|ip|id|2fa)\b/gi, (word) => word.toUpperCase());
+  return sentence.replace(/\b(kyc|llc|otp|usd|xrp|btc|eth|ip|id|2fa|dwp|ein|ltv|apr|apy|qr|usdt|usdc)\b/gi, (word) => word.toUpperCase());
 }
 
 /** Initials for an avatar: "Ada Obi" → "AO"; falls back to the email's first letter. */

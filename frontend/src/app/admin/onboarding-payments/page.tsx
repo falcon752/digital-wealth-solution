@@ -23,6 +23,7 @@ import MDBox from '@/components/admin/components/MDBox';
 import MDButton from '@/components/admin/components/MDButton';
 import MDInput from '@/components/admin/components/MDInput';
 import MDTypography from '@/components/admin/components/MDTypography';
+import { stopRowClick } from '@/components/admin/money/MoneyKit';
 import { humanize } from '@/components/admin/lib/format';
 import { onboardingAPI } from '@/lib/api';
 import { getApiError } from '@/lib/apiError';
@@ -295,7 +296,7 @@ export default function AdminOnboardingPaymentsPage() {
       align: 'right',
       render: (payment) => (
         <Tooltip title="Review payment">
-          <IconButton size="small" color="info" onClick={() => openReview(payment)} aria-label="Review payment">
+          <IconButton size="small" color="info" onClick={(event) => { stopRowClick(event); openReview(payment); }} aria-label="Review payment">
             <Icon fontSize="small">visibility</Icon>
           </IconButton>
         </Tooltip>
@@ -344,6 +345,7 @@ export default function AdminOnboardingPaymentsPage() {
               columns={columns}
               rows={visiblePayments}
               rowKey={(payment) => payment.id}
+              rowHref={(payment) => `/admin/onboarding-payments/${payment.id}`}
               isLoading={loading}
               emptyMessage="No onboarding payments match this view."
               toolbar={(

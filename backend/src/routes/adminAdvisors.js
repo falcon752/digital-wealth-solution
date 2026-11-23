@@ -7,10 +7,10 @@
  *   GET    /clients              client picker (?search=&advisorId=&unassigned=1)
  *   PUT    /clients/:userId      { advisorId | null } assign one client
  *   GET    /tickets              every ticket (?advisorId=&unassigned=1&status=&category=&priority=&search=)
- *   GET    /tickets/:id          one ticket
+ *   GET    /tickets/:id          one ticket, with the activity about it
  *   POST   /tickets/:id/messages { message, status? } reply as admin
  *   PUT    /tickets/:id          { advisorId?, status?, priority? } reassign / change status
- *   GET    /:id                  an advisor with clients, recent tickets and activity
+ *   GET    /:id                  an advisor with clients, recent tickets, first-reply time and activity
  *   PUT    /:id                  edit (multipart, optional `photo`; `password` sets a new temporary password)
  *   POST   /:id/photo            replace the photo
  *   PUT    /:id/status           { isActive }
@@ -32,6 +32,7 @@ const {
   isObjectId, escapeRegex, startOfMonth, fullName, advisorAccount, clientSummary, serializeTicket, loadPeople,
   ticketCounts, ticketFilterFromQuery, withTicketSearch, kycStatuses, paging, profileValidators, profileUpdate, photoUpload, sendQuietly,
 } = require('../utils/supportTickets');
+const { activityAbout, activityForUser } = require('../utils/adminRecords');
 const { sendAdvisorWelcomeEmail, sendTicketReplyEmail, sendTicketResolvedEmail } = require('../utils/supportEmails');
 
 const router = express.Router();
@@ -284,7 +285,9 @@ router.get('/tickets/:id', [ticketParam], async (req, res) => {
     if (out.client) out.client.kycStatus = kyc(ticket.userId);
     const client = people.get(String(ticket.userId));
     out.clientAdvisorId = client?.advisorId ? String(client.advisorId) : null;
-    res.json({ ticket: out });
+    if (out.client) out.client.accountActive = client?.isActive !== false;
+    const activity = await activityAbout(ticket._id, { limit: 60 });
+    res.json({ ticket: out, activity });
   } catch (err) {
     console.error('Admin ticket error:', err);
     res.status(500).json({ error: 'Failed to load the ticket' });
@@ -378,6 +381,27 @@ router.put('/tickets/:id', [
 
 // ─── One advisor ────────────────────────────────────────────────────────────────
 
+const TICKET_LIMIT = 50;
+
+/**
+ * How quickly an advisor answers: the average time from a ticket being opened to the advisor's
+ * own first message in it, over the tickets they have answered.
+ */
+async function firstReplyStats(advisorId) {
+  const [row] = await SupportTicket.aggregate([
+    { $match: { advisorId } },
+    {
+      $project: {
+        createdAt: 1,
+        first: { $arrayElemAt: [{ $filter: { input: '$messages', as: 'm', cond: { $eq: ['$$m.authorRole', 'advisor'] } } }, 0] },
+      },
+    },
+    { $match: { 'first.createdAt': { $type: 'date' } } },
+    { $group: { _id: null, averageMs: { $avg: { $subtract: ['$first.createdAt', '$createdAt'] } }, tickets: { $sum: 1 } } },
+  ]);
+  return row ? { averageMs: Math.max(0, Math.round(row.averageMs)), tickets: row.tickets } : { averageMs: null, tickets: 0 };
+}
+
 // GET /api/admin/advisors/:id — profile, stats, clients, recent tickets and activity
 router.get('/:id', [advisorParam], async (req, res) => {
   if (invalid(req, res)) return;
@@ -385,23 +409,26 @@ router.get('/:id', [advisorParam], async (req, res) => {
     const advisor = await User.findOne({ _id: req.params.id, role: 'advisor' }).select('-password -twoFactorSecret').lean();
     if (!advisor) return res.status(404).json({ error: 'Advisor not found' });
     const clients = await User.find({ role: 'user', advisorId: advisor._id }).select(CLIENT_FIELDS).sort({ firstName: 1 }).lean();
-    const [stats, kyc, clientCounts, tickets, activity] = await Promise.all([
+    const [stats, kyc, clientCounts, tickets, ticketTotal, firstReply, activity] = await Promise.all([
       advisorStats([advisor._id]),
       kycStatuses(clients.map((c) => c._id)),
       ticketCounts(SupportTicket, { advisorId: advisor._id }, 'userId'),
-      SupportTicket.find({ advisorId: advisor._id }).sort({ lastMessageAt: -1 }).limit(25).lean(),
-      ActivityLog.find({ userId: advisor._id }).sort({ createdAt: -1 }).limit(40).select('action details createdAt').lean(),
+      SupportTicket.find({ advisorId: advisor._id }).sort({ lastMessageAt: -1 }).limit(TICKET_LIMIT).lean(),
+      SupportTicket.countDocuments({ advisorId: advisor._id }),
+      firstReplyStats(advisor._id),
+      activityForUser(advisor._id, { limit: 60 }),
     ]);
     const people = await loadPeople(tickets);
     res.json({
-      advisor: { ...advisorAccount(advisor), stats: stats(advisor._id) },
+      advisor: { ...advisorAccount(advisor), stats: { ...stats(advisor._id), firstReply } },
+      ticketTotal,
       clients: clients.map((client) => clientSummary(client, {
         kycStatus: kyc(client._id),
         accountActive: client.isActive !== false,
         tickets: clientCounts[String(client._id)] || EMPTY_COUNTS,
       })),
       tickets: tickets.map((ticket) => serializeTicket(ticket, people, 'admin', { withMessages: false })),
-      activity: activity.map((row) => ({ id: String(row._id), action: row.action, details: row.details, createdAt: row.createdAt })),
+      activity,
     });
   } catch (err) {
     console.error('Admin advisor detail error:', err);

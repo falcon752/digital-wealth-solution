@@ -53,7 +53,7 @@ const preview = (body, max = 140) => {
 const models = {
   /** A client opened a ticket: to their advisor (or to the admin team when they have none). */
   newTicket({ ticket, client, message, toAdmin = false }) {
-    const url = toAdmin ? `${appUrl()}/admin/support?ticket=${ticket.id}` : `${appUrl()}/advisor/tickets/${ticket.id}`;
+    const url = toAdmin ? `${appUrl()}/admin/support/${ticket.id}` : `${appUrl()}/advisor/tickets/${ticket.id}`;
     return {
       subject: `[${ticket.reference}] New ticket from ${nameOf(client)}: ${ticket.subject}`,
       model: {
@@ -84,7 +84,7 @@ const models = {
 
   /** The client wrote again in an existing ticket: to the advisor (or admin team). */
   clientMessage({ ticket, client, message, toAdmin = false }) {
-    const url = toAdmin ? `${appUrl()}/admin/support?ticket=${ticket.id}` : `${appUrl()}/advisor/tickets/${ticket.id}`;
+    const url = toAdmin ? `${appUrl()}/admin/support/${ticket.id}` : `${appUrl()}/advisor/tickets/${ticket.id}`;
     return {
       subject: `[${ticket.reference}] New message from ${nameOf(client)}: ${ticket.subject}`,
       model: {

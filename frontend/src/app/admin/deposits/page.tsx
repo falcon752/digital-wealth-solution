@@ -21,6 +21,7 @@ import MDBox from '@/components/admin/components/MDBox';
 import MDButton from '@/components/admin/components/MDButton';
 import MDInput from '@/components/admin/components/MDInput';
 import MDTypography from '@/components/admin/components/MDTypography';
+import { stopRowClick } from '@/components/admin/money/MoneyKit';
 
 type Tab = 'all' | 'pending' | 'confirmed' | 'rejected';
 type StatusOption = Exclude<Tab, 'all'>;
@@ -217,7 +218,7 @@ export default function AdminDepositsPage() {
       header: 'Tx / Ref',
       hideOnMobile: true,
       render: (d) => (
-        <MDBox display="flex" alignItems="center" gap={0.5}>
+        <MDBox display="flex" alignItems="center" gap={0.5} onClick={stopRowClick}>
           <MDTypography variant="caption" color="text" sx={{ fontFamily: 'monospace' }} whiteSpace="nowrap">
             {d.txHash ? d.txHash.slice(0, 12) + '…' : d.providerReference ? d.providerReference.slice(0, 12) + '…' : '—'}
           </MDTypography>
@@ -258,7 +259,7 @@ export default function AdminDepositsPage() {
       header: '',
       align: 'right',
       render: (d) => d.status === 'pending' && (
-        <MDBox display="flex" gap={0.5} justifyContent="flex-end">
+        <MDBox display="flex" gap={0.5} justifyContent="flex-end" onClick={stopRowClick}>
           <Tooltip title="Confirm deposit">
             <IconButton size="small" aria-label="Confirm deposit" onClick={() => openConfirm(d)}>
               <Icon color="success">check_circle</Icon>
@@ -306,6 +307,7 @@ export default function AdminDepositsPage() {
           columns={columns}
           rows={paginatedDeposits}
           rowKey={(d) => d.id}
+          rowHref={(d) => `/admin/deposits/${d.id}`}
           isLoading={loading}
           emptyMessage="No deposits found."
           toolbar={

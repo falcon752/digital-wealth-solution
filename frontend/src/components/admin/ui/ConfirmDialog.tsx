@@ -20,7 +20,7 @@ export interface ConfirmDialogProps {
   /** "error" for destructive actions (suspend, ban, cancel, refund…). */
   tone?: "primary" | "error" | "warning" | "success" | "info" | "dark";
   /** Ask for a reason (recorded in the audit log). */
-  reason?: { label?: string; required: boolean; minLength?: number; maxLength?: number };
+  reason?: { label?: string; required: boolean; minLength?: number; maxLength?: number; /** Text under the box (default: "Recorded in the audit log."). */ help?: string };
   /** Extra form fields above the reason. */
   children?: ReactNode;
   /** Return a promise; the dialog shows a spinner and stays open with the error if it fails. */
@@ -96,7 +96,7 @@ export default function ConfirmDialog({
               minRows={2}
               fullWidth
               inputProps={{ maxLength: reason.maxLength ?? 500 }}
-              helperText="Recorded in the audit log."
+              helperText={reason.help ?? "Recorded in the audit log."}
             />
           </MDBox>
         )}

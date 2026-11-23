@@ -201,7 +201,11 @@ export interface RelatedColumn<T> {
   label: string;
   render: (row: T) => ReactNode;
   align?: "left" | "right" | "center";
+  /** Hide this column on phones (keep the 2–3 columns that matter most visible). */
+  hideOnMobile?: boolean;
 }
+
+const cellDisplay = (hide?: boolean) => (hide ? { xs: "none", sm: "table-cell" } : "table-cell");
 
 /** A compact table of linked records (a user's deposits, an advisor's clients…). Rows open their own page. */
 export function RelatedTable<T>({ title, description, rows, columns, rowHref, empty = "Nothing yet.", action, getKey }: {
@@ -223,11 +227,11 @@ export function RelatedTable<T>({ title, description, rows, columns, rowHref, em
         </MDBox>
       ) : (
         <MDBox sx={{ overflowX: "auto" }}>
-          <Table size="small" sx={{ display: "table", minWidth: 480 }}>
+          <Table size="small" sx={{ display: "table", minWidth: { xs: 0, sm: 480 } }}>
             <TableHead sx={{ display: "table-header-group" }}>
               <TableRow>
                 {columns.map((c) => (
-                  <TableCell key={c.label} align={c.align ?? "left"} sx={{ py: 1.25, px: 3, fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", opacity: 0.7, whiteSpace: "nowrap" }}>
+                  <TableCell key={c.label} align={c.align ?? "left"} sx={{ display: cellDisplay(c.hideOnMobile), py: 1.25, px: { xs: 2, sm: 3 }, fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", opacity: 0.7, whiteSpace: "nowrap" }}>
                     {c.label}
                   </TableCell>
                 ))}
@@ -244,7 +248,7 @@ export function RelatedTable<T>({ title, description, rows, columns, rowHref, em
                     sx={href ? { cursor: "pointer" } : undefined}
                   >
                     {columns.map((c) => (
-                      <TableCell key={c.label} align={c.align ?? "left"} sx={{ py: 1.25, px: 3, fontSize: "0.8125rem" }}>
+                      <TableCell key={c.label} align={c.align ?? "left"} sx={{ display: cellDisplay(c.hideOnMobile), py: 1.25, px: { xs: 2, sm: 3 }, fontSize: "0.8125rem" }}>
                         {c.render(row) ?? "—"}
                       </TableCell>
                     ))}

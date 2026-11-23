@@ -169,7 +169,7 @@ export default function AdminLLCPage() {
       header: '',
       align: 'right',
       render: (app) => (
-        <MDButton variant="text" color={accent} size="small" onClick={() => openEdit(app)} title="Edit LLC Application">
+        <MDButton variant="text" color={accent} size="small" onClick={(event: React.MouseEvent) => { event.stopPropagation(); openEdit(app); }} title="Edit LLC Application">
           <Icon>edit</Icon>
           <MDBox component="span" sx={{ display: { xs: 'none', md: 'inline' } }}>&nbsp;Review</MDBox>
         </MDButton>
@@ -188,6 +188,7 @@ export default function AdminLLCPage() {
           columns={columns}
           rows={paginatedApplications}
           rowKey={(app) => app.id}
+          rowHref={(app) => `/admin/llc/${app.id}`}
           isLoading={loading && applications.length === 0}
           isFetching={loading && applications.length > 0}
           error={applications.length === 0 ? loadError : null}

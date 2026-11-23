@@ -249,6 +249,10 @@ router.get('/:id', authenticate, async (req, res) => {
       }
     }
     delete application.einEncrypted;
+    // An admin seeing a client's full EIN is recorded, like revealing KYC tax IDs.
+    if (ein && req.user.role === 'admin') {
+      logActivity(req.user.id, 'LLC_EIN_VIEWED', { applicationId: String(application._id), llcId: String(application._id) }, req);
+    }
     res.json({ application: { ...mapApplication(application), ein } });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch application' });

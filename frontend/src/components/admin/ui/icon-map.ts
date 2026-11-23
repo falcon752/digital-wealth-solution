@@ -137,6 +137,10 @@ import {
   Wrench01Icon,
   IdIcon,
   Location01Icon,
+  Download01Icon,
+  Exchange01Icon,
+  NoteEditIcon,
+  QrCodeIcon,
 } from "@hugeicons/core-free-icons";
 
 export type HugeIcon = typeof Home01Icon;
@@ -317,6 +321,15 @@ export const ICONS: Record<string, HugeIcon> = {
   opacity: PaintBoardIcon,
   margin: Layers01Icon,
   transform: Layers01Icon,
+  // Used by the admin details pages.
+  download: Download01Icon,
+  file_download: Download01Icon,
+  currency_exchange: Exchange01Icon,
+  qr_code: QrCodeIcon,
+  qr_code_2: QrCodeIcon,
+  edit_note: NoteEditIcon,
+  north_east: ArrowUpRight01Icon,
+  receipt_long: Invoice01Icon,
 };
 
 /** Shown for a name with no match, so a missing icon is visible rather than blank. */

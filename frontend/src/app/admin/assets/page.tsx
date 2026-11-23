@@ -71,7 +71,7 @@ export default function AdminAssetsPage() {
     setEditing(a);
     setForm({ name: a.name, symbol: a.symbol, walletAddress: a.walletAddress, network: a.network ?? '', memo: a.memo ?? '', minDeposit: String(a.minDeposit ?? 0) });
     setQrFile(null);
-    setQrPreview(a.qrCodeUrl || null);
+    setQrPreview(a.qrCodeUrl || a.qrCodeImage || null);
     setShowModal(true);
   };
 
@@ -165,8 +165,8 @@ export default function AdminAssetsPage() {
       key: 'qr',
       header: 'QR',
       render: (a) =>
-        a.qrCodeUrl ? (
-          <MDBox component="img" src={`${API_ORIGIN}${a.qrCodeUrl}`} alt="QR" width="2.5rem" height="2.5rem" borderRadius="md" bgColor="white" display="block" sx={{ objectFit: 'contain' }} />
+        (a.qrCodeUrl || a.qrCodeImage) ? (
+          <MDBox component="img" src={`${API_ORIGIN}${a.qrCodeUrl || a.qrCodeImage}`} alt="QR" width="2.5rem" height="2.5rem" borderRadius="md" bgColor="white" display="block" sx={{ objectFit: 'contain' }} />
         ) : (
           <MDBox width="2.5rem" height="2.5rem" borderRadius="md" bgColor="grey-200" display="grid" sx={{ placeItems: 'center' }}>
             <Icon fontSize="small" sx={{ color: 'text.disabled' }}>image</Icon>
@@ -181,12 +181,12 @@ export default function AdminAssetsPage() {
       render: (a) => (
         <MDBox display="flex" justifyContent="flex-end" gap={0.5}>
           <Tooltip title="Edit asset">
-            <MDButton variant="text" color="dark" size="small" iconOnly onClick={() => openEdit(a)} aria-label={`Edit ${a.name}`}>
+            <MDButton variant="text" color="dark" size="small" iconOnly onClick={(event: React.MouseEvent) => { event.stopPropagation(); openEdit(a); }} aria-label={`Edit ${a.name}`}>
               <Icon>edit</Icon>
             </MDButton>
           </Tooltip>
           <Tooltip title="Delete asset">
-            <MDButton variant="text" color="error" size="small" iconOnly onClick={() => setDeleteTarget(a)} aria-label={`Delete ${a.name}`}>
+            <MDButton variant="text" color="error" size="small" iconOnly onClick={(event: React.MouseEvent) => { event.stopPropagation(); setDeleteTarget(a); }} aria-label={`Delete ${a.name}`}>
               <Icon>delete</Icon>
             </MDButton>
           </Tooltip>
@@ -214,6 +214,7 @@ export default function AdminAssetsPage() {
           columns={columns}
           rows={paginatedAssets}
           rowKey={(a) => a.id}
+          rowHref={(a) => `/admin/assets/${a.id}`}
           isLoading={loading && assets.length === 0}
           isFetching={loading && assets.length > 0}
           emptyMessage="No assets yet. Add your first crypto asset."

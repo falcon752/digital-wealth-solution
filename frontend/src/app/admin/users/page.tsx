@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, type ChangeEvent } from 'react';
+import { useEffect, useState, useCallback, type ChangeEvent, type MouseEvent } from 'react';
 import Link from 'next/link';
 import Grid from '@mui/material/Grid';
 import IconButton from '@mui/material/IconButton';
@@ -186,7 +186,8 @@ export default function AdminUsersPage() {
       header: '',
       align: 'right',
       render: (u) => (
-        <MDBox display="flex" flexDirection={{ xs: 'column', md: 'row' }} alignItems="center" justifyContent="flex-end" gap={0.5}>
+        // The row opens the user's page; these buttons do their own thing instead.
+        <MDBox display="flex" flexDirection={{ xs: 'column', md: 'row' }} alignItems="center" justifyContent="flex-end" gap={0.5} onClick={(e: MouseEvent) => e.stopPropagation()}>
           <Tooltip title="Edit balance">
             <IconButton size="small" onClick={() => openBalance(u)} aria-label="Edit balance">
               <Icon fontSize="small">paid</Icon>
@@ -229,6 +230,7 @@ export default function AdminUsersPage() {
           columns={columns}
           rows={paginatedUsers}
           rowKey={(u) => String(u.id)}
+          rowHref={(u) => `/admin/users/${u.id}`}
           isLoading={loading && !loadedOnce}
           isFetching={loading}
           error={loadError}

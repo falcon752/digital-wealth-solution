@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useRef, type ChangeEvent, type Synthe
 import { useSearchParams } from 'next/navigation';
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
-import { loansAPI } from '@/lib/api';
+import { earnsAPI, loansAPI } from '@/lib/api';
 import AdminPage from '@/components/admin/shell/AdminPage';
 import DataTableCard, { type Column } from '@/components/admin/ui/DataTableCard';
 import AdminDialog from '@/components/admin/ui/AdminDialog';
@@ -16,6 +16,7 @@ import MDBox from '@/components/admin/components/MDBox';
 import MDButton from '@/components/admin/components/MDButton';
 import MDInput from '@/components/admin/components/MDInput';
 import MDTypography from '@/components/admin/components/MDTypography';
+import { fmtRate, stopRowClick } from '@/components/admin/money/MoneyKit';
 import { formatDate } from '@/lib/utils';
 import toast from 'react-hot-toast';
 
@@ -29,6 +30,59 @@ const PAGE_SIZE = 10;
 type Loan = any;
 
 const loanId = (l: Loan): string => l.id || l._id;
+
+/** An earn (savings) deposit as GET /api/earns returns it to an admin (the user is populated). */
+interface EarnDeposit {
+  id: string;
+  userId?: { firstName?: string; lastName?: string; email?: string } | null;
+  asset: string;
+  amount: number;
+  apy: number;
+  monthlyReward: number;
+  term: string;
+  status: string;
+  createdAt: string;
+}
+
+const EARN_COLUMNS: Column<EarnDeposit>[] = [
+  {
+    key: 'user',
+    header: 'User',
+    render: (e) => (
+      <MDBox display="flex" alignItems="center" gap={1.5}>
+        <PersonAvatar name={`${e.userId?.firstName ?? ''} ${e.userId?.lastName ?? ''}`} email={e.userId?.email} photoUrl={null} />
+        <MDBox lineHeight={1.2} minWidth={0}>
+          <MDTypography variant="button" fontWeight="medium" display="block">{e.userId?.firstName} {e.userId?.lastName}</MDTypography>
+          <MDTypography variant="caption" color="text">{e.userId?.email}</MDTypography>
+          {/* Phones: the other columns are hidden. */}
+          <MDBox display={{ xs: 'flex', md: 'none' }} alignItems="center" gap={1} flexWrap="wrap" mt={1}>
+            <MDTypography variant="caption" fontWeight="bold" color="info">{e.amount} {e.asset}</MDTypography>
+            <StatusBadge status={e.status} />
+          </MDBox>
+        </MDBox>
+      </MDBox>
+    ),
+  },
+  {
+    key: 'amount',
+    header: 'Deposit',
+    hideOnMobile: true,
+    render: (e) => <MDTypography variant="button" fontWeight="bold" color="info" whiteSpace="nowrap">{e.amount} {e.asset}</MDTypography>,
+  },
+  {
+    key: 'terms',
+    header: 'APY / Term',
+    hideOnMobile: true,
+    render: (e) => (
+      <MDBox lineHeight={1.4} whiteSpace="nowrap">
+        <MDBox>APY: {fmtRate(e.apy)}</MDBox>
+        <MDBox>{e.term}</MDBox>
+      </MDBox>
+    ),
+  },
+  { key: 'status', header: 'Status', hideOnMobile: true, render: (e) => <StatusBadge status={e.status} /> },
+  { key: 'date', header: 'Date', hideOnMobile: true, render: (e) => formatDate(e.createdAt) },
+];
 
 export default function AdminLoansPage() {
   const searchParams = useSearchParams();
@@ -47,6 +101,22 @@ export default function AdminLoansPage() {
 
   const didAutoOpen = useRef(false);
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Earn (savings) deposits: listed under the loans, each opening /admin/loans/<id>?kind=earn.
+  const [earns, setEarns] = useState<EarnDeposit[]>([]);
+  const [earnsLoading, setEarnsLoading] = useState(true);
+  const [earnsError, setEarnsError] = useState<unknown>(null);
+  const [earnPage, setEarnPage] = useState(1);
+  const loadEarns = useCallback(() => {
+    setEarnsLoading(true);
+    setEarnsError(null);
+    earnsAPI.list()
+      .then((r) => setEarns(r.data.earns ?? []))
+      .catch((err: unknown) => setEarnsError(err))
+      .finally(() => setEarnsLoading(false));
+  }, []);
+  useEffect(loadEarns, [loadEarns]);
+  const earnPages = Math.max(1, Math.ceil(earns.length / PAGE_SIZE));
 
   const load = useCallback(() => {
     setLoading(true);
@@ -173,7 +243,7 @@ export default function AdminLoansPage() {
                 {l.collateralAmount} {l.collateralAsset} collateral · LTV {(l.ltv * 100).toFixed(0)}% · APR {(l.apr * 100).toFixed(0)}%
               </MDTypography>
               {l.status === 'pending' && (
-                <MDBox display="flex" gap={1} mt={1}>{actionButtons(l)}</MDBox>
+                <MDBox display="flex" gap={1} mt={1} onClick={stopRowClick}>{actionButtons(l)}</MDBox>
               )}
             </MDBox>
           </MDBox>
@@ -224,7 +294,7 @@ export default function AdminLoansPage() {
       align: 'right',
       hideOnMobile: true,
       render: (l) => (
-        <MDBox display="flex" flexDirection="column" alignItems="stretch" gap={1}>{actionButtons(l)}</MDBox>
+        <MDBox display="flex" flexDirection="column" alignItems="stretch" gap={1} onClick={stopRowClick}>{actionButtons(l)}</MDBox>
       ),
     },
   ];
@@ -274,6 +344,7 @@ export default function AdminLoansPage() {
           columns={columns}
           rows={paginatedLoans}
           rowKey={loanId}
+          rowHref={(l) => `/admin/loans/${loanId(l)}`}
           isLoading={loading && !loadedOnce}
           isFetching={loading}
           error={loadError}
@@ -285,6 +356,29 @@ export default function AdminLoansPage() {
             hasNext: currentPage < totalPages,
             onPrevious: () => setCurrentPage((p) => Math.max(1, p - 1)),
             onNext: () => setCurrentPage((p) => Math.min(totalPages, p + 1)),
+          }}
+        />
+      </MDBox>
+
+      <MDBox mt={6}>
+        <DataTableCard
+          title="Earn deposits"
+          subtitle={earns.length ? `${earns.length} savings requests · open one to activate or reject it` : 'Savings (earn) requests from users'}
+          columns={EARN_COLUMNS}
+          rows={earns.slice((earnPage - 1) * PAGE_SIZE, earnPage * PAGE_SIZE)}
+          rowKey={(e) => e.id}
+          rowHref={(e) => `/admin/loans/${e.id}?kind=earn`}
+          isLoading={earnsLoading && earns.length === 0}
+          isFetching={earnsLoading && earns.length > 0}
+          error={earnsError}
+          onRetry={loadEarns}
+          emptyMessage="No earn deposits yet."
+          paging={{
+            page: earnPage,
+            hasPrevious: earnPage > 1,
+            hasNext: earnPage < earnPages,
+            onPrevious: () => setEarnPage((p) => Math.max(1, p - 1)),
+            onNext: () => setEarnPage((p) => Math.min(earnPages, p + 1)),
           }}
         />
       </MDBox>

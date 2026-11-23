@@ -142,7 +142,7 @@ export default function AdminConsultationsPage() {
       align: 'right',
       render: (s) => (
         <Tooltip title="Review submission">
-          <MDButton variant="text" color={accent} size="small" onClick={() => openEdit(s)}>
+          <MDButton variant="text" color={accent} size="small" onClick={(event: React.MouseEvent) => { event.stopPropagation(); openEdit(s); }}>
             <Icon>edit</Icon>
             <MDBox component="span" sx={{ display: { xs: 'none', md: 'inline' } }}>&nbsp;Review</MDBox>
           </MDButton>
@@ -183,6 +183,7 @@ export default function AdminConsultationsPage() {
           columns={columns}
           rows={paginatedSubmissions}
           rowKey={(s) => s.id}
+          rowHref={(s) => `/admin/consultations/${s.id}`}
           isLoading={loading && submissions.length === 0}
           isFetching={loading && submissions.length > 0}
           error={submissions.length === 0 ? loadError : null}

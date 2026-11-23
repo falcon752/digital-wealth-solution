@@ -60,7 +60,10 @@ const pulse = keyframes`
 `;
 
 function parseDetails(log: ActivityLog): Record<string, unknown> {
-  try { return log.details ? JSON.parse(log.details as unknown as string) : {}; } catch { return {}; }
+  // The API sends details as an object; older code stored a JSON string.
+  const details = log.details as unknown;
+  if (details && typeof details === 'object') return details as Record<string, unknown>;
+  try { return typeof details === 'string' ? JSON.parse(details) : {}; } catch { return {}; }
 }
 
 const columns: Column<ActivityLog>[] = [
@@ -194,6 +197,7 @@ export default function AdminActivityPage() {
           columns={columns}
           rows={logs}
           rowKey={(log) => rowKeys.get(log) ?? log.id}
+          rowHref={(log) => `/admin/activity/${log.id}`}
           isLoading={loading && !loaded}
           isFetching={loading}
           error={error}

@@ -22,6 +22,7 @@ import MDBox from '@/components/admin/components/MDBox';
 import MDButton from '@/components/admin/components/MDButton';
 import MDInput from '@/components/admin/components/MDInput';
 import MDTypography from '@/components/admin/components/MDTypography';
+import { stopRowClick } from '@/components/admin/money/MoneyKit';
 import { humanize } from '@/components/admin/lib/format';
 import { paymentProofAPI } from '@/lib/api';
 import { getApiError } from '@/lib/apiError';
@@ -262,7 +263,7 @@ export default function AdminPaymentProofsPage() {
       align: 'right',
       render: (proof) => (
         <Tooltip title="Review payment proof">
-          <IconButton size="small" color="info" onClick={() => open(proof)} aria-label="Review payment proof">
+          <IconButton size="small" color="info" onClick={(event) => { stopRowClick(event); open(proof); }} aria-label="Review payment proof">
             <Icon fontSize="small">visibility</Icon>
           </IconButton>
         </Tooltip>
@@ -302,6 +303,7 @@ export default function AdminPaymentProofsPage() {
           columns={columns}
           rows={visible}
           rowKey={(proof) => proof.id}
+          rowHref={(proof) => `/admin/payment-proofs/${proof.id}`}
           isLoading={loading}
           emptyMessage="No payment proofs match this view."
           toolbar={(

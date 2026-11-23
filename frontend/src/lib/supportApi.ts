@@ -43,7 +43,14 @@ export interface TicketCounts {
 }
 
 export interface AdvisorWithStats extends AdvisorAccount {
-  stats: { clients: number; tickets: TicketCounts; resolvedThisMonth: number; lastSignInAt: string | null };
+  stats: {
+    clients: number;
+    tickets: TicketCounts;
+    resolvedThisMonth: number;
+    lastSignInAt: string | null;
+    /** Only on GET /admin/advisors/:id: average time to the advisor's first reply. */
+    firstReply?: { averageMs: number | null; tickets: number };
+  };
 }
 
 export interface ClientSummary {
@@ -114,6 +121,17 @@ export interface ActivityRow {
   createdAt: string;
 }
 
+/** An activity log entry on an admin details page (who did it, from where). */
+export interface AdminActivityEntry {
+  id: string;
+  action: string;
+  details: Record<string, unknown> | null;
+  ipAddress: string | null;
+  userAgent: string | null;
+  createdAt: string;
+  actor: { id: string; name: string | null; email: string; role: string } | null;
+}
+
 export type TicketQuery = {
   status?: string;
   category?: string;
@@ -164,7 +182,7 @@ export const adminAdvisorsAPI = {
   list: (params: { search?: string; status?: string } = {}) =>
     api.get<{ advisors: AdvisorWithStats[]; summary: { unassignedTickets: number; unassignedClients: number } }>('/admin/advisors', { params: clean(params) }),
   get: (id: string) =>
-    api.get<{ advisor: AdvisorWithStats; clients: ClientSummary[]; tickets: Ticket[]; activity: ActivityRow[] }>(`/admin/advisors/${id}`),
+    api.get<{ advisor: AdvisorWithStats; clients: ClientSummary[]; tickets: Ticket[]; ticketTotal: number; activity: AdminActivityEntry[] }>(`/admin/advisors/${id}`),
   create: (data: FormData) =>
     api.post<{ advisor: AdvisorWithStats }>('/admin/advisors', data, { headers: { 'Content-Type': 'multipart/form-data' } }),
   update: (id: string, data: FormData) =>
@@ -177,7 +195,7 @@ export const adminAdvisorsAPI = {
   assignClient: (userId: string, advisorId: string | null) => api.put(`/admin/advisors/clients/${userId}`, { advisorId }),
   tickets: (params: TicketQuery = {}) =>
     api.get<{ tickets: Ticket[]; total: number; page: number; limit: number; counts: TicketCounts }>('/admin/advisors/tickets', { params: clean(params) }),
-  ticket: (id: string) => api.get<{ ticket: Ticket }>(`/admin/advisors/tickets/${id}`),
+  ticket: (id: string) => api.get<{ ticket: Ticket; activity: AdminActivityEntry[] }>(`/admin/advisors/tickets/${id}`),
   reply: (id: string, message: string, status?: TicketStatus) =>
     api.post<{ ticket: Ticket }>(`/admin/advisors/tickets/${id}/messages`, clean({ message, status })),
   updateTicket: (id: string, data: { advisorId?: string | null; status?: TicketStatus; priority?: TicketPriority }) =>

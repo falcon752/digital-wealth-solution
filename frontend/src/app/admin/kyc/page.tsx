@@ -290,7 +290,7 @@ export default function AdminKYCPage() {
       align: 'right',
       render: (submission) => (
         <Tooltip title="Review verification">
-          <IconButton size="small" aria-label="Review verification" onClick={() => openReview(submission)}>
+          <IconButton size="small" aria-label="Review verification" onClick={(event) => { event.stopPropagation(); openReview(submission); }}>
             <Icon>visibility</Icon>
           </IconButton>
         </Tooltip>
@@ -348,6 +348,7 @@ export default function AdminKYCPage() {
               columns={columns}
               rows={visibleSubmissions}
               rowKey={(submission) => submission.id}
+              rowHref={(submission) => `/admin/kyc/${submission.id}`}
               isLoading={loading}
               emptyMessage={submissions.length ? (filter === 'pending' ? 'Nothing is waiting for review.' : `No ${filter} verifications.`) : 'No verification submissions yet.'}
               toolbar={

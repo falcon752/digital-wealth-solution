@@ -2,37 +2,29 @@
 
 /**
  * Support tickets, all of them: filter by advisor (or the unassigned queue), status, category and
- * search; open a ticket to read the conversation, reply as DWP Support, change its status or
- * priority, or hand it to another advisor. Links: ?ticket=<id>, ?advisorId=<id>, ?unassigned=1.
+ * search. Clicking a ticket opens its page (/admin/support/<id>) to read the conversation, reply as
+ * DWP Support, change its status or priority, or hand it to another advisor.
+ * Links: ?advisorId=<id>, ?unassigned=1 (old ?ticket=<id> links forward to the ticket's page).
  */
-import { useCallback, useEffect, useState, type ChangeEvent } from 'react';
-import Divider from '@mui/material/Divider';
+import { useCallback, useEffect, useState, type MouseEvent } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import Grid from '@mui/material/Grid';
-import MenuItem from '@mui/material/MenuItem';
-import Skeleton from '@mui/material/Skeleton';
-import toast from 'react-hot-toast';
 import AdminPage from '@/components/admin/shell/AdminPage';
-import AdminDialog from '@/components/admin/ui/AdminDialog';
 import DataTableCard, { type Column } from '@/components/admin/ui/DataTableCard';
-import DetailGrid from '@/components/admin/ui/DetailGrid';
 import { SearchField, SelectFilter } from '@/components/admin/ui/Filters';
-import Icon from '@/components/admin/ui/Icon';
 import PersonAvatar from '@/components/admin/ui/PersonAvatar';
 import StatCard from '@/components/admin/ui/StatCard';
 import StatusBadge from '@/components/admin/ui/StatusBadge';
-import { useAccent } from '@/components/admin/ui/useAccent';
 import MDBox from '@/components/admin/components/MDBox';
 import MDButton from '@/components/admin/components/MDButton';
-import MDInput from '@/components/admin/components/MDInput';
 import MDTypography from '@/components/admin/components/MDTypography';
 import { humanize } from '@/components/admin/lib/format';
-import { getApiError } from '@/lib/apiError';
 import {
-  adminAdvisorsAPI, categoryLabel, messageTime, STATUS_LABELS, TICKET_CATEGORIES, timeAgo, uploadUrl,
-  type AdvisorWithStats, type Ticket, type TicketCounts, type TicketPriority, type TicketStatus,
+  adminAdvisorsAPI, categoryLabel, TICKET_CATEGORIES, timeAgo, uploadUrl,
+  type AdvisorWithStats, type Ticket, type TicketCounts,
 } from '@/lib/supportApi';
 
-type Input = ChangeEvent<HTMLInputElement>;
 const PAGE_SIZE = 20;
 const UNASSIGNED = 'unassigned';
 const STATUS_OPTIONS = [
@@ -44,159 +36,10 @@ const STATUS_OPTIONS = [
 ] as const;
 type StatusFilter = (typeof STATUS_OPTIONS)[number]['value'];
 
-/* ─── One ticket ───────────────────────────────────────────────────────────── */
-
-function TicketDialog({ ticketId, advisors, onClose, onChanged }: {
-  ticketId: string | null; advisors: AdvisorWithStats[]; onClose: () => void; onChanged: () => void;
-}) {
-  const accent = useAccent();
-  const [ticket, setTicket] = useState<Ticket | null>(null);
-  const [reply, setReply] = useState('');
-  const [sending, setSending] = useState(false);
-  const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    if (!ticketId) return;
-    setTicket(null);
-    setReply('');
-    adminAdvisorsAPI.ticket(ticketId)
-      .then((res) => setTicket(res.data.ticket))
-      .catch((err) => { toast.error(getApiError(err, 'Failed to load the ticket')); onClose(); });
-  }, [ticketId, onClose]);
-
-  const update = async (data: { advisorId?: string | null; status?: TicketStatus; priority?: TicketPriority }) => {
-    if (!ticket) return;
-    setSaving(true);
-    try {
-      const res = await adminAdvisorsAPI.updateTicket(ticket.id, data);
-      setTicket((t) => (t ? { ...res.data.ticket, client: t.client, clientAdvisorId: t.clientAdvisorId } : res.data.ticket));
-      toast.success(data.advisorId !== undefined ? 'Ticket reassigned' : 'Ticket updated');
-      onChanged();
-    } catch (err) {
-      toast.error(getApiError(err, 'Failed to update the ticket'));
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const send = async (status?: TicketStatus) => {
-    if (!ticket || !reply.trim()) return;
-    setSending(true);
-    try {
-      const res = await adminAdvisorsAPI.reply(ticket.id, reply.trim(), status);
-      setTicket((t) => (t ? { ...res.data.ticket, client: t.client, clientAdvisorId: t.clientAdvisorId } : res.data.ticket));
-      setReply('');
-      toast.success('Reply sent to the client');
-      onChanged();
-    } catch (err) {
-      toast.error(getApiError(err, 'Failed to send the reply'));
-    } finally {
-      setSending(false);
-    }
-  };
-
-  const activeAdvisors = advisors.filter((a) => a.isActive || a.id === ticket?.advisor?.id);
-
-  return (
-    <AdminDialog isOpen={Boolean(ticketId)} onClose={onClose} title={ticket ? `${ticket.reference} · ${ticket.subject}` : 'Ticket'} size="xl">
-      {!ticket ? (
-        <MDBox>{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} height={44} />)}</MDBox>
-      ) : (
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={8}>
-            <MDBox display="flex" flexDirection="column" gap={1.5}>
-              {(ticket.messages || []).map((m) => {
-                const fromClient = m.authorRole === 'client';
-                return (
-                  <MDBox key={m.id} display="flex" justifyContent={fromClient ? 'flex-start' : 'flex-end'}>
-                    <MDBox
-                      maxWidth="80%"
-                      px={2}
-                      py={1.25}
-                      borderRadius="lg"
-                      sx={({ palette, functions: { rgba } }) => ({
-                        backgroundColor: fromClient ? rgba(palette.grey[500], 0.12) : rgba(palette[m.authorRole === 'admin' ? accent : 'info'].main, 0.12),
-                      })}
-                    >
-                      <MDTypography variant="caption" fontWeight="bold" display="block">
-                        {m.authorName} <MDTypography component="span" variant="caption" color="text" fontWeight="regular">· {humanize(m.authorRole)} · {messageTime(m.createdAt)}</MDTypography>
-                      </MDTypography>
-                      <MDTypography variant="button" fontWeight="regular" display="block" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', mt: 0.5 }}>
-                        {m.body}
-                      </MDTypography>
-                    </MDBox>
-                  </MDBox>
-                );
-              })}
-            </MDBox>
-            <Divider sx={{ my: 2.5 }} />
-            <MDInput
-              fullWidth
-              multiline
-              minRows={3}
-              label="Reply as DWP Support"
-              value={reply}
-              onChange={(e: Input) => setReply(e.target.value)}
-              inputProps={{ maxLength: 5000 }}
-              helperText="The client sees “DWP Support” and gets the reply by email."
-            />
-            <MDBox display="flex" justifyContent="flex-end" gap={1} mt={1.5} flexWrap="wrap">
-              {(ticket.status === 'open' || ticket.status === 'in_progress') && (
-                <MDButton variant="outlined" color={accent} onClick={() => void send('resolved')} disabled={sending || !reply.trim()}>Reply &amp; resolve</MDButton>
-              )}
-              <MDButton variant="gradient" color={accent} onClick={() => void send()} disabled={sending || !reply.trim()}>
-                <Icon>send</Icon>&nbsp;{sending ? 'Sending…' : 'Send reply'}
-              </MDButton>
-            </MDBox>
-          </Grid>
-
-          <Grid item xs={12} md={4}>
-            <MDBox display="flex" alignItems="center" gap={1.5} mb={2}>
-              <PersonAvatar name={ticket.client?.name} email={ticket.client?.email} photoUrl={uploadUrl(ticket.client?.photo)} />
-              <MDBox lineHeight={1.2} minWidth={0}>
-                <MDTypography variant="button" fontWeight="medium" display="block">{ticket.client?.name}</MDTypography>
-                <MDTypography variant="caption" color="text" display="block" noWrap>{ticket.client?.email}</MDTypography>
-              </MDBox>
-            </MDBox>
-            <DetailGrid items={[
-              { label: 'Phone', value: ticket.client?.phone, span: 12 },
-              { label: 'Country', value: [ticket.client?.state, ticket.client?.country].filter(Boolean).join(', '), span: 6 },
-              { label: 'KYC', value: <StatusBadge status={ticket.client?.kycStatus} />, span: 6 },
-              { label: 'Category', value: categoryLabel(ticket.category), span: 6 },
-              { label: 'Opened', value: messageTime(ticket.createdAt), span: 6 },
-            ]} />
-            <MDBox display="flex" flexDirection="column" gap={2} mt={3}>
-              <MDInput
-                select
-                fullWidth
-                label="Advisor"
-                value={ticket.advisor?.id || UNASSIGNED}
-                disabled={saving}
-                onChange={(e: Input) => void update({ advisorId: e.target.value === UNASSIGNED ? null : e.target.value })}
-                SelectProps={{ sx: { height: 44 } }}
-                helperText={ticket.clientAdvisorId && ticket.clientAdvisorId !== ticket.advisor?.id ? "Not the client's own advisor." : undefined}
-              >
-                <MenuItem value={UNASSIGNED}>Unassigned (admin team)</MenuItem>
-                {activeAdvisors.map((a) => <MenuItem key={a.id} value={a.id}>{a.name}{a.isActive ? '' : ' (deactivated)'}</MenuItem>)}
-              </MDInput>
-              <MDInput select fullWidth label="Status" value={ticket.status} disabled={saving} onChange={(e: Input) => void update({ status: e.target.value as TicketStatus })} SelectProps={{ sx: { height: 44 } }}>
-                {(Object.keys(STATUS_LABELS) as TicketStatus[]).map((s) => <MenuItem key={s} value={s}>{STATUS_LABELS[s]}</MenuItem>)}
-              </MDInput>
-              <MDInput select fullWidth label="Priority" value={ticket.priority} disabled={saving} onChange={(e: Input) => void update({ priority: e.target.value as TicketPriority })} SelectProps={{ sx: { height: 44 } }}>
-                <MenuItem value="normal">Normal</MenuItem>
-                <MenuItem value="high">High</MenuItem>
-              </MDInput>
-            </MDBox>
-          </Grid>
-        </Grid>
-      )}
-    </AdminDialog>
-  );
-}
-
 /* ─── Page ─────────────────────────────────────────────────────────────────── */
 
 export default function AdminSupportPage() {
+  const router = useRouter();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [total, setTotal] = useState(0);
   const [counts, setCounts] = useState<TicketCounts | null>(null);
@@ -209,17 +52,17 @@ export default function AdminSupportPage() {
   const [category, setCategory] = useState<string>('');
   const [advisor, setAdvisor] = useState<string>('');
   const [page, setPage] = useState(1);
-  const [openId, setOpenId] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const query = new URLSearchParams(window.location.search);
-    if (query.get('ticket')) setOpenId(query.get('ticket'));
+    const ticket = query.get('ticket');
+    if (ticket && /^[a-f\d]{24}$/i.test(ticket)) { router.replace(`/admin/support/${ticket}`); return; }
     if (query.get('unassigned') === '1') setAdvisor(UNASSIGNED);
     else if (query.get('advisorId')) { setAdvisor(query.get('advisorId') || ''); setStatus(''); }
     setReady(true);
     adminAdvisorsAPI.list().then((res) => setAdvisors(res.data.advisors)).catch(() => {});
-  }, []);
+  }, [router]);
 
   const load = useCallback(() => {
     if (!ready) return;
@@ -235,7 +78,6 @@ export default function AdminSupportPage() {
   }, [ready, status, category, search, advisor, page]);
   useEffect(load, [load]);
 
-  const closeTicket = useCallback(() => setOpenId(null), []);
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   const columns: Column<Ticket>[] = [
@@ -281,7 +123,7 @@ export default function AdminSupportPage() {
       key: 'open',
       header: '',
       align: 'right',
-      render: (t) => <MDButton variant="text" color="info" size="small" onClick={() => setOpenId(t.id)}>Open</MDButton>,
+      render: (t) => <MDButton component={Link} href={`/admin/support/${t.id}`} onClick={(e: MouseEvent) => e.stopPropagation()} variant="text" color="info" size="small">Open</MDButton>,
     },
   ];
 
@@ -311,6 +153,7 @@ export default function AdminSupportPage() {
           columns={columns}
           rows={tickets}
           rowKey={(t) => t.id}
+          rowHref={(t) => `/admin/support/${t.id}`}
           isLoading={loading && !loadedOnce}
           isFetching={loading}
           error={error}
@@ -340,8 +183,6 @@ export default function AdminSupportPage() {
           }}
         />
       </MDBox>
-
-      <TicketDialog ticketId={openId} advisors={advisors} onClose={closeTicket} onChanged={load} />
     </AdminPage>
   );
 }
