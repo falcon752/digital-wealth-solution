@@ -8,6 +8,7 @@ import DashboardSidebar from '@/components/layout/DashboardSidebar';
 import MobileBottomNav from '@/components/layout/MobileBottomNav';
 import WelcomePopup from '@/components/WelcomePopup';
 import { clientFontClasses } from './fonts';
+import { ActionsProvider } from '@/components/client/actions';
 
 // DirectStay's Fira Sans for the whole client dashboard. The class also goes on <html> so dialogs
 // and toasts rendered outside this tree get the font too.
@@ -70,6 +71,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <SidebarProvider>
+      <ActionsProvider>
       <div className={`${CLIENT_CLASSES} flex h-screen overflow-hidden bg-cd-page text-cd-text`}>
         <DashboardSidebar />
         <main className="min-w-0 flex-1 overflow-y-auto bg-cd-page pb-20 lg:pb-0">
@@ -78,6 +80,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <MobileBottomNav />
       </div>
       <WelcomePopup />
+      </ActionsProvider>
     </SidebarProvider>
   );
 }

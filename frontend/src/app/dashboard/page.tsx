@@ -13,6 +13,7 @@ import { usersAPI, assetsAPI } from '@/lib/api';
 import { formatCurrency } from '@/lib/utils';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import AssetTable, { type HoldingRow } from '@/components/client/AssetTable';
+import { useActions, type ActionKind } from '@/components/client/actions';
 import { ActionButton, Card, Change, EmptyState, Money, PageHeader, Skeleton, shortId } from '@/components/client/ui';
 
 type DashboardStats = {
@@ -110,11 +111,13 @@ export default function AnchorageAccountPage() {
 
   const accountName = [user?.firstName, user?.lastName].filter(Boolean).join(' ') || 'Digital Wealth Partners';
   const accountId = user?.id ? shortId(String(user.id)) : '';
+  const { openAction } = useActions();
 
-  const actions = [
-    { label: 'Convert', href: '/dashboard/swap', icon: ArrowLeftRight },
-    { label: 'Buy', href: '/dashboard/buy', icon: Zap },
-    { label: 'Withdraw', href: '/dashboard/withdraw', icon: ArrowUpFromLine },
+  // Each action opens as a pop-up over this page (see components/client/actions.tsx).
+  const actions: { label: string; kind: ActionKind; icon: typeof Zap }[] = [
+    { label: 'Convert', kind: 'convert', icon: ArrowLeftRight },
+    { label: 'Buy', kind: 'buy', icon: Zap },
+    { label: 'Withdraw', kind: 'withdraw', icon: ArrowUpFromLine },
   ];
 
   return (
@@ -130,9 +133,9 @@ export default function AnchorageAccountPage() {
           actions={
             <div className="hidden gap-2.5 lg:flex">
               {actions.map((action) => (
-                <ActionButton key={action.label} href={action.href} icon={action.icon}>{action.label}</ActionButton>
+                <ActionButton key={action.label} onClick={() => openAction(action.kind)} icon={action.icon}>{action.label}</ActionButton>
               ))}
-              <ActionButton href="/dashboard/deposit" icon={ArrowDownToLine} variant="primary">Deposit</ActionButton>
+              <ActionButton onClick={() => openAction('deposit')} icon={ArrowDownToLine} variant="primary">Deposit</ActionButton>
             </div>
           }
         />
@@ -165,15 +168,15 @@ export default function AnchorageAccountPage() {
 
         {/* Phone: the actions as a row of tiles */}
         <div className="mt-7 grid grid-cols-4 gap-2.5 lg:hidden">
-          <Link href="/dashboard/deposit" className="flex h-[70px] flex-col items-center justify-center gap-1.5 rounded-lg bg-cd-accent text-[12.5px] font-medium text-white">
+          <button type="button" onClick={() => openAction('deposit')} className="flex h-[70px] flex-col items-center justify-center gap-1.5 rounded-lg bg-cd-accent text-[12.5px] font-medium text-white transition-transform active:scale-[0.97]">
             <ArrowDownToLine size={20} strokeWidth={1.75} />
             Deposit
-          </Link>
-          {[actions[2], actions[0], actions[1]].map(({ label, href, icon: Icon }) => (
-            <Link key={label} href={href} className="cd-card flex h-[70px] flex-col items-center justify-center gap-1.5 rounded-lg border border-cd-line text-[12.5px] font-medium text-cd-text dark:border-transparent">
+          </button>
+          {[actions[2], actions[0], actions[1]].map(({ label, kind, icon: Icon }) => (
+            <button key={label} type="button" onClick={() => openAction(kind)} className="cd-card flex h-[70px] flex-col items-center justify-center gap-1.5 rounded-lg border border-cd-line text-[12.5px] font-medium text-cd-text transition-transform active:scale-[0.97] dark:border-transparent">
               <Icon size={20} strokeWidth={1.75} className="text-cd-accent-text" />
               {label}
-            </Link>
+            </button>
           ))}
         </div>
 
@@ -206,7 +209,7 @@ export default function AnchorageAccountPage() {
               <EmptyState
                 title="No assets yet"
                 text="Make a deposit to add funds to this account."
-                action={<ActionButton href="/dashboard/deposit" variant="primary" icon={ArrowDownToLine}>Deposit</ActionButton>}
+                action={<ActionButton onClick={() => openAction('deposit')} variant="primary" icon={ArrowDownToLine}>Deposit</ActionButton>}
               />
             ) : (
               <AssetTable rows={cryptoRows} hidden={hidden} />
