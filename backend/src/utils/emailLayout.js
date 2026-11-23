@@ -64,7 +64,7 @@ function renderDetails(rows, variant = 'plain') {
     .join('');
   const table = `<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">${content}</table>`;
   if (variant === 'card') {
-    return `<table class="dwp-card" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0 24px;border:1px solid #e5e7eb;border-radius:18px;border-collapse:separate;"><tr><td style="padding:20px 30px;">${table}</td></tr></table>`;
+    return `<table class="dwp-card" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0 24px;border:1px solid #e5e7eb;border-radius:18px;border-collapse:separate;"><tr><td class="dwp-card-cell" style="padding:20px 30px;">${table}</td></tr></table>`;
   }
   return `<div style="margin:8px 0 24px;">${table}</div>`;
 }
@@ -167,6 +167,9 @@ function buildHeadStyles() {
     '.dwp-footer-top-title{padding:42px 32px 0!important;}' +
     '.dwp-footer-top-contact{padding:22px 32px 0!important;white-space:normal!important;}' +
     '.dwp-footer-bottom{padding:42px 32px 44px!important;}' +
+    '.dwp-content{padding:20px 20px 28px!important;}' +
+    '.dwp-card-cell{padding:16px 18px!important;}' +
+    '.dwp-title{font-size:26px!important;}' +
     '}.dwp-footer-address,.dwp-footer-address a{color:#ffffff!important;text-decoration:none!important;}' +
     'a[x-apple-data-detectors]{color:inherit!important;text-decoration:none!important;}' +
     DARK_STYLES +
@@ -179,13 +182,16 @@ function buildEmailFooter() {
   const support = escapeEmailHtml(process.env.EMAIL_SUPPORT_EMAIL || SUPPORT_EMAIL);
   const logo = escapeEmailHtml(process.env.EMAIL_LOGO_URL || `${ASSET_BASE()}/dwp-logo-dark.png`);
   return (
-    '<table class="dwp-email-frame" role="presentation" width="890" align="center" cellpadding="0" cellspacing="0" border="0" style="width:890px;max-width:890px;margin:0 auto;">' +
+    // Fluid: as wide as the screen up to 890px (Outlook for Windows, which ignores max-width,
+    // gets a fixed 890px table only it can see).
+    '<!--[if mso]><table role="presentation" width="890" align="center" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->' +
+    '<table class="dwp-email-frame" role="presentation" width="100%" align="center" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:890px;margin:0 auto;">' +
     '<tr><td style="padding:0;">' +
-    '<table role="presentation" width="890" cellpadding="0" cellspacing="0" border="0" style="width:890px;max-width:100%;"><tr><td height="20" style="height:20px;font-size:0;line-height:0;">&nbsp;</td></tr></table>' +
-    `<table class="dwp-email-footer" role="presentation" width="890" cellpadding="0" cellspacing="0" border="0" bgcolor="${FOOTER_BG}" style="width:890px;max-width:100%;${FOOTER_BG_STYLE}color:#ffffff;font-family:Arial,Helvetica,sans-serif;">` +
+    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;"><tr><td height="20" style="height:20px;font-size:0;line-height:0;">&nbsp;</td></tr></table>' +
+    `<table class="dwp-email-footer" role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${FOOTER_BG}" style="width:100%;${FOOTER_BG_STYLE}color:#ffffff;font-family:Arial,Helvetica,sans-serif;">` +
     `<tr><td class="dwp-footer-cell" bgcolor="${FOOTER_BG}" style="${FOOTER_BG_STYLE}"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>` +
     '<td class="dwp-footer-column dwp-footer-top-title" width="50%" align="left" style="padding:42px 0 0 46px;font-size:8px!important;line-height:20px;letter-spacing:3px;white-space:nowrap;color:#ffffff;-webkit-text-size-adjust:none;text-size-adjust:none;">' + keepWhite('STAY CONNECTED') + '</td>' +
-    '<td class="dwp-footer-column dwp-footer-top-contact" width="50%" align="right" style="padding:42px 50px 0 0;font-size:8px!important;line-height:20px;white-space:nowrap;color:#ffffff;-webkit-text-size-adjust:none;text-size-adjust:none;">' +
+    '<td class="dwp-footer-column dwp-footer-top-contact" width="50%" align="right" style="padding:42px 50px 0 12px;font-size:8px!important;line-height:20px;color:#ffffff;-webkit-text-size-adjust:none;text-size-adjust:none;">' +
     keepWhite('<span style="font-size:8px!important;letter-spacing:-0.25px;">Have any issues, contact</span> ' +
       `<a class="dwp-footer-link" href="mailto:${support}" style="color:${FOOTER_ACCENT};font-size:8px!important;text-decoration:none;letter-spacing:0.32px;">${support}</a>`) +
     '</td>' +
@@ -199,7 +205,8 @@ function buildEmailFooter() {
       '<span style="font-size:14px;letter-spacing:1px;">United States</span>') +
     '</td>' +
     '</tr></table></td></tr></table></td></tr></table>' +
-    '</td></tr></table>'
+    '</td></tr></table>' +
+    '<!--[if mso]></td></tr></table><![endif]-->'
   );
 }
 
@@ -212,7 +219,7 @@ function renderEmailTemplate(model) {
   const lightHero = model.heroUrl || hero(name);
   // The dark banner is hidden unless the app is in dark mode (and is left out for a custom hero).
   const darkHero = model.heroUrl ? '' :
-    `<div class="dwp-hero-dark" style="display:none;max-height:0;overflow:hidden;mso-hide:all;"><img src="${escapeEmailHtml(hero(name, true))}" width="890" alt="" style="display:block;width:890px;max-width:100%;height:auto;border:0;" /></div>`;
+    `<div class="dwp-hero-dark" style="display:none;max-height:0;overflow:hidden;mso-hide:all;"><img src="${escapeEmailHtml(hero(name, true))}" width="890" alt="" style="display:block;width:100%;max-width:890px;height:auto;border:0;" /></div>`;
   return (
     '<!DOCTYPE html><html lang="en" style="height:100%;"><head><meta charset="utf-8" />' +
     '<meta name="viewport" content="width=device-width,initial-scale=1" />' +
@@ -226,10 +233,12 @@ function renderEmailTemplate(model) {
     // A full-height table: the message at the top, the footer pushed to the bottom of the window.
     '<table class="dwp-page" role="presentation" width="100%" height="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;height:100%;min-height:100%;background-color:#ffffff;">' +
     '<tr><td valign="top" style="padding:0;vertical-align:top;">' +
-    '<table class="dwp-email-frame" role="presentation" width="890" align="center" cellpadding="0" cellspacing="0" border="0" style="width:890px;max-width:100%;margin:0 auto;background-color:#ffffff;">' +
+    '<!--[if mso]><table role="presentation" width="890" align="center" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->' +
+    '<table class="dwp-email-frame" role="presentation" width="100%" align="center" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:890px;margin:0 auto;background-color:#ffffff;">' +
     // The hero is decorative (the heading below says the same), so its alt is empty on purpose.
-    `<tr><td style="padding:0;"><img class="dwp-hero-light" src="${escapeEmailHtml(lightHero)}" width="890" alt="" style="display:block;width:890px;max-width:100%;height:auto;border:0;" />${darkHero}</td></tr>` +
+    `<tr><td style="padding:0;"><img class="dwp-hero-light" src="${escapeEmailHtml(lightHero)}" width="890" alt="" style="display:block;width:100%;max-width:890px;height:auto;border:0;" />${darkHero}</td></tr>` +
     `<tr><td class="dwp-content" role="article" aria-label="${escapeEmailHtml(model.title)}" style="padding:24px 32px 34px;font-family:Arial,Helvetica,sans-serif;color:#171b22;"><!--dwp-content-->${renderContent(model)}<!--/dwp-content--></td></tr></table>` +
+    '<!--[if mso]></td></tr></table><![endif]-->' +
     '</td></tr>' +
     `<tr><td valign="bottom" style="padding:0;vertical-align:bottom;height:1px;">${buildEmailFooter()}</td></tr>` +
     '</table>' +
