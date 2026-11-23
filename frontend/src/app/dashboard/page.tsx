@@ -1,152 +1,218 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { llcAPI } from '@/lib/api';
-import { LLCApplication, LLCStats } from '@/types';
-import DashboardHeader from '@/components/layout/DashboardHeader';
-import Badge from '@/components/ui/Badge';
+/**
+ * The client's Anchorage Digital Bank account, laid out like an Anchorage vault: the account name
+ * and ID with Convert / Withdraw / Deposit on the right, the total balance, then the holdings split
+ * into Fiat and Crypto tables.
+ */
+import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
+import { ArrowDownToLine, ArrowLeftRight, ArrowUpFromLine, Eye, EyeOff, Landmark, RefreshCw, Zap } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { CheckCircle2, Clock, X, Building2 } from 'lucide-react';
+import { usersAPI, assetsAPI } from '@/lib/api';
+import { formatCurrency } from '@/lib/utils';
+import DashboardHeader from '@/components/layout/DashboardHeader';
+import AssetTable, { type HoldingRow } from '@/components/client/AssetTable';
+import { ActionButton, Card, Change, EmptyState, Money, PageHeader, Skeleton, shortId } from '@/components/client/ui';
 
-export default function LLCManagementPage() {
+type DashboardStats = {
+  balance?: number;
+  assetBalances?: Record<string, number>;
+  availableAssetBalances?: Record<string, number>;
+};
+
+type DbAsset = { id: string; symbol: string; name: string; network?: string | null };
+
+const HIDE_KEY = 'dwp_hide_balances';
+
+export default function AnchorageAccountPage() {
   const { user } = useAuth();
-  const router = useRouter();
-  const [applications, setApplications] = useState<LLCApplication[]>([]);
-  const [stats, setStats] = useState<LLCStats>({ approved: 0, pending: 0, processing: 0, rejected: 0 });
-  const [loading, setLoading] = useState(true);
-  const [bannerVisible, setBannerVisible] = useState(true);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [dbAssets, setDbAssets] = useState<DbAsset[]>([]);
+  const [prices, setPrices] = useState<Record<string, number>>({});
+  const [changes24h, setChanges24h] = useState<Record<string, number>>({});
+  const [hidden, setHidden] = useState(true);
+  const [assetsLoading, setAssetsLoading] = useState(true);
+  const [assetsError, setAssetsError] = useState(false);
+
+  // Balances start hidden; the client's choice is remembered on this device.
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(HIDE_KEY);
+      if (saved !== null) setHidden(saved === '1');
+    } catch {}
+  }, []);
+  const toggleHidden = () => {
+    setHidden((value) => {
+      try { localStorage.setItem(HIDE_KEY, value ? '0' : '1'); } catch {}
+      return !value;
+    });
+  };
+
+  const loadAssets = (retriesLeft = 2) => {
+    if (retriesLeft === 2) {
+      setAssetsLoading(true);
+      setAssetsError(false);
+    }
+    assetsAPI.list()
+      .then((res) => {
+        setDbAssets(res.data.assets || []);
+        setAssetsLoading(false);
+      })
+      .catch((err) => {
+        if (retriesLeft > 0) {
+          setTimeout(() => loadAssets(retriesLeft - 1), 1000);
+          return;
+        }
+        console.error(err);
+        setAssetsError(true);
+        setAssetsLoading(false);
+      });
+  };
 
   useEffect(() => {
-    Promise.all([llcAPI.list(), llcAPI.stats()])
-      .then(([listRes, statsRes]) => {
-        setApplications(listRes.data.applications);
-        setStats(statsRes.data);
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
+    usersAPI.getDashboardStats().then((res) => setStats(res.data)).catch(console.error);
+    loadAssets();
+    assetsAPI.prices().then((res) => {
+      setPrices(res.data.prices || {});
+      setChanges24h(res.data.changes24h || {});
+    }).catch(console.error);
   }, []);
 
-  const totalLLCs = stats.approved + stats.pending + stats.processing + stats.rejected;
+  const { cryptoRows, cryptoTotal, previousTotal } = useMemo(() => {
+    let total = 0;
+    let previous = 0;
+    const rows: HoldingRow[] = dbAssets
+      .filter((a) => !user?.hiddenAssets?.includes(a.symbol.toUpperCase()))
+      .map((a) => {
+        const symbol = a.symbol.toUpperCase();
+        const price = prices[symbol] || 0;
+        const change24h = changes24h[symbol] || 0;
+        const amount = stats?.assetBalances?.[a.id] || 0;
+        const available = stats?.availableAssetBalances?.[a.id];
+        const usd = amount * price;
+        total += usd;
+        previous += amount * (price / (1 + change24h / 100));
+        return { symbol, name: a.name, network: a.network || a.name, usd, amount, price, change24h, available, href: `/dashboard/wallet/${symbol.toLowerCase()}` };
+      })
+      .sort((x, y) => y.usd - x.usd || x.symbol.localeCompare(y.symbol));
+    return { cryptoRows: rows, cryptoTotal: total, previousTotal: previous };
+  }, [dbAssets, prices, changes24h, stats, user?.hiddenAssets]);
+
+  const usdBalance = stats?.balance || 0;
+  const totalBalance = cryptoTotal + usdBalance;
+  const change = cryptoTotal - previousTotal;
+  const changePct = previousTotal > 0 ? (change / previousTotal) * 100 : 0;
+
+  const fiatRows: HoldingRow[] = [
+    { symbol: 'USD', name: 'US Dollars', network: 'US Dollars', usd: usdBalance, amount: usdBalance, price: 1, glyph: '$' },
+  ];
+
+  const accountName = [user?.firstName, user?.lastName].filter(Boolean).join(' ') || 'Digital Wealth Partners';
+  const accountId = user?.id ? shortId(String(user.id)) : '';
+
+  const actions = [
+    { label: 'Convert', href: '/dashboard/swap', icon: ArrowLeftRight },
+    { label: 'Buy', href: '/dashboard/buy', icon: Zap },
+    { label: 'Withdraw', href: '/dashboard/withdraw', icon: ArrowUpFromLine },
+  ];
 
   return (
-    <div className="flex flex-col min-h-full pb-20 bg-cd-page">
-      <DashboardHeader title="Business Dashboard" logo="wyoming" />
+    <div className="min-h-full">
+      <DashboardHeader title="Anchorage Digital Bank" breadcrumb />
 
-      {/* Dismissable Purple Banner */}
-      {bannerVisible && (
-        <div className="bg-cd-accent text-white px-4 py-3 flex items-start justify-between">
-          <p className="text-[13px] font-medium leading-relaxed pr-4">
-            👋 <span className="font-semibold">Welcome back, {user?.firstName || ''}!</span> Manage your LLC applications and track your business formation progress.
-          </p>
-          <button onClick={() => setBannerVisible(false)} className="mt-0.5 text-white/80 hover:text-white shrink-0">
-            <X size={16} strokeWidth={2.5} />
-          </button>
-        </div>
-      )}
+      <div className="mx-auto w-full max-w-[1180px] px-4 pb-12 pt-5 sm:px-6 lg:px-10 lg:pt-3">
+        <PageHeader
+          icon={Landmark}
+          title="Anchorage Digital Bank"
+          titleOnPhone={false}
+          meta={[accountName, accountId && `Account ID: ${accountId}`].filter(Boolean)}
+          actions={
+            <div className="hidden gap-2.5 lg:flex">
+              {actions.map((action) => (
+                <ActionButton key={action.label} href={action.href} icon={action.icon}>{action.label}</ActionButton>
+              ))}
+              <ActionButton href="/dashboard/deposit" icon={ArrowDownToLine} variant="primary">Deposit</ActionButton>
+            </div>
+          }
+        />
 
-      <div className="flex-1 p-5 space-y-6">
-        
-        {/* Header */}
-        <div className="pt-2">
-          <h1 className="text-[26px] font-semibold text-cd-text mb-2 leading-tight">
-            Welcome back, {user?.firstName || ''}!
-          </h1>
-          <p className="text-[15px] font-medium text-cd-muted">
-            Here&apos;s your LLC portfolio overview.
-          </p>
-        </div>
-
-        {loading ? (
-          <div className="flex items-center justify-center h-48">
-            <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+        {/* Total balance */}
+        <div className="mt-7 flex flex-col items-center text-center lg:items-start lg:text-left">
+          <div className="flex items-center gap-2">
+            <Money value={totalBalance} hidden={hidden} className="text-[38px] font-light leading-none tracking-tight text-cd-text sm:text-[44px]" />
+            <button
+              type="button"
+              onClick={toggleHidden}
+              aria-pressed={hidden}
+              aria-label={hidden ? 'Show balances' : 'Hide balances'}
+              className="rounded-md p-2 text-cd-muted hover:bg-cd-raised hover:text-cd-text"
+            >
+              {hidden ? <Eye size={18} strokeWidth={1.75} /> : <EyeOff size={18} strokeWidth={1.75} />}
+            </button>
           </div>
-        ) : (
-          <>
-            {/* Stat Cards Stack */}
-            <div className="flex flex-col gap-4">
-              
-              {/* Total LLCs */}
-              <div className="bg-cd-card rounded-xl p-5 flex items-center justify-between shadow-[0_2px_15px_-4px_rgba(0,0,0,0.05)] border-l-4 border-l-[#1e3a8a]">
-                <div>
-                  <p className="text-[14px] font-semibold text-cd-text/85 mb-1">Total LLCs</p>
-                  <p className="text-[24px] font-semibold text-cd-text mb-0.5 leading-none">{totalLLCs}</p>
-                  <p className="text-[13px] font-semibold text-cd-muted">Your LLC applications</p>
-                </div>
-                <div className="w-11 h-11 rounded-[12px] bg-cd-accent-soft flex items-center justify-center shrink-0 border border-blue-50 dark:border-blue-900/30">
-                  <Building2 size={20} className="text-cd-accent-text" strokeWidth={2} />
-                </div>
-              </div>
-              
-              {/* Approved LLCs */}
-              <div className="bg-cd-card rounded-xl p-5 flex items-center justify-between shadow-[0_2px_15px_-4px_rgba(0,0,0,0.05)] border-l-4 border-l-[#10b981]">
-                <div>
-                  <p className="text-[14px] font-semibold text-cd-text/85 mb-1">Approved LLCs</p>
-                  <p className="text-[24px] font-semibold text-cd-text mb-0.5 leading-none">{stats.approved}</p>
-                  <p className="text-[13px] font-semibold text-[#10b981]">Active businesses</p>
-                </div>
-                <div className="w-11 h-11 rounded-[12px] bg-[#ecfdf5] dark:bg-green-900/20 flex items-center justify-center shrink-0 border border-green-50 dark:border-green-900/30">
-                  <CheckCircle2 size={20} className="text-[#10b981]" strokeWidth={2} />
-                </div>
-              </div>
+          <p className="mt-2 flex items-center gap-2.5 text-[13px] text-cd-muted">
+            <span className="uppercase tracking-[0.08em]">Total balance</span>
+            {!hidden && previousTotal > 0 && (
+              <>
+                <span className="h-3 w-px bg-cd-line-strong" />
+                <Change value={changePct} />
+                <span className="cd-num">{change >= 0 ? '+' : '−'}{formatCurrency(Math.abs(change))} today</span>
+              </>
+            )}
+          </p>
+        </div>
 
-              {/* Pending LLCs */}
-              <div className="bg-cd-card rounded-xl p-5 flex items-center justify-between shadow-[0_2px_15px_-4px_rgba(0,0,0,0.05)] border-l-4 border-l-[#f59e0b]">
-                <div>
-                  <p className="text-[14px] font-semibold text-cd-text/85 mb-1">Pending LLCs</p>
-                  <p className="text-[24px] font-semibold text-cd-text mb-0.5 leading-none">{stats.pending + stats.processing}</p>
-                  <p className="text-[13px] font-semibold text-[#f59e0b]">Under review</p>
-                </div>
-                <div className="w-11 h-11 rounded-[12px] bg-[#fffbeb] dark:bg-yellow-900/20 flex items-center justify-center shrink-0 border border-yellow-50 dark:border-yellow-900/30">
-                  <Clock size={20} className="text-[#f59e0b]" strokeWidth={2} />
-                </div>
-              </div>
+        {/* Phone: the actions as a row of tiles */}
+        <div className="mt-7 grid grid-cols-4 gap-2.5 lg:hidden">
+          <Link href="/dashboard/deposit" className="flex h-[70px] flex-col items-center justify-center gap-1.5 rounded-lg bg-cd-accent text-[12.5px] font-medium text-white">
+            <ArrowDownToLine size={20} strokeWidth={1.75} />
+            Deposit
+          </Link>
+          {[actions[2], actions[0], actions[1]].map(({ label, href, icon: Icon }) => (
+            <Link key={label} href={href} className="cd-card flex h-[70px] flex-col items-center justify-center gap-1.5 rounded-lg border border-cd-line text-[12.5px] font-medium text-cd-text dark:border-transparent">
+              <Icon size={20} strokeWidth={1.75} className="text-cd-accent-text" />
+              {label}
+            </Link>
+          ))}
+        </div>
 
-            </div>
+        <div className="mt-8 space-y-5 lg:mt-10">
+          <Card title="Fiat">
+            <AssetTable rows={fiatRows} hidden={hidden} unitLabel={false} />
+          </Card>
 
-            {/* Applications List Section */}
-            <div className="bg-cd-card rounded-xl shadow-[0_2px_15px_-4px_rgba(0,0,0,0.05)] p-5 pb-8 mt-6">
-              <h2 className="text-[18px] font-semibold text-cd-text mb-4">Your LLC Applications</h2>
-              <button
-                onClick={() => router.push('/dashboard/llc/start')}
-                className="w-full py-3.5 bg-cd-accent text-white text-[15px] font-semibold rounded-[12px] shadow-sm hover:opacity-90 transition-opacity mb-6"
-              >
-                Form New LLC
-              </button>
-              
-              {applications.length === 0 ? (
-                <div className="text-center py-6 text-cd-faint text-[14px] font-medium">
-                  No LLC applications yet.<br/>Click &quot;Form New LLC&quot; to get started.
-                </div>
-              ) : (
-                <div className="w-full">
-                  <div className="flex justify-between items-center text-[13px] font-semibold text-cd-muted px-1 mb-4 border-b border-cd-line pb-2">
-                    <span className="flex-1">Company Name</span>
-                    <span className="w-[100px] text-right">Status</span>
+          <Card
+            title="Crypto"
+            action={<Link href="/dashboard/assets" className="text-[13px] font-medium text-cd-accent-text hover:underline">Manage assets</Link>}
+          >
+            {assetsLoading ? (
+              <div className="space-y-4 px-3 py-4">
+                {[0, 1, 2, 3].map((i) => (
+                  <div key={i} className="flex items-center gap-3.5">
+                    <Skeleton className="h-8 w-8 rounded-full" />
+                    <div className="flex-1 space-y-2"><Skeleton className="h-3.5 w-40" /><Skeleton className="h-3 w-20" /></div>
+                    <Skeleton className="h-3.5 w-24" />
                   </div>
-                  
-                  <div className="space-y-4">
-                    {applications.map((app) => (
-                      <div key={app.id || app._id} className="flex justify-between items-start px-1 group cursor-pointer border-b border-cd-line pb-3 last:border-0 last:pb-0" onClick={() => router.push(`/dashboard/llc/${app.id || app._id}`)}>
-                        <div className="flex flex-col flex-1 min-w-0 pr-4">
-                          <span className="font-semibold text-[15px] text-cd-text truncate group-hover:text-[#2d68d8] transition-colors">{app.companyName}</span>
-                          <span className="text-[13px] font-medium text-[#6b7280] dark:text-gray-500 mt-0.5">{app.companyName} • {app.state}</span>
-                        </div>
-                        <div className="flex flex-col items-end w-[130px] shrink-0">
-                          <Badge 
-                            status={app.status}
-                            className="w-fit mb-1"
-                          />
-                          <span className="text-[12px] font-medium text-[#6b7280] dark:text-gray-500">{app.createdAt.replace('T', ' ').substring(0, 19)}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </>
-        )}
+                ))}
+              </div>
+            ) : assetsError ? (
+              <EmptyState
+                icon={RefreshCw}
+                title="We couldn't load your assets"
+                action={<ActionButton onClick={() => loadAssets()}>Try again</ActionButton>}
+              />
+            ) : cryptoRows.length === 0 ? (
+              <EmptyState
+                title="No assets yet"
+                text="Make a deposit to add funds to this account."
+                action={<ActionButton href="/dashboard/deposit" variant="primary" icon={ArrowDownToLine}>Deposit</ActionButton>}
+              />
+            ) : (
+              <AssetTable rows={cryptoRows} hidden={hidden} />
+            )}
+          </Card>
+        </div>
       </div>
     </div>
   );

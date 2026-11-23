@@ -1,42 +1,19 @@
 'use client';
 
+/**
+ * Create a crypto deposit, in Anchorage's step style: pick the asset, enter the amount in US
+ * dollars (the asset amount is worked out underneath), then continue to the address step.
+ */
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, ChevronDown } from 'lucide-react';
+import { ArrowDownToLine, Check, ChevronDown } from 'lucide-react';
 import { assetsAPI } from '@/lib/api';
 import { Asset } from '@/types';
+import DashboardHeader from '@/components/layout/DashboardHeader';
+import { ActionButton, AssetIcon, Card, PageHeader } from '@/components/client/ui';
+import { cn } from '@/lib/utils';
 
-const ICON_SLUG: Record<string, string> = {
-  BTC: 'btc', ETH: 'eth', DOGE: 'doge', LTC: 'ltc', XRP: 'xrp',
-  USDT: 'usdt', USDC: 'usdc', BNB: 'bnb', SOL: 'sol', ADA: 'ada',
-  TRX: 'trx', MATIC: 'matic', DOT: 'dot', AVAX: 'avax', LINK: 'link',
-  SHIB: 'shib', BCH: 'bch', XLM: 'xlm', ATOM: 'atom', UNI: 'uni',
-};
-
-function CoinIcon({ symbol, size = 28 }: { symbol: string; size?: number }) {
-  const slug = ICON_SLUG[symbol.toUpperCase()] || symbol.toLowerCase();
-  const [err, setErr] = useState(false);
-  if (err) return (
-    <div
-      style={{ width: size, height: size }}
-      className="rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center text-[10px] font-semibold text-gray-500 shrink-0"
-    >
-      {symbol.slice(0, 2)}
-    </div>
-  );
-  return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={`https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/${slug}.png`}
-      alt={symbol}
-      width={size}
-      height={size}
-      style={{ width: size, height: size }}
-      className="rounded-full object-contain shrink-0"
-      onError={() => setErr(true)}
-    />
-  );
-}
+const INPUT = 'h-11 w-full rounded-md border border-transparent bg-cd-input px-3.5 text-[14px] text-cd-text placeholder:text-cd-faint focus:border-cd-accent focus:outline-none';
 
 export default function DepositPage() {
   const router = useRouter();
@@ -92,91 +69,94 @@ export default function DepositPage() {
     router.push(`/dashboard/crypto/deposit/confirm?${params.toString()}`);
   }
 
+  const usdValue = parseFloat(usdAmount);
+  const canContinue = !!selected && !!usdAmount && usdValue > 0;
+
   return (
-    <div className="flex flex-col min-h-full bg-cd-page">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 h-14 border-b border-cd-line shrink-0">
-        <button
-          onClick={() => router.back()}
-          className="w-9 h-9 flex items-center justify-center text-gray-500 hover:text-gray-700 dark:text-cd-muted dark:hover:text-gray-200 transition-colors"
-        >
-          <ChevronLeft size={22} />
-        </button>
-        <h1 className="text-base font-semibold text-cd-text">Deposit Crypto</h1>
-        <div className="w-9" />
-      </div>
+    <div className="min-h-full">
+      <DashboardHeader title="Deposit crypto" backHref="/dashboard/crypto" breadcrumb />
 
-      <div className="flex-1 px-4 py-6 space-y-4">
-        {/* Card */}
-        <div className="bg-cd-card rounded-xl border border-cd-line overflow-hidden">
-          <p className="px-5 pt-5 pb-3 text-base font-semibold text-cd-text">
-            Create New Deposit
-          </p>
+      <div className="mx-auto w-full max-w-[1180px] px-4 pb-12 pt-5 sm:px-6 lg:px-10 lg:pt-3">
+        <div className="mx-auto w-full max-w-[600px]">
+          <PageHeader icon={ArrowDownToLine} title="Create new deposit" titleOnPhone={false} meta={['Choose an asset and the amount you will send']} />
 
-          {/* Asset dropdown */}
-          <div className="px-4 pb-3" ref={dropRef}>
-            <button
-              type="button"
-              onClick={() => setDropOpen((o) => !o)}
-              className="w-full flex items-center justify-between px-4 py-3.5 bg-cd-raised rounded-xl text-sm font-medium text-cd-text"
-            >
-              <span className="flex items-center gap-2.5">
-                {selected && <CoinIcon symbol={selected.symbol} size={22} />}
-                {selected?.name ?? 'Select asset'}
-              </span>
-              <ChevronDown size={18} className={`text-gray-500 transition-transform ${dropOpen ? 'rotate-180' : ''}`} />
-            </button>
+          <Card className="mt-6 lg:mt-8">
+            <div className="space-y-5">
+              {/* Asset */}
+              <div ref={dropRef} className="relative">
+                <p className="mb-1.5 text-[13px] text-cd-muted">Asset</p>
+                <button
+                  type="button"
+                  onClick={() => setDropOpen((o) => !o)}
+                  aria-expanded={dropOpen}
+                  className={cn(INPUT, 'flex items-center justify-between gap-3 text-left', dropOpen && 'border-cd-accent')}
+                >
+                  <span className="flex min-w-0 items-center gap-2.5">
+                    {selected && <AssetIcon symbol={selected.symbol} size={22} />}
+                    {selected ? (
+                      <span className="truncate">
+                        {selected.symbol}
+                        <span className="mx-1.5 text-cd-faint">|</span>
+                        {selected.name}
+                      </span>
+                    ) : (
+                      <span className="text-cd-faint">Select asset</span>
+                    )}
+                  </span>
+                  <ChevronDown size={17} className={cn('shrink-0 text-cd-muted transition-transform', dropOpen && 'rotate-180')} />
+                </button>
 
-            {dropOpen && (
-              <div className="mt-1 bg-cd-card border border-cd-line rounded-xl shadow-lg overflow-hidden z-20 relative">
-                {assets.map((a) => (
-                  <button
-                    key={a.id}
-                    type="button"
-                    onClick={() => { setSelected(a); setDropOpen(false); }}
-                    className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-cd-text hover:bg-cd-raised transition-colors"
-                  >
-                    <CoinIcon symbol={a.symbol} size={22} />
-                    {a.name} ({a.symbol})
-                  </button>
-                ))}
+                {dropOpen && (
+                  <div className="absolute inset-x-0 top-full z-20 mt-1.5 max-h-72 overflow-y-auto rounded-lg border border-cd-line bg-cd-raised py-1 shadow-lg">
+                    {assets.map((a) => (
+                      <button
+                        key={a.id}
+                        type="button"
+                        onClick={() => { setSelected(a); setDropOpen(false); }}
+                        className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left text-[14px] text-cd-text hover:bg-cd-band"
+                      >
+                        <AssetIcon symbol={a.symbol} size={22} />
+                        <span className="min-w-0 flex-1 truncate">
+                          {a.symbol}
+                          <span className="mx-1.5 text-cd-faint">|</span>
+                          {a.name}
+                          {a.network && a.network !== a.name && <span className="ml-2 text-[12px] text-cd-muted">{a.network}</span>}
+                        </span>
+                        {selected?.id === a.id && <Check size={16} className="shrink-0 text-cd-text" />}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
 
-          {/* Amount input */}
-          <div className="px-4 pb-5">
-            <div className="bg-cd-raised rounded-xl px-4 py-3">
-              <p className="text-xs text-cd-faint mb-1">Amount</p>
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-cd-faint text-sm">$</span>
-                <input
-                  type="number"
-                  min="0"
-                  value={usdAmount}
-                  onChange={(e) => setUsdAmount(e.target.value)}
-                  placeholder="0"
-                  className="flex-1 bg-transparent text-right text-xl font-semibold text-cd-text focus:outline-none tabular-nums"
-                />
+              {/* Amount */}
+              <div>
+                <p className="mb-1.5 text-[13px] text-cd-muted">Amount</p>
+                <div className="flex h-11 items-center rounded-md border border-transparent bg-cd-input px-3.5 focus-within:border-cd-accent">
+                  <span className="mr-2 text-[14px] text-cd-muted">$</span>
+                  <input
+                    type="number"
+                    min="0"
+                    value={usdAmount}
+                    onChange={(e) => setUsdAmount(e.target.value)}
+                    placeholder="0.00"
+                    className="cd-num min-w-0 flex-1 bg-transparent text-[14px] text-cd-text placeholder:text-cd-faint focus:outline-none"
+                  />
+                  <span className="ml-2 text-[13px] text-cd-muted">USD</span>
+                </div>
+                {selected && (
+                  <p className="cd-num mt-2 text-[13px] text-cd-muted">
+                    ≈ {cryptoAmount} {selected.symbol}
+                  </p>
+                )}
               </div>
-              {selected && (
-                <p className="text-xs text-green-600 dark:text-green-400 mt-1.5 tabular-nums">
-                  ≈ {cryptoAmount} {selected.name.toLowerCase()}
-                </p>
-              )}
             </div>
-          </div>
-        </div>
+          </Card>
 
-        {/* Continue button */}
-        <button
-          type="button"
-          onClick={handleContinue}
-          disabled={!selected || !usdAmount || parseFloat(usdAmount) <= 0}
-          className="w-full h-13 bg-cd-accent hover:bg-cd-accent-hover disabled:opacity-50 text-white font-semibold rounded-xl transition-colors"
-        >
-          Continue Deposit
-        </button>
+          <ActionButton variant="primary" onClick={handleContinue} disabled={!canContinue} className="mt-6 h-11 w-full">
+            Continue
+          </ActionButton>
+        </div>
       </div>
     </div>
   );

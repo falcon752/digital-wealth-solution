@@ -7,6 +7,11 @@ import { SidebarProvider } from '@/context/SidebarContext';
 import DashboardSidebar from '@/components/layout/DashboardSidebar';
 import MobileBottomNav from '@/components/layout/MobileBottomNav';
 import WelcomePopup from '@/components/WelcomePopup';
+import { clientFontClasses } from './fonts';
+
+// DirectStay's Fira Sans for the whole client dashboard. The class also goes on <html> so dialogs
+// and toasts rendered outside this tree get the font too.
+const CLIENT_CLASSES = `dwp-client ${clientFontClasses}`;
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
@@ -15,6 +20,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   // Referral codes are 8 hex characters (e.g. /dashboard/A7B9F102). Matching any 8 letters also
   // caught /dashboard/withdraw and /dashboard/settings, which then lost the sidebar and sign-in check.
   const isReferralLink = pathname?.match(/^\/dashboard\/[0-9A-Fa-f]{8}$/);
+
+  useEffect(() => {
+    const classes = CLIENT_CLASSES.split(' ');
+    document.documentElement.classList.add(...classes);
+    return () => document.documentElement.classList.remove(...classes);
+  }, []);
 
   useEffect(() => {
     // Check if this is a referral link redirect (e.g., /dashboard/A7B9F102)
@@ -31,7 +42,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   if (isReferralLink) {
     return (
-      <div className="flex flex-col min-h-screen bg-cd-page">
+      <div className={`${CLIENT_CLASSES} flex flex-col min-h-screen bg-cd-page`}>
         {children}
       </div>
     );
@@ -39,17 +50,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   if (isLoading || !user || !isAuthorized) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className={`${CLIENT_CLASSES} min-h-screen flex items-center justify-center bg-cd-page`}>
         <div className="w-8 h-8 border-2 border-cd-accent border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
-  const isLLCIntakePage = pathname?.includes('/dashboard/llc/new') || pathname?.includes('/dashboard/llc/start');
+  // The LLC intake form is a full-screen flow of its own, outside the dashboard frame.
+  const isLLCIntakePage = pathname?.includes('/dashboard/llc/new');
 
   if (isLLCIntakePage) {
     return (
-      <div className="flex flex-col min-h-screen bg-white">
+      <div className={`${CLIENT_CLASSES} flex flex-col min-h-screen bg-white`}>
         {children}
       </div>
     );
@@ -57,7 +69,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <SidebarProvider>
-      <div className="flex h-screen overflow-hidden bg-cd-page text-cd-text">
+      <div className={`${CLIENT_CLASSES} flex h-screen overflow-hidden bg-cd-page text-cd-text`}>
         <DashboardSidebar />
         <main className="min-w-0 flex-1 overflow-y-auto bg-cd-page pb-20 lg:pb-0">
           {children}

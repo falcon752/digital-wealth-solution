@@ -126,6 +126,18 @@
 .dark .cd-card { box-shadow: none; }
 .cd-num { font-variant-numeric: tabular-nums; }
 
+/* Client dashboard font: DirectStay's Fira Sans. layout.tsx puts .dwp-client on <html> and on the shell. */
+html.dwp-client body,
+.dwp-client,
+.dwp-client .font-sans {
+  font-family: var(--font-fira-sans), system-ui, sans-serif;
+}
+.dwp-client .font-mono,
+.dwp-client code,
+.dwp-client kbd {
+  font-family: var(--font-fira-mono), ui-monospace, monospace;
+}
+
 /* ─── Base ───────────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
 

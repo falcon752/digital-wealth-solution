@@ -1,37 +1,17 @@
 'use client';
 
+/**
+ * The client's crypto deposits as an Anchorage table: asset, amount, value, status and date. On a
+ * phone each row folds to the asset on the left and the amount over the status on the right.
+ */
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { ArrowLeft, Home } from 'lucide-react';
+import { ArrowDownToLine } from 'lucide-react';
 import { depositsAPI } from '@/lib/api';
+import DashboardHeader from '@/components/layout/DashboardHeader';
+import { ActionButton, AssetIcon, AssetName, Card, EmptyState, PageHeader, Skeleton, StatusPill, TableHead, formatAmount } from '@/components/client/ui';
+import { cn, formatCurrency } from '@/lib/utils';
 
-const ICON_SLUG: Record<string, string> = {
-  BTC: 'btc', ETH: 'eth', DOGE: 'doge', LTC: 'ltc', XRP: 'xrp',
-  USDT: 'usdt', USDC: 'usdc', BNB: 'bnb', SOL: 'sol', ADA: 'ada',
-  TRX: 'trx', MATIC: 'matic', DOT: 'dot', AVAX: 'avax', LINK: 'link',
-  SHIB: 'shib', BCH: 'bch', XLM: 'xlm', ATOM: 'atom', UNI: 'uni',
-};
-
-function CoinIcon({ symbol }: { symbol: string }) {
-  const slug = ICON_SLUG[symbol?.toUpperCase()] || symbol?.toLowerCase() || 'btc';
-  const [err, setErr] = useState(false);
-  if (err) return (
-    <div className="w-10 h-10 rounded-full bg-orange-400 flex items-center justify-center text-xs font-semibold text-white shrink-0">
-      {(symbol || '??').slice(0, 2)}
-    </div>
-  );
-  return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={`https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/${slug}.png`}
-      alt={symbol}
-      width={40}
-      height={40}
-      className="w-10 h-10 rounded-full object-contain shrink-0"
-      onError={() => setErr(true)}
-    />
-  );
-}
+const GRID = 'md:grid md:grid-cols-[1.4fr_1.1fr_0.9fr_0.9fr_1.1fr] md:items-center md:gap-x-4';
 
 interface DepositRow {
   id: string;
@@ -41,19 +21,6 @@ interface DepositRow {
   usdValue?: number;
   status: 'pending' | 'confirmed' | 'rejected';
   createdAt: string;
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const map: Record<string, string> = {
-    pending: 'bg-yellow-400 text-white',
-    confirmed: 'bg-green-500 text-white',
-    rejected: 'bg-red-500 text-white',
-  };
-  return (
-    <span className={`px-3 py-0.5 rounded-full text-xs font-semibold capitalize ${map[status] ?? 'bg-gray-400 text-white'}`}>
-      {status.charAt(0).toUpperCase() + status.slice(1)}
-    </span>
-  );
 }
 
 function formatDateTime(iso: string) {
@@ -68,7 +35,6 @@ function formatDateTime(iso: string) {
 }
 
 export default function DepositsPage() {
-  const router = useRouter();
   const [deposits, setDeposits] = useState<DepositRow[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -80,67 +46,85 @@ export default function DepositsPage() {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-full bg-cd-page">
-      {/* Header */}
-      <div className="bg-cd-card border-b border-cd-line">
-        <div className="flex items-center justify-between px-4 h-14">
-          <button
-            onClick={() => router.back()}
-            className="flex items-center gap-1.5 text-sm text-cd-muted hover:text-gray-900 dark:hover:text-white transition-colors"
-          >
-            <ArrowLeft size={16} />
-            Back
-          </button>
-          <h1 className="text-base font-semibold text-cd-text">Deposits Transactions</h1>
-          <button
-            onClick={() => router.push('/dashboard/crypto')}
-            className="flex items-center gap-1.5 text-sm text-cd-muted hover:text-gray-900 dark:hover:text-white transition-colors"
-          >
-            Home
-            <Home size={16} />
-          </button>
-        </div>
-      </div>
+    <div className="min-h-full">
+      <DashboardHeader title="Deposits" backHref="/dashboard/crypto" breadcrumb />
 
-      <div className="flex-1 px-4 py-5">
-        <div className="bg-cd-card rounded-xl border border-cd-line p-5">
-          <h2 className="text-sm font-semibold text-cd-text mb-4">Deposit Assets History</h2>
+      <div className="mx-auto w-full max-w-[1180px] px-4 pb-12 pt-5 sm:px-6 lg:px-10 lg:pt-3">
+        <PageHeader
+          icon={ArrowDownToLine}
+          title="Deposits"
+          titleOnPhone={false}
+          meta={[loading ? 'Loading…' : `${deposits.length} ${deposits.length === 1 ? 'deposit' : 'deposits'}`]}
+          actions={
+            <ActionButton href="/dashboard/crypto/deposit" variant="primary" icon={ArrowDownToLine} className="w-full lg:w-auto">
+              New deposit
+            </ActionButton>
+          }
+        />
+
+        <Card title="Deposit history" className="mt-6 lg:mt-8">
+          <TableHead className={cn('hidden', GRID)}>
+            <span>Asset</span>
+            <span className="text-right">Amount</span>
+            <span className="text-right">Value</span>
+            <span className="pl-2">Status</span>
+            <span className="text-right">Date</span>
+          </TableHead>
 
           {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="w-7 h-7 border-2 border-cd-accent border-t-transparent rounded-full animate-spin" />
-            </div>
-          ) : deposits.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 gap-2">
-              <p className="text-sm text-cd-faint">No deposits yet</p>
-              <button
-                onClick={() => router.push('/dashboard/crypto/deposit')}
-                className="text-sm text-cd-accent-text hover:underline"
-              >
-                Make your first deposit
-              </button>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {deposits.map((d) => (
-                <div key={d.id} className="flex items-center gap-3">
-                  <CoinIcon symbol={d.assetSymbol} />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-cd-text">{d.assetName}</p>
-                    <p className="text-xs text-cd-muted tabular-nums">
-                      +{d.amount.toFixed(8)} {d.assetSymbol}
-                      {d.usdValue ? ` ${d.usdValue.toFixed(2)} USD` : ''}
-                    </p>
-                  </div>
-                  <div className="flex flex-col items-end gap-1 shrink-0">
-                    <StatusBadge status={d.status} />
-                    <p className="text-xs text-blue-500 tabular-nums">{formatDateTime(d.createdAt)}</p>
-                  </div>
+            <div className="space-y-5 px-3 py-4">
+              {[0, 1, 2, 3].map((i) => (
+                <div key={i} className="flex items-center gap-3.5">
+                  <Skeleton className="h-8 w-8 rounded-full" />
+                  <div className="flex-1 space-y-2"><Skeleton className="h-3.5 w-32" /><Skeleton className="h-3 w-24" /></div>
+                  <Skeleton className="h-3.5 w-24" />
                 </div>
               ))}
             </div>
+          ) : deposits.length === 0 ? (
+            <EmptyState
+              icon={ArrowDownToLine}
+              title="No deposits yet"
+              action={<ActionButton href="/dashboard/crypto/deposit" variant="primary">Make your first deposit</ActionButton>}
+            />
+          ) : (
+            <ul>
+              {deposits.map((d) => {
+                const amount = `+${formatAmount(d.amount, d.assetSymbol)}`;
+                return (
+                  <li key={d.id} className="border-b border-cd-line px-3 py-3.5 last:border-b-0 sm:px-4">
+                    {/* Phone */}
+                    <div className="flex items-center gap-3 md:hidden">
+                      <AssetIcon symbol={d.assetSymbol || '?'} size={30} />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[14px] font-medium text-cd-text">{d.assetName || d.assetSymbol}</p>
+                        <p className="cd-num mt-0.5 truncate text-[12px] text-cd-muted">{formatDateTime(d.createdAt)}</p>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <p className="cd-num text-[14px] text-cd-text">{amount}</p>
+                        <StatusPill status={d.status} className="mt-1" />
+                      </div>
+                    </div>
+
+                    {/* Computer */}
+                    <div className={cn('hidden', GRID)}>
+                      <div className="flex min-w-0 items-center gap-3">
+                        <AssetIcon symbol={d.assetSymbol || '?'} size={30} />
+                        <AssetName symbol={d.assetSymbol} name={d.assetName} />
+                      </div>
+                      <p className="cd-num truncate text-right text-[14px] text-cd-text">{amount}</p>
+                      <p className={cn('cd-num text-right text-[14px]', d.usdValue ? 'text-cd-text' : 'text-cd-faint')}>
+                        {d.usdValue ? formatCurrency(d.usdValue) : '—'}
+                      </p>
+                      <div className="pl-2"><StatusPill status={d.status} /></div>
+                      <p className="cd-num text-right text-[13px] text-cd-muted">{formatDateTime(d.createdAt)}</p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
           )}
-        </div>
+        </Card>
       </div>
     </div>
   );

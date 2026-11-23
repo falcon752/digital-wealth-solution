@@ -1,37 +1,28 @@
 'use client';
 
+/**
+ * Second step of a crypto deposit: the address to send to (copyable, with the QR code when one is
+ * set), the amount as a label / value list, then the transaction ID and an optional proof image.
+ */
 import { useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ChevronLeft, Copy, Check } from 'lucide-react';
+import { Copy, Check, Info, Loader2, Paperclip } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Image from 'next/image';
 import api from '@/lib/api';
+import DashboardHeader from '@/components/layout/DashboardHeader';
+import { ActionButton, AssetIcon, Card } from '@/components/client/ui';
+import { formatCurrency } from '@/lib/utils';
 
-const ICON_SLUG: Record<string, string> = {
-  BTC: 'btc', ETH: 'eth', DOGE: 'doge', LTC: 'ltc', XRP: 'xrp',
-  USDT: 'usdt', USDC: 'usdc', BNB: 'bnb', SOL: 'sol', ADA: 'ada',
-  TRX: 'trx', MATIC: 'matic', DOT: 'dot', AVAX: 'avax', LINK: 'link',
-  SHIB: 'shib', BCH: 'bch', XLM: 'xlm', ATOM: 'atom', UNI: 'uni',
-};
+const INPUT = 'h-11 w-full rounded-md border border-transparent bg-cd-input px-3.5 text-[14px] text-cd-text placeholder:text-cd-faint focus:border-cd-accent focus:outline-none';
 
-function CoinIcon({ symbol }: { symbol: string }) {
-  const slug = ICON_SLUG[symbol.toUpperCase()] || symbol.toLowerCase();
-  const [err, setErr] = useState(false);
-  if (err) return (
-    <div className="w-10 h-10 rounded-full bg-orange-400 flex items-center justify-center text-xs font-semibold text-white shrink-0">
-      {symbol.slice(0, 2)}
-    </div>
-  );
+/** One label / value line of a details list. */
+function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={`https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/${slug}.png`}
-      alt={symbol}
-      width={40}
-      height={40}
-      className="w-10 h-10 rounded-full object-contain shrink-0"
-      onError={() => setErr(true)}
-    />
+    <div className="flex items-start justify-between gap-4 border-b border-cd-line py-3.5 last:border-b-0">
+      <span className="shrink-0 text-[13.5px] text-cd-muted">{label}</span>
+      <div className="min-w-0 text-right text-[14px] text-cd-text">{children}</div>
+    </div>
   );
 }
 
@@ -101,138 +92,112 @@ export default function DepositConfirmPage() {
       : `${apiBase}${qrCodeImage}`
     : null;
 
+  const usdAmount = Number(params.get('usdAmount') ?? 0);
+
   return (
-    <div className="flex flex-col min-h-full bg-cd-page">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 h-14 border-b border-cd-line shrink-0">
-        <button
-          onClick={() => router.back()}
-          className="w-9 h-9 flex items-center justify-center text-gray-500 hover:text-gray-700 dark:text-cd-muted dark:hover:text-gray-200 transition-colors"
-        >
-          <ChevronLeft size={22} />
-        </button>
-        <h1 className="text-sm font-semibold text-cd-text text-center leading-tight">
-          Confirm {name} ({symbol}) Deposit
-        </h1>
-        <div className="w-9" />
-      </div>
+    <div className="min-h-full">
+      <DashboardHeader title={`Deposit ${symbol}`} backHref="/dashboard/crypto/deposit" breadcrumb />
 
-      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-5">
-
-        {/* QR Section */}
-        <div className="flex flex-col items-center gap-3">
-          <div className="flex items-center gap-2">
-            <CoinIcon symbol={symbol} />
-            <div>
-              <p className="text-sm font-semibold text-cd-text">{network}</p>
-              <p className="text-xs text-blue-500 cursor-pointer">Scan QR code to receive</p>
+      <div className="mx-auto w-full max-w-[1180px] px-4 pb-12 pt-5 sm:px-6 lg:px-10 lg:pt-3">
+        <div className="mx-auto w-full max-w-[600px]">
+          <div className="flex items-center gap-3.5">
+            {symbol && <AssetIcon symbol={symbol} size={36} />}
+            <div className="min-w-0">
+              <h1 className="text-[22px] font-normal leading-tight text-cd-text sm:text-[24px]">
+                Confirm {name} ({symbol}) deposit
+              </h1>
+              <p className="mt-0.5 text-[13.5px] text-cd-muted">{network}</p>
             </div>
           </div>
 
-          {qrSrc ? (
-            <Image
-              src={qrSrc}
-              alt="QR Code"
-              width={140}
-              height={140}
-              className="rounded-lg border border-cd-line"
-            />
-          ) : (
-            <div className="w-36 h-36 border-2 border-dashed border-cd-line rounded-lg flex flex-col items-center justify-center gap-1">
-              <svg viewBox="0 0 200 200" width="100" height="100" xmlns="http://www.w3.org/2000/svg">
-                {/* Simple QR placeholder pattern */}
-                <rect width="200" height="200" fill="white" />
-                {/* Top-left finder */}
-                <rect x="10" y="10" width="70" height="70" fill="none" stroke="#111" strokeWidth="10" />
-                <rect x="30" y="30" width="30" height="30" fill="#111" />
-                {/* Top-right finder */}
-                <rect x="120" y="10" width="70" height="70" fill="none" stroke="#111" strokeWidth="10" />
-                <rect x="140" y="30" width="30" height="30" fill="#111" />
-                {/* Bottom-left finder */}
-                <rect x="10" y="120" width="70" height="70" fill="none" stroke="#111" strokeWidth="10" />
-                <rect x="30" y="140" width="30" height="30" fill="#111" />
-                {/* Data dots */}
-                {[100,110,120,130,140,150,160].map((x) =>
-                  [100,110,120,130,140,150,160].map((y) =>
-                    Math.random() > 0.4
-                      ? <rect key={`${x}-${y}`} x={x} y={y} width="8" height="8" fill="#111" />
-                      : null
-                  )
-                )}
-              </svg>
+          <Card className="mt-6">
+            {qrSrc && (
+              <div className="mb-5 flex flex-col items-center">
+                <div className="rounded-lg bg-white p-2.5">
+                  <Image src={qrSrc} alt="QR Code" width={176} height={176} className="h-44 w-44 object-contain" />
+                </div>
+                <p className="mt-2.5 text-[13px] text-cd-muted">Scan the QR code to send to this address</p>
+              </div>
+            )}
+
+            <p className="mb-1.5 text-[13px] text-cd-muted">Deposit address</p>
+            <div className="flex items-center gap-2 rounded-md bg-cd-input py-1.5 pl-3.5 pr-1.5">
+              <p className="min-w-0 flex-1 break-all py-1.5 font-mono text-[13.5px] text-cd-text">
+                {walletAddress || <span className="font-sans text-cd-faint">No address configured</span>}
+              </p>
+              <button
+                type="button"
+                onClick={handleCopy}
+                className="flex h-8 shrink-0 items-center gap-1.5 rounded px-2.5 text-[13px] font-medium text-cd-accent-text hover:bg-cd-accent-soft"
+              >
+                {copied ? <Check size={15} /> : <Copy size={15} />}
+                {copied ? 'Copied' : 'Copy'}
+              </button>
             </div>
-          )}
-        </div>
 
-        {/* Wallet address + copy */}
-        <div className="flex items-center gap-2 bg-cd-raised border border-cd-line rounded-xl px-4 py-3">
-          <p className="flex-1 text-sm text-cd-text/85 break-all font-mono">
-            {walletAddress || 'No address configured'}
-          </p>
-          <button
-            type="button"
-            onClick={handleCopy}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-cd-accent hover:bg-cd-accent-hover text-white text-sm font-medium rounded-lg transition-colors shrink-0"
-          >
-            {copied ? <Check size={14} /> : <Copy size={14} />}
-            {copied ? 'Copied' : 'Copy'}
-          </button>
-        </div>
+            <div className="mt-3">
+              <Row label="Amount to deposit">
+                <span className="cd-num">{cryptoAmount} <span className="text-[12px] text-cd-muted">{symbol}</span></span>
+                {usdAmount > 0 && <p className="cd-num mt-0.5 text-[12.5px] text-cd-muted">≈ {formatCurrency(usdAmount)} USD</p>}
+              </Row>
+              <Row label="Asset">
+                {symbol}
+                {name && name.toUpperCase() !== symbol.toUpperCase() && <><span className="mx-1.5 text-cd-faint">|</span>{name}</>}
+              </Row>
+              <Row label="Network">{network}</Row>
+            </div>
 
-        {/* Amount to deposit */}
-        <div>
-          <div className="flex items-center justify-between mb-1.5">
-            <p className="text-sm font-medium text-cd-text/85">Amount to deposit</p>
-            <p className="text-xs text-gray-400">USD ↔ {symbol}</p>
-          </div>
-          <div className="flex items-center bg-cd-raised border border-cd-line rounded-xl px-4 py-3.5">
-            <p className="flex-1 text-lg font-semibold text-cd-accent-text tabular-nums">{cryptoAmount}</p>
-            <span className="text-sm font-semibold text-cd-muted">{symbol}</span>
-          </div>
-        </div>
+            <div className="mt-3 flex gap-3 rounded-md bg-cd-raised px-3.5 py-3 text-[13px] leading-relaxed text-cd-muted">
+              <Info size={16} strokeWidth={1.75} className="mt-0.5 shrink-0 text-cd-text" />
+              <p>
+                Send {cryptoAmount ? `${cryptoAmount} ${symbol}` : symbol} to the address above, then enter the
+                transaction ID so we can match your deposit.
+              </p>
+            </div>
+          </Card>
 
-        {/* Transaction ID */}
-        <div>
-          <p className="text-sm font-medium text-cd-text/85 mb-1.5">Transaction ID</p>
-          <input
-            type="text"
-            value={txHash}
-            onChange={(e) => setTxHash(e.target.value)}
-            placeholder="Enter transaction ID"
-            className="w-full bg-cd-raised border border-cd-line rounded-xl px-4 py-3.5 text-sm text-cd-text placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2d5be3]/40"
-          />
-        </div>
+          <Card className="mt-5">
+            <div className="space-y-4">
+              <label className="block">
+                <span className="mb-1.5 block text-[13px] text-cd-muted">Transaction ID</span>
+                <input
+                  type="text"
+                  value={txHash}
+                  onChange={(e) => setTxHash(e.target.value)}
+                  placeholder="Enter transaction ID"
+                  className={`${INPUT} font-mono placeholder:font-sans`}
+                />
+              </label>
 
-        {/* Proof of payment */}
-        <div>
-          <p className="text-sm font-medium text-cd-text/85 mb-1.5">Transaction ID</p>
-          <div
-            className="w-full bg-cd-raised border border-cd-line rounded-xl px-4 py-3.5 cursor-pointer"
-            onClick={() => fileRef.current?.click()}
-          >
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => setProofFile(e.target.files?.[0] ?? null)}
-            />
-            <span className="text-sm text-cd-muted">
-              {proofFile ? proofFile.name : 'No file chosen'}
-            </span>
-          </div>
-          <p className="text-xs text-gray-400 mt-1 pl-1">Upload screenshot of payment (optional)</p>
-        </div>
+              <div>
+                <p className="mb-1.5 text-[13px] text-cd-muted">Proof of payment</p>
+                <button
+                  type="button"
+                  onClick={() => fileRef.current?.click()}
+                  className={`${INPUT} flex items-center gap-2.5 text-left`}
+                >
+                  <Paperclip size={16} strokeWidth={1.75} className="shrink-0 text-cd-muted" />
+                  <span className={`truncate ${proofFile ? 'text-cd-text' : 'text-cd-faint'}`}>
+                    {proofFile ? proofFile.name : 'Choose an image'}
+                  </span>
+                </button>
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => setProofFile(e.target.files?.[0] ?? null)}
+                />
+                <p className="mt-1.5 text-[12px] text-cd-faint">Upload a screenshot of the payment (optional)</p>
+              </div>
+            </div>
+          </Card>
 
-        {/* Confirm button */}
-        <button
-          type="button"
-          onClick={handleSubmit}
-          disabled={submitting}
-          className="w-full h-13 bg-cd-accent hover:bg-cd-accent-hover disabled:opacity-60 text-white font-semibold rounded-xl transition-colors"
-        >
-          {submitting ? 'Submitting…' : 'Confirm Deposit'}
-        </button>
+          <ActionButton variant="primary" onClick={handleSubmit} disabled={submitting} className="mt-6 h-11 w-full">
+            {submitting && <Loader2 size={16} className="animate-spin" />}
+            {submitting ? 'Submitting…' : 'Confirm deposit'}
+          </ActionButton>
+        </div>
       </div>
     </div>
   );

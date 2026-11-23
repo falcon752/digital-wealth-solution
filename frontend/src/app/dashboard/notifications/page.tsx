@@ -1,13 +1,16 @@
 'use client';
 
+/**
+ * Notifications built from the client's recent deposits and withdrawals, as one Anchorage card of
+ * rows: a direction icon, the title and time, the message and any note from the team.
+ */
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { ArrowLeft, Bell, Eye, Trash2, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
-import ThemeToggle from '@/components/layout/ThemeToggle';
+import { Bell, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
 import { usersAPI } from '@/lib/api';
+import DashboardHeader from '@/components/layout/DashboardHeader';
+import { Card, EmptyState, PageHeader, Skeleton, StatusPill } from '@/components/client/ui';
 
 export default function NotificationsPage() {
-  const router = useRouter();
   const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -68,70 +71,72 @@ export default function NotificationsPage() {
   };
 
   return (
-    <div className="min-h-full flex flex-col bg-cd-page pb-20">
-      
-      {/* Header */}
-      <header className="flex items-center justify-between px-4 py-4 bg-cd-card sticky top-0 z-10 border-b border-cd-line">
-        <button type="button" onClick={() => router.back()} className="text-cd-text p-1">
-          <ArrowLeft size={22} />
-        </button>
-        <h1 className="text-[17px] font-semibold text-cd-text">
-          Notifications
-        </h1>
-        <div className="flex items-center gap-3">
-          <ThemeToggle />
-          <button onClick={handleClearAll} className="text-[14px] font-semibold text-cd-accent-text hover:opacity-80">
-            Clear All
-          </button>
-        </div>
-      </header>
+    <div className="min-h-full">
+      <DashboardHeader title="Notifications" backHref="/dashboard" breadcrumb />
 
-      <div className="flex-1 px-4 mt-6">
-        <div className="space-y-4">
-          {loading && (
-            <div className="text-center py-10 text-gray-400 font-medium">Loading notifications...</div>
-          )}
-          
-          {!loading && notifications.map((notif) => (
-            <div key={notif.id} className="bg-cd-card border border-cd-line rounded-xl p-4 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] relative overflow-hidden">
-              
-              <div className="flex items-start gap-4">
-                {/* Icon */}
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 mt-1
-                  ${notif.type === 'deposit' 
-                    ? 'bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400' 
-                    : 'bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400'}`}>
-                  {notif.type === 'deposit' ? <ArrowDownLeft size={18} /> : <ArrowUpRight size={18} />}
-                </div>
-                
-                {/* Content */}
-                <div className="flex-1 pr-4">
-                  <h3 className="font-semibold text-[16px] text-cd-text mb-1">
-                    {notif.title}
-                  </h3>
-                  <p className="text-[14px] text-cd-muted font-medium leading-relaxed">
-                    {notif.message}
-                  </p>
-                  {notif.adminNote && (
-                    <p className="text-[13px] text-cd-muted italic mt-1.5 bg-cd-raised rounded-lg px-3 py-2">
-                      &ldquo;{notif.adminNote}&rdquo;
-                    </p>
-                  )}
-                  <span className="block text-[13px] text-gray-400 font-medium mt-2">
-                    {notif.time}
-                  </span>
-                </div>
+      <div className="mx-auto w-full max-w-[1180px] px-4 pb-12 pt-5 sm:px-6 lg:px-10 lg:pt-3">
+        <div className="mx-auto w-full max-w-[760px]">
+          <PageHeader
+            icon={Bell}
+            title="Notifications"
+            titleOnPhone={false}
+            meta={[loading ? 'Loading…' : notifications.length ? `${notifications.length} new` : 'You are all caught up']}
+            actions={
+              notifications.length > 0 ? (
+                <button
+                  type="button"
+                  onClick={handleClearAll}
+                  className="mx-auto text-[14px] font-medium text-cd-accent-text hover:underline lg:mx-0 lg:mt-2"
+                >
+                  Clear all
+                </button>
+              ) : undefined
+            }
+          />
+
+          <Card className="mt-6 lg:mt-8" bodyClassName="p-2 sm:p-3">
+            {loading ? (
+              <div className="space-y-5 px-3 py-4">
+                {[0, 1, 2, 3].map((i) => (
+                  <div key={i} className="flex items-start gap-3.5">
+                    <Skeleton className="h-9 w-9 rounded-full" />
+                    <div className="flex-1 space-y-2"><Skeleton className="h-3.5 w-40" /><Skeleton className="h-3 w-full max-w-sm" /></div>
+                  </div>
+                ))}
               </div>
-
-            </div>
-          ))}
-
-          {!loading && notifications.length === 0 && (
-            <div className="text-center py-10 text-gray-400 font-medium flex flex-col items-center">
-              <Bell size={40} className="text-gray-200 dark:text-gray-700 mb-3" />
-              <p>No notifications yet</p>
-            </div>
-          )}
+            ) : notifications.length === 0 ? (
+              <EmptyState icon={Bell} title="No notifications yet" text="Updates on your deposits and withdrawals will appear here." />
+            ) : (
+              <ul>
+                {notifications.map((notif) => {
+                  const Icon = notif.type === 'deposit' ? ArrowDownLeft : ArrowUpRight;
+                  return (
+                    <li key={notif.id} className="flex items-start gap-3.5 border-b border-cd-line px-3 py-4 last:border-b-0 sm:px-4">
+                      <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-cd-raised text-cd-text">
+                        <Icon size={16} strokeWidth={1.75} />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start justify-between gap-3">
+                          <p className="text-[14px] font-medium text-cd-text">{notif.title}</p>
+                          <span className="flex shrink-0 items-center gap-2 pt-0.5 text-[12px] text-cd-muted">
+                            {notif.time}
+                            {notif.isUnread && <span className="h-1.5 w-1.5 rounded-full bg-cd-accent" aria-label="Unread" />}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-[13.5px] leading-relaxed text-cd-muted">{notif.message}</p>
+                        {notif.adminNote && (
+                          <p className="mt-2 rounded-md bg-cd-raised px-3 py-2 text-[13px] text-cd-muted">
+                            &ldquo;{notif.adminNote}&rdquo;
+                          </p>
+                        )}
+                        <StatusPill status={notif.status} className="mt-2.5" />
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </Card>
         </div>
       </div>
     </div>

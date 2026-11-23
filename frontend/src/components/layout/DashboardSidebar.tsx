@@ -87,7 +87,7 @@ export default function DashboardSidebar() {
         )}
       >
         <div className="flex items-center justify-between px-6 pb-7 pt-7">
-          <Link href="/dashboard/wallet" onClick={closeSidebar} className="flex items-center">
+          <Link href="/dashboard" onClick={closeSidebar} className="flex items-center">
             <Image src="/dwp-logo.png" alt="Digital Wealth Partners" width={150} height={40} className="h-9 w-auto dark:hidden" priority />
             <Image src="/dwp-logo-dark.png" alt="Digital Wealth Partners" width={150} height={40} className="hidden h-9 w-auto dark:block" priority />
           </Link>

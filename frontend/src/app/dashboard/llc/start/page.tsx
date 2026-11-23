@@ -1,9 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+/**
+ * The first step of forming an LLC: choose a new or an existing company. The dashboard layout
+ * renders this page without the sidebar, so it carries the same top bar and spacing as the rest.
+ */
 import { useRouter } from 'next/navigation';
-import { X, ArrowRight, Building2, RefreshCw, Shield, BarChart3, Layers, FileText } from 'lucide-react';
-import ThemeToggle from '@/components/layout/ThemeToggle';
+import { ArrowLeft, ArrowRight, Building2, RefreshCw, Shield, BarChart3, Layers } from 'lucide-react';
+import DashboardHeader from '@/components/layout/DashboardHeader';
+import { ActionButton, Card, PageHeader } from '@/components/client/ui';
 
 const STRUCTURES = [
   {
@@ -28,152 +32,80 @@ const STRUCTURES = [
   },
 ];
 
-function FeedbackIcon(props: any) {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-    </svg>
-  );
-}
+const CHOICES = [
+  {
+    icon: Building2,
+    title: 'New Company',
+    description: 'Perfect for starting a standalone business or individual venture.',
+    href: '/dashboard/llc/new?type=new',
+    variant: 'primary' as const,
+  },
+  {
+    icon: RefreshCw,
+    title: 'Existing Company',
+    description: 'Switch to our registered agent service for enhanced protection and support.',
+    href: '/dashboard/llc/new?type=existing',
+    variant: 'outline' as const,
+  },
+];
 
 export default function LLCStartPage() {
   const router = useRouter();
-  const [bannerVisible, setBannerVisible] = useState(true);
-  const [isDarkMode, setIsDarkMode] = useState(false);
-
-  useEffect(() => {
-    // Check if body has dark class to render correct logo
-    setIsDarkMode(document.documentElement.classList.contains('dark'));
-    const observer = new MutationObserver(() => {
-      setIsDarkMode(document.documentElement.classList.contains('dark'));
-    });
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-    return () => observer.disconnect();
-  }, []);
 
   return (
-    <div className="min-h-full bg-cd-page font-sans text-cd-text">
-      {/* Header */}
-      <header className="bg-cd-card px-4 md:px-6 h-16 flex items-center justify-between border-b border-cd-line">
-        <div className="flex items-center">
-          <img 
-            src={isDarkMode ? '/wyoming-dark.png' : '/wyoming-light.png'} 
-            alt="Wyoming Attorney" 
-            className="h-8 object-contain"
-          />
-        </div>
-        <div className="flex items-center gap-6">
-          <ThemeToggle />
-          <button className="flex items-center gap-2 text-[15px] font-medium text-cd-text/85 hover:text-black dark:hover:text-white">
-            <FeedbackIcon className="text-cd-muted" />
-            Feedback
-          </button>
-          <button onClick={() => router.push('/dashboard')} className="text-[15px] font-semibold text-cd-text hover:opacity-80">
-            Login
-          </button>
-        </div>
-      </header>
+    <div className="min-h-screen bg-cd-page text-cd-text">
+      <DashboardHeader title="Form a new LLC" backHref="/dashboard/llc" breadcrumb />
 
-      {/* Info Banner */}
-      {bannerVisible && (
-        <div className="bg-cd-accent text-white px-4 py-3.5 relative text-center text-[15px] leading-relaxed">
-          Welcome to our new intake experience! If you find any issues, please use the <strong className="font-semibold">feedback icon above</strong>. Be the <strong className="font-semibold">first to report a validated bug</strong> and we'll refund your entire formation fee!
-          <button onClick={() => setBannerVisible(false)} className="absolute right-3 top-1/2 -translate-y-1/2 p-2 hover:bg-white/20 rounded-full transition-colors">
-            <X size={20} />
-          </button>
-        </div>
-      )}
-
-      <div className="max-w-3xl mx-auto px-4 py-12 space-y-10">
-
-        {/* Hero */}
-        <div className="flex flex-col items-center text-center gap-5">
-          <div className="w-20 h-20 bg-cd-accent rounded-xl flex items-center justify-center shadow-lg">
-            <Building2 size={38} className="text-white" />
-          </div>
-          <div>
-            <h1 className="text-[34px] md:text-[40px] font-semibold text-cd-text tracking-tight leading-[1.1]">
-              Start Your Business Journey
-            </h1>
-            <p className="mt-4 text-[16px] text-cd-muted max-w-md mx-auto leading-relaxed font-medium">
-              Choose the structure that best fits your business needs. We&apos;ll help you make the right choice.
-            </p>
-          </div>
-        </div>
+      <div className="mx-auto w-full max-w-[1180px] px-4 pb-12 pt-5 sm:px-6 lg:px-10 lg:pt-3">
+        <PageHeader
+          icon={Building2}
+          title="Start your business journey"
+          titleOnPhone={false}
+          meta={["Choose the structure that best fits your business needs. We'll help you make the right choice."]}
+        />
 
         {/* Choice cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          {/* New Company */}
-          <div className="bg-cd-card rounded-xl border border-cd-line shadow-sm p-8 flex flex-col items-center text-center gap-4 hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
-            <div className="w-14 h-14 bg-cd-accent rounded-xl flex items-center justify-center">
-              <Building2 size={26} className="text-white" />
-            </div>
-            <div>
-              <h2 className="text-[20px] font-semibold text-cd-text">New Company</h2>
-              <p className="mt-2 text-[14.5px] text-cd-muted leading-relaxed font-medium">
-                Perfect for starting a standalone business or individual venture.
-              </p>
-            </div>
-            <button
-              onClick={() => router.push('/dashboard/llc/new?type=new')}
-              className="mt-3 w-full flex items-center justify-center gap-2 bg-cd-accent hover:bg-cd-accent-hover text-white font-semibold py-3.5 rounded-xl transition-colors"
-            >
-              <ArrowRight size={18} />
-              Choose
-            </button>
-          </div>
-
-          {/* Existing Company */}
-          <div className="bg-cd-card rounded-xl border border-cd-line shadow-sm p-8 flex flex-col items-center text-center gap-4 hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
-            <div className="w-14 h-14 bg-cd-accent rounded-xl flex items-center justify-center">
-              <RefreshCw size={26} className="text-white" />
-            </div>
-            <div>
-              <h2 className="text-[20px] font-semibold text-cd-text">Existing Company</h2>
-              <p className="mt-2 text-[14.5px] text-cd-muted leading-relaxed font-medium">
-                Switch to our registered agent service for enhanced protection and support.
-              </p>
-            </div>
-            <button
-              onClick={() => router.push('/dashboard/llc/new?type=existing')}
-              className="mt-3 w-full flex items-center justify-center gap-2 bg-cd-accent hover:bg-cd-accent-hover text-white font-semibold py-3.5 rounded-xl transition-colors"
-            >
-              <ArrowRight size={18} />
-              Choose
-            </button>
-          </div>
+        <div className="mt-7 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:mt-9">
+          {CHOICES.map(({ icon: Icon, title, description, href, variant }) => (
+            <Card key={title} bodyClassName="flex h-full flex-col p-5 sm:p-6">
+              <span className="flex h-11 w-11 items-center justify-center rounded-md bg-cd-raised text-cd-text">
+                <Icon size={21} strokeWidth={1.75} />
+              </span>
+              <h2 className="mt-4 text-[18px] font-medium text-cd-text">{title}</h2>
+              <p className="mt-1.5 flex-1 text-[14px] leading-relaxed text-cd-muted">{description}</p>
+              <ActionButton
+                onClick={() => router.push(href)}
+                variant={variant}
+                className="mt-5 w-full flex-row-reverse"
+                icon={ArrowRight}
+              >
+                Choose
+              </ActionButton>
+            </Card>
+          ))}
         </div>
 
         {/* Understanding Business Structures */}
-        <div className="bg-cd-raised rounded-xl border border-cd-line p-8 mt-4">
-          <h2 className="text-[20px] font-semibold text-cd-text mb-6">
-            Understanding Business Structures
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <Card title="Understanding business structures" className="mt-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2">
             {STRUCTURES.map(({ icon: Icon, title, description }) => (
-              <div key={title} className="flex items-start gap-4">
-                <div className="w-10 h-10 bg-cd-accent rounded-xl flex items-center justify-center shrink-0">
-                  <Icon size={20} className="text-white" />
-                </div>
-                <div>
-                  <p className="text-[15.5px] font-semibold text-cd-text">{title}</p>
-                  <p className="mt-1 text-[13.5px] text-cd-muted leading-relaxed font-medium">
-                    {description}
-                  </p>
+              <div key={title} className="flex items-start gap-3.5 px-2 py-3 sm:px-2">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-cd-raised text-cd-text">
+                  <Icon size={18} strokeWidth={1.75} />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-[14px] font-medium text-cd-text">{title}</p>
+                  <p className="mt-0.5 text-[13px] leading-relaxed text-cd-muted">{description}</p>
                 </div>
               </div>
             ))}
           </div>
-        </div>
+        </Card>
 
-        {/* Back link */}
-        <div className="text-center pt-4">
-          <button
-            onClick={() => router.push('/dashboard/llc')}
-            className="text-[14px] font-semibold text-cd-accent-text hover:text-[#2563eb] dark:hover:text-blue-400"
-          >
-            ← Back to LLC Management
-          </button>
+        <div className="mt-6 flex justify-center">
+          <ActionButton variant="ghost" icon={ArrowLeft} onClick={() => router.push('/dashboard/llc')}>
+            Back to LLC applications
+          </ActionButton>
         </div>
       </div>
     </div>

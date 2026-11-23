@@ -10,7 +10,7 @@ export function usePendingCount() {
   const [count, setCount] = useState(0);
 
   // Refreshed when the client moves to Activity or back to the dashboard, where it may have changed.
-  const refreshKey = pathname?.startsWith('/dashboard/transactions') || pathname === '/dashboard/wallet' ? pathname : 'other';
+  const refreshKey = pathname?.startsWith('/dashboard/transactions') || pathname === '/dashboard' ? pathname : 'other';
 
   useEffect(() => {
     let cancelled = false;

@@ -1,15 +1,26 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+/**
+ * A coin's detail page, laid out like the asset view in Anchorage: "BTC | Bitcoin" with the
+ * network and Send / Receive / Swap / Buy on the right, the price, a card with a thin line chart
+ * and range tabs, then Holdings / History / About. Send and Receive open in a drawer from the
+ * right (full screen on a phone), as Anchorage shows its wallet details.
+ */
+import { useEffect, useState, useCallback, type ReactNode } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
+import Link from 'next/link';
 import {
-  ArrowLeft, ChevronUp, ChevronDown, ArrowUpFromLine, ArrowDownToLine,
-  ArrowLeftRight, Zap, Home, Copy, Check, X,
+  ArrowUpFromLine, ArrowDownToLine, ArrowLeftRight, Zap, Copy, Check, X, Clock, type LucideIcon,
 } from 'lucide-react';
 import { assetsAPI, depositsAPI, usersAPI } from '@/lib/api';
 import { Asset } from '@/types';
+import { cn } from '@/lib/utils';
 import toast from 'react-hot-toast';
+import DashboardHeader from '@/components/layout/DashboardHeader';
+import {
+  ActionButton, AssetIcon, AssetName, Card, Change, EmptyState, Money, Skeleton, TableHead, Tabs,
+} from '@/components/client/ui';
 
 const COINGECKO_ID: Record<string, string> = {
   BTC: 'bitcoin', ETH: 'ethereum', DOGE: 'dogecoin', LTC: 'litecoin',
@@ -17,13 +28,6 @@ const COINGECKO_ID: Record<string, string> = {
   SOL: 'solana', ADA: 'cardano', TRX: 'tron', MATIC: 'matic-network',
   DOT: 'polkadot', AVAX: 'avalanche-2', LINK: 'chainlink', SHIB: 'shiba-inu',
   BCH: 'bitcoin-cash', XLM: 'stellar', ATOM: 'cosmos', UNI: 'uniswap',
-};
-
-const ICON_SLUG: Record<string, string> = {
-  BTC: 'btc', ETH: 'eth', DOGE: 'doge', LTC: 'ltc', XRP: 'xrp',
-  USDT: 'usdt', USDC: 'usdc', BNB: 'bnb', SOL: 'sol', ADA: 'ada',
-  TRX: 'trx', MATIC: 'matic', DOT: 'dot', AVAX: 'avax', LINK: 'link',
-  SHIB: 'shib', BCH: 'bch', XLM: 'xlm', ATOM: 'atom', UNI: 'uni',
 };
 
 const PERIODS = ['1H', '1D', '1W', '1M', '1Y', 'All'] as const;
@@ -34,7 +38,15 @@ type Period = typeof PERIODS[number];
 type DetailTab = 'Holdings' | 'History' | 'About';
 type BottomAction = 'send' | 'receive' | null;
 
-function Sparkline({ data, positive }: { data: number[]; positive: boolean }) {
+const PERIOD_TABS = PERIODS.map((p) => ({ value: p, label: p === 'All' ? 'ALL' : p }));
+const DETAIL_TABS: { value: DetailTab; label: string }[] = [
+  { value: 'Holdings', label: 'Holdings' },
+  { value: 'History', label: 'History' },
+  { value: 'About', label: 'About' },
+];
+
+/** A thin line in the accent colour, no gridlines. */
+function Sparkline({ data }: { data: number[] }) {
   if (data.length < 2) return null;
   const min = Math.min(...data);
   const max = Math.max(...data);
@@ -42,33 +54,37 @@ function Sparkline({ data, positive }: { data: number[]; positive: boolean }) {
   const W = 600;
   const H = 120;
   const pts = data
-    .map((v, i) => `${(i / (data.length - 1)) * W},${H - ((v - min) / range) * H}`)
+    .map((v, i) => `${(i / (data.length - 1)) * W},${H - 2 - ((v - min) / range) * (H - 4)}`)
     .join(' ');
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-full" preserveAspectRatio="none">
-      <polyline points={pts} fill="none" stroke={positive ? '#22c55e' : '#ef4444'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+    <svg viewBox={`0 0 ${W} ${H}`} className="h-full w-full overflow-visible text-cd-accent" preserveAspectRatio="none">
+      <polyline points={pts} fill="none" stroke="currentColor" strokeWidth="1.5" vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
 
-function CoinIcon({ symbol }: { symbol: string }) {
-  const slug = ICON_SLUG[symbol.toUpperCase()] || symbol.toLowerCase();
-  const [err, setErr] = useState(false);
-  if (err) return (
-    <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-semibold text-gray-500">
-      {symbol.slice(0, 2)}
+/** A panel that slides in from the right on a computer and fills the screen on a phone. */
+function Drawer({ title, icon, onClose, children }: { title: ReactNode; icon?: ReactNode; onClose: () => void; children: ReactNode }) {
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end">
+      <div aria-hidden="true" className="absolute inset-0 hidden bg-black/60 sm:block" />
+      <aside role="dialog" aria-modal="true" className="relative flex h-full w-full flex-col overflow-y-auto bg-cd-card sm:max-w-[460px] sm:border-l sm:border-cd-line">
+        <div className="flex items-center justify-between gap-3 px-5 pb-4 pt-5 sm:px-7 sm:pt-7">
+          <div className="flex min-w-0 items-center gap-3">
+            {icon}
+            <p className="truncate text-[22px] font-normal text-cd-text">{title}</p>
+          </div>
+          <button type="button" onClick={onClose} aria-label="Close" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-cd-muted hover:bg-cd-raised hover:text-cd-text">
+            <X size={19} strokeWidth={1.75} />
+          </button>
+        </div>
+        {children}
+      </aside>
     </div>
   );
-  return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={`https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/${slug}.png`}
-      alt={symbol} width={40} height={40}
-      className="w-10 h-10 rounded-full object-contain"
-      onError={() => setErr(true)}
-    />
-  );
 }
+
+const FIELD = 'w-full rounded-[4px] border border-transparent bg-cd-input text-cd-text placeholder:text-cd-faint focus:border-cd-accent focus:outline-none';
 
 export default function CoinDetailPage() {
   const params = useParams();
@@ -145,8 +161,6 @@ export default function CoinDetailPage() {
       .catch(() => {});
   }, [geckoId]);
 
-  const positive = priceChange >= 0;
-
   const converted = (() => {
     const n = Number(sendAmount);
     if (!n) return '0.00';
@@ -174,324 +188,304 @@ export default function CoinDetailPage() {
 
   const closeSend = () => { setBottomAction(null); setSendAmount(''); setSendDone(false); setSendCopied(false); };
 
+  const name = asset?.name || symbol;
+
+  const runAction = (key: 'send' | 'receive' | 'swap' | 'buy') => {
+    if (key === 'swap') { toast('Swap coming soon!', { icon: '⏳' }); return; }
+    if (key === 'buy') { router.push('/dashboard/crypto/deposit'); return; }
+    setBottomAction(key as BottomAction);
+  };
+
+  const actions: { key: 'send' | 'receive' | 'swap'; label: string; icon: LucideIcon }[] = [
+    { key: 'send', label: 'Send', icon: ArrowUpFromLine },
+    { key: 'receive', label: 'Receive', icon: ArrowDownToLine },
+    { key: 'swap', label: 'Swap', icon: ArrowLeftRight },
+  ];
+
   if (pageLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-cd-page">
-        <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-full">
+        <DashboardHeader title={symbol} backHref="/dashboard/crypto" breadcrumb />
+        <div className="mx-auto w-full max-w-[1180px] px-4 pb-12 pt-5 sm:px-6 lg:px-10 lg:pt-3">
+          <div className="flex flex-col items-center gap-3 lg:items-start">
+            <Skeleton className="h-8 w-56" />
+            <Skeleton className="h-4 w-40" />
+            <Skeleton className="mt-5 h-11 w-64" />
+          </div>
+          <Skeleton className="mt-10 h-[300px] w-full rounded-lg" />
+        </div>
       </div>
     );
   }
 
+  const qrSrc = asset && (asset.qrCodeImage || asset.qrCodeUrl) ? (asset.qrCodeUrl ?? `${apiBase}${asset.qrCodeImage}`) : null;
+
   return (
-    <div className="flex flex-col min-h-full bg-cd-page">
-      {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between px-5 py-4 shrink-0">
-        <button onClick={() => router.back()} className="text-cd-muted hover:text-gray-900 dark:hover:text-white transition-colors">
-          <ArrowLeft size={20} />
-        </button>
-        <div className="text-center">
-          <p className="text-base font-semibold text-cd-text">{symbol}</p>
-          <p className="text-xs text-cd-faint">COIN | {symbol}</p>
+    <div className="min-h-full">
+      <DashboardHeader title={name} backHref="/dashboard/crypto" breadcrumb />
+
+      <div className="mx-auto w-full max-w-[1180px] px-4 pb-12 pt-5 sm:px-6 lg:px-10 lg:pt-3">
+        {/* Title and actions */}
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+          <div className="flex min-w-0 flex-col items-center text-center lg:items-start lg:text-left">
+            <h1 className="hidden items-center gap-3 text-[28px] font-normal leading-tight text-cd-text lg:flex">
+              <AssetIcon symbol={symbol} size={30} />
+              <span className="truncate">
+                {symbol}
+                {name.toUpperCase() !== symbol && <><span className="mx-2 text-cd-faint">|</span>{name}</>}
+              </span>
+            </h1>
+            <div className="lg:hidden"><AssetIcon symbol={symbol} size={40} /></div>
+            <p className="mt-3 flex flex-wrap items-center justify-center text-[14px] text-cd-muted lg:mt-2 lg:justify-start">
+              <span>{asset?.network || 'Coin'}</span>
+              <span className="mx-2.5 h-3.5 w-px bg-cd-line-strong" />
+              <Link href="/dashboard/crypto" className="hover:text-cd-text">All crypto assets</Link>
+            </p>
+          </div>
+          <div className="hidden shrink-0 gap-2.5 lg:flex">
+            {actions.map(({ key, label, icon }) => (
+              <ActionButton key={key} icon={icon} onClick={() => runAction(key)}>{label}</ActionButton>
+            ))}
+            <ActionButton icon={Zap} variant="primary" onClick={() => runAction('buy')}>Buy</ActionButton>
+          </div>
         </div>
-        <button className="text-cd-faint">
-          <ChevronUp size={20} />
-        </button>
-      </div>
 
-      {/* ── Price ──────────────────────────────────────────────────────────── */}
-      <div className="text-center px-5 pb-3 shrink-0">
-        <p className="text-4xl font-semibold text-cd-text tracking-tight">
-          ${price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-        </p>
-        {priceChange !== 0 && (
-          <p className={`text-sm mt-1 font-medium ${positive ? 'text-green-500' : 'text-red-500'}`}>
-            {positive ? '▲' : '▼'} {Math.abs(priceChange).toFixed(2)}%
+        {/* Price */}
+        <div className="mt-7 flex flex-col items-center text-center lg:items-start lg:text-left">
+          <Money value={price} className="text-[38px] font-light leading-none tracking-tight text-cd-text sm:text-[44px]" />
+          <p className="mt-2 flex items-center gap-2.5 text-[13px] text-cd-muted">
+            <span className="uppercase tracking-[0.08em]">Price</span>
+            {priceChange !== 0 && (
+              <>
+                <span className="h-3 w-px bg-cd-line-strong" />
+                <Change value={priceChange} />
+                <span>24h</span>
+              </>
+            )}
           </p>
-        )}
-      </div>
+        </div>
 
-      {/* ── Chart ──────────────────────────────────────────────────────────── */}
-      <div className="px-5 h-32 shrink-0">
-        {chartLoading ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="w-5 h-5 border-2 border-cd-line border-t-transparent rounded-full animate-spin" />
-          </div>
-        ) : chartData.length > 1 ? (
-          <Sparkline data={chartData} positive={positive} />
-        ) : (
-          <div className="flex items-center justify-center h-full text-xs text-gray-300 dark:text-gray-700">
-            No chart data
-          </div>
-        )}
-      </div>
-
-      {/* ── Period tabs ────────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between px-4 py-2 shrink-0">
-        {PERIODS.map((p) => (
-          <button
-            key={p}
-            onClick={() => setPeriod(p)}
-            className={`text-sm font-medium px-2.5 py-1.5 rounded-lg transition-colors ${
-              period === p
-                ? 'bg-cd-accent-soft text-cd-accent-text'
-                : 'text-cd-muted hover:text-gray-700 dark:hover:text-gray-200'
-            }`}
-          >
-            {p}
+        {/* Phone: the actions as a row of tiles */}
+        <div className="mt-7 grid grid-cols-4 gap-2.5 lg:hidden">
+          <button type="button" onClick={() => runAction('buy')} className="flex h-[70px] flex-col items-center justify-center gap-1.5 rounded-lg bg-cd-accent text-[12.5px] font-medium text-white">
+            <Zap size={20} strokeWidth={1.75} />
+            Buy
           </button>
-        ))}
-      </div>
+          {actions.map(({ key, label, icon: Icon }) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => runAction(key)}
+              className={cn(
+                'cd-card flex h-[70px] flex-col items-center justify-center gap-1.5 rounded-lg border border-cd-line text-[12.5px] font-medium text-cd-text dark:border-transparent',
+                bottomAction === key && 'border-cd-accent dark:border-cd-accent',
+              )}
+            >
+              <Icon size={20} strokeWidth={1.75} className="text-cd-accent-text" />
+              {label}
+            </button>
+          ))}
+        </div>
 
-      {/* ── Detail tabs ────────────────────────────────────────────────────── */}
-      <div className="flex border-b border-cd-line px-5 mt-1 shrink-0">
-        {(['Holdings', 'History', 'About'] as DetailTab[]).map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`mr-6 py-3 text-sm font-semibold border-b-2 transition-colors ${
-              tab === t
-                ? 'border-blue-600 text-cd-accent-text'
-                : 'border-transparent text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
-            }`}
-          >
-            {t}
-          </button>
-        ))}
-      </div>
+        {/* Chart */}
+        <Card className="mt-8 lg:mt-10" bodyClassName="p-0 sm:p-0">
+          <div className="flex flex-col gap-3 px-4 pt-4 sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:pt-5">
+            <p className="text-[15px] font-medium text-cd-text">{symbol} / USD</p>
+            <Tabs tabs={PERIOD_TABS} value={period} onChange={setPeriod} className="border-b-0" />
+          </div>
+          <div className="h-[180px] px-4 pb-5 pt-5 sm:h-[240px] sm:px-5">
+            {chartLoading ? (
+              <Skeleton className="h-full w-full" />
+            ) : chartData.length > 1 ? (
+              <Sparkline data={chartData} />
+            ) : (
+              <div className="flex h-full items-center justify-center text-[13px] text-cd-faint">No chart data</div>
+            )}
+          </div>
+        </Card>
 
-      {/* ── Tab content ────────────────────────────────────────────────────── */}
-      <div className="flex-1 px-5 py-5">
-        {tab === 'Holdings' && (
-          <>
-            <p className="text-sm font-semibold text-cd-text mb-4">My Balance</p>
-            <div className="flex items-center justify-between mb-5">
-              <div className="flex items-center gap-3">
-                <CoinIcon symbol={symbol} />
-                <div>
-                  <p className="text-sm font-semibold text-cd-text">{symbol}</p>
-                  <p className="text-xs text-cd-faint">0.00000 {symbol}</p>
+        {/* Holdings / History / About */}
+        <Tabs tabs={DETAIL_TABS} value={tab} onChange={setTab} className="mt-8" />
+
+        <div className="mt-5">
+          {tab === 'Holdings' && (
+            <Card title="My balance">
+              <TableHead className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4">
+                <span>Asset</span>
+                <span className="text-right">Balance</span>
+              </TableHead>
+              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 px-3 py-4 sm:px-4">
+                <div className="flex min-w-0 items-center gap-3.5">
+                  <AssetIcon symbol={symbol} size={30} />
+                  <AssetName symbol={symbol} name={asset?.name} network={asset?.network || asset?.name} />
+                </div>
+                <div className="text-right">
+                  <Money value={userBalance} className="text-[14px] text-cd-text" centsClassName="text-[1em]" />
+                  <p className="cd-num mt-0.5 text-[12px] text-cd-muted">0.00000 {symbol}</p>
                 </div>
               </div>
-              <div className="text-right">
-                <p className="text-sm font-semibold text-cd-text">
-                  USD{userBalance.toFixed(2)}
-                </p>
-                <p className="text-xs text-gray-400">-</p>
-              </div>
-            </div>
-            <button className="flex items-center gap-1.5 text-sm font-medium text-cd-accent-text">
-              Show balances <ChevronDown size={14} />
-            </button>
-          </>
-        )}
-        {tab === 'History' && (
-          <p className="text-sm text-cd-faint text-center py-10">No transaction history</p>
-        )}
-        {tab === 'About' && asset && (
-          <div className="space-y-3 text-sm text-cd-muted">
-            <p><span className="font-semibold text-gray-800 dark:text-gray-200">Name:</span> {asset.name}</p>
-            <p><span className="font-semibold text-gray-800 dark:text-gray-200">Symbol:</span> {asset.symbol}</p>
-            {asset.network && <p><span className="font-semibold text-gray-800 dark:text-gray-200">Network:</span> {asset.network}</p>}
-            {asset.minDeposit != null && <p><span className="font-semibold text-gray-800 dark:text-gray-200">Min Deposit:</span> {asset.minDeposit} {asset.symbol}</p>}
-          </div>
-        )}
+            </Card>
+          )}
+          {tab === 'History' && (
+            <Card title="History">
+              <EmptyState icon={Clock} title="No transaction history" />
+            </Card>
+          )}
+          {tab === 'About' && asset && (
+            <Card title={`About ${asset.name}`} bodyClassName="px-4 pb-4 sm:px-5">
+              <dl className="grid grid-cols-1 border-t border-cd-line sm:grid-cols-4">
+                {([
+                  ['Name', asset.name],
+                  ['Symbol', asset.symbol],
+                  asset.network ? ['Network', asset.network] : null,
+                  asset.minDeposit != null ? ['Min deposit', `${asset.minDeposit} ${asset.symbol}`] : null,
+                ].filter(Boolean) as [string, string][]).map(([label, value]) => (
+                  <div key={label} className="flex items-center justify-between border-b border-cd-line py-3 sm:block sm:border-b-0 sm:pt-4">
+                    <dt className="text-[11px] font-medium uppercase tracking-[0.06em] text-cd-muted">{label}</dt>
+                    <dd className="text-[14px] text-cd-text sm:mt-1">{value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </Card>
+          )}
+        </div>
       </div>
 
-      {/* ── Bottom navigation ──────────────────────────────────────────────── */}
-      <div className="border-t border-cd-line grid grid-cols-5 shrink-0 bg-cd-card">
-        {([
-          { key: 'send', Icon: ArrowUpFromLine, label: 'Send' },
-          { key: 'receive', Icon: ArrowDownToLine, label: 'Receive' },
-          { key: 'swap', Icon: ArrowLeftRight, label: 'Swap' },
-          { key: 'buy', Icon: Zap, label: 'Buy' },
-        ] as const).map(({ key, Icon, label }) => (
-          <button
-            key={key}
-            onClick={() => {
-              if (key === 'swap') { toast('Swap coming soon!', { icon: '⏳' }); return; }
-              if (key === 'buy') { router.push('/dashboard/crypto/deposit'); return; }
-              setBottomAction(key as BottomAction);
-            }}
-            className={`flex flex-col items-center gap-1 py-3 text-xs font-medium transition-colors ${
-              bottomAction === key
-                ? 'text-cd-accent-text'
-                : 'text-cd-muted hover:text-gray-700 dark:hover:text-gray-200'
-            }`}
-          >
-            <Icon size={20} />
-            {label}
-          </button>
-        ))}
-        <button
-          onClick={() => router.push('/dashboard/crypto')}
-          className="flex flex-col items-center gap-1 py-3 text-xs font-medium text-cd-muted hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
-        >
-          <Home size={20} />
-          Home
-        </button>
-      </div>
-
-      {/* ── Send overlay ───────────────────────────────────────────────────── */}
+      {/* ── Send drawer ────────────────────────────────────────────────────── */}
       {bottomAction === 'send' && asset && (
-        <div className="fixed inset-0 z-50 bg-cd-card flex flex-col overflow-y-auto">
-          {/* Header */}
-          <div className="flex items-center justify-between px-5 py-4 border-b border-cd-line shrink-0">
-            <button onClick={closeSend} className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
-              <X size={20} />
-            </button>
-            <p className="font-semibold text-cd-text">Send {asset.name}</p>
-            <div className="w-5" />
-          </div>
-
+        <Drawer title={`Send ${asset.name}`} icon={<AssetIcon symbol={symbol} size={28} />} onClose={closeSend}>
           {sendDone ? (
             /* Success state */
-            <div className="flex-1 flex flex-col items-center justify-center px-8 text-center">
-              <div className="w-16 h-16 rounded-full bg-green-50 dark:bg-green-900/20 flex items-center justify-center mb-4">
-                <Check size={28} className="text-green-500" />
-              </div>
-              <h3 className="text-xl font-semibold text-cd-text mb-2">Admin Notified!</h3>
-              <p className="text-sm text-cd-muted mb-6">
+            <div className="flex flex-1 flex-col items-center justify-center px-8 pb-16 text-center">
+              <span className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-cd-positive/10">
+                <Check size={26} className="text-cd-positive" />
+              </span>
+              <h3 className="mb-2 text-[20px] font-normal text-cd-text">Admin notified</h3>
+              <p className="mb-6 max-w-xs text-[14px] text-cd-muted">
                 Your deposit request has been submitted. Admin will verify the transaction and credit your balance.
               </p>
-              <button
-                onClick={closeSend}
-                className="px-8 py-3 rounded-xl bg-blue-600 text-white font-semibold hover:opacity-90 transition-opacity"
-              >
-                Done
-              </button>
+              <ActionButton variant="primary" onClick={closeSend} className="px-8">Done</ActionButton>
             </div>
           ) : (
-            <div className="px-5 py-6 space-y-7 max-w-lg mx-auto w-full">
+            <div className="space-y-6 px-5 pb-8 sm:px-7">
               {/* Admin wallet section */}
-              <div>
-                <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-4">
-                  Send {asset.symbol} to this address:
+              <div className="rounded-lg bg-cd-raised p-4 sm:p-5">
+                <p className="mb-4 text-[14px] font-medium text-cd-text">
+                  Send {asset.symbol} to this address
                 </p>
 
-                {/* QR code */}
-                {(asset.qrCodeImage || asset.qrCodeUrl) && (
-                  <div className="flex justify-center mb-5">
-                    <div className="p-3 bg-white border border-cd-line rounded-xl shadow-sm">
-                      <Image
-                        src={
-                          asset.qrCodeUrl ??
-                          `${apiBase}${asset.qrCodeImage}`
-                        }
-                        alt="QR Code"
-                        width={160}
-                        height={160}
-                        className="rounded-lg"
-                      />
+                {qrSrc && (
+                  <div className="mb-5 flex justify-center">
+                    <div className="rounded-lg bg-white p-3">
+                      <Image src={qrSrc} alt="QR Code" width={160} height={160} className="rounded" />
                     </div>
                   </div>
                 )}
 
-                {/* Wallet address */}
-                <div className="flex items-center gap-3 bg-cd-raised border border-cd-line rounded-xl px-4 py-3">
-                  <p className="flex-1 text-xs font-mono text-cd-text/85 break-all leading-relaxed">
+                <p className="mb-2 text-[13px] text-cd-muted">Deposit address</p>
+                <div className="flex items-center gap-3 rounded-[4px] bg-cd-card px-4 py-3">
+                  <p className="flex-1 break-all font-mono text-[12.5px] leading-relaxed text-cd-text">
                     {asset.walletAddress}
                   </p>
                   <button
+                    type="button"
+                    aria-label="Copy address"
                     onClick={async () => {
                       await navigator.clipboard.writeText(asset.walletAddress);
                       setSendCopied(true);
                       toast.success('Address copied!');
                       setTimeout(() => setSendCopied(false), 2000);
                     }}
-                    className="shrink-0 text-gray-400 hover:text-blue-500 transition-colors"
+                    className="shrink-0 text-cd-muted transition-colors hover:text-cd-accent-text"
                   >
-                    {sendCopied ? <Check size={16} className="text-green-500" /> : <Copy size={16} />}
+                    {sendCopied ? <Check size={16} className="text-cd-positive" /> : <Copy size={16} />}
                   </button>
                 </div>
                 {asset.network && (
-                  <p className="text-xs text-cd-faint mt-2">Network: {asset.network}</p>
+                  <p className="mt-2 text-[12px] text-cd-muted">Network: {asset.network}</p>
                 )}
               </div>
 
               {/* Amount */}
               <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm font-medium text-cd-text/85">Amount Sent</label>
+                <div className="mb-2 flex items-center justify-between">
+                  <label htmlFor="send-amount" className="text-[13px] font-medium text-cd-text">Amount sent</label>
                   <button
+                    type="button"
                     onClick={() => setSendMode((m) => (m === 'usd' ? 'crypto' : 'usd'))}
-                    className="text-xs font-medium text-cd-muted border border-cd-line rounded-lg px-2.5 py-1 hover:bg-cd-raised transition-colors"
+                    className="rounded-[4px] border border-cd-line-strong px-2.5 py-1 text-[12px] font-medium text-cd-muted transition-colors hover:bg-cd-raised hover:text-cd-text"
                   >
                     {sendMode === 'usd' ? `USD ↔ ${symbol}` : `${symbol} ↔ USD`}
                   </button>
                 </div>
-                <div className="flex items-center bg-cd-raised border border-cd-line rounded-xl overflow-hidden">
+                <div className="relative">
                   <input
+                    id="send-amount"
                     type="number"
                     step="any"
                     placeholder="0.00"
                     value={sendAmount}
                     onChange={(e) => setSendAmount(e.target.value)}
-                    className="flex-1 px-4 py-4 bg-transparent text-cd-text text-base focus:outline-none"
+                    className={cn(FIELD, 'cd-num h-12 pl-4 pr-16 text-[16px]')}
                   />
-                  <span className="pr-4 text-sm font-semibold text-cd-accent-text">
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[13px] font-medium text-cd-accent-text">
                     {sendMode === 'usd' ? 'USD' : symbol}
                   </span>
                 </div>
-                <p className="text-xs text-cd-faint mt-2 text-center">
+                <p className="cd-num mt-2 text-[12px] text-cd-muted">
                   ≈ {converted} {sendMode === 'usd' ? symbol : 'USD'}
                 </p>
               </div>
 
-              {/* Notify button */}
-              <button
+              <ActionButton
+                variant="primary"
                 onClick={handleNotifyAdmin}
                 disabled={sendSubmitting || !sendAmount}
-                className="w-full py-4 rounded-xl bg-cd-accent text-white font-semibold text-base hover:opacity-90 transition-opacity disabled:opacity-50"
+                className="h-12 w-full"
               >
                 {sendSubmitting ? 'Notifying Admin…' : "I've Sent — Notify Admin"}
-              </button>
+              </ActionButton>
 
-              <p className="text-xs text-cd-faint text-center pb-4">
+              <p className="text-center text-[12px] leading-relaxed text-cd-muted">
                 Send the exact amount to the address above, then tap the button. Admin will confirm and credit your balance.
               </p>
             </div>
           )}
-        </div>
+        </Drawer>
       )}
 
-      {/* ── Receive overlay ────────────────────────────────────────────────── */}
+      {/* ── Receive drawer ─────────────────────────────────────────────────── */}
       {bottomAction === 'receive' && asset && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-0 sm:p-4">
-          <div className="bg-cd-card w-full sm:max-w-sm rounded-t-3xl sm:rounded-xl shadow-2xl border border-cd-line">
-            <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-cd-line">
-              <p className="font-semibold text-cd-text">Receive {symbol}</p>
-              <button onClick={() => setBottomAction(null)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
-                <X size={20} />
-              </button>
-            </div>
-            <div className="px-6 py-6 text-center space-y-4">
-              {(asset.qrCodeImage || asset.qrCodeUrl) && (
-                <div className="flex justify-center">
-                  <Image
-                    src={asset.qrCodeUrl ?? `${apiBase}${asset.qrCodeImage}`}
-                    alt="QR Code"
-                    width={160}
-                    height={160}
-                    className="rounded-xl border border-cd-line"
-                  />
+        <Drawer title={`Receive ${symbol}`} icon={<AssetIcon symbol={symbol} size={28} />} onClose={() => setBottomAction(null)}>
+          <div className="px-5 pb-8 sm:px-7">
+            <div className="rounded-lg bg-cd-raised p-4 sm:p-5">
+              <p className="text-[15px] font-medium text-cd-text">{asset.name} wallet</p>
+              {asset.network && <p className="mt-1 text-[13px] text-cd-muted">Network: {asset.network}</p>}
+              {qrSrc && (
+                <div className="mt-5 flex justify-center">
+                  <div className="rounded-lg bg-white p-3">
+                    <Image src={qrSrc} alt="QR Code" width={160} height={160} className="rounded" />
+                  </div>
                 </div>
               )}
-              <div className="bg-cd-raised rounded-xl px-4 py-3 border border-cd-line">
-                <p className="text-xs font-mono text-cd-text/85 break-all">{asset.walletAddress}</p>
+              <p className="mb-2 mt-5 text-[13px] text-cd-muted">Deposit address</p>
+              <div className="rounded-[4px] bg-cd-card px-4 py-3">
+                <p className="break-all font-mono text-[12.5px] leading-relaxed text-cd-text">{asset.walletAddress}</p>
               </div>
-              {asset.network && <p className="text-xs text-gray-400">Network: {asset.network}</p>}
-              <button
-                onClick={async () => {
-                  await navigator.clipboard.writeText(asset.walletAddress);
-                  toast.success('Address copied!');
-                }}
-                className="w-full py-3 rounded-xl bg-cd-accent text-white text-sm font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
-              >
-                <Copy size={16} /> Copy Address
-              </button>
             </div>
+            <ActionButton
+              variant="primary"
+              icon={Copy}
+              onClick={async () => {
+                await navigator.clipboard.writeText(asset.walletAddress);
+                toast.success('Address copied!');
+              }}
+              className="mt-5 h-12 w-full"
+            >
+              Copy address
+            </ActionButton>
           </div>
-        </div>
+        </Drawer>
       )}
     </div>
   );

@@ -5,20 +5,26 @@ import { useParams } from 'next/navigation';
 import { llcAPI } from '@/lib/api';
 import { LLCApplication } from '@/types';
 import DashboardHeader from '@/components/layout/DashboardHeader';
-import Badge from '@/components/ui/Badge';
+import { ActionButton, Card, EmptyState, PageHeader, Skeleton, StatusPill } from '@/components/client/ui';
 import { formatDate } from '@/lib/utils';
-import { Building2, Eye, EyeOff, KeyRound, Mail, MapPin, Phone, UserRound } from 'lucide-react';
+import { Building2, Eye, EyeOff, KeyRound } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getApiError } from '@/lib/apiError';
 
 function DetailRow({ label, value }: { label: string; value?: string | number | null }) {
   return (
-    <div className="flex items-start justify-between gap-4 py-3 border-b border-cd-line last:border-0">
-      <span className="text-sm font-medium text-cd-muted">{label}</span>
-      <span className="text-sm font-semibold text-cd-text text-right break-words">{value || '-'}</span>
+    <div className="flex items-start justify-between gap-4 py-3 text-[14px]">
+      <span className="shrink-0 text-cd-muted">{label}</span>
+      <span className="min-w-0 break-words text-right text-cd-text">{value || '-'}</span>
     </div>
   );
 }
+
+function titleCase(value: string) {
+  return (value || '').split(' ').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+}
+
+const WRAPPER = 'mx-auto w-full max-w-[1180px] px-4 pb-12 pt-5 sm:px-6 lg:px-10 lg:pt-3';
 
 export default function LLCProfilePage() {
   const params = useParams<{ id: string }>();
@@ -42,10 +48,15 @@ export default function LLCProfilePage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col min-h-full bg-cd-page">
-        <DashboardHeader title="LLC Profile" backHref="/dashboard/llc" logo="wyoming" />
-        <div className="flex items-center justify-center h-64">
-          <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-full">
+        <DashboardHeader title="LLC profile" backHref="/dashboard/llc" breadcrumb />
+        <div className={WRAPPER}>
+          <Skeleton className="h-8 w-72" />
+          <Skeleton className="mt-3 h-4 w-48" />
+          <div className="mt-8 grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
+            <Skeleton className="h-72 rounded-lg" />
+            <Skeleton className="h-48 rounded-lg" />
+          </div>
         </div>
       </div>
     );
@@ -53,9 +64,17 @@ export default function LLCProfilePage() {
 
   if (!application) {
     return (
-      <div className="flex flex-col min-h-full bg-cd-page">
-        <DashboardHeader title="LLC Profile" backHref="/dashboard/llc" logo="wyoming" />
-        <div className="p-6 text-center text-cd-muted">LLC application not found.</div>
+      <div className="min-h-full">
+        <DashboardHeader title="LLC profile" backHref="/dashboard/llc" breadcrumb />
+        <div className={WRAPPER}>
+          <Card>
+            <EmptyState
+              icon={Building2}
+              title="LLC application not found."
+              action={<ActionButton href="/dashboard/llc">Back to LLC applications</ActionButton>}
+            />
+          </Card>
+        </div>
       </div>
     );
   }
@@ -94,102 +113,72 @@ export default function LLCProfilePage() {
   };
 
   return (
-    <div className="flex flex-col min-h-full pb-20 bg-cd-page">
-      <DashboardHeader title="LLC Profile" backHref="/dashboard/llc" logo="wyoming" />
+    <div className="min-h-full">
+      <DashboardHeader title="LLC profile" backHref="/dashboard/llc" breadcrumb />
 
-      <div className="flex-1 p-5 max-w-3xl w-full mx-auto space-y-5">
-        <section className="bg-cd-card rounded-xl p-5 shadow-[0_2px_15px_-4px_rgba(0,0,0,0.05)]">
-          <div className="flex items-start justify-between gap-4">
-            <div className="min-w-0">
-              <div className="w-12 h-12 rounded-[14px] bg-cd-accent-soft flex items-center justify-center mb-4">
-                <Building2 size={22} className="text-cd-accent-text" />
+      <div className={WRAPPER}>
+        <PageHeader
+          icon={Building2}
+          title={application.companyName}
+          meta={[application.entityType, titleCase(application.state), <StatusPill key="status" status={application.status} />]}
+        />
+
+        <div className="mt-7 grid items-start gap-5 lg:mt-9 lg:grid-cols-[minmax(0,1fr)_360px]">
+          <div className="space-y-5">
+            <Card title="Formation details" bodyClassName="px-4 pb-2 sm:px-5">
+              <div className="divide-y divide-cd-line">
+                <DetailRow label="Application type" value={application.companyType === 'existing' ? 'Existing Company' : 'New Company'} />
+                <DetailRow label="Company type" value={application.entityType} />
+                <DetailRow label="Business ending" value={application.businessEnding} />
+                <DetailRow label="Total fee" value={application.companyType === 'existing' ? '$2,000' : '$3,000'} />
+                <DetailRow label="Submitted" value={formatDate(application.createdAt)} />
+                <DetailRow label="Processed" value={application.processedAt ? formatDate(application.processedAt) : null} />
+                <DetailRow label="Admin note" value={application.adminNote} />
               </div>
-              <h1 className="text-2xl font-semibold text-cd-text leading-tight break-words">
-                {application.companyName}
-              </h1>
-              <p className="text-sm font-medium text-cd-muted mt-1">
-                {application.entityType} • {application.state}
-              </p>
-            </div>
-            <Badge status={application.status} />
-          </div>
-        </section>
+            </Card>
 
-        <section className="bg-cd-card rounded-xl p-5 shadow-[0_2px_15px_-4px_rgba(0,0,0,0.05)]">
-          <div className="flex items-start gap-3 mb-4">
-            <div className="w-10 h-10 rounded-xl bg-cd-accent-soft flex items-center justify-center shrink-0">
-              <KeyRound size={19} className="text-cd-accent-text" />
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold text-cd-text">Employer Identification Number</h2>
-              <p className="text-sm text-cd-muted">Only you and authorized administrators can access this EIN.</p>
-            </div>
+            <Card title="Contact details" bodyClassName="px-4 pb-2 sm:px-5">
+              <div className="divide-y divide-cd-line">
+                <DetailRow label="Name" value={contactName} />
+                <DetailRow label="Username" value={application.contactUsername} />
+                <DetailRow label="Email" value={application.contactEmail} />
+                <DetailRow label="Phone" value={application.contactPhone} />
+                <DetailRow label="Address" value={address} />
+                <DetailRow label="Partner code" value={application.partnerCode} />
+              </div>
+            </Card>
           </div>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1">
+
+          <Card
+            title={<span className="flex items-center gap-2"><KeyRound size={17} strokeWidth={1.75} />Employer Identification Number</span>}
+            bodyClassName="px-4 pb-5 sm:px-5"
+          >
+            <p className="-mt-1 mb-4 text-[13px] text-cd-muted">Only you and authorized administrators can access this EIN.</p>
+            <label className="mb-1.5 block text-[12.5px] text-cd-muted" htmlFor="llc-ein">EIN</label>
+            <div className="relative">
               <input
+                id="llc-ein"
                 type={showEin ? 'text' : 'password'}
                 inputMode="numeric"
                 value={ein}
                 onChange={(event) => handleEinChange(event.target.value)}
                 placeholder="12-3456789"
                 aria-label="Employer Identification Number"
-                className="w-full h-12 rounded-xl border border-cd-line bg-cd-raised px-4 pr-12 text-sm font-semibold text-cd-text focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="cd-num h-11 w-full rounded-md border border-transparent bg-cd-input px-3.5 pr-11 text-[14px] text-cd-text placeholder:text-cd-faint focus:border-cd-accent focus:outline-none"
               />
               <button
                 type="button"
                 onClick={() => setShowEin((visible) => !visible)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-gray-900 dark:hover:text-white"
+                className="absolute right-1.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md text-cd-muted hover:text-cd-text"
                 aria-label={showEin ? 'Hide EIN' : 'Show EIN'}
               >
-                {showEin ? <EyeOff size={18} /> : <Eye size={18} />}
+                {showEin ? <EyeOff size={18} strokeWidth={1.75} /> : <Eye size={18} strokeWidth={1.75} />}
               </button>
             </div>
-            <button
-              type="button"
-              onClick={saveEin}
-              disabled={savingEin}
-              className="h-12 px-5 rounded-xl bg-cd-accent text-white text-sm font-semibold hover:bg-blue-700 disabled:opacity-60"
-            >
+            <ActionButton variant="primary" onClick={saveEin} disabled={savingEin} className="mt-4 w-full">
               {savingEin ? 'Saving...' : application.ein ? 'Update EIN' : 'Add EIN'}
-            </button>
-          </div>
-        </section>
-
-        <section className="bg-cd-card rounded-xl p-5 shadow-[0_2px_15px_-4px_rgba(0,0,0,0.05)]">
-          <h2 className="text-lg font-semibold text-cd-text mb-2">Formation Details</h2>
-          <DetailRow label="Application Type" value={application.companyType === 'existing' ? 'Existing Company' : 'New Company'} />
-          <DetailRow label="Company Type" value={application.entityType} />
-          <DetailRow label="Business Ending" value={application.businessEnding} />
-          <DetailRow label="Total Fee" value={application.companyType === 'existing' ? '$2,000' : '$3,000'} />
-          <DetailRow label="Submitted" value={formatDate(application.createdAt)} />
-          <DetailRow label="Processed" value={application.processedAt ? formatDate(application.processedAt) : null} />
-          <DetailRow label="Admin Note" value={application.adminNote} />
-        </section>
-
-        <section className="bg-cd-card rounded-xl p-5 shadow-[0_2px_15px_-4px_rgba(0,0,0,0.05)]">
-          <h2 className="text-lg font-semibold text-cd-text mb-2">Contact Details</h2>
-          <DetailRow label="Name" value={contactName} />
-          <DetailRow label="Username" value={application.contactUsername} />
-          <DetailRow label="Email" value={application.contactEmail} />
-          <DetailRow label="Phone" value={application.contactPhone} />
-          <DetailRow label="Address" value={address} />
-          <DetailRow label="Partner Code" value={application.partnerCode} />
-        </section>
-
-        <div className="grid gap-3 sm:grid-cols-3">
-          <div className="bg-cd-card rounded-xl p-4 flex items-center gap-3">
-            <UserRound size={18} className="text-blue-500" />
-            <span className="text-sm font-semibold text-cd-text/85">{contactName || 'No contact'}</span>
-          </div>
-          <div className="bg-cd-card rounded-xl p-4 flex items-center gap-3">
-            <Mail size={18} className="text-blue-500" />
-            <span className="text-sm font-semibold text-cd-text/85 truncate">{application.contactEmail || 'No email'}</span>
-          </div>
-          <div className="bg-cd-card rounded-xl p-4 flex items-center gap-3">
-            {application.contactPhone ? <Phone size={18} className="text-blue-500" /> : <MapPin size={18} className="text-blue-500" />}
-            <span className="text-sm font-semibold text-cd-text/85 truncate">{application.contactPhone || application.state}</span>
-          </div>
+            </ActionButton>
+          </Card>
         </div>
       </div>
     </div>

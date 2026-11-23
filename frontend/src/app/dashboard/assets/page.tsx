@@ -1,24 +1,42 @@
 'use client';
 
-import { ArrowLeft, Search, Square } from 'lucide-react';
+/**
+ * Manage assets: which crypto assets show on the client's account. One table in the Anchorage
+ * style — the asset with its network, the balance, and a small switch — under a search field.
+ */
+import { Search } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { assetsAPI, usersAPI } from '@/lib/api';
-import ThemeToggle from '@/components/layout/ThemeToggle';
 import { useAuth } from '@/context/AuthContext';
+import { cn } from '@/lib/utils';
+import DashboardHeader from '@/components/layout/DashboardHeader';
+import { AssetIcon, AssetName, Card, EmptyState, PageHeader, Skeleton, TableHead, formatAmount } from '@/components/client/ui';
 
-function getAssetColor(symbol: string) {
-  const colors: Record<string, string> = {
-    BTC: '#F7931A', ETH: '#627EEA', DOGE: '#C2A633', LTC: '#BFBBBB',
-    XRP: '#23292F', XLM: '#08B5E5', USDT: '#26A17B', USDC: '#2775CA',
-    BNB: '#F3BA2F', SOL: '#14F195', ADA: '#0033AD'
-  };
-  return colors[symbol.toUpperCase()] || '#3b82f6';
+/** A small on/off switch: the accent when on, the strong line colour when off. */
+function Switch({ on, busy, label, onClick }: { on: boolean; busy?: boolean; label: string; onClick: (e: React.MouseEvent) => void }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={on}
+      aria-label={label}
+      aria-busy={busy}
+      onClick={onClick}
+      className={cn(
+        'relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors duration-200',
+        on ? 'bg-cd-accent' : 'bg-cd-line-strong',
+        busy && 'cursor-not-allowed opacity-50',
+      )}
+    >
+      <span className={cn('inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200', on ? 'translate-x-[18px]' : 'translate-x-0.5')} />
+    </button>
+  );
 }
 
+const GRID = 'grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 sm:grid-cols-[minmax(0,1.7fr)_1fr_88px]';
+
 export default function CryptoAssetsPage() {
-  const router = useRouter();
   const [search, setSearch] = useState('');
   const [dbAssets, setDbAssets] = useState<any[]>([]);
   const [assetBalances, setAssetBalances] = useState<Record<string, number>>({});
@@ -48,8 +66,8 @@ export default function CryptoAssetsPage() {
     }
   }, [user, dbAssets]);
 
-  const filteredAssets = dbAssets.filter(a => 
-    a.name.toLowerCase().includes(search.toLowerCase()) || 
+  const filteredAssets = dbAssets.filter(a =>
+    a.name.toLowerCase().includes(search.toLowerCase()) ||
     a.symbol.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -81,109 +99,99 @@ export default function CryptoAssetsPage() {
     }
   };
 
-  return (
-    <div className="min-h-full flex flex-col bg-cd-page pb-10">
-      
-      {/* Header */}
-      <header className="flex items-center px-4 py-4 bg-cd-card sticky top-0 z-10 border-b border-cd-line">
-        <button type="button" onClick={() => router.back()} className="text-cd-accent-text absolute left-4">
-          <ArrowLeft size={22} />
-        </button>
-        <h1 className="flex-1 text-center font-semibold text-cd-text text-[17px]">
-          Crypto Assets
-        </h1>
-        <div className="absolute right-4">
-          <ThemeToggle />
-        </div>
-      </header>
+  const shownCount = dbAssets.filter((a) => toggledAssets[a.symbol] ?? true).length;
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col">
-        
-        {/* Search Bar */}
-        <div className="px-4 py-3 border-b border-cd-line">
-          <div className="relative">
-            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-semibold" />
-            <input 
-              type="text" 
-              placeholder="Search networks" 
+  return (
+    <div className="min-h-full">
+      <DashboardHeader title="Manage assets" backHref="/dashboard" breadcrumb />
+
+      <div className="mx-auto w-full max-w-[1180px] px-4 pb-12 pt-5 sm:px-6 lg:px-10 lg:pt-3">
+        <PageHeader
+          title="Manage assets"
+          titleOnPhone={false}
+          meta={[assetsLoading ? 'Choose which assets show on your account' : `${shownCount} of ${dbAssets.length} assets shown on your account`]}
+        />
+
+        <Card className="mt-7 lg:mt-8" bodyClassName="p-2 sm:p-3">
+          {/* Search */}
+          <div className="relative mx-1 mb-3 mt-1">
+            <Search size={16} strokeWidth={1.75} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-cd-faint" />
+            <input
+              type="text"
+              placeholder="Search assets"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-cd-raised text-cd-text placeholder:text-[#a0a8b9] font-medium text-[15px] py-3 pl-10 pr-4 rounded-xl focus:outline-none"
+              className="h-10 w-full rounded-[4px] border border-transparent bg-cd-input pl-10 pr-4 text-[14px] text-cd-text placeholder:text-cd-faint focus:border-cd-accent focus:outline-none"
             />
           </div>
-        </div>
 
-        {/* Asset List */}
-        <div className="flex flex-col">
+          <TableHead className={GRID}>
+            <span>Asset</span>
+            <span className="hidden sm:block">Balance</span>
+            <span className="text-right">Show</span>
+          </TableHead>
+
           {assetsLoading && (
-            <div className="flex flex-col" aria-label="Loading assets">
+            <ul aria-label="Loading assets">
               {[0, 1, 2, 3, 4, 5].map((item) => (
-                <div key={item} className="flex items-center justify-between px-4 py-4 border-b border-cd-line">
-                  <div className="flex items-center gap-4 flex-1">
-                    <div className="w-[42px] h-[42px] rounded-full bg-cd-raised animate-pulse shrink-0" />
-                    <div className="flex flex-col gap-2.5">
-                      <div className="h-4 w-36 rounded bg-cd-raised animate-pulse" />
-                      <div className="h-3 w-28 rounded bg-cd-raised animate-pulse" />
-                    </div>
-                  </div>
-                  <div className="h-7 w-12 rounded-full bg-cd-raised animate-pulse" />
-                </div>
+                <li key={item} className="flex items-center gap-3.5 border-b border-cd-line px-3 py-4 last:border-b-0 sm:px-4">
+                  <Skeleton className="h-[30px] w-[30px] rounded-full" />
+                  <div className="flex-1 space-y-2"><Skeleton className="h-3.5 w-40" /><Skeleton className="h-3 w-24" /></div>
+                  <Skeleton className="h-5 w-9 rounded-full" />
+                </li>
               ))}
-            </div>
+            </ul>
           )}
 
-          {filteredAssets.map((asset) => {
-            const isToggled = toggledAssets[asset.symbol] ?? true;
-            const balance = assetBalances[asset.id] || 0;
-            return (
-              <div key={asset.symbol} className="flex items-center justify-between px-4 py-4 border-b border-cd-line hover:bg-cd-raised transition">
-                
-                <Link href={`/dashboard/wallet/${asset.symbol.toLowerCase()}`} className="flex items-center gap-4 flex-1">
-                  <img 
-                    src={`https://assets.coincap.io/assets/icons/${asset.symbol.toLowerCase()}@2x.png`} 
-                    alt={asset.symbol} 
-                    className="w-[42px] h-[42px] rounded-full object-cover shadow-sm shrink-0 bg-cd-card"
-                    onError={(e) => {
-                      e.currentTarget.onerror = null; 
-                      e.currentTarget.src = `https://ui-avatars.com/api/?name=${asset.symbol[0]}&background=${getAssetColor(asset.symbol).replace('#','')}&color=fff&rounded=true&bold=true`;
-                    }}
-                  />
-                  <div className="flex flex-col">
-                    <span className="font-semibold text-cd-text text-[16px] tracking-wide">
-                      {asset.name} ({asset.symbol})
-                    </span>
-                    <span className="text-[13px] text-[#a0a8b9] font-medium mt-0.5">
-                      {balance.toFixed(8)} {asset.symbol}
-                    </span>
-                  </div>
-                </Link>
-                
-                {/* Toggle Switch */}
-                <div 
-                  onClick={(e) => toggleAsset(asset.symbol, e)}
-                  className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ease-in-out ${
-                    loadingToggle[asset.symbol] ? 'opacity-50 cursor-not-allowed' : ''
-                  } ${isToggled ? 'bg-cd-accent' : 'bg-gray-200 dark:bg-gray-700'}`}
-                >
-                  <span
-                    className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${isToggled ? 'translate-x-[22px]' : 'translate-x-1'}`}
-                  />
-                </div>
-                
-              </div>
-            );
-          })}
+          {!assetsLoading && filteredAssets.length > 0 && (
+            <ul>
+              {filteredAssets.map((asset) => {
+                const isToggled = toggledAssets[asset.symbol] ?? true;
+                const balance = assetBalances[asset.id] || 0;
+                const symbol = String(asset.symbol).toUpperCase();
+                return (
+                  <li key={asset.symbol} className={cn(GRID, 'border-b border-cd-line px-3 py-3.5 last:border-b-0 sm:px-4')}>
+                    <Link
+                      href={`/dashboard/wallet/${asset.symbol.toLowerCase()}`}
+                      className="-my-1 flex min-w-0 items-center gap-3.5 rounded-[3px] py-1 transition-opacity hover:opacity-80"
+                    >
+                      <AssetIcon symbol={asset.symbol} size={30} className={cn(!isToggled && 'opacity-50')} />
+                      <div className="min-w-0">
+                        <div className="hidden sm:block">
+                          <AssetName symbol={symbol} name={asset.name} network={asset.network || asset.name} />
+                        </div>
+                        <div className="sm:hidden">
+                          <AssetName symbol={symbol} name={asset.name} />
+                          <p className="cd-num mt-0.5 truncate text-[12px] text-cd-muted">{formatAmount(balance, symbol)}</p>
+                        </div>
+                      </div>
+                    </Link>
+
+                    <p className="cd-num hidden truncate text-[14px] text-cd-text sm:block">{formatAmount(balance, symbol)}</p>
+
+                    <div className="flex justify-end">
+                      <Switch
+                        on={isToggled}
+                        busy={loadingToggle[asset.symbol]}
+                        label={`Show ${symbol} on your account`}
+                        onClick={(e) => toggleAsset(asset.symbol, e)}
+                      />
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
 
           {!assetsLoading && filteredAssets.length === 0 && (
-            <div className="py-10 text-center text-gray-400 font-medium">
-              No assets found
-            </div>
+            <EmptyState
+              icon={Search}
+              title="No assets found"
+              text={search ? `Nothing matches “${search}”.` : undefined}
+            />
           )}
-        </div>
-
+        </Card>
       </div>
-
     </div>
   );
 }

@@ -1,14 +1,21 @@
 'use client';
 
+/**
+ * One asset in the client's account, laid out like an Anchorage asset view: "BTC | Bitcoin" with
+ * the network, the balance in USD over the amount, a price card with a thin line chart and range
+ * tabs, then Holdings / History / About.
+ */
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { assetsAPI, usersAPI } from '@/lib/api';
-import { APP_TIMEZONE, formatCurrency } from '@/lib/utils';
-import { ArrowLeft, ArrowUpRight, ArrowDownLeft, Zap } from 'lucide-react';
-import { ArrowRightLeft } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { APP_TIMEZONE, cn, formatCurrency } from '@/lib/utils';
+import { ArrowUpRight, ArrowDownLeft, ArrowRightLeft, Clock } from 'lucide-react';
 import { ResponsiveContainer, LineChart, Line, YAxis } from 'recharts';
-import ThemeToggle from '@/components/layout/ThemeToggle';
+import DashboardHeader from '@/components/layout/DashboardHeader';
+import AssetTable from '@/components/client/AssetTable';
+import {
+  AssetIcon, Card, Change, EmptyState, Money, Skeleton, StatusPill, TableHead, Tabs, formatAmount, formatPrice,
+} from '@/components/client/ui';
 
 const symbolToCoinGecko: Record<string, string> = {
   BTC: 'bitcoin', ETH: 'ethereum', DOGE: 'dogecoin', LTC: 'litecoin',
@@ -23,39 +30,59 @@ const generateWavyChartData = (currentPrice: number, changePercent: number) => {
   const data = [];
   const startPrice = currentPrice / (1 + (changePercent / 100));
   const points = 60; // More points for a detailed jagged look
-  
+
   const walk = [startPrice];
   let tempPrice = startPrice;
-  
+
   for (let i = 1; i < points; i++) {
     // Generate a random step (volatility)
-    const volatility = currentPrice * 0.006; 
+    const volatility = currentPrice * 0.006;
     const step = (Math.random() - 0.5) * volatility;
-    
+
     // Add a slight bias towards the target
     const trend = (currentPrice - startPrice) / points;
-    
+
     tempPrice += step + trend;
     walk.push(tempPrice);
   }
-  
+
   // Linear correction to guarantee the final point perfectly hits currentPrice
   const endWalkPrice = walk[points - 1];
   const correctionDiff = currentPrice - endWalkPrice;
-  
+
   for (let i = 0; i < points; i++) {
     const progress = i / (points - 1);
     const correctedPrice = walk[i] + (correctionDiff * progress);
     data.push({ time: i, price: correctedPrice });
   }
-  
+
   return data;
 };
 
+const TIMEFRAMES = [
+  { value: '1D', label: '1D' },
+  { value: '1W', label: '1W' },
+  { value: '1M', label: '1M' },
+  { value: '1Y', label: '1Y' },
+  { value: 'All', label: 'ALL' },
+];
+const TABS = [
+  { value: 'Holdings', label: 'Holdings' },
+  { value: 'History', label: 'History' },
+  { value: 'About', label: 'About' },
+];
+
+const HISTORY_GRID = 'grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 sm:grid-cols-[minmax(0,1.5fr)_1fr_1fr_120px]';
+
+function txIcon(type: string) {
+  if (type === 'deposit' || type === 'earn') return ArrowDownLeft;
+  if (type === 'withdrawal') return ArrowUpRight;
+  return ArrowRightLeft;
+}
+
 export default function SingleAssetWalletPage({ params }: { params: Promise<{ symbol: string }> | { symbol: string } }) {
-  const router = useRouter();
   const [symbol, setSymbol] = useState<string>('');
-  
+
   useEffect(() => {
     if (params) {
       Promise.resolve(params).then(p => setSymbol(p.symbol.toUpperCase()));
@@ -79,7 +106,7 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
 
   useEffect(() => {
     if (!symbol) return;
-    
+
     Promise.all([
       assetsAPI.list(),
       usersAPI.getDashboardStats()
@@ -93,15 +120,15 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
         setBalanceCrypto(balances[found.id] || 0);
         setAvailableBalanceCrypto(availableBalances[found.id] || 0);
       }
-      
+
       const allTxs = statsRes.data.recentTransactions || [];
-      const assetTxs = allTxs.filter((tx: any) => 
-        (tx.assetSymbol && tx.assetSymbol.toUpperCase() === symbol) || 
+      const assetTxs = allTxs.filter((tx: any) =>
+        (tx.assetSymbol && tx.assetSymbol.toUpperCase() === symbol) ||
         (tx.toAssetSymbol && tx.toAssetSymbol.toUpperCase() === symbol)
       );
       setTransactions(assetTxs);
     }).catch(console.error);
-    
+
   }, [symbol]);
 
   const balanceUsd = balanceCrypto * price;
@@ -109,7 +136,7 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
   // Fetch Real-time rate and generate wavy chart
   useEffect(() => {
     if (!symbol) return;
-    
+
     const fetchRealRate = async () => {
       const cgId = symbolToCoinGecko[symbol];
       if (!cgId) {
@@ -122,15 +149,15 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
         setChartData(generateWavyChartData(mockP, mockC));
         return;
       }
-      
+
       try {
         const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${cgId}&vs_currencies=usd&include_24hr_change=true`);
         const data = await res.json();
-        
+
         if (data && data[cgId]) {
           const p = data[cgId].usd;
           const pct = data[cgId].usd_24h_change || 0;
-          
+
           setPrice(p);
           setPriceChangePercent(pct);
           setPriceChangeAmount(p - (p / (1 + pct / 100)));
@@ -149,198 +176,180 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
 
   if (!symbol) return null;
 
-  const chartColor = isPositive ? '#00b15d' : '#d5434d'; // Red or green
-  const timeframes = ['1H', '1D', '1W', '1M', '1Y', 'All'];
-  const tabs = ['Holdings', 'History', 'About'];
+  const name = assetInfo?.name || symbol;
+  const network = assetInfo?.network || assetInfo?.name;
+  const showName = name.toUpperCase() !== symbol;
 
   return (
-    <div className="min-h-full flex flex-col bg-cd-page">
-      
-      {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3 bg-cd-card sticky top-0 z-10 border-b border-cd-line">
-        <button type="button" onClick={() => router.back()} className="text-cd-text p-1 -ml-1">
-          <ArrowLeft size={24} />
-        </button>
-        
-        <div className="flex flex-col items-center">
-          <span className="text-[17px] font-semibold text-cd-text leading-tight">{symbol}</span>
-          <span className="text-[10px] font-medium text-cd-muted tracking-widest mt-0.5 uppercase">COIN | {symbol}</span>
+    <div className="min-h-full">
+      <DashboardHeader title={name} backHref="/dashboard" breadcrumb />
+
+      <div className="mx-auto w-full max-w-[1180px] px-4 pb-12 pt-5 sm:px-6 lg:px-10 lg:pt-3">
+        {/* Title */}
+        <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
+          <h1 className="hidden items-center gap-3 text-[28px] font-normal leading-tight text-cd-text lg:flex">
+            <AssetIcon symbol={symbol} size={30} />
+            <span className="truncate">
+              {symbol}
+              {showName && <><span className="mx-2 text-cd-faint">|</span>{name}</>}
+            </span>
+          </h1>
+          <div className="lg:hidden"><AssetIcon symbol={symbol} size={40} /></div>
+          <p className="mt-3 flex flex-wrap items-center justify-center text-[14px] text-cd-muted lg:mt-2 lg:justify-start">
+            {network && (
+              <>
+                <span>{network}</span>
+                <span className="mx-2.5 h-3.5 w-px bg-cd-line-strong" />
+              </>
+            )}
+            <span className="cd-num">{symbol} price {price ? formatPrice(price) : '—'}</span>
+          </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
-          <button className="text-[#8f9bb3] p-1 -mr-1">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 4l8 12H4z" />
-            </svg>
-          </button>
+        {/* Balance */}
+        <div className="mt-7 flex flex-col items-center text-center lg:items-start lg:text-left">
+          <Money value={balanceUsd} className="text-[38px] font-light leading-none tracking-tight text-cd-text sm:text-[44px]" />
+          <p className="mt-2 flex items-center gap-2.5 text-[13px] text-cd-muted">
+            <span className="uppercase tracking-[0.08em]">Balance</span>
+            <span className="h-3 w-px bg-cd-line-strong" />
+            <span className="cd-num">{formatAmount(balanceCrypto, symbol)}</span>
+          </p>
         </div>
-      </header>
 
-      {/* Price Section */}
-      <div className="flex flex-col items-center mt-8 mb-10 px-4">
-        <h1 className="text-[42px] font-semibold text-cd-text tracking-tight leading-none">
-          {formatCurrency(price)}
-        </h1>
-        <div className={`flex items-center gap-1.5 mt-3 text-[14px] font-semibold ${isPositive ? 'text-[#00b15d]' : 'text-[#d5434d]'}`}>
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" className={isPositive ? "" : "rotate-180"}>
-            <path d="M12 4l8 12H4z" />
-          </svg>
-          <span>
-            {formatCurrency(priceChangeAmount)} ({isPositive ? '' : '-'}{Math.abs(priceChangePercent).toFixed(2)}%)
-          </span>
-        </div>
-      </div>
-
-      {/* Chart */}
-      <div className="w-full h-[140px] mb-8 px-2">
-        {chartData.length > 0 && (
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData}>
-              <YAxis hide domain={['dataMin', 'dataMax']} />
-              <Line 
-                type="linear" 
-                dataKey="price" 
-                stroke={chartColor} 
-                strokeWidth={2}
-                dot={false}
-                isAnimationActive={false}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        )}
-      </div>
-
-      {/* Timeframes */}
-      <div className="px-4 flex justify-between items-center mb-6">
-        {timeframes.map((tf) => {
-          const isActive = timeframe === tf;
-          return (
-            <button
-              key={tf}
-              onClick={() => setTimeframe(tf)}
-              className={`px-[14px] py-2 rounded-xl text-[13px] font-semibold transition-colors ${
-                isActive 
-                  ? 'bg-[#e6f0fa] dark:bg-cd-card text-cd-accent-text dark:text-white'
-                  : 'text-cd-muted bg-transparent'
-              }`}
-            >
-              {tf}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Action Buttons removed per user request */}
-
-      <div className="w-full h-[1px] bg-cd-raised"></div>
-
-      {/* Tabs */}
-      <div className="flex px-4 pt-4 border-b border-cd-line">
-        {tabs.map((tab) => {
-          const isActive = activeTab === tab;
-          return (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`mr-6 pb-3 text-[15px] transition-colors relative ${
-                isActive 
-                  ? 'text-cd-accent-text font-semibold' 
-                  : 'text-cd-muted font-medium'
-              }`}
-            >
-              {tab}
-              {isActive && (
-                <div className="absolute bottom-0 left-0 w-full h-[3px] bg-cd-accent rounded-t-full"></div>
+        {/* Price chart */}
+        <Card className="mt-8 lg:mt-10" bodyClassName="p-0 sm:p-0">
+          <div className="flex flex-col gap-4 px-4 pt-4 sm:flex-row sm:items-start sm:justify-between sm:px-5 sm:pt-5">
+            <div>
+              <p className="text-[11px] font-medium uppercase tracking-[0.06em] text-cd-muted">Price</p>
+              {price ? (
+                <>
+                  <p className="mt-1.5 text-[26px] font-light leading-none text-cd-text">
+                    <Money value={price} />
+                  </p>
+                  <p className="mt-2 flex items-center gap-2 text-[13px]">
+                    <Change value={priceChangePercent} />
+                    <span className={cn('cd-num', isPositive ? 'text-cd-positive' : 'text-cd-negative')}>
+                      {isPositive ? '+' : '−'}{formatCurrency(Math.abs(priceChangeAmount))}
+                    </span>
+                    <span className="text-cd-muted">24h</span>
+                  </p>
+                </>
+              ) : (
+                <div className="mt-2 space-y-2"><Skeleton className="h-6 w-36" /><Skeleton className="h-3.5 w-28" /></div>
               )}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Holdings Content */}
-      {activeTab === 'Holdings' && (
-        <div className="flex flex-col mt-6 px-4">
-          <h2 className="text-[14px] font-semibold text-cd-muted mb-4">My Balance</h2>
-          
-          <div className="flex items-center justify-between py-2">
-            <div className="flex items-center gap-4">
-              <img 
-                src={`https://assets.coincap.io/assets/icons/${symbol.toLowerCase()}@2x.png`} 
-                alt={symbol} 
-                className="w-10 h-10 rounded-full object-cover shrink-0" 
-                onError={(e) => {
-                  e.currentTarget.onerror = null; 
-                  e.currentTarget.src = `https://ui-avatars.com/api/?name=${symbol[0]}&background=1e2335&color=fff&rounded=true&bold=true`;
-                }}
-              />
-              <div className="flex flex-col">
-                <span className="font-semibold text-cd-text text-[16px]">{symbol}</span>
-                <span className="text-[13px] text-cd-muted font-medium mt-0.5">{balanceCrypto.toFixed(5)} {symbol}</span>
-                {availableBalanceCrypto < balanceCrypto && (
-                  <span className="text-[11px] text-cd-accent-text font-semibold mt-1 bg-cd-accent-soft px-2 py-0.5 rounded-md inline-block w-fit">
-                    Available: {availableBalanceCrypto.toFixed(5)}
-                  </span>
-                )}
-              </div>
             </div>
-            
-            <div className="flex flex-col items-end">
-              <span className="font-semibold text-cd-text text-[15px]">USD{balanceUsd.toFixed(2)}</span>
-              <span className="text-[13px] text-cd-muted font-medium mt-0.5">-</span>
-            </div>
+            <Tabs tabs={TIMEFRAMES} value={timeframe} onChange={setTimeframe} className="border-b-0" />
           </div>
-        </div>
-      )}
 
-      {/* History Content */}
-      {activeTab === 'History' && (
-        <div className="flex flex-col mt-6 px-4">
-          <h2 className="text-[14px] font-semibold text-cd-muted mb-4">Recent Transactions</h2>
-          {transactions.length === 0 ? (
-            <div className="text-center py-8 text-cd-faint text-[14px] font-medium">
-              No recent transactions
-            </div>
-          ) : (
-            <div className="space-y-4 pb-8">
-              {transactions.map((tx, idx) => (
-                <div key={idx} className="flex items-center justify-between pb-4 border-b border-cd-line last:border-0">
-                  <div className="flex flex-col">
-                    <span className="font-semibold text-cd-text text-[15px] capitalize">
-                      {tx.type} {tx.assetSymbol || tx.fromAssetSymbol}
-                    </span>
-                    <span className="text-[13px] text-cd-muted font-medium mt-0.5">
-                      {new Date(tx.createdAt).toLocaleDateString('en-US', { timeZone: APP_TIMEZONE })}
-                    </span>
-                  </div>
-                  <div className="flex flex-col items-end">
-                    <span className={`font-semibold text-[15px] ${tx.type === 'deposit' || tx.type === 'earn' ? 'text-[#00b15d]' : 'text-cd-text'}`}>
-                      {tx.type === 'deposit' ? '+' : tx.type === 'withdrawal' ? '-' : ''}{tx.amount} {tx.assetSymbol || tx.fromAssetSymbol}
-                    </span>
-                    <span className="text-[13px] text-cd-muted font-medium mt-0.5 capitalize">
-                      {tx.status}
-                    </span>
-                  </div>
+          <div className="h-[180px] px-1 pb-4 pt-6 text-cd-accent sm:h-[240px] sm:px-3">
+            {chartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData} margin={{ top: 4, right: 8, bottom: 4, left: 8 }}>
+                  <YAxis hide domain={['dataMin', 'dataMax']} />
+                  <Line
+                    type="linear"
+                    dataKey="price"
+                    stroke="currentColor"
+                    strokeWidth={1.5}
+                    dot={false}
+                    isAnimationActive={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <Skeleton className="mx-3 h-full" />
+            )}
+          </div>
+        </Card>
+
+        {/* Holdings / History / About */}
+        <Tabs tabs={TABS} value={activeTab} onChange={setActiveTab} className="mt-8" />
+
+        <div className="mt-5">
+          {activeTab === 'Holdings' && (
+            <Card title="My balance">
+              <AssetTable
+                rows={[{
+                  symbol,
+                  name,
+                  network,
+                  usd: balanceUsd,
+                  amount: balanceCrypto,
+                  price,
+                  change24h: priceChangePercent,
+                  available: availableBalanceCrypto,
+                }]}
+              />
+            </Card>
+          )}
+
+          {activeTab === 'History' && (
+            <Card title="Recent transactions">
+              {transactions.length === 0 ? (
+                <EmptyState icon={Clock} title="No recent transactions" text={`Deposits, withdrawals and conversions of ${symbol} will show here.`} />
+              ) : (
+                <div>
+                  <TableHead className={HISTORY_GRID}>
+                    <span>Type</span>
+                    <span className="hidden sm:block">Date</span>
+                    <span className="text-right">Amount</span>
+                    <span className="hidden text-right sm:block">Status</span>
+                  </TableHead>
+                  <ul>
+                    {transactions.map((tx, idx) => {
+                      const Icon = txIcon(tx.type);
+                      const txSymbol = tx.assetSymbol || tx.fromAssetSymbol;
+                      const date = new Date(tx.createdAt).toLocaleDateString('en-US', { timeZone: APP_TIMEZONE });
+                      const incoming = tx.type === 'deposit' || tx.type === 'earn';
+                      return (
+                        <li key={idx} className={cn(HISTORY_GRID, 'border-b border-cd-line px-3 py-3.5 last:border-b-0 sm:px-4')}>
+                          <div className="flex min-w-0 items-center gap-3.5">
+                            <span className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full bg-cd-raised text-cd-muted">
+                              <Icon size={15} strokeWidth={1.75} />
+                            </span>
+                            <div className="min-w-0">
+                              <p className="truncate text-[14px] font-medium capitalize text-cd-text">{tx.type} {txSymbol}</p>
+                              <p className="cd-num mt-0.5 text-[12px] text-cd-muted sm:hidden">{date}</p>
+                            </div>
+                          </div>
+                          <p className="cd-num hidden text-[14px] text-cd-muted sm:block">{date}</p>
+                          <div className="text-right">
+                            <p className={cn('cd-num text-[14px]', incoming ? 'text-cd-positive' : 'text-cd-text')}>
+                              {tx.type === 'deposit' ? '+' : tx.type === 'withdrawal' ? '-' : ''}{tx.amount} {txSymbol}
+                            </p>
+                            <StatusPill status={tx.status} className="mt-1 sm:hidden" />
+                          </div>
+                          <div className="hidden justify-end sm:flex"><StatusPill status={tx.status} /></div>
+                        </li>
+                      );
+                    })}
+                  </ul>
                 </div>
-              ))}
-            </div>
+              )}
+            </Card>
+          )}
+
+          {activeTab === 'About' && (
+            <Card title={`About ${name}`} bodyClassName="px-4 pb-5 sm:px-5">
+              <p className="max-w-3xl text-[14px] leading-relaxed text-cd-muted">
+                {name} ({symbol}) is a digital asset available on the platform. It can be used for seamless borderless transactions, earning yields, and securing collateralized loans. The real-time pricing and historical charts are fetched via aggregations.
+              </p>
+              <dl className="mt-5 grid grid-cols-1 border-t border-cd-line sm:grid-cols-3">
+                {[
+                  ['Name', name],
+                  ['Symbol', symbol],
+                  ['Network', network || '—'],
+                ].map(([label, value]) => (
+                  <div key={label} className="flex items-center justify-between border-b border-cd-line py-3 sm:block sm:border-b-0 sm:pt-4">
+                    <dt className="text-[11px] font-medium uppercase tracking-[0.06em] text-cd-muted">{label}</dt>
+                    <dd className="text-[14px] text-cd-text sm:mt-1">{value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </Card>
           )}
         </div>
-      )}
-
-      {/* About Content */}
-      {activeTab === 'About' && (
-        <div className="flex flex-col mt-6 px-4 pb-8">
-          <h2 className="text-[14px] font-semibold text-cd-muted mb-4">About {symbol}</h2>
-          <div className="bg-cd-raised rounded-xl p-5 border border-cd-line">
-            <h3 className="font-semibold text-cd-text text-[17px] mb-2">{assetInfo?.name || symbol}</h3>
-            <p className="text-[14px] text-cd-muted leading-relaxed font-medium">
-              {assetInfo?.name || symbol} ({symbol}) is a digital asset available on the platform. It can be used for seamless borderless transactions, earning yields, and securing collateralized loans. The real-time pricing and historical charts are fetched via aggregations.
-            </p>
-          </div>
-        </div>
-      )}
-
+      </div>
     </div>
   );
 }

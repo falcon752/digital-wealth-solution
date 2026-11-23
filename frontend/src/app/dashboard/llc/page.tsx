@@ -1,22 +1,57 @@
 'use client';
 
+/**
+ * Every LLC application the client has made: KPI tiles by status, then the full table.
+ */
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { llcAPI } from '@/lib/api';
 import { LLCApplication, LLCStats } from '@/types';
 import DashboardHeader from '@/components/layout/DashboardHeader';
-import Badge from '@/components/ui/Badge';
-import { formatDate } from '@/lib/utils';
-import { useAuth } from '@/context/AuthContext';
-import { CheckCircle2, Clock, AlertTriangle, X } from 'lucide-react';
+import { ActionButton, Card, EmptyState, PageHeader, Skeleton, StatusPill, TableHead } from '@/components/client/ui';
+import { APP_TIMEZONE, cn } from '@/lib/utils';
+import { Building2, ChevronRight, Plus } from 'lucide-react';
+
+type Tone = 'muted' | 'positive' | 'warning' | 'negative' | 'accent';
+
+const TONE_TEXT: Record<Tone, string> = {
+  muted: 'text-cd-muted',
+  positive: 'text-cd-positive',
+  warning: 'text-cd-warning',
+  negative: 'text-cd-negative',
+  accent: 'text-cd-accent-text',
+};
+
+/** A KPI tile: small uppercase label, a large light number and a short coloured caption. */
+function KpiTile({ label, value, caption, tone = 'muted', loading }: { label: string; value: number; caption: string; tone?: Tone; loading?: boolean }) {
+  return (
+    <div className="cd-card rounded-lg border border-cd-line px-4 py-4 dark:border-transparent sm:px-5 sm:py-5">
+      <p className="truncate text-[11px] font-medium uppercase tracking-[0.06em] text-cd-muted">{label}</p>
+      {loading ? (
+        <Skeleton className="mt-3 h-8 w-12" />
+      ) : (
+        <p className="cd-num mt-2.5 text-[32px] font-light leading-none text-cd-text sm:text-[36px]">{value}</p>
+      )}
+      <p className={cn('mt-2.5 truncate text-[12.5px]', TONE_TEXT[tone])}>{caption}</p>
+    </div>
+  );
+}
+
+function titleCase(value: string) {
+  return (value || '').split(' ').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+}
+
+function shortDate(value: string) {
+  return new Date(value).toLocaleDateString('en-US', { timeZone: APP_TIMEZONE, month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+const COLUMNS = 'sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_120px_minmax(0,1fr)]';
 
 export default function LLCManagementPage() {
-  const { user } = useAuth();
   const router = useRouter();
   const [applications, setApplications] = useState<LLCApplication[]>([]);
   const [stats, setStats] = useState<LLCStats>({ approved: 0, pending: 0, processing: 0, rejected: 0 });
   const [loading, setLoading] = useState(true);
-  const [bannerVisible, setBannerVisible] = useState(true);
 
   useEffect(() => {
     Promise.all([llcAPI.list(), llcAPI.stats()])
@@ -29,137 +64,83 @@ export default function LLCManagementPage() {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-full pb-20 bg-cd-page">
-      <DashboardHeader title="Business Dashboard" logo="wyoming" />
+    <div className="min-h-full">
+      <DashboardHeader title="LLC applications" breadcrumb />
 
-      {/* Dismissable Purple Banner */}
-      {bannerVisible && (
-        <div className="bg-cd-accent text-white px-4 py-3 flex items-start justify-between">
-          <p className="text-[13px] font-medium leading-relaxed pr-4">
-            👋 <span className="font-semibold">Welcome back, {user?.firstName || ''}!</span> Manage your LLC applications and track your business formation progress.
-          </p>
-          <button onClick={() => setBannerVisible(false)} className="mt-0.5 text-white/80 hover:text-white shrink-0">
-            <X size={16} strokeWidth={2.5} />
-          </button>
-        </div>
-      )}
+      <div className="mx-auto w-full max-w-[1180px] px-4 pb-12 pt-5 sm:px-6 lg:px-10 lg:pt-3">
+        <PageHeader
+          icon={Building2}
+          title="LLC applications"
+          titleOnPhone={false}
+          meta={['Manage and track all your Limited Liability Companies']}
+          actions={
+            <ActionButton href="/dashboard/llc/start" variant="primary" icon={Plus} className="w-full lg:w-auto">
+              Form new LLC
+            </ActionButton>
+          }
+        />
 
-      <div className="flex-1 p-5 space-y-6">
-        
-        {/* Page heading */}
-        <div className="pt-2">
-          <h2 className="text-[22px] font-semibold text-cd-text leading-tight mb-1">LLC Management</h2>
-          <p className="text-[14px] font-medium text-cd-muted leading-relaxed">
-            Manage and track all your Limited Liability Companies.
-          </p>
+        <div className="mt-7 grid grid-cols-2 gap-3 sm:gap-4 lg:mt-9 lg:grid-cols-4">
+          <KpiTile label="Approved" value={stats.approved} caption="Active businesses" tone="positive" loading={loading} />
+          <KpiTile label="Processing" value={stats.processing} caption="Being filed" tone="accent" loading={loading} />
+          <KpiTile label="Pending" value={stats.pending} caption="Awaiting review" tone="warning" loading={loading} />
+          <KpiTile label="Rejected" value={stats.rejected} caption="Need changes" tone={stats.rejected ? 'negative' : 'muted'} loading={loading} />
         </div>
 
-        {loading ? (
-          <div className="flex items-center justify-center h-48">
-            <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-          </div>
-        ) : (
-          <>
-            {/* Stat Cards - 2x2 Grid */}
-            <div className="grid grid-cols-2 gap-4">
-              {/* Approved */}
-              <div className="bg-cd-card rounded-xl border border-cd-line p-5 flex flex-col items-center justify-center gap-3 shadow-sm">
-                <div className="w-10 h-10 rounded-full bg-[#ecfdf5] dark:bg-green-900/30 flex items-center justify-center shrink-0">
-                  <CheckCircle2 size={18} className="text-[#10b981]" strokeWidth={2.5} />
+        <Card title="All your LLCs" className="mt-5 lg:mt-8">
+          {loading ? (
+            <div className="space-y-4 px-3 py-4">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="flex items-center gap-4">
+                  <div className="flex-1 space-y-2"><Skeleton className="h-3.5 w-48" /><Skeleton className="h-3 w-24" /></div>
+                  <Skeleton className="h-5 w-20 rounded-full" />
                 </div>
-                <div className="text-center">
-                  <p className="text-[20px] font-semibold text-cd-text leading-none mb-1">{stats.approved}</p>
-                  <p className="text-[13px] font-medium text-cd-muted">Approved</p>
-                </div>
-              </div>
-
-              {/* Processing */}
-              <div className="bg-cd-card rounded-xl border border-cd-line p-5 flex flex-col items-center justify-center gap-3 shadow-sm">
-                <div className="w-10 h-10 rounded-full bg-[#eff6ff] dark:bg-blue-900/30 flex items-center justify-center shrink-0">
-                  <Clock size={18} className="text-cd-accent-text" strokeWidth={2.5} />
-                </div>
-                <div className="text-center">
-                  <p className="text-[20px] font-semibold text-cd-text leading-none mb-1">{stats.processing}</p>
-                  <p className="text-[13px] font-medium text-cd-muted">Processing</p>
-                </div>
-              </div>
-
-              {/* Pending */}
-              <div className="bg-cd-card rounded-xl border border-cd-line p-5 flex flex-col items-center justify-center gap-3 shadow-sm">
-                <div className="w-10 h-10 rounded-full bg-[#fffbeb] dark:bg-yellow-900/30 flex items-center justify-center shrink-0">
-                  <Clock size={18} className="text-[#f59e0b]" strokeWidth={2.5} />
-                </div>
-                <div className="text-center">
-                  <p className="text-[20px] font-semibold text-cd-text leading-none mb-1">{stats.pending}</p>
-                  <p className="text-[13px] font-medium text-cd-muted">Pending</p>
-                </div>
-              </div>
-
-              {/* Rejected */}
-              <div className="bg-cd-card rounded-xl border border-cd-line p-5 flex flex-col items-center justify-center gap-3 shadow-sm">
-                <div className="w-10 h-10 rounded-full bg-[#fef2f2] dark:bg-red-900/30 flex items-center justify-center shrink-0">
-                  <AlertTriangle size={18} className="text-[#ef4444]" strokeWidth={2.5} />
-                </div>
-                <div className="text-center">
-                  <p className="text-[20px] font-semibold text-cd-text leading-none mb-1">{stats.rejected}</p>
-                  <p className="text-[13px] font-medium text-cd-muted">Rejected</p>
-                </div>
-              </div>
+              ))}
             </div>
-
-            {/* Applications Table Section */}
-            <div className="mt-8">
-              <h3 className="text-[18px] font-semibold text-cd-text mb-4">All Your LLCs</h3>
-              <button
-                onClick={() => router.push('/dashboard/llc/start')}
-                className="w-full py-3.5 bg-cd-accent text-white text-[15px] font-semibold rounded-[12px] shadow-sm hover:opacity-90 transition-opacity mb-6"
-              >
-                Form New LLC
-              </button>
-
-              {applications.length === 0 ? (
-                <div className="text-center py-6 text-cd-faint text-[14px] font-medium border border-cd-line rounded-xl">
-                  No LLC applications yet.<br/>Click &quot;Form New LLC&quot; to get started.
-                </div>
-              ) : (
-                <div className="overflow-x-auto pb-4">
-                  <table className="w-full text-sm text-left border-collapse min-w-[500px]">
-                    <thead>
-                      <tr className="border-b border-cd-line">
-                        <th className="font-semibold text-[14px] text-cd-text/85 py-3 px-2 whitespace-nowrap">Company Name</th>
-                        <th className="font-semibold text-[14px] text-cd-text/85 py-3 px-2 whitespace-nowrap">Entity Type</th>
-                        <th className="font-semibold text-[14px] text-cd-text/85 py-3 px-2 whitespace-nowrap">State</th>
-                        <th className="font-semibold text-[14px] text-cd-text/85 py-3 px-2 whitespace-nowrap">Status</th>
-                        <th className="font-semibold text-[14px] text-cd-text/85 py-3 px-2 whitespace-nowrap text-right">App Date</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-cd-line">
-                      {applications.map((app) => (
-                        <tr 
-                          key={app.id || app._id} 
-                          onClick={() => router.push(`/dashboard/llc/${app.id || app._id}`)}
-                          className="hover:bg-cd-raised transition-colors cursor-pointer"
-                        >
-                          <td className="py-4 px-2 font-semibold text-cd-text">{app.companyName}</td>
-                          <td className="py-4 px-2 text-cd-muted">{app.entityType}</td>
-                          <td className="py-4 px-2 text-cd-muted">
-                            {app.state.split(' ').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
-                          </td>
-                          <td className="py-4 px-2">
-                            <Badge status={app.status} />
-                          </td>
-                          <td className="py-4 px-2 text-cd-muted text-right whitespace-nowrap">
-                            {formatDate(app.createdAt)}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          </>
-        )}
+          ) : applications.length === 0 ? (
+            <EmptyState
+              icon={Building2}
+              title="No LLC applications yet"
+              text='Select "Form new LLC" to get started.'
+              action={<ActionButton href="/dashboard/llc/start" variant="primary" icon={Plus}>Form new LLC</ActionButton>}
+            />
+          ) : (
+            <>
+              <TableHead className={cn('hidden gap-4 sm:grid', COLUMNS)}>
+                <span>Company</span>
+                <span>Entity type</span>
+                <span>State</span>
+                <span>Status</span>
+                <span className="text-right">Submitted</span>
+              </TableHead>
+              <div className="divide-y divide-cd-line">
+                {applications.map((app) => (
+                  <button
+                    key={app.id || app._id}
+                    type="button"
+                    onClick={() => router.push(`/dashboard/llc/${app.id || app._id}`)}
+                    className={cn('group grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 px-3 py-3.5 text-left transition-colors hover:bg-cd-raised sm:px-4', COLUMNS)}
+                  >
+                    <span className="min-w-0">
+                      <span className="block truncate text-[14px] font-medium text-cd-text">{app.companyName}</span>
+                      <span className="mt-0.5 block truncate text-[12px] text-cd-muted sm:hidden">{app.entityType} · {titleCase(app.state)}</span>
+                    </span>
+                    <span className="hidden truncate text-[14px] text-cd-muted sm:block">{app.entityType}</span>
+                    <span className="hidden truncate text-[14px] text-cd-muted sm:block">{titleCase(app.state)}</span>
+                    <span className="flex flex-col items-end gap-1 sm:block">
+                      <StatusPill status={app.status} />
+                      <span className="text-[12px] text-cd-muted sm:hidden">{shortDate(app.createdAt)}</span>
+                    </span>
+                    <span className="hidden items-center justify-end gap-2 text-[13px] text-cd-muted sm:flex">
+                      {shortDate(app.createdAt)}
+                      <ChevronRight size={16} strokeWidth={1.75} className="text-cd-faint group-hover:text-cd-text" />
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </Card>
       </div>
     </div>
   );

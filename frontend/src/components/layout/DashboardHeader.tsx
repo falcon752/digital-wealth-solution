@@ -81,7 +81,7 @@ export default function DashboardHeader({ title, subtitle, tabs, backHref, bread
             {subtitle && !breadcrumb && <p className="hidden truncate text-[12.5px] text-cd-muted lg:block">{subtitle}</p>}
             {breadcrumb && (
               <p className="hidden items-center gap-2 text-[13.5px] lg:flex">
-                <Link href="/dashboard/wallet" className="text-cd-faint hover:text-cd-text">Home</Link>
+                <Link href="/dashboard" className="text-cd-faint hover:text-cd-text">Home</Link>
                 <ChevronRight size={14} className="text-cd-faint" />
                 <span className="truncate text-cd-text">{title}</span>
               </p>

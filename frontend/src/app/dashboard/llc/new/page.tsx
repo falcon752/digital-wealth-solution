@@ -27,8 +27,8 @@ function ChevronDown({ size = 20, ...props }: SVGProps<SVGSVGElement> & { size?:
 function InfoCircleIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-      <circle cx="12" cy="12" r="10" fill="#3b82f6"/>
-      <path d="M12 16v-4m0-4h.01" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <circle cx="12" cy="12" r="10" fill="currentColor"/>
+      <path d="M12 16v-4m0-4h.01" stroke="var(--cd-card)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   );
 }
@@ -226,10 +226,10 @@ function NewLLCForm() {
         <div className="flex items-center gap-6">
           <ThemeToggle />
           {/* <button className="flex items-center gap-2 text-[15px] font-medium text-gray-700 hover:text-black">
-            <FeedbackIcon className="text-gray-500" />
+            <FeedbackIcon className="text-cd-muted" />
             Feedback
           </button> */}
-          <button onClick={() => router.push('/dashboard')} className="text-[15px] font-semibold text-cd-text hover:opacity-80">
+          <button onClick={() => router.push('/dashboard/business')} className="text-[15px] font-semibold text-cd-text hover:opacity-80">
             Login
           </button>
         </div>
@@ -274,13 +274,13 @@ function NewLLCForm() {
               <select
                 value={form.state}
                 onChange={(e) => setForm({ ...form, state: e.target.value })}
-                className="w-full appearance-none bg-cd-card border border-cd-line text-cd-text text-[16px] font-medium rounded-xl px-4 py-4 focus:outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-400 cursor-pointer pr-12 shadow-sm"
+                className="w-full appearance-none bg-cd-card border border-cd-line text-cd-text text-[16px] font-medium rounded-xl px-4 py-4 focus:outline-none focus:border-cd-accent focus:ring-1 focus:ring-cd-accent cursor-pointer pr-12 shadow-sm"
               >
                 {US_STATES.map((s) => (
                   <option key={s} value={s}>{s}</option>
                 ))}
               </select>
-              <ChevronDown size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+              <ChevronDown size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-cd-muted pointer-events-none" />
             </div>
           </div>
 
@@ -294,7 +294,7 @@ function NewLLCForm() {
                   <div 
                     key={type.id}
                     onClick={() => setForm({...form, entityType: type.id})}
-                    className={`cursor-pointer rounded-xl p-5 border-2 transition-all ${isSelected ? 'border-cd-accent shadow-sm' : 'border-cd-line hover:border-gray-300 dark:hover:border-gray-600'}`}
+                    className={`cursor-pointer rounded-xl p-5 border-2 transition-all ${isSelected ? 'border-cd-accent shadow-sm' : 'border-cd-line hover:border-cd-line-strong'}`}
                   >
                     <div className="flex items-start gap-4">
                       <div className="w-10 h-10 shrink-0 bg-cd-accent rounded-xl flex items-center justify-center text-white">
@@ -319,7 +319,7 @@ function NewLLCForm() {
               placeholder="Enter your company name"
               value={form.companyName}
               onChange={(e) => setForm({...form, companyName: e.target.value})}
-              className="w-full bg-cd-card border border-cd-line text-cd-text text-[16px] font-medium rounded-xl px-4 py-4 focus:outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-400 placeholder:text-gray-400 shadow-sm"
+              className="w-full bg-cd-card border border-cd-line text-cd-text text-[16px] font-medium rounded-xl px-4 py-4 focus:outline-none focus:border-cd-accent focus:ring-1 focus:ring-cd-accent placeholder:text-cd-faint shadow-sm"
             />
           </div>
             
@@ -329,23 +329,23 @@ function NewLLCForm() {
               <select
                 value={form.businessEnding}
                 onChange={(e) => setForm({ ...form, businessEnding: e.target.value })}
-                className="w-full appearance-none bg-cd-card border border-cd-line text-cd-text text-[16px] font-medium rounded-xl px-4 py-4 focus:outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-400 cursor-pointer pr-12 shadow-sm"
+                className="w-full appearance-none bg-cd-card border border-cd-line text-cd-text text-[16px] font-medium rounded-xl px-4 py-4 focus:outline-none focus:border-cd-accent focus:ring-1 focus:ring-cd-accent cursor-pointer pr-12 shadow-sm"
               >
                 <option>Prefer No Ending</option>
                 <option>LLC</option>
                 <option>L.L.C.</option>
                 <option>Limited Liability Company</option>
               </select>
-              <ChevronDown size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+              <ChevronDown size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-cd-muted pointer-events-none" />
             </div>
           </div>
 
           {/* Privacy Protection */}
           <div className="pt-2 space-y-3">
             <h2 className="text-[22px] font-semibold text-cd-text tracking-tight">Privacy Protection</h2>
-            <div className="bg-[#f0f5ff] dark:bg-blue-900/20 rounded-xl p-5 flex items-start gap-3">
-              <div className="mt-0.5 shrink-0"><InfoCircleIcon /></div>
-              <p className="text-[15px] font-medium text-[#1e40af] dark:text-blue-300 leading-relaxed">
+            <div className="bg-cd-accent-soft rounded-xl p-5 flex items-start gap-3">
+              <div className="mt-0.5 shrink-0 text-cd-accent-text"><InfoCircleIcon /></div>
+              <p className="text-[15px] font-medium text-cd-accent-text leading-relaxed">
                 Your registered agent address will appear on public records instead of your personal address.
               </p>
             </div>
@@ -356,42 +356,42 @@ function NewLLCForm() {
             <h2 className="text-[22px] font-semibold text-cd-text tracking-tight">Contact Details</h2>
             <div className="space-y-5">
               <div className="space-y-1.5">
-                <label className="block text-[14.5px] font-semibold text-gray-800">First Name</label>
-                <input type="text" value={form.firstName} onChange={(e) => setForm({...form, firstName: e.target.value})} className="w-full bg-cd-card border border-cd-line text-cd-text text-[16px] rounded-xl px-4 py-3.5 focus:outline-none focus:border-gray-400 shadow-sm"/>
+                <label className="block text-[14.5px] font-semibold text-cd-text">First Name</label>
+                <input type="text" value={form.firstName} onChange={(e) => setForm({...form, firstName: e.target.value})} className="w-full bg-cd-card border border-cd-line text-cd-text text-[16px] rounded-xl px-4 py-3.5 focus:outline-none focus:border-cd-accent shadow-sm"/>
               </div>
               <div className="space-y-1.5">
-                <label className="block text-[14.5px] font-semibold text-gray-800">Last Name</label>
-                <input type="text" value={form.lastName} onChange={(e) => setForm({...form, lastName: e.target.value})} className="w-full bg-cd-card border border-cd-line text-cd-text text-[16px] rounded-xl px-4 py-3.5 focus:outline-none focus:border-gray-400 shadow-sm"/>
+                <label className="block text-[14.5px] font-semibold text-cd-text">Last Name</label>
+                <input type="text" value={form.lastName} onChange={(e) => setForm({...form, lastName: e.target.value})} className="w-full bg-cd-card border border-cd-line text-cd-text text-[16px] rounded-xl px-4 py-3.5 focus:outline-none focus:border-cd-accent shadow-sm"/>
               </div>
               <div className="space-y-1.5">
-                <label className="block text-[14.5px] font-semibold text-gray-800">Username</label>
-                <input type="text" value={form.username} onChange={(e) => setForm({...form, username: e.target.value})} className="w-full bg-cd-card border border-cd-line text-cd-text text-[16px] rounded-xl px-4 py-3.5 focus:outline-none focus:border-gray-400 shadow-sm"/>
+                <label className="block text-[14.5px] font-semibold text-cd-text">Username</label>
+                <input type="text" value={form.username} onChange={(e) => setForm({...form, username: e.target.value})} className="w-full bg-cd-card border border-cd-line text-cd-text text-[16px] rounded-xl px-4 py-3.5 focus:outline-none focus:border-cd-accent shadow-sm"/>
               </div>
               <div className="space-y-1.5">
-                <label className="block text-[14.5px] font-semibold text-gray-800">Email</label>
-                <input type="email" value={form.email} onChange={(e) => setForm({...form, email: e.target.value})} className="w-full bg-cd-card border border-cd-line text-cd-text text-[16px] rounded-xl px-4 py-3.5 focus:outline-none focus:border-gray-400 shadow-sm"/>
+                <label className="block text-[14.5px] font-semibold text-cd-text">Email</label>
+                <input type="email" value={form.email} onChange={(e) => setForm({...form, email: e.target.value})} className="w-full bg-cd-card border border-cd-line text-cd-text text-[16px] rounded-xl px-4 py-3.5 focus:outline-none focus:border-cd-accent shadow-sm"/>
               </div>
               <div className="space-y-1.5">
-                <label className="block text-[14.5px] font-semibold text-gray-800">Phone</label>
-                <div className="flex border border-cd-line rounded-xl bg-cd-card shadow-sm overflow-hidden focus-within:border-gray-400">
+                <label className="block text-[14.5px] font-semibold text-cd-text">Phone</label>
+                <div className="flex border border-cd-line rounded-xl bg-cd-card shadow-sm overflow-hidden focus-within:border-cd-accent">
                   <select className="bg-cd-raised border-r border-cd-line text-cd-text text-[15px] font-semibold px-3 py-3.5 focus:outline-none appearance-none pr-8 relative">
                     <option>🇺🇸 +1</option>
                   </select>
-                  <input type="tel" autoComplete="tel" placeholder="(XXX) XXX-XXXX" value={form.phone} onChange={(e) => setForm({...form, phone: e.target.value})} className="flex-1 bg-cd-card text-cd-text text-[16px] px-4 py-3.5 focus:outline-none placeholder:text-gray-400"/>
+                  <input type="tel" autoComplete="tel" placeholder="(XXX) XXX-XXXX" value={form.phone} onChange={(e) => setForm({...form, phone: e.target.value})} className="flex-1 bg-cd-card text-cd-text text-[16px] px-4 py-3.5 focus:outline-none placeholder:text-cd-faint"/>
                 </div>
               </div>
               <div className="space-y-1.5">
-                <label className="block text-[14.5px] font-semibold text-gray-800">Password</label>
-                <input type="password" placeholder="Create a secure password" value={form.password} onChange={(e) => setForm({...form, password: e.target.value})} className="w-full bg-cd-card border border-cd-line text-cd-text text-[16px] rounded-xl px-4 py-3.5 focus:outline-none focus:border-gray-400 shadow-sm placeholder:text-gray-400"/>
+                <label className="block text-[14.5px] font-semibold text-cd-text">Password</label>
+                <input type="password" placeholder="Create a secure password" value={form.password} onChange={(e) => setForm({...form, password: e.target.value})} className="w-full bg-cd-card border border-cd-line text-cd-text text-[16px] rounded-xl px-4 py-3.5 focus:outline-none focus:border-cd-accent shadow-sm placeholder:text-cd-faint"/>
               </div>
               <div className="space-y-1.5">
-                <label className="block text-[14.5px] font-semibold text-gray-800">Confirm Password</label>
-                <input type="password" placeholder="Confirm password" value={form.confirmPassword} onChange={(e) => setForm({...form, confirmPassword: e.target.value})} className="w-full bg-cd-card border border-cd-line text-cd-text text-[16px] rounded-xl px-4 py-3.5 focus:outline-none focus:border-gray-400 shadow-sm placeholder:text-gray-400"/>
+                <label className="block text-[14.5px] font-semibold text-cd-text">Confirm Password</label>
+                <input type="password" placeholder="Confirm password" value={form.confirmPassword} onChange={(e) => setForm({...form, confirmPassword: e.target.value})} className="w-full bg-cd-card border border-cd-line text-cd-text text-[16px] rounded-xl px-4 py-3.5 focus:outline-none focus:border-cd-accent shadow-sm placeholder:text-cd-faint"/>
               </div>
               
               <div className="flex items-center gap-2 pt-1 pb-1">
-                <Lock size={14} className="text-gray-600" />
-                <span className="text-[14px] font-semibold text-gray-800">This information will not be made public.</span>
+                <Lock size={14} className="text-cd-muted" />
+                <span className="text-[14px] font-semibold text-cd-text">This information will not be made public.</span>
               </div>
             </div>
           </div>
@@ -402,70 +402,70 @@ function NewLLCForm() {
             
             <div className="space-y-5">
               <div className="space-y-1.5">
-                <label className="block text-[14.5px] font-semibold text-gray-800">Street Address</label>
+                <label className="block text-[14.5px] font-semibold text-cd-text">Street Address</label>
                 <input
                   type="text"
                   placeholder="Start typing address for suggestions..."
                   value={form.streetAddress}
                   onChange={(e) => setForm({...form, streetAddress: e.target.value})}
-                  className="w-full bg-cd-card border border-cd-line text-cd-text text-[16px] rounded-xl px-4 py-3.5 focus:outline-none focus:border-gray-400 placeholder:text-gray-400 shadow-sm"
+                  className="w-full bg-cd-card border border-cd-line text-cd-text text-[16px] rounded-xl px-4 py-3.5 focus:outline-none focus:border-cd-accent placeholder:text-cd-faint shadow-sm"
                 />
-                <p className="text-[13px] text-gray-500 mt-1 font-medium">Enter your street address including building number</p>
+                <p className="text-[13px] text-cd-muted mt-1 font-medium">Enter your street address including building number</p>
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-[14.5px] font-semibold text-gray-800">Unit/Apartment (Optional)</label>
+                <label className="block text-[14.5px] font-semibold text-cd-text">Unit/Apartment (Optional)</label>
                 <input
                   type="text"
                   placeholder="Apt, Suite, Unit, etc."
                   value={form.unit}
                   onChange={(e) => setForm({...form, unit: e.target.value})}
-                  className="w-full bg-cd-card border border-cd-line text-cd-text text-[16px] rounded-xl px-4 py-3.5 focus:outline-none focus:border-gray-400 placeholder:text-gray-400 shadow-sm"
+                  className="w-full bg-cd-card border border-cd-line text-cd-text text-[16px] rounded-xl px-4 py-3.5 focus:outline-none focus:border-cd-accent placeholder:text-cd-faint shadow-sm"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-[14.5px] font-semibold text-gray-800">City</label>
+                <label className="block text-[14.5px] font-semibold text-cd-text">City</label>
                 <input
                   type="text"
                   placeholder="Enter city"
                   value={form.city}
                   onChange={(e) => setForm({...form, city: e.target.value})}
-                  className="w-full bg-cd-card border border-cd-line text-cd-text text-[16px] rounded-xl px-4 py-3.5 focus:outline-none focus:border-gray-400 placeholder:text-gray-400 shadow-sm"
+                  className="w-full bg-cd-card border border-cd-line text-cd-text text-[16px] rounded-xl px-4 py-3.5 focus:outline-none focus:border-cd-accent placeholder:text-cd-faint shadow-sm"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-[14.5px] font-semibold text-gray-800">Country <span className="text-red-500">*</span></label>
+                <label className="block text-[14.5px] font-semibold text-cd-text">Country <span className="text-cd-negative">*</span></label>
                 <div className="relative">
                   <select
                     value={form.country}
                     onChange={(e) => setForm({...form, country: e.target.value})}
-                    className="w-full appearance-none bg-cd-card border border-cd-line text-cd-text text-[16px] rounded-xl px-4 py-3.5 focus:outline-none focus:border-gray-400 shadow-sm pr-12 cursor-pointer"
+                    className="w-full appearance-none bg-cd-card border border-cd-line text-cd-text text-[16px] rounded-xl px-4 py-3.5 focus:outline-none focus:border-cd-accent shadow-sm pr-12 cursor-pointer"
                   >
                     <option value="United States">United States</option>
                     <option value="Canada">Canada</option>
                     <option value="United Kingdom">United Kingdom</option>
                     <option value="Australia">Australia</option>
                   </select>
-                  <ChevronDown size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                  <ChevronDown size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-cd-muted pointer-events-none" />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-[14.5px] font-semibold text-gray-800">Postal Code</label>
+                <label className="block text-[14.5px] font-semibold text-cd-text">Postal Code</label>
                 <input
                   type="text"
                   placeholder="Enter postal code"
                   value={form.postalCode}
                   onChange={(e) => setForm({...form, postalCode: e.target.value})}
-                  className="w-full bg-cd-card border border-cd-line text-cd-text text-[16px] rounded-xl px-4 py-3.5 focus:outline-none focus:border-gray-400 placeholder:text-gray-400 shadow-sm"
+                  className="w-full bg-cd-card border border-cd-line text-cd-text text-[16px] rounded-xl px-4 py-3.5 focus:outline-none focus:border-cd-accent placeholder:text-cd-faint shadow-sm"
                 />
               </div>
 
               <div className="flex items-start gap-2 pt-2">
-                <Lock size={14} className="text-gray-500 shrink-0 mt-1" />
-                <p className="text-[14px] font-semibold text-gray-600 leading-relaxed">
+                <Lock size={14} className="text-cd-muted shrink-0 mt-1" />
+                <p className="text-[14px] font-semibold text-cd-muted leading-relaxed">
                   This address information is for our internal records only and will remain private. We use Google Places to help verify address accuracy.
                 </p>
               </div>
@@ -484,7 +484,7 @@ function NewLLCForm() {
                 placeholder="Enter your partner code"
                 value={form.partnerCode}
                 onChange={(e) => setForm({...form, partnerCode: e.target.value})}
-                className="flex-1 bg-cd-card border border-cd-line text-cd-text text-[16px] rounded-xl px-4 py-3.5 focus:outline-none focus:border-gray-400 placeholder:text-gray-400 shadow-sm"
+                className="flex-1 bg-cd-card border border-cd-line text-cd-text text-[16px] rounded-xl px-4 py-3.5 focus:outline-none focus:border-cd-accent placeholder:text-cd-faint shadow-sm"
               />
               <button type="button" className="bg-cd-accent hover:bg-cd-accent-hover text-white font-semibold px-6 rounded-xl transition-colors">
                 Apply
@@ -528,7 +528,7 @@ function NewLLCForm() {
               )}
               <div className="border-t border-cd-line pt-3 flex justify-between items-center">
                 <span className="font-semibold text-cd-text">Total Amount</span>
-                <span className="text-lg font-bold text-green-600 dark:text-green-500">{isExisting ? '$2,000' : '$3,000'}</span>
+                <span className="text-lg font-bold text-cd-positive">{isExisting ? '$2,000' : '$3,000'}</span>
               </div>
             </div>
 
@@ -539,17 +539,17 @@ function NewLLCForm() {
               </p>
               
               <div className="mt-2">
-                <label className="block text-[13px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Company USDT TRC20 Address</label>
+                <label className="block text-[13px] font-semibold text-cd-muted uppercase tracking-wider mb-1.5">Company USDT TRC20 Address</label>
                 <div className="flex items-center gap-2">
                   <input 
                     type="text" 
                     readOnly 
                     value={TRC20_WALLET}
-                    className="flex-1 bg-cd-raised border border-cd-line text-gray-900 dark:text-gray-300 text-[14px] rounded-lg px-4 py-3 focus:outline-none"
+                    className="flex-1 bg-cd-raised border border-cd-line text-cd-text text-[14px] rounded-lg px-4 py-3 focus:outline-none"
                   />
                   <button 
                     onClick={() => copyToClipboard(TRC20_WALLET)}
-                    className="p-3 bg-cd-accent-soft text-cd-accent-text rounded-lg hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-colors"
+                    className="p-3 bg-cd-accent-soft text-cd-accent-text rounded-lg hover:opacity-80 transition-colors"
                   >
                     <Copy size={18} />
                   </button>
@@ -557,9 +557,9 @@ function NewLLCForm() {
               </div>
             </div>
 
-            <div className="bg-cd-accent-soft border border-blue-100 dark:border-blue-500/20 rounded-xl p-4 flex gap-3">
+            <div className="bg-cd-accent-soft border border-transparent rounded-xl p-4 flex gap-3">
               <div className="mt-0.5 text-cd-accent-text"><InfoCircleIcon /></div>
-              <p className="text-[14px] text-blue-800 dark:text-blue-300 font-medium">
+              <p className="text-[14px] text-cd-accent-text font-medium">
                 Your legal filing will be processed within 24–48 hours after payment confirmation.
               </p>
             </div>
@@ -577,7 +577,7 @@ function NewLLCForm() {
                 type="button"
                 onClick={confirmPayment}
                 disabled={submitting}
-                className="flex-[2] bg-green-600 hover:bg-green-700 disabled:opacity-70 text-white font-semibold py-3 rounded-xl transition-colors flex justify-center items-center gap-2"
+                className="flex-[2] bg-cd-accent hover:bg-cd-accent-hover disabled:opacity-70 text-white font-semibold py-3 rounded-xl transition-colors flex justify-center items-center gap-2"
               >
                 {submitting ? (
                   <span className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
@@ -599,12 +599,12 @@ function NewLLCForm() {
             alt="Wyoming Attorney" 
             className="h-9 object-contain"
           />
-          <div className="flex items-center justify-center gap-6 text-[14.5px] font-semibold text-gray-800 dark:text-gray-300">
-            <a href="#" className="hover:text-black dark:hover:text-white transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-black dark:hover:text-white transition-colors">Terms of Service</a>
-            <a href="#" className="hover:text-black dark:hover:text-white transition-colors">Contact</a>
+          <div className="flex items-center justify-center gap-6 text-[14.5px] font-semibold text-cd-text">
+            <a href="#" className="hover:text-cd-text transition-colors">Privacy Policy</a>
+            <a href="#" className="hover:text-cd-text transition-colors">Terms of Service</a>
+            <a href="#" className="hover:text-cd-text transition-colors">Contact</a>
           </div>
-          <p className="text-[13px] text-gray-500 font-medium mt-1">
+          <p className="text-[13px] text-cd-muted font-medium mt-1">
             © 2025 Wyoming LLC Attorney. All rights reserved.
           </p>
         </div>
@@ -617,7 +617,7 @@ export default function NewLLCPage() {
   return (
     <Suspense fallback={
       <div className="flex items-center justify-center min-h-screen bg-cd-page">
-        <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-cd-accent border-t-transparent rounded-full animate-spin" />
       </div>
     }>
       <NewLLCForm />

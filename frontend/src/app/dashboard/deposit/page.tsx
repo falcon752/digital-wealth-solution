@@ -1,27 +1,43 @@
 'use client';
 
+/**
+ * Deposit: first a list of assets as Anchorage rows with a search field, then the chosen asset's
+ * deposit address (copyable, with the QR code when one is set), its network and memo, and the form
+ * for telling us what was sent.
+ */
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import toast from 'react-hot-toast';
-import { Copy, Check, ChevronRight, X } from 'lucide-react';
+import { ArrowDownToLine, ArrowLeft, Check, ChevronRight, Copy, Info, Loader2, Search } from 'lucide-react';
 import { assetsAPI, depositsAPI, apiBase } from '@/lib/api';
 import { Asset } from '@/types';
 import DashboardHeader from '@/components/layout/DashboardHeader';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
-import Image from 'next/image';
-import Link from 'next/link';
+import { ActionButton, AssetIcon, AssetName, Card, EmptyState, PageHeader, Skeleton } from '@/components/client/ui';
+import { cn } from '@/lib/utils';
 
-// Helper to assign colors to crypto icons
-function getAssetColor(symbol: string) {
-  const colors: Record<string, string> = {
-    BTC: '#F7931A', ETH: '#627EEA', DOGE: '#C2A633', LTC: '#BFBBBB',
-    XRP: '#23292F', XLM: '#08B5E5', USDT: '#26A17B', USDC: '#2775CA',
-    BNB: '#F3BA2F', SOL: '#14F195', ADA: '#0033AD'
-  };
-  return colors[symbol.toUpperCase()] || '#3b82f6';
+const INPUT = 'h-11 w-full rounded-md border border-transparent bg-cd-input px-3.5 text-[14px] text-cd-text placeholder:text-cd-faint focus:border-cd-accent focus:outline-none';
+
+/** A small muted label over a field, with the field's error under it. */
+function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
+  return (
+    <label className="block">
+      <span className="mb-1.5 block text-[13px] text-cd-muted">{label}</span>
+      {children}
+      {error && <span className="mt-1.5 block text-[12px] text-cd-negative">{error}</span>}
+    </label>
+  );
+}
+
+/** One label / value line of a details list. */
+function Row({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex items-start justify-between gap-4 border-b border-cd-line py-3.5 last:border-b-0">
+      <span className="shrink-0 text-[13.5px] text-cd-muted">{label}</span>
+      <div className="min-w-0 text-right text-[14px] text-cd-text">{children}</div>
+    </div>
+  );
 }
 
 const schema = z.object({
@@ -34,6 +50,8 @@ type DepositForm = z.infer<typeof schema>;
 
 export default function DepositPage() {
   const [assets, setAssets] = useState<Asset[]>([]);
+  const [assetsLoaded, setAssetsLoaded] = useState(false);
+  const [search, setSearch] = useState('');
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [copied, setCopied] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -56,7 +74,7 @@ export default function DepositPage() {
           if (match) setSelectedAsset(match);
         }
       }
-    }).catch(console.error);
+    }).catch(console.error).finally(() => setAssetsLoaded(true));
   }, []);
 
   const copyAddress = async () => {
@@ -96,202 +114,187 @@ export default function DepositPage() {
   if (submitted) {
     return (
       <div className="fixed inset-0 z-[100] flex flex-col bg-cd-page pb-8 animate-in fade-in zoom-in-95 duration-300">
-        <div className="flex-1 flex flex-col items-center justify-center p-6">
-          <div className="w-24 h-24 rounded-full bg-green-50 dark:bg-green-900/20 flex items-center justify-center mx-auto mb-6">
-            <div className="w-16 h-16 rounded-full bg-green-500 text-white flex items-center justify-center shadow-lg shadow-green-500/30">
-              <Check size={36} strokeWidth={3} />
-            </div>
-          </div>
-          <h2 className="text-[28px] font-semibold text-cd-text mb-3 tracking-tight">Deposit Submitted</h2>
-          <p className="text-cd-muted text-[15px] text-center max-w-[280px] font-medium leading-relaxed">
+        <div className="flex flex-1 flex-col items-center justify-center p-6 text-center">
+          <span className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-cd-positive/10 text-cd-positive">
+            <Check size={30} strokeWidth={2.25} />
+          </span>
+          <h2 className="text-[24px] font-normal text-cd-text">Deposit submitted</h2>
+          <p className="mt-2 max-w-[320px] text-[14px] leading-relaxed text-cd-muted">
             Your deposit request has been submitted. The admin will verify and confirm your balance shortly.
           </p>
         </div>
-        
-        <div className="px-6 flex flex-col gap-3 w-full max-w-md mx-auto">
-          <Link href="/dashboard/wallet" className="w-full">
-            <Button className="w-full bg-cd-accent text-white hover:bg-blue-700 h-[52px] text-[16px] font-semibold rounded-xl border-none">
-              Done
-            </Button>
-          </Link>
-          <Button 
-            onClick={resetFlow} 
-            className="w-full bg-cd-raised text-cd-text h-[52px] text-[16px] font-semibold rounded-xl hover:bg-cd-raised border-none"
-          >
-            Make another deposit
-          </Button>
+
+        <div className="mx-auto flex w-full max-w-[400px] flex-col gap-2.5 px-4">
+          <ActionButton href="/dashboard" variant="primary" className="h-11 w-full">Done</ActionButton>
+          <ActionButton onClick={resetFlow} variant="ghost" className="h-11 w-full">Make another deposit</ActionButton>
         </div>
       </div>
     );
   }
 
+  const q = search.trim().toLowerCase();
+  const shown = q
+    ? assets.filter((a) => a.name.toLowerCase().includes(q) || a.symbol.toLowerCase().includes(q) || (a.network || '').toLowerCase().includes(q))
+    : assets;
+
   return (
-    <div className="flex flex-col min-h-full pb-20">
-      {!selectedAsset ? (
-        <>
-          <DashboardHeader title="Receive Crypto" subtitle="Select an asset to receive" backHref="/dashboard/wallet" logo="dwp" />
-          <div className="flex-1 p-5">
-            <h2 className="text-[18px] font-semibold text-cd-text mb-4 px-1">Available Assets</h2>
-            <div className="space-y-3">
-              {assets.map((a) => (
-                <div
-                  key={a.id}
-                  onClick={() => setSelectedAsset(a)}
-                  className="flex items-center p-4 bg-cd-card rounded-xl border border-cd-line shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-                >
-                  <div className="w-11 h-11 rounded-full overflow-hidden shrink-0 bg-cd-raised flex items-center justify-center border border-cd-line">
-                    <img 
-                      src={`https://assets.coincap.io/assets/icons/${a.symbol.toLowerCase()}@2x.png`} 
-                      alt={a.symbol} 
-                      className="w-full h-full object-cover" 
-                      onError={(e) => {
-                        e.currentTarget.onerror = null; 
-                        e.currentTarget.src = `https://ui-avatars.com/api/?name=${a.symbol[0]}&background=${getAssetColor(a.symbol).replace('#','')}&color=fff&rounded=true&bold=true`;
-                      }}
-                    />
-                  </div>
-                  <div className="ml-4 flex-1">
-                    <p className="font-semibold text-[16px] text-cd-text">{a.name}</p>
-                    <p className="text-[13px] font-medium text-cd-muted mt-0.5">{a.network || a.symbol}</p>
-                  </div>
-                  <ChevronRight size={20} className="text-gray-400" />
-                </div>
-              ))}
-            </div>
-          </div>
-        </>
-      ) : (
-        <div className="flex-1 bg-cd-page flex flex-col">
-          {/* Custom Header for Step 2 */}
-          <div className="flex items-center justify-between px-5 h-16 bg-cd-card border-b border-cd-line sticky top-0 z-10">
-            <button onClick={() => setSelectedAsset(null)} className="p-2 -ml-2 text-cd-accent-text hover:text-blue-700 transition-colors">
-              <X size={20} strokeWidth={2.5} />
-            </button>
-            <h1 className="text-[17px] font-semibold text-cd-text">Receive {selectedAsset.name}</h1>
-            <div className="w-10"></div> {/* Spacer for exact centering */}
-          </div>
+    <div className="min-h-full">
+      <DashboardHeader title={selectedAsset ? `Deposit ${selectedAsset.symbol}` : 'Deposit'} backHref="/dashboard" breadcrumb />
 
-          <div className="flex-1 p-5 max-w-md mx-auto w-full space-y-6">
-            
-            {/* Screenshot Card UI */}
-            <div className="bg-cd-card rounded-xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none dark:border dark:border-cd-line flex flex-col items-center border border-gray-50">
-              
-              <div className="flex items-center justify-center gap-3 mb-2">
-                <div className="w-9 h-9 rounded-full bg-[#fef4ed] dark:bg-orange-900/20 flex items-center justify-center overflow-hidden shrink-0">
-                  <img 
-                    src={`https://assets.coincap.io/assets/icons/${selectedAsset.symbol.toLowerCase()}@2x.png`} 
-                    alt={selectedAsset.symbol} 
-                    className="w-6 h-6 object-cover" 
-                    onError={(e) => {
-                      e.currentTarget.onerror = null; 
-                      e.currentTarget.src = `https://ui-avatars.com/api/?name=${selectedAsset.symbol[0]}&background=${getAssetColor(selectedAsset.symbol).replace('#','')}&color=fff&rounded=true&bold=true`;
-                    }}
+      <div className="mx-auto w-full max-w-[1180px] px-4 pb-12 pt-5 sm:px-6 lg:px-10 lg:pt-3">
+        <div className="mx-auto w-full max-w-[600px]">
+          {!selectedAsset ? (
+            <>
+              <PageHeader icon={ArrowDownToLine} title="Deposit" titleOnPhone={false} meta={['Which asset would you like to receive?']} />
+
+              <Card className="mt-6 lg:mt-8" bodyClassName="p-2 sm:p-3">
+                <div className="relative px-1 pb-2 pt-1">
+                  <input
+                    type="text"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Search an asset (i.e. BTC)"
+                    className={cn(INPUT, 'pr-10')}
                   />
+                  <Search size={17} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-cd-muted" />
                 </div>
-                <div>
-                  <h3 className="font-semibold text-[16px] text-cd-text">{selectedAsset.network || selectedAsset.name} Network</h3>
+
+                {!assetsLoaded ? (
+                  <div className="space-y-5 px-3 py-4">
+                    {[0, 1, 2, 3].map((i) => (
+                      <div key={i} className="flex items-center gap-3.5">
+                        <Skeleton className="h-8 w-8 rounded-full" />
+                        <div className="flex-1 space-y-2"><Skeleton className="h-3.5 w-32" /><Skeleton className="h-3 w-20" /></div>
+                      </div>
+                    ))}
+                  </div>
+                ) : shown.length === 0 ? (
+                  <EmptyState icon={Search} title="No assets found" text={q ? 'Try another name or symbol.' : undefined} />
+                ) : (
+                  <ul>
+                    {shown.map((a) => (
+                      <li key={a.id}>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedAsset(a)}
+                          className="flex w-full items-center gap-3.5 rounded-md border-b border-cd-line px-3 py-3.5 text-left transition-colors last:border-b-0 hover:bg-cd-raised/60 sm:px-4"
+                        >
+                          <AssetIcon symbol={a.symbol} size={30} />
+                          <div className="min-w-0 flex-1">
+                            <AssetName symbol={a.symbol} name={a.name} network={a.network || a.name} />
+                          </div>
+                          <ChevronRight size={18} className="shrink-0 text-cd-faint" />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </Card>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={() => setSelectedAsset(null)}
+                className="mb-4 inline-flex items-center gap-1.5 text-[13.5px] text-cd-muted hover:text-cd-text"
+              >
+                <ArrowLeft size={15} strokeWidth={1.75} />
+                All assets
+              </button>
+
+              <div className="flex items-center gap-3.5">
+                <AssetIcon symbol={selectedAsset.symbol} size={36} />
+                <div className="min-w-0">
+                  <h1 className="text-[24px] font-normal leading-tight text-cd-text">Deposit {selectedAsset.symbol}</h1>
+                  <p className="mt-0.5 text-[13.5px] text-cd-muted">{selectedAsset.network || selectedAsset.name} network</p>
                 </div>
               </div>
-              
-              <p className="text-[14px] font-medium text-cd-muted mb-8 text-center">Scan QR code to receive</p>
-              
-              {selectedAsset.qrCodeImage ? (
-                <div className="bg-white p-2 rounded-xl mb-8">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={`${apiBase}${selectedAsset.qrCodeImage}`}
-                    alt="Wallet QR Code"
-                    className="w-48 h-48 object-contain"
-                  />
-                </div>
-              ) : (
-                <div className="w-48 h-48 bg-cd-raised rounded-xl mb-8 flex items-center justify-center text-gray-400 text-sm font-medium">
-                  No QR Code
-                </div>
-              )}
 
-              <div className="w-full bg-cd-raised rounded-[14px] p-2 flex items-center justify-between gap-3 mb-4">
-                <div className="flex-1 overflow-hidden">
-                  <p className="text-[13px] font-medium text-cd-muted truncate w-full pl-3">
-                    {selectedAsset.walletAddress}
-                  </p>
-                </div>
-                <button
-                  onClick={copyAddress}
-                  className="bg-cd-accent text-white px-5 py-2.5 rounded-[10px] text-[14px] font-semibold flex items-center gap-2 hover:bg-blue-700 transition-colors shrink-0"
-                >
-                  {copied ? <Check size={16} strokeWidth={2.5} /> : <Copy size={16} strokeWidth={2.5} />}
-                  Copy
-                </button>
-              </div>
-
-              {selectedAsset.memo ? (
-                <div className="w-full bg-cd-raised rounded-[14px] p-2 flex items-center justify-between gap-3">
-                  <div className="flex-1 overflow-hidden">
-                    <p className="text-[11px] font-semibold text-[#8f9bb3] uppercase tracking-wider mb-0.5 pl-3">Memo / Tag Required</p>
-                    <p className="text-[13px] font-semibold text-cd-text truncate w-full pl-3">
-                      {selectedAsset.memo}
-                    </p>
+              <Card className="mt-6">
+                {selectedAsset.qrCodeImage && (
+                  <div className="mb-5 flex flex-col items-center">
+                    <div className="rounded-lg bg-white p-2.5">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={`${apiBase}${selectedAsset.qrCodeImage}`} alt="Wallet QR code" className="h-44 w-44 object-contain" />
+                    </div>
+                    <p className="mt-2.5 text-[13px] text-cd-muted">Scan the QR code to send to this address</p>
                   </div>
+                )}
+
+                <p className="mb-1.5 text-[13px] text-cd-muted">Deposit address</p>
+                <div className="flex items-center gap-2 rounded-md bg-cd-input py-1.5 pl-3.5 pr-1.5">
+                  <p className="min-w-0 flex-1 break-all py-1.5 font-mono text-[13.5px] text-cd-text">{selectedAsset.walletAddress}</p>
                   <button
                     type="button"
-                    onClick={() => {
-                      navigator.clipboard.writeText(selectedAsset.memo!);
-                      toast.success('Memo copied!');
-                    }}
-                    className="bg-cd-accent/10 text-cd-accent-text dark:bg-blue-900/30 dark:text-blue-400 px-4 py-2.5 rounded-[10px] text-[14px] font-semibold flex items-center gap-2 hover:bg-[#2d68d8]/20 transition-colors shrink-0"
+                    onClick={copyAddress}
+                    className="flex h-8 shrink-0 items-center gap-1.5 rounded px-2.5 text-[13px] font-medium text-cd-accent-text hover:bg-cd-accent-soft"
                   >
-                    <Copy size={16} strokeWidth={2.5} />
-                    Copy
+                    {copied ? <Check size={15} /> : <Copy size={15} />}
+                    {copied ? 'Copied' : 'Copy'}
                   </button>
                 </div>
-              ) : (
-                <div className="mt-1 mb-2 flex justify-center">
-                  <span className="text-[14px] font-semibold text-cd-text border-b-[3px] border-[#10b981] pb-0.5 inline-block">
-                    No memo required
-                  </span>
+
+                <div className="mt-3">
+                  <Row label="Asset">
+                    {selectedAsset.symbol}
+                    {selectedAsset.name.toUpperCase() !== selectedAsset.symbol.toUpperCase() && (
+                      <><span className="mx-1.5 text-cd-faint">|</span>{selectedAsset.name}</>
+                    )}
+                  </Row>
+                  <Row label="Network">{selectedAsset.network || selectedAsset.name}</Row>
+                  <Row label="Memo / tag">
+                    {selectedAsset.memo ? (
+                      <span className="inline-flex items-center gap-2">
+                        <span className="break-all font-mono text-[13.5px]">{selectedAsset.memo}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(selectedAsset.memo!);
+                            toast.success('Memo copied!');
+                          }}
+                          className="text-cd-accent-text hover:opacity-80"
+                          aria-label="Copy memo"
+                        >
+                          <Copy size={15} />
+                        </button>
+                      </span>
+                    ) : (
+                      <span className="text-cd-muted">Not required</span>
+                    )}
+                  </Row>
                 </div>
-              )}
-            </div>
 
-            {/* Submission Form below */}
-            <div className="bg-cd-card rounded-xl p-6 shadow-sm border border-cd-line">
-              <h3 className="text-[16px] font-semibold text-cd-text mb-5">Confirm Deposit</h3>
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                <Input
-                  label="Amount sent"
-                  type="number"
-                  step="any"
-                  placeholder="0.00"
-                  error={errors.amount?.message}
-                  {...register('amount')}
-                />
-                
-                <Input
-                  label="USD Value (optional)"
-                  type="number"
-                  step="any"
-                  placeholder="Estimated USD value"
-                  error={errors.usdValue?.message}
-                  {...register('usdValue')}
-                />
-                
-                <Input
-                  label="Transaction Hash (optional)"
-                  placeholder="0x..."
-                  error={errors.txHash?.message}
-                  {...register('txHash')}
-                />
+                <div className="mt-3 flex gap-3 rounded-md bg-cd-raised px-3.5 py-3 text-[13px] leading-relaxed text-cd-muted">
+                  <Info size={16} strokeWidth={1.75} className="mt-0.5 shrink-0 text-cd-text" />
+                  <p>
+                    Send only {selectedAsset.symbol} on the {selectedAsset.network || selectedAsset.name} network to this address
+                    {selectedAsset.memo ? ', and include the memo above' : ''}.
+                  </p>
+                </div>
+              </Card>
 
-                <Button type="submit" className="w-full bg-cd-accent text-white mt-2" size="lg" loading={isSubmitting}>
-                  Submit Details
-                </Button>
-              </form>
-            </div>
-            
-          </div>
+              <Card title="Confirm deposit" className="mt-5" bodyClassName="px-4 pb-4 sm:px-5 sm:pb-5">
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                  <Field label="Amount sent" error={errors.amount?.message}>
+                    <input type="number" step="any" placeholder="0.00" className={cn(INPUT, 'cd-num')} {...register('amount')} />
+                  </Field>
+                  <Field label="USD value (optional)" error={errors.usdValue?.message}>
+                    <input type="number" step="any" placeholder="Estimated USD value" className={cn(INPUT, 'cd-num')} {...register('usdValue')} />
+                  </Field>
+                  <Field label="Transaction hash (optional)" error={errors.txHash?.message}>
+                    <input placeholder="0x..." className={cn(INPUT, 'font-mono placeholder:font-sans')} {...register('txHash')} />
+                  </Field>
+
+                  <ActionButton type="submit" variant="primary" disabled={isSubmitting} className="mt-2 h-11 w-full">
+                    {isSubmitting && <Loader2 size={16} className="animate-spin" />}
+                    Submit details
+                  </ActionButton>
+                </form>
+              </Card>
+            </>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }

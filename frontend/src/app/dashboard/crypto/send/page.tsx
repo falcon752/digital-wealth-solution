@@ -1,42 +1,18 @@
 'use client';
 
+/**
+ * Send: pick the crypto asset to send, from Anchorage-style rows (logo, "SYMBOL | Name" over the
+ * network, a chevron) under a search field.
+ */
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { ArrowUpFromLine, ChevronRight, Search } from 'lucide-react';
 import { assetsAPI, usersAPI } from '@/lib/api';
 import { Asset } from '@/types';
+import DashboardHeader from '@/components/layout/DashboardHeader';
+import { AssetIcon, AssetName, Card, EmptyState, PageHeader, Skeleton } from '@/components/client/ui';
 
-const ICON_SLUG: Record<string, string> = {
-  BTC: 'btc', ETH: 'eth', DOGE: 'doge', LTC: 'ltc', XRP: 'xrp',
-  USDT: 'usdt', USDC: 'usdc', BNB: 'bnb', SOL: 'sol', ADA: 'ada',
-  TRX: 'trx', MATIC: 'matic', DOT: 'dot', AVAX: 'avax', LINK: 'link',
-  SHIB: 'shib', BCH: 'bch', XLM: 'xlm', ATOM: 'atom', UNI: 'uni',
-};
-
-function CoinIcon({ symbol }: { symbol: string }) {
-  const slug = ICON_SLUG[symbol.toUpperCase()] || symbol.toLowerCase();
-  const [errored, setErrored] = useState(false);
-
-  if (errored) {
-    return (
-      <div className="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-semibold text-cd-muted shrink-0">
-        {symbol.slice(0, 2)}
-      </div>
-    );
-  }
-
-  return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={`https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/${slug}.png`}
-      alt={symbol}
-      width={48}
-      height={48}
-      className="w-12 h-12 rounded-full object-contain shrink-0"
-      onError={() => setErrored(true)}
-    />
-  );
-}
+const INPUT = 'h-11 w-full rounded-md border border-transparent bg-cd-input px-3.5 text-[14px] text-cd-text placeholder:text-cd-faint focus:border-cd-accent focus:outline-none';
 
 export default function SendAssetsPage() {
   const router = useRouter();
@@ -72,73 +48,59 @@ export default function SendAssetsPage() {
   }, [search, assets]);
 
   return (
-    <div className="flex flex-col min-h-full bg-cd-page">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 h-14 border-b border-cd-line shrink-0">
-        <button
-          onClick={() => router.back()}
-          className="w-9 h-9 flex items-center justify-center text-cd-muted hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
-        >
-          <ChevronLeft size={22} />
-        </button>
-        <h1 className="text-base font-semibold text-cd-text">Crypto Assets</h1>
-        <div className="w-9" />
-      </div>
+    <div className="min-h-full">
+      <DashboardHeader title="Send" backHref="/dashboard/crypto" breadcrumb />
 
-      {/* Search */}
-      <div className="px-4 py-4 shrink-0">
-        <div className="flex items-center gap-2.5 bg-cd-raised rounded-xl px-4 h-11">
-          <Search size={16} className="text-gray-400 shrink-0" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search networks"
-            className="flex-1 bg-transparent text-sm text-cd-text/85 placeholder-gray-400 focus:outline-none"
-          />
-        </div>
-      </div>
+      <div className="mx-auto w-full max-w-[1180px] px-4 pb-12 pt-5 sm:px-6 lg:px-10 lg:pt-3">
+        <div className="mx-auto w-full max-w-[600px]">
+          <PageHeader icon={ArrowUpFromLine} title="Send crypto" titleOnPhone={false} meta={['Which asset would you like to send?']} />
 
-      {/* Asset list */}
-      {loading ? (
-        <div className="flex items-center justify-center flex-1">
-          <div className="w-7 h-7 border-2 border-cd-accent border-t-transparent rounded-full animate-spin" />
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="flex items-center justify-center flex-1 text-sm text-cd-faint">
-          No assets found
-        </div>
-      ) : (
-        <div className="flex-1 overflow-y-auto">
-          {filtered.map((asset, i) => (
-            <div key={asset.id}>
-              <div className="flex items-center px-5 py-4 gap-4">
-                <CoinIcon symbol={asset.symbol} />
-
-                <div className="flex-1 min-w-0">
-                  <p className="text-base font-semibold text-cd-text leading-tight">
-                    {asset.name} ({asset.symbol})
-                  </p>
-                  <p className="text-sm text-cd-faint mt-0.5 tabular-nums">
-                    0.00000000 {asset.symbol}
-                  </p>
-                </div>
-
-                <button
-                  onClick={() => router.push(`/dashboard/crypto/send/${asset.id}`)}
-                  className="flex items-center gap-1 text-sm text-gray-400 hover:text-[#2d5be3] transition-colors shrink-0"
-                >
-                  View Details
-                  <ChevronRight size={16} />
-                </button>
-              </div>
-              {i < filtered.length - 1 && (
-                <div className="h-px bg-cd-raised mx-5" />
-              )}
+          <Card className="mt-6 lg:mt-8" bodyClassName="p-2 sm:p-3">
+            <div className="relative px-1 pb-2 pt-1">
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search an asset (i.e. BTC)"
+                className={`${INPUT} pr-10`}
+              />
+              <Search size={17} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-cd-muted" />
             </div>
-          ))}
+
+            {loading ? (
+              <div className="space-y-5 px-3 py-4">
+                {[0, 1, 2, 3].map((i) => (
+                  <div key={i} className="flex items-center gap-3.5">
+                    <Skeleton className="h-8 w-8 rounded-full" />
+                    <div className="flex-1 space-y-2"><Skeleton className="h-3.5 w-32" /><Skeleton className="h-3 w-20" /></div>
+                  </div>
+                ))}
+              </div>
+            ) : filtered.length === 0 ? (
+              <EmptyState icon={Search} title="No assets found" />
+            ) : (
+              <ul>
+                {filtered.map((asset) => (
+                  <li key={asset.id}>
+                    <button
+                      type="button"
+                      onClick={() => router.push(`/dashboard/crypto/send/${asset.id}`)}
+                      className="flex w-full items-center gap-3.5 rounded-md border-b border-cd-line px-3 py-3.5 text-left transition-colors last:border-b-0 hover:bg-cd-raised/60 sm:px-4"
+                    >
+                      <AssetIcon symbol={asset.symbol} size={30} />
+                      <div className="min-w-0 flex-1">
+                        <AssetName symbol={asset.symbol} name={asset.name} network={asset.network || asset.name} />
+                      </div>
+                      <span className="cd-num hidden shrink-0 text-[13px] text-cd-muted sm:block">0.00000000 {asset.symbol}</span>
+                      <ChevronRight size={18} className="shrink-0 text-cd-faint" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
         </div>
-      )}
+      </div>
     </div>
   );
 }

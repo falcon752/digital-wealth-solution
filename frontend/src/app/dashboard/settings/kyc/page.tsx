@@ -1,28 +1,34 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
 import {
-  Building2, CheckCircle2, Clock3, FileCheck2, FileText, Plus, RefreshCw,
-  ShieldCheck, Trash2, Upload, UserRound, XCircle,
+  AlertCircle, Building2, CheckCircle2, Clock3, FileCheck2, FileText, Plus, RefreshCw,
+  ShieldCheck, Trash2, Upload, UserRound,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import DashboardHeader from '@/components/layout/DashboardHeader';
+import { ActionButton, Card, PageHeader, Skeleton, StatusPill } from '@/components/client/ui';
 import { useAuth } from '@/context/AuthContext';
 import { kycAPI } from '@/lib/api';
 import { getApiError } from '@/lib/apiError';
 import { KYCRelatedPerson, KYCRequirement, KYCSubmission } from '@/types';
-import { APP_TIMEZONE } from '@/lib/utils';
+import { APP_TIMEZONE, cn } from '@/lib/utils';
 
 function formatDate(value?: string | null) {
   return value ? new Date(value).toLocaleDateString('en-US', { timeZone: APP_TIMEZONE, dateStyle: 'long' }) : '';
 }
 
-const statusDetails = {
-  not_verified: { label: 'Not Verified', icon: ShieldCheck, tone: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300' },
-  pending: { label: 'Pending', icon: Clock3, tone: 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300' },
-  approved: { label: 'Approved', icon: CheckCircle2, tone: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300' },
-  rejected: { label: 'Rejected', icon: XCircle, tone: 'bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300' },
+/** The three steps of a verification and where each one stands, by the submission's status. */
+const STEPS: { label: string; text: string }[] = [
+  { label: 'Applicant details', text: 'Identity, contact and tax information' },
+  { label: 'Supporting documents', text: 'ID and any other files we ask for' },
+  { label: 'Compliance review', text: 'Our team checks everything' },
+];
+const STEP_STATUS: Record<string, [string, string, string]> = {
+  not_verified: ['to_do', 'to_do', 'not_started'],
+  pending: ['completed', 'completed', 'under_review'],
+  approved: ['completed', 'completed', 'approved'],
+  rejected: ['completed', 'completed', 'rejected'],
 };
 
 type ApplicantType = 'individual' | 'business';
@@ -50,8 +56,41 @@ interface KYCFormState {
   financialHistorySummary: string;
 }
 
-const inputClass = 'w-full h-12 rounded-xl border border-cd-line bg-cd-raised px-4 text-sm text-cd-text focus:outline-none focus:ring-2 focus:ring-blue-500';
-const textareaClass = 'w-full rounded-xl border border-cd-line bg-cd-raised p-4 text-sm text-cd-text focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none';
+const inputClass = 'h-11 w-full rounded-md border border-transparent bg-cd-input px-3.5 text-[14px] text-cd-text placeholder:text-cd-faint focus:border-cd-accent focus:outline-none';
+const textareaClass = 'w-full resize-none rounded-md border border-transparent bg-cd-input px-3.5 py-3 text-[14px] text-cd-text placeholder:text-cd-faint focus:border-cd-accent focus:outline-none';
+
+/** A small grey label above its input. */
+function Field({ label, className, children }: { label: string; className?: string; children: React.ReactNode }) {
+  return (
+    <label className={cn('block', className)}>
+      <span className="mb-1.5 block text-[12.5px] text-cd-muted">{label}</span>
+      {children}
+    </label>
+  );
+}
+
+/** A quiet grey panel with a small coloured icon, for the status notices. */
+function Notice({ icon: Icon, tone, title, children, action }: {
+  icon: typeof CheckCircle2;
+  tone: 'positive' | 'warning' | 'negative';
+  title: string;
+  children?: React.ReactNode;
+  action?: React.ReactNode;
+}) {
+  const color = { positive: 'text-cd-positive', warning: 'text-cd-warning', negative: 'text-cd-negative' }[tone];
+  return (
+    <div className="flex flex-col gap-3 rounded-lg bg-cd-raised p-4 sm:flex-row sm:items-start">
+      <div className="flex min-w-0 flex-1 items-start gap-3">
+        <Icon size={18} strokeWidth={1.75} className={cn('mt-0.5 shrink-0', color)} />
+        <div className="min-w-0">
+          <p className="text-[14px] font-medium text-cd-text">{title}</p>
+          {children && <div className="mt-1 text-[13px] leading-relaxed text-cd-muted">{children}</div>}
+        </div>
+      </div>
+      {action && <div className="shrink-0 pl-[30px] sm:pl-0">{action}</div>}
+    </div>
+  );
+}
 
 function PersonEditor({
   title,
@@ -72,25 +111,23 @@ function PersonEditor({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-3">
-        <h3 className="text-sm font-semibold text-cd-text">{title}</h3>
-        <button type="button" onClick={add} className="h-9 px-3 rounded-lg border border-blue-200 dark:border-blue-800 text-cd-accent-text text-xs font-semibold flex items-center gap-1.5">
-          <Plus size={14} /> Add
-        </button>
+        <h3 className="text-[14px] font-medium text-cd-text">{title}</h3>
+        <ActionButton icon={Plus} onClick={add} className="h-8 px-3 text-[13px]">Add</ActionButton>
       </div>
       {people.map((person, index) => (
-        <div key={index} className="grid sm:grid-cols-2 gap-3 border border-cd-line rounded-xl p-4">
+        <div key={index} className="grid gap-3 rounded-md border border-cd-line p-3.5 sm:grid-cols-2">
           <input required value={person.fullName} onChange={(event) => update(index, 'fullName', event.target.value)} placeholder="Full legal name" className={inputClass} />
           <input required value={person.title || ''} onChange={(event) => update(index, 'title', event.target.value)} placeholder="Title or role" className={inputClass} />
           <input type="email" value={person.email || ''} onChange={(event) => update(index, 'email', event.target.value)} placeholder="Email address" className={inputClass} />
           {ownership && (
             <input type="number" min="0" max="100" step="0.01" required value={person.ownershipPercentage ?? ''} onChange={(event) => update(index, 'ownershipPercentage', Number(event.target.value))} placeholder="Ownership percentage" className={inputClass} />
           )}
-          <button type="button" onClick={() => onChange(people.filter((_, personIndex) => personIndex !== index))} className="sm:col-span-2 justify-self-end p-2 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30" aria-label={`Remove ${title.toLowerCase()} entry`}>
-            <Trash2 size={17} />
+          <button type="button" onClick={() => onChange(people.filter((_, personIndex) => personIndex !== index))} className="inline-flex items-center gap-1.5 justify-self-end rounded-md px-2 py-1.5 text-[13px] text-cd-negative hover:bg-cd-raised sm:col-span-2" aria-label={`Remove ${title.toLowerCase()} entry`}>
+            <Trash2 size={15} strokeWidth={1.75} /> Remove
           </button>
         </div>
       ))}
-      {!people.length && <p className="text-xs text-gray-500">Add at least one entry.</p>}
+      {!people.length && <p className="text-[12.5px] text-cd-faint">Add at least one entry.</p>}
     </div>
   );
 }
@@ -153,8 +190,6 @@ export default function KYCVerificationPage() {
   }, [user]);
 
   const status = submission?.status || 'not_verified';
-  const statusView = statusDetails[status];
-  const StatusIcon = statusView.icon;
   const canSubmit = status === 'not_verified' || status === 'rejected';
   const activeRequirements = useMemo(
     () => requirements.filter((item) => item.active && (item.appliesTo === 'all' || item.appliesTo === form.applicantType)),
@@ -204,111 +239,240 @@ export default function KYCVerificationPage() {
     }
   };
 
+  const wrapper = 'mx-auto w-full max-w-[1180px] px-4 pb-12 pt-5 sm:px-6 lg:px-10 lg:pt-3';
+
   if (loading) {
-    return <div className="min-h-full bg-cd-page"><DashboardHeader title="KYC Verification" backHref="/dashboard/settings" logo="dwp" /><div className="h-64 flex items-center justify-center"><div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" /></div></div>;
+    return (
+      <div className="min-h-full">
+        <DashboardHeader title="Identity verification" backHref="/dashboard/settings" breadcrumb />
+        <div className={wrapper}>
+          <div className="max-w-[760px] space-y-5">
+            <Skeleton className="h-8 w-64" />
+            <Skeleton className="h-4 w-48" />
+            <Skeleton className="mt-7 h-28 w-full rounded-lg" />
+            <Skeleton className="h-64 w-full rounded-lg" />
+          </div>
+        </div>
+      </div>
+    );
   }
 
+  const steps = STEP_STATUS[status] || STEP_STATUS.not_verified;
+  const documentStatus = status === 'approved' ? 'approved' : status === 'rejected' ? 'rejected' : 'under_review';
+
   return (
-    <div className="min-h-full bg-cd-page pb-24">
-      <DashboardHeader title="KYC Verification" subtitle="Individual and business identity verification" backHref="/dashboard/settings" logo="dwp" />
-      <main className="max-w-4xl mx-auto p-4 md:p-6 space-y-5">
-        <section className="bg-cd-card border border-cd-line rounded-xl p-5">
-          <div className="flex items-start justify-between gap-4">
-            <div><p className="text-xs font-semibold uppercase text-gray-400">Verification status</p><h1 className="text-xl font-semibold text-cd-text mt-1">Anchorage account verification</h1><p className="text-sm text-cd-muted mt-1">Identity, tax, ownership, and supporting-document review.</p></div>
-            <div className={`shrink-0 inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold ${statusView.tone}`}><StatusIcon size={17} /> {statusView.label}</div>
-          </div>
-          {status === 'approved' && (
-            <div className="mt-4 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/50 flex flex-col sm:flex-row sm:items-center gap-3">
-              <CheckCircle2 size={22} className="text-emerald-600 shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-200">You&apos;re verified</p>
-                <p className="text-sm text-emerald-800/80 dark:text-emerald-200/80 mt-0.5">{submission?.reviewedAt ? `Approved on ${formatDate(submission.reviewedAt)}. ` : ''}Welcome to Digital Wealth Partners. Your verified status is saved to your account, and we&apos;ve emailed you a confirmation.</p>
-              </div>
-              <Link href="/dashboard" className="shrink-0 inline-flex h-10 items-center justify-center rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700">Go to Dashboard</Link>
-            </div>
-          )}
-          {status === 'pending' && (
-            <div className="mt-4 p-4 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900/50 flex items-start gap-3">
-              <Clock3 size={20} className="text-amber-600 shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-semibold text-amber-800 dark:text-amber-200">Under review{submission?.submittedAt ? ` since ${formatDate(submission.submittedAt)}` : ''}</p>
-                <p className="text-sm text-amber-800/80 dark:text-amber-200/80 mt-0.5">Our compliance team is reviewing your information and documents. We&apos;ll email you as soon as a decision is made.</p>
-              </div>
-            </div>
-          )}
-          {status === 'rejected' && (
-            <div className="mt-4 p-4 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/50">
-              <p className="text-sm font-semibold text-red-700 dark:text-red-300">What needs to change</p>
-              {submission?.rejectionReason && <p className="text-sm text-red-700/90 dark:text-red-200 mt-1 whitespace-pre-line">{submission.rejectionReason}</p>}
-              <p className="text-sm text-red-700/80 dark:text-red-200/80 mt-2">Update the details or documents below, then select Resubmit Verification.</p>
-            </div>
-          )}
-        </section>
+    <div className="min-h-full">
+      <DashboardHeader title="Identity verification" backHref="/dashboard/settings" breadcrumb />
+      <div className={wrapper}>
+        <div className="max-w-[760px]">
+          <PageHeader
+            icon={ShieldCheck}
+            title="Identity verification"
+            titleOnPhone={false}
+            meta={[<StatusPill key="status" status={status} />, 'Anchorage account verification']}
+          />
 
-        {!canSubmit && submission ? (
-          <div className="space-y-5">
-            <section className="bg-cd-card border border-cd-line rounded-xl p-5">
-              <div className="flex items-center gap-2 mb-4">{submission.applicantType === 'business' ? <Building2 size={19} className="text-blue-600" /> : <UserRound size={19} className="text-blue-600" />}<h2 className="text-base font-semibold text-cd-text capitalize">{submission.applicantType} application</h2></div>
-              <div className="grid sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
-                {[['Applicant', `${submission.legalFirstName} ${submission.legalLastName}`], ['Contact email', submission.emailAddress], ['Phone', submission.phoneNumber], ['Country', submission.country], ['Tax classification', submission.taxClassification], ['Tax ID', submission.taxIdentifierLast4 ? `Ending in ${submission.taxIdentifierLast4}` : '-'], ...(submission.applicantType === 'business' ? [['Legal entity', submission.legalEntityName], ['Entity type', submission.entityType], ['EIN/FEIN', submission.businessEinLast4 ? `Ending in ${submission.businessEinLast4}` : '-'], ['Formation jurisdiction', submission.formationJurisdiction]] : [])].map(([label, value]) => <div key={label as string} className="flex justify-between gap-4 py-2 border-b border-cd-line"><span className="text-gray-500">{label}</span><span className="font-semibold text-cd-text text-right">{value || '-'}</span></div>)}
-              </div>
-            </section>
-            <section className="bg-cd-card border border-cd-line rounded-xl p-5"><h2 className="text-base font-semibold text-cd-text mb-4">Submitted documents</h2><div className="divide-y divide-cd-line">{submission.documents.map((document) => <button key={document.id} type="button" onClick={() => openDocument(document.id)} className="w-full flex items-center justify-between gap-4 py-3 text-left hover:text-blue-600"><span className="flex items-center gap-3 min-w-0"><FileCheck2 size={19} className="text-blue-500 shrink-0" /><span className="min-w-0"><span className="block text-sm font-semibold text-cd-text">{document.requirementName}</span><span className="block text-xs text-gray-500 truncate">{document.originalName}</span></span></span><span className="text-xs font-semibold text-blue-600">View</span></button>)}</div></section>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <section className="bg-cd-card border border-cd-line rounded-xl p-5">
-              <h2 className="text-base font-semibold text-cd-text mb-4">Applicant type</h2>
-              <div className="grid grid-cols-2 gap-2 p-1 bg-cd-raised rounded-xl">
-                {(['individual', 'business'] as ApplicantType[]).map((type) => <button key={type} type="button" onClick={() => updateForm('applicantType', type)} className={`h-11 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 capitalize ${form.applicantType === type ? 'bg-cd-card text-blue-600 shadow-sm' : 'text-gray-500'}`}>{type === 'individual' ? <UserRound size={17} /> : <Building2 size={17} />}{type}</button>)}
-              </div>
-            </section>
+          <div className="mt-7 space-y-5">
+            {/* Steps */}
+            <Card bodyClassName="p-0 sm:p-0">
+              <ol className="grid divide-y divide-cd-line sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+                {STEPS.map((step, index) => (
+                  <li key={step.label} className="flex items-start gap-3 px-4 py-4 sm:flex-col sm:gap-2.5 sm:px-5">
+                    <span className={cn(
+                      'flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[12px] font-medium',
+                      steps[index] === 'completed' || steps[index] === 'approved' ? 'bg-cd-positive/10 text-cd-positive' : 'bg-cd-raised text-cd-muted',
+                    )}>
+                      {steps[index] === 'completed' || steps[index] === 'approved' ? <CheckCircle2 size={15} strokeWidth={2} /> : index + 1}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[14px] font-medium text-cd-text">{step.label}</p>
+                      <p className="mt-0.5 text-[12.5px] text-cd-muted">{step.text}</p>
+                    </div>
+                    <StatusPill status={steps[index]} className="shrink-0" />
+                  </li>
+                ))}
+              </ol>
+            </Card>
 
-            <section className="bg-cd-card border border-cd-line rounded-xl p-5">
-              <h2 className="text-base font-semibold text-cd-text mb-4">Applicant information</h2>
-              <div className="grid sm:grid-cols-2 gap-4">
-                {[['legalFirstName', 'Legal first name', 'text'], ['legalLastName', 'Legal last name', 'text'], ['dateOfBirth', 'Date of birth', 'date'], ['emailAddress', 'Contact email', 'email'], ['phoneNumber', 'Phone number', 'tel'], ['country', 'Country of residence', 'text']].map(([key, label, type]) => <label key={key} className="space-y-1.5 text-sm font-semibold text-cd-text/85"><span>{label}</span><input type={type} required value={String(form[key as keyof KYCFormState])} onChange={(event) => updateForm(key as keyof KYCFormState, event.target.value as never)} className={inputClass} /></label>)}
-                <label className="sm:col-span-2 space-y-1.5 text-sm font-semibold text-cd-text/85"><span>Residential address</span><textarea required rows={3} value={form.residentialAddress} onChange={(event) => updateForm('residentialAddress', event.target.value)} className={textareaClass} /></label>
-              </div>
-            </section>
-
-            <section className="bg-cd-card border border-cd-line rounded-xl p-5">
-              <h2 className="text-base font-semibold text-cd-text mb-4">Tax information</h2>
-              <div className="grid sm:grid-cols-2 gap-4">
-                <label className="space-y-1.5 text-sm font-semibold text-cd-text/85"><span>Tax classification</span><select required value={form.taxClassification} onChange={(event) => updateForm('taxClassification', event.target.value)} className={inputClass}><option>U.S. person</option><option>Non-U.S. person</option><option>Business entity</option><option>Other</option></select></label>
-                <label className="space-y-1.5 text-sm font-semibold text-cd-text/85"><span>SSN or applicable tax identifier</span><input type="password" required={!submission?.taxIdentifierLast4} value={form.taxIdentifier} onChange={(event) => updateForm('taxIdentifier', event.target.value)} placeholder={submission?.taxIdentifierLast4 ? `Stored ending in ${submission.taxIdentifierLast4}` : 'Enter tax identifier'} className={inputClass} /></label>
-                <label className="sm:col-span-2 flex items-start gap-3 p-4 rounded-xl bg-cd-raised text-sm text-cd-text/85"><input type="checkbox" required checked={form.taxCertificationConfirmed} onChange={(event) => updateForm('taxCertificationConfirmed', event.target.checked)} className="mt-0.5" /><span>I certify that the tax information provided is complete and accurate.</span></label>
-              </div>
-            </section>
-
-            {form.applicantType === 'business' && (
-              <section className="bg-cd-card border border-cd-line rounded-xl p-5 space-y-5">
-                <div className="flex items-center gap-2"><Building2 size={19} className="text-blue-600" /><h2 className="text-base font-semibold text-cd-text">Legal entity information</h2></div>
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <input required value={form.legalEntityName} onChange={(event) => updateForm('legalEntityName', event.target.value)} placeholder="Legal entity name" className={inputClass} />
-                  <input required value={form.entityType} onChange={(event) => updateForm('entityType', event.target.value)} placeholder="Entity type, e.g. LLC" className={inputClass} />
-                  <input type="password" required={!submission?.businessEinLast4} value={form.businessEin} onChange={(event) => updateForm('businessEin', event.target.value)} placeholder={submission?.businessEinLast4 ? `EIN stored ending in ${submission.businessEinLast4}` : 'EIN / FEIN'} className={inputClass} />
-                  <input required value={form.formationJurisdiction} onChange={(event) => updateForm('formationJurisdiction', event.target.value)} placeholder="Formation state or jurisdiction" className={inputClass} />
-                  <textarea required rows={3} value={form.principalAddress} onChange={(event) => updateForm('principalAddress', event.target.value)} placeholder="Principal or headquarters address" className={`${textareaClass} sm:col-span-2`} />
-                  <textarea required rows={3} value={form.businessDescription} onChange={(event) => updateForm('businessDescription', event.target.value)} placeholder="Business activities and intended account use" className={`${textareaClass} sm:col-span-2`} />
-                  <textarea rows={3} value={form.affiliatedEntities} onChange={(event) => updateForm('affiliatedEntities', event.target.value)} placeholder="Affiliated entities, if any" className={textareaClass} />
-                  <textarea rows={3} value={form.kycAmlProgramDetails} onChange={(event) => updateForm('kycAmlProgramDetails', event.target.value)} placeholder="KYC/AML program information" className={textareaClass} />
-                  <textarea rows={3} value={form.financialHistorySummary} onChange={(event) => updateForm('financialHistorySummary', event.target.value)} placeholder="Financial history summary" className={`${textareaClass} sm:col-span-2`} />
-                </div>
-                <div className="border-t border-cd-line pt-5"><PersonEditor title="Beneficial owners" people={beneficialOwners} ownership onChange={setBeneficialOwners} /></div>
-                <div className="border-t border-cd-line pt-5"><PersonEditor title="Authorized representatives" people={authorizedRepresentatives} onChange={setAuthorizedRepresentatives} /></div>
-              </section>
+            {status === 'approved' && (
+              <Notice
+                icon={CheckCircle2}
+                tone="positive"
+                title="You're verified"
+                action={<ActionButton href="/dashboard" variant="primary" className="h-9 px-3.5 text-[13px]">Go to Dashboard</ActionButton>}
+              >
+                {submission?.reviewedAt ? `Approved on ${formatDate(submission.reviewedAt)}. ` : ''}Welcome to Digital Wealth Partners. Your verified status is saved to your account, and we&apos;ve emailed you a confirmation.
+              </Notice>
+            )}
+            {status === 'pending' && (
+              <Notice icon={Clock3} tone="warning" title={`Under review${submission?.submittedAt ? ` since ${formatDate(submission.submittedAt)}` : ''}`}>
+                Our compliance team is reviewing your information and documents. We&apos;ll email you as soon as a decision is made.
+              </Notice>
+            )}
+            {status === 'rejected' && (
+              <Notice icon={AlertCircle} tone="negative" title="What needs to change">
+                {submission?.rejectionReason && <p className="whitespace-pre-line text-cd-text">{submission.rejectionReason}</p>}
+                <p className={submission?.rejectionReason ? 'mt-2' : ''}>Update the details or documents below, then select Resubmit Verification.</p>
+              </Notice>
             )}
 
-            <section className="bg-cd-card border border-cd-line rounded-xl p-5">
-              <div className="flex items-center justify-between mb-4"><div><h2 className="text-base font-semibold text-cd-text">Supporting documents</h2><p className="text-xs text-gray-500 mt-1">PDF, JPEG, PNG, or WebP. Maximum 10 MB each.</p></div><span className="text-xs font-semibold text-gray-500">{requiredCount} required</span></div>
-              <div className="space-y-3">{activeRequirements.map((requirement) => <label key={requirement.id} className="block border border-cd-line rounded-xl p-4 cursor-pointer hover:border-blue-400 transition-colors"><div className="flex items-start gap-3"><div className="w-9 h-9 rounded-lg bg-cd-accent-soft flex items-center justify-center shrink-0"><FileText size={18} className="text-blue-600" /></div><div className="flex-1 min-w-0"><div className="flex items-center gap-2"><span className="text-sm font-semibold text-cd-text">{requirement.name}</span>{requirement.required && <span className="text-red-500 text-xs">Required</span>}</div>{requirement.description && <p className="text-xs text-gray-500 mt-1">{requirement.description}</p>}<p className="text-xs font-semibold text-blue-600 mt-2 truncate">{files[requirement.id]?.name || 'Choose document'}</p></div><Upload size={18} className="text-gray-400" /></div><input type="file" accept=".pdf,image/jpeg,image/png,image/webp" required={requirement.required} onChange={(event) => { const file = event.target.files?.[0]; if (file) setFiles((current) => ({ ...current, [requirement.id]: file })); }} className="hidden" /></label>)}</div>
-            </section>
+            {!canSubmit && submission ? (
+              <>
+                <Card
+                  title={
+                    <span className="flex items-center gap-2 capitalize">
+                      {submission.applicantType === 'business' ? <Building2 size={17} strokeWidth={1.75} /> : <UserRound size={17} strokeWidth={1.75} />}
+                      {submission.applicantType} application
+                    </span>
+                  }
+                  bodyClassName="px-4 pb-2 sm:px-5"
+                >
+                  <dl className="divide-y divide-cd-line">
+                    {[['Applicant', `${submission.legalFirstName} ${submission.legalLastName}`], ['Contact email', submission.emailAddress], ['Phone', submission.phoneNumber], ['Country', submission.country], ['Tax classification', submission.taxClassification], ['Tax ID', submission.taxIdentifierLast4 ? `Ending in ${submission.taxIdentifierLast4}` : '-'], ...(submission.applicantType === 'business' ? [['Legal entity', submission.legalEntityName], ['Entity type', submission.entityType], ['EIN/FEIN', submission.businessEinLast4 ? `Ending in ${submission.businessEinLast4}` : '-'], ['Formation jurisdiction', submission.formationJurisdiction]] : [])].map(([label, value]) => (
+                      <div key={label as string} className="flex justify-between gap-4 py-3 text-[14px]">
+                        <dt className="text-cd-muted">{label}</dt>
+                        <dd className="min-w-0 break-words text-right text-cd-text">{value || '-'}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </Card>
 
-            <button type="submit" disabled={submitting} className="w-full h-12 rounded-xl bg-cd-accent text-white font-semibold text-sm hover:bg-blue-700 disabled:opacity-60 flex items-center justify-center gap-2">{status === 'rejected' ? <RefreshCw size={18} /> : <ShieldCheck size={18} />}{submitting ? 'Submitting...' : status === 'rejected' ? 'Resubmit Verification' : 'Submit for Verification'}</button>
-          </form>
-        )}
-      </main>
+                <Card title="Submitted documents" bodyClassName="px-0 pb-1.5 sm:px-0 sm:pb-1.5">
+                  <div className="divide-y divide-cd-line">
+                    {submission.documents.map((document) => (
+                      <div key={document.id} className="flex items-center gap-3.5 px-4 py-3 sm:px-5">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-cd-raised text-cd-text">
+                          <FileCheck2 size={17} strokeWidth={1.75} />
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-[14px] font-medium text-cd-text">{document.requirementName}</p>
+                          <p className="mt-0.5 truncate text-[12.5px] text-cd-muted">{document.originalName}</p>
+                        </div>
+                        <StatusPill status={documentStatus} className="hidden shrink-0 sm:inline-flex" />
+                        <button type="button" onClick={() => openDocument(document.id)} className="shrink-0 rounded-md px-2.5 py-1.5 text-[13px] font-medium text-cd-accent-text hover:bg-cd-accent-soft">
+                          View
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              </>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <Card title="Applicant type" bodyClassName="px-4 pb-5 sm:px-5">
+                  <div className="grid grid-cols-2 gap-1 rounded-md bg-cd-input p-1">
+                    {(['individual', 'business'] as ApplicantType[]).map((type) => (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => updateForm('applicantType', type)}
+                        aria-pressed={form.applicantType === type}
+                        className={cn(
+                          'flex h-10 items-center justify-center gap-2 rounded-[5px] text-[14px] capitalize transition-colors',
+                          form.applicantType === type ? 'cd-card font-medium text-cd-text dark:bg-cd-band' : 'text-cd-muted hover:text-cd-text',
+                        )}
+                      >
+                        {type === 'individual' ? <UserRound size={16} strokeWidth={1.75} /> : <Building2 size={16} strokeWidth={1.75} />}
+                        {type}
+                      </button>
+                    ))}
+                  </div>
+                </Card>
+
+                <Card title="Applicant information" bodyClassName="px-4 pb-5 sm:px-5">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {[['legalFirstName', 'Legal first name', 'text'], ['legalLastName', 'Legal last name', 'text'], ['dateOfBirth', 'Date of birth', 'date'], ['emailAddress', 'Contact email', 'email'], ['phoneNumber', 'Phone number', 'tel'], ['country', 'Country of residence', 'text']].map(([key, label, type]) => (
+                      <Field key={key} label={label}>
+                        <input type={type} required value={String(form[key as keyof KYCFormState])} onChange={(event) => updateForm(key as keyof KYCFormState, event.target.value as never)} className={inputClass} />
+                      </Field>
+                    ))}
+                    <Field label="Residential address" className="sm:col-span-2">
+                      <textarea required rows={3} value={form.residentialAddress} onChange={(event) => updateForm('residentialAddress', event.target.value)} className={textareaClass} />
+                    </Field>
+                  </div>
+                </Card>
+
+                <Card title="Tax information" bodyClassName="px-4 pb-5 sm:px-5">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <Field label="Tax classification">
+                      <select required value={form.taxClassification} onChange={(event) => updateForm('taxClassification', event.target.value)} className={inputClass}>
+                        <option>U.S. person</option><option>Non-U.S. person</option><option>Business entity</option><option>Other</option>
+                      </select>
+                    </Field>
+                    <Field label="SSN or applicable tax identifier">
+                      <input type="password" required={!submission?.taxIdentifierLast4} value={form.taxIdentifier} onChange={(event) => updateForm('taxIdentifier', event.target.value)} placeholder={submission?.taxIdentifierLast4 ? `Stored ending in ${submission.taxIdentifierLast4}` : 'Enter tax identifier'} className={inputClass} />
+                    </Field>
+                    <label className="flex items-start gap-3 rounded-md bg-cd-raised p-3.5 text-[13.5px] text-cd-text sm:col-span-2">
+                      <input type="checkbox" required checked={form.taxCertificationConfirmed} onChange={(event) => updateForm('taxCertificationConfirmed', event.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 accent-cd-accent" />
+                      <span>I certify that the tax information provided is complete and accurate.</span>
+                    </label>
+                  </div>
+                </Card>
+
+                {form.applicantType === 'business' && (
+                  <Card
+                    title={<span className="flex items-center gap-2"><Building2 size={17} strokeWidth={1.75} />Legal entity information</span>}
+                    bodyClassName="space-y-5 px-4 pb-5 sm:px-5"
+                  >
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <Field label="Legal entity name"><input required value={form.legalEntityName} onChange={(event) => updateForm('legalEntityName', event.target.value)} placeholder="Legal entity name" className={inputClass} /></Field>
+                      <Field label="Entity type"><input required value={form.entityType} onChange={(event) => updateForm('entityType', event.target.value)} placeholder="Entity type, e.g. LLC" className={inputClass} /></Field>
+                      <Field label="EIN / FEIN"><input type="password" required={!submission?.businessEinLast4} value={form.businessEin} onChange={(event) => updateForm('businessEin', event.target.value)} placeholder={submission?.businessEinLast4 ? `EIN stored ending in ${submission.businessEinLast4}` : 'EIN / FEIN'} className={inputClass} /></Field>
+                      <Field label="Formation jurisdiction"><input required value={form.formationJurisdiction} onChange={(event) => updateForm('formationJurisdiction', event.target.value)} placeholder="Formation state or jurisdiction" className={inputClass} /></Field>
+                      <Field label="Principal address" className="sm:col-span-2"><textarea required rows={3} value={form.principalAddress} onChange={(event) => updateForm('principalAddress', event.target.value)} placeholder="Principal or headquarters address" className={textareaClass} /></Field>
+                      <Field label="Business activities" className="sm:col-span-2"><textarea required rows={3} value={form.businessDescription} onChange={(event) => updateForm('businessDescription', event.target.value)} placeholder="Business activities and intended account use" className={textareaClass} /></Field>
+                      <Field label="Affiliated entities"><textarea rows={3} value={form.affiliatedEntities} onChange={(event) => updateForm('affiliatedEntities', event.target.value)} placeholder="Affiliated entities, if any" className={textareaClass} /></Field>
+                      <Field label="KYC/AML program"><textarea rows={3} value={form.kycAmlProgramDetails} onChange={(event) => updateForm('kycAmlProgramDetails', event.target.value)} placeholder="KYC/AML program information" className={textareaClass} /></Field>
+                      <Field label="Financial history" className="sm:col-span-2"><textarea rows={3} value={form.financialHistorySummary} onChange={(event) => updateForm('financialHistorySummary', event.target.value)} placeholder="Financial history summary" className={textareaClass} /></Field>
+                    </div>
+                    <div className="border-t border-cd-line pt-5"><PersonEditor title="Beneficial owners" people={beneficialOwners} ownership onChange={setBeneficialOwners} /></div>
+                    <div className="border-t border-cd-line pt-5"><PersonEditor title="Authorized representatives" people={authorizedRepresentatives} onChange={setAuthorizedRepresentatives} /></div>
+                  </Card>
+                )}
+
+                <Card
+                  title="Supporting documents"
+                  action={<span className="text-[12.5px] text-cd-muted">{requiredCount} required</span>}
+                  bodyClassName="px-0 pb-1.5 sm:px-0 sm:pb-1.5"
+                >
+                  <p className="-mt-1 px-4 pb-3 text-[12.5px] text-cd-muted sm:px-5">PDF, JPEG, PNG, or WebP. Maximum 10 MB each.</p>
+                  <div className="divide-y divide-cd-line border-t border-cd-line">
+                    {activeRequirements.map((requirement) => {
+                      const file = files[requirement.id];
+                      return (
+                        <label key={requirement.id} className="flex cursor-pointer items-start gap-3.5 px-4 py-3.5 transition-colors hover:bg-cd-raised sm:items-center sm:px-5">
+                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-cd-raised text-cd-text">
+                            {file ? <FileCheck2 size={17} strokeWidth={1.75} className="text-cd-positive" /> : <FileText size={17} strokeWidth={1.75} />}
+                          </span>
+                          <span className="min-w-0 flex-1">
+                            <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                              <span className="text-[14px] font-medium text-cd-text">{requirement.name}</span>
+                              {requirement.required && <span className="text-[11px] font-medium uppercase tracking-[0.06em] text-cd-negative">Required</span>}
+                            </span>
+                            {requirement.description && <span className="mt-0.5 block text-[12.5px] text-cd-muted">{requirement.description}</span>}
+                            <span className={cn('mt-1 block truncate text-[12.5px]', file ? 'text-cd-text' : 'text-cd-faint')}>{file?.name || 'No file chosen'}</span>
+                          </span>
+                          <span className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-[4px] border-[1.5px] border-cd-accent px-2.5 text-[13px] font-medium text-cd-accent-text">
+                            <Upload size={14} strokeWidth={1.75} />
+                            {file ? 'Replace' : 'Upload'}
+                          </span>
+                          <input type="file" accept=".pdf,image/jpeg,image/png,image/webp" required={requirement.required} onChange={(event) => { const file = event.target.files?.[0]; if (file) setFiles((current) => ({ ...current, [requirement.id]: file })); }} className="hidden" />
+                        </label>
+                      );
+                    })}
+                  </div>
+                </Card>
+
+                <div className="flex justify-end">
+                  <ActionButton type="submit" variant="primary" disabled={submitting} icon={status === 'rejected' ? RefreshCw : ShieldCheck} className="w-full sm:w-auto">
+                    {submitting ? 'Submitting...' : status === 'rejected' ? 'Resubmit Verification' : 'Submit for Verification'}
+                  </ActionButton>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
