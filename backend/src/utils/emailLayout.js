@@ -13,6 +13,13 @@
 
 const ACCENT = '#0033AD';
 const FOOTER_ACCENT = '#AD7F4E';
+// The footer keeps DirectStay's charcoal in light and dark mode. Set as a background image too,
+// because Gmail's dark mode inverts background colours but leaves images alone.
+const FOOTER_BG = '#2c3236';
+const FOOTER_BG_STYLE = `background-color:${FOOTER_BG};background-image:linear-gradient(${FOOTER_BG},${FOOTER_BG});`;
+// Gmail on iPhone also inverts text colours in dark mode; these two wrappers turn the white
+// footer text back to white there (the selector only matches inside Gmail, see buildHeadStyles).
+const keepWhite = (html) => `<div class="dwp-gm-screen"><div class="dwp-gm-diff">${html}</div></div>`;
 const SUPPORT_EMAIL = 'support@digitalwealthpartnersllc.net';
 
 // Banners and the footer logo are static files on the public site (frontend/public), so every
@@ -135,8 +142,18 @@ const darkRules = (scope) =>
   `${scope('.dwp-callout-danger')}{background-color:${DARK.danger}!important;}` +
   `${scope('.dwp-danger-title')}{color:${DARK.dangerTitle}!important;}` +
   `${scope('.dwp-eyebrow')},${scope('.dwp-content a:not(.dwp-btn)')}{color:${DARK.accent}!important;}`;
+// The footer never changes colour: stated outright for each dark mode, so no app recolours it.
+const FOOTER_LOCK =
+  `.dwp-email-footer,.dwp-footer-cell{background-color:${FOOTER_BG}!important;}` +
+  '.dwp-email-footer td,.dwp-footer-address,.dwp-footer-address strong,.dwp-footer-address span{color:#ffffff!important;}' +
+  `.dwp-footer-link{color:${FOOTER_ACCENT}!important;}`;
+const scoped = (css, prefix) => css.replace(/(^|\})([^{}]+)\{/g, (m, close, selectors) =>
+  `${close}${selectors.split(',').map((sel) => `${prefix} ${sel.trim()}`).join(',')}{`);
 const DARK_STYLES =
-  `@media (prefers-color-scheme:dark){${darkRules((s) => s)}` +
+  // Gmail (iPhone) dark mode: undo its text inversion inside the footer.
+  'u + .body .dwp-gm-screen{background:#000;mix-blend-mode:screen;}u + .body .dwp-gm-diff{background:#000;mix-blend-mode:difference;}' +
+  scoped(FOOTER_LOCK, '[data-ogsc]') + scoped(FOOTER_LOCK, '[data-ogsb]') +
+  `@media (prefers-color-scheme:dark){${darkRules((s) => s)}${FOOTER_LOCK}` +
   '.dwp-hero-light{display:none!important;}.dwp-hero-dark{display:block!important;max-height:none!important;overflow:visible!important;}}' +
   darkRules((s) => `[data-ogsc] ${s}`).replace(/background-color[^;]*;/g, '') +
   darkRules((s) => `[data-ogsb] ${s}`).replace(/(?<![-\w])color:[^;]*;/g, '');
@@ -165,19 +182,22 @@ function buildEmailFooter() {
     '<table class="dwp-email-frame" role="presentation" width="890" align="center" cellpadding="0" cellspacing="0" border="0" style="width:890px;max-width:890px;margin:0 auto;">' +
     '<tr><td style="padding:0;">' +
     '<table role="presentation" width="890" cellpadding="0" cellspacing="0" border="0" style="width:890px;max-width:100%;"><tr><td height="20" style="height:20px;font-size:0;line-height:0;">&nbsp;</td></tr></table>' +
-    '<table class="dwp-email-footer" role="presentation" width="890" cellpadding="0" cellspacing="0" border="0" bgcolor="#2c3236" style="width:890px;max-width:100%;background-color:#2c3236;color:#ffffff;font-family:Arial,Helvetica,sans-serif;">' +
-    '<tr><td><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>' +
-    '<td class="dwp-footer-column dwp-footer-top-title" width="50%" align="left" style="padding:42px 0 0 46px;font-size:8px!important;line-height:20px;letter-spacing:3px;white-space:nowrap;color:#ffffff;-webkit-text-size-adjust:none;text-size-adjust:none;">STAY CONNECTED</td>' +
-    '<td class="dwp-footer-column dwp-footer-top-contact" width="50%" align="right" style="padding:42px 50px 0 0;font-size:8px!important;line-height:20px;white-space:nowrap;color:#ffffff;-webkit-text-size-adjust:none;text-size-adjust:none;"><span style="font-size:8px!important;letter-spacing:-0.25px;">Have any issues, contact</span> ' +
-    `<a href="mailto:${support}" style="color:${FOOTER_ACCENT};font-size:8px!important;text-decoration:none;letter-spacing:0.32px;">${support}</a></td>` +
+    `<table class="dwp-email-footer" role="presentation" width="890" cellpadding="0" cellspacing="0" border="0" bgcolor="${FOOTER_BG}" style="width:890px;max-width:100%;${FOOTER_BG_STYLE}color:#ffffff;font-family:Arial,Helvetica,sans-serif;">` +
+    `<tr><td class="dwp-footer-cell" bgcolor="${FOOTER_BG}" style="${FOOTER_BG_STYLE}"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>` +
+    '<td class="dwp-footer-column dwp-footer-top-title" width="50%" align="left" style="padding:42px 0 0 46px;font-size:8px!important;line-height:20px;letter-spacing:3px;white-space:nowrap;color:#ffffff;-webkit-text-size-adjust:none;text-size-adjust:none;">' + keepWhite('STAY CONNECTED') + '</td>' +
+    '<td class="dwp-footer-column dwp-footer-top-contact" width="50%" align="right" style="padding:42px 50px 0 0;font-size:8px!important;line-height:20px;white-space:nowrap;color:#ffffff;-webkit-text-size-adjust:none;text-size-adjust:none;">' +
+    keepWhite('<span style="font-size:8px!important;letter-spacing:-0.25px;">Have any issues, contact</span> ' +
+      `<a class="dwp-footer-link" href="mailto:${support}" style="color:${FOOTER_ACCENT};font-size:8px!important;text-decoration:none;letter-spacing:0.32px;">${support}</a>`) +
+    '</td>' +
     '</tr><tr>' +
     '<td class="dwp-footer-bottom" colspan="2" align="left" valign="middle" style="padding:61px 47px 42px 55px;">' +
     '<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>' +
     `<td width="110" valign="middle" style="width:110px;line-height:0;"><img src="${logo}" width="110" height="44" alt="Digital Wealth Partners" style="display:block;width:110px;height:44px;border:0;" /></td>` +
     '<td class="dwp-footer-address" valign="middle" style="padding-left:20px;font-size:15px;line-height:18px;color:#ffffff;">' +
-    '<strong style="letter-spacing:0.25px;">Digital Wealth Partners LLC</strong><br />' +
-    '<span style="letter-spacing:-0.15px;">Dallas, T<span style="font-size:0;line-height:0;">&#8203;</span>exas</span><br />' +
-    '<span style="font-size:14px;letter-spacing:1px;">United States</span></td>' +
+    keepWhite('<strong style="letter-spacing:0.25px;">Digital Wealth Partners LLC</strong><br />' +
+      '<span style="letter-spacing:-0.15px;">Dallas, T<span style="font-size:0;line-height:0;">&#8203;</span>exas</span><br />' +
+      '<span style="font-size:14px;letter-spacing:1px;">United States</span>') +
+    '</td>' +
     '</tr></table></td></tr></table></td></tr></table>' +
     '</td></tr></table>'
   );
@@ -200,7 +220,8 @@ function renderEmailTemplate(model) {
     '<meta name="color-scheme" content="light dark" /><meta name="supported-color-schemes" content="light dark" />' +
     `<title>${escapeEmailHtml(model.title)}</title>` +
     buildHeadStyles() +
-    '</head><body class="dwp-page" style="margin:0;padding:0;height:100%;background-color:#ffffff;">' +
+    // "body" is the class Gmail's dark-mode fix above looks for.
+    '</head><body class="body dwp-page" style="margin:0;padding:0;height:100%;background-color:#ffffff;">' +
     preheader +
     // A full-height table: the message at the top, the footer pushed to the bottom of the window.
     '<table class="dwp-page" role="presentation" width="100%" height="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;height:100%;min-height:100%;background-color:#ffffff;">' +
