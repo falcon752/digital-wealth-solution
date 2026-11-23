@@ -28,7 +28,8 @@ const userSchema = new mongoose.Schema(
     state: { type: String, trim: true, default: null },
     country: { type: String, trim: true, default: null },
     profileImage: { type: String, default: null },
-    role: { type: String, enum: ['user', 'admin'], default: 'user' },
+    // 'advisor': DWP staff who support their assigned clients from /advisor (they can't manage accounts).
+    role: { type: String, enum: ['user', 'admin', 'advisor'], default: 'user' },
     isActive: { type: Boolean, default: true },
     antiPhishingPhrase: { type: String, default: null },
     twoFactorSecret: { type: String, default: null },
@@ -47,6 +48,24 @@ const userSchema = new mongoose.Schema(
     accountActivatedAt: { type: Date, default: null },
     referralCode: { type: String, unique: true, sparse: true },
     referredBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    // Partner code: issued automatically when the client's KYC is approved (e.g. DWP-7K2M9Q). New
+    // clients enter it at sign-up or on an LLC application, and the partner earns a commission.
+    partnerCode: { type: String, unique: true, sparse: true, uppercase: true, trim: true },
+    partnerCodeIssuedAt: { type: Date, default: null },
+    // The client's assigned advisor (a User with role 'advisor').
+    advisorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    // Only for advisors: what clients see on the advisor card.
+    advisorProfile: {
+      title: { type: String, trim: true, default: null },
+      photo: { type: String, default: null },
+      phone: { type: String, trim: true, default: null },
+      whatsapp: { type: String, trim: true, default: null },
+      telegram: { type: String, trim: true, default: null },
+      state: { type: String, trim: true, default: null },
+      address: { type: String, trim: true, default: null },
+      bio: { type: String, trim: true, default: null },
+      isAvailable: { type: Boolean, default: true },
+    },
     hiddenAssets: { type: [String], default: [] },
   },
   { timestamps: true }
@@ -522,6 +541,76 @@ const activityLogSchema = new mongoose.Schema(
 applyToJSON(activityLogSchema);
 const ActivityLog = mongoose.model('ActivityLog', activityLogSchema);
 
+// ─── PARTNER PROGRAM ──────────────────────────────────────────────────────────
+// One settings document (key 'default'): the commission the admin sets for partner referrals.
+const referralConfigSchema = new mongoose.Schema(
+  {
+    key: { type: String, unique: true, default: 'default' },
+    percent: { type: Number, required: true, min: 0, max: 100, default: 10 },
+    signupEnabled: { type: Boolean, default: true },
+    llcEnabled: { type: Boolean, default: true },
+    updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+  },
+  { timestamps: true }
+);
+applyToJSON(referralConfigSchema);
+const ReferralConfig = mongoose.model('ReferralConfig', referralConfigSchema);
+
+// A commission earned by a partner: when someone they referred pays the sign-up (onboarding) fee,
+// or submits an LLC application with their partner code. One per source document.
+const referralCommissionSchema = new mongoose.Schema(
+  {
+    referrerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+    referredUserId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    source: { type: String, enum: ['signup', 'llc'], required: true },
+    sourceId: { type: mongoose.Schema.Types.ObjectId, required: true },
+    partnerCode: { type: String, default: null },
+    baseAmountUsd: { type: Number, required: true, min: 0 },
+    percent: { type: Number, required: true, min: 0, max: 100 },
+    amountUsd: { type: Number, required: true, min: 0 },
+    status: { type: String, enum: ['pending', 'approved', 'paid', 'cancelled'], default: 'pending' },
+    paidAt: { type: Date, default: null },
+    adminNote: { type: String, default: null },
+  },
+  { timestamps: true }
+);
+referralCommissionSchema.index({ source: 1, sourceId: 1 }, { unique: true });
+applyToJSON(referralCommissionSchema);
+const ReferralCommission = mongoose.model('ReferralCommission', referralCommissionSchema);
+
+// ─── SUPPORT TICKETS ──────────────────────────────────────────────────────────
+// A client's conversation with their advisor. Messages are kept in the ticket.
+const ticketMessageSchema = new mongoose.Schema(
+  {
+    authorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    authorRole: { type: String, enum: ['client', 'advisor', 'admin'], required: true },
+    body: { type: String, required: true, trim: true, maxlength: 5000 },
+  },
+  { timestamps: true }
+);
+const supportTicketSchema = new mongoose.Schema(
+  {
+    reference: { type: String, unique: true },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+    advisorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null, index: true },
+    subject: { type: String, required: true, trim: true, maxlength: 160 },
+    category: { type: String, enum: ['account', 'deposit', 'withdrawal', 'kyc', 'llc', 'lending', 'cards', 'other'], default: 'other' },
+    priority: { type: String, enum: ['normal', 'high'], default: 'normal' },
+    status: { type: String, enum: ['open', 'in_progress', 'resolved', 'closed'], default: 'open' },
+    messages: { type: [ticketMessageSchema], default: [] },
+    lastMessageAt: { type: Date, default: Date.now },
+    unreadForClient: { type: Boolean, default: false },
+    unreadForAdvisor: { type: Boolean, default: true },
+    resolvedAt: { type: Date, default: null },
+  },
+  { timestamps: true }
+);
+supportTicketSchema.pre('validate', function setReference() {
+  if (!this.reference) this.reference = `T-${require('crypto').randomBytes(3).toString('hex').toUpperCase()}`;
+});
+applyToJSON(supportTicketSchema);
+const SupportTicket = mongoose.model('SupportTicket', supportTicketSchema);
+
 // ─── CONNECT + SEED ───────────────────────────────────────────────────────────
 async function connectDB() {
   await mongoose.connect(process.env.MONGODB_URI);
@@ -660,4 +749,7 @@ module.exports = {
   Swap,
   Card,
   AccessRequest,
+  ReferralConfig,
+  ReferralCommission,
+  SupportTicket,
 };

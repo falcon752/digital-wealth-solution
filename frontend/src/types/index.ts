@@ -10,7 +10,7 @@ export interface User {
   state?: string | null;
   country?: string | null;
   profileImage?: string | null;
-  role: 'user' | 'admin';
+  role: 'user' | 'admin' | 'advisor';
   isActive: boolean;
   twoFactorEnabled: boolean;
   antiPhishingPhrase?: string | null;

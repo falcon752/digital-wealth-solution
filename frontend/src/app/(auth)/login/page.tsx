@@ -70,6 +70,8 @@ export default function LoginPage() {
       router.push(
         res.data.user.role === 'admin'
           ? '/admin'
+          : res.data.user.role === 'advisor'
+            ? '/advisor'
           : res.data.user.onboardingFeePaid
             ? '/dashboard'
             : `/pay-onboarding?status=${res.data.user.onboardingStatus || 'payment_pending'}`

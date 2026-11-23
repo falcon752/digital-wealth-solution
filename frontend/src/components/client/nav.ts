@@ -1,5 +1,5 @@
 import {
-  ArrowLeftRight, Building2, Coins, CreditCard, House, ListChecks, Settings, UserRound, type LucideIcon,
+  ArrowLeftRight, Building2, Coins, CreditCard, Handshake, Headset, House, ListChecks, Settings, UserRound, type LucideIcon,
 } from 'lucide-react';
 
 export interface ClientNavLink {
@@ -22,6 +22,8 @@ export const CLIENT_NAV: ClientNavItem[] = [
   { label: 'Trade', href: '/dashboard/swap', icon: ArrowLeftRight, match: ['/dashboard/swap', '/dashboard/buy'] },
   { label: 'Lend & Invest', href: '/dashboard/finance', icon: Coins, match: ['/dashboard/finance', '/dashboard/lending'] },
   { label: 'Cards', href: '/dashboard/cards', icon: CreditCard },
+  { label: 'Support', href: '/dashboard/support', icon: Headset },
+  { label: 'Partner program', href: '/dashboard/partner', icon: Handshake },
   {
     label: 'Business', href: '/dashboard/business', icon: Building2,
     children: [

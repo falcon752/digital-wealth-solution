@@ -42,4 +42,12 @@ function requireAdmin(req, res, next) {
   next();
 }
 
-module.exports = { authenticate, requireAdmin };
+/** Advisors' console (/api/advisor). Admins may also call it, e.g. to see what an advisor sees. */
+function requireAdvisor(req, res, next) {
+  if (!req.user || !['advisor', 'admin'].includes(req.user.role)) {
+    return res.status(403).json({ error: 'Advisor access required' });
+  }
+  next();
+}
+
+module.exports = { authenticate, requireAdmin, requireAdvisor };
