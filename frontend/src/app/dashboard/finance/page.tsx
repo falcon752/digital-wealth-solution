@@ -5,13 +5,15 @@
  * the right, three figures (active loans, locked collateral, active deposits), then the client's
  * loans and invest deposits as tables under grey column bands.
  */
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Coins, HandCoins, PiggyBank, Plus, X } from 'lucide-react';
 import { loansAPI, earnsAPI, assetsAPI } from '@/lib/api';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { APP_TIMEZONE } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
-import { ActionButton, AssetIcon, Card, EmptyState, Money, PageHeader, Skeleton, StatusPill, TableHead, formatAmount } from '@/components/client/ui';
+import { useBalancesChanged } from '@/components/client/actions';
+import { AnimatedMoney } from '@/components/client/motion';
+import { ActionButton, AssetIcon, Card, EmptyState, PageHeader, Skeleton, StatusPill, TableHead, formatAmount } from '@/components/client/ui';
 
 type LoanRow = {
   id?: string; _id?: string; status: string; createdAt?: string;
@@ -42,7 +44,7 @@ function Stat({ label, value, loading, className }: { label: string; value: numb
       {loading ? (
         <Skeleton className="mt-3 h-8 w-36" />
       ) : (
-        <Money value={value} className="mt-2 block truncate text-[22px] font-normal leading-tight text-cd-text sm:text-[30px]" />
+        <AnimatedMoney value={value} className="mt-2 block truncate text-[22px] font-normal leading-tight text-cd-text sm:text-[30px]" />
       )}
     </Card>
   );
@@ -75,8 +77,8 @@ export default function FinanceDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [bannerVisible, setBannerVisible] = useState(true);
 
-  const load = () => {
-    setLoading(true);
+  const load = useCallback((quiet = false) => {
+    if (!quiet) setLoading(true);
     Promise.all([loansAPI.list(), earnsAPI.list(), assetsAPI.prices()])
       .then(([loansRes, earnsRes, pricesRes]) => {
         const loans = loansRes.data.loans || [];
@@ -110,12 +112,15 @@ export default function FinanceDashboardPage() {
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  };
+  }, []);
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [load]);
+  // After an action in a pop-up, refresh the figures without the loading skeleton.
+  const reloadQuietly = useCallback(() => load(true), [load]);
+  useBalancesChanged(reloadQuietly);
 
   const newAction = (
-    <ActionButton href="/dashboard/lending" variant="primary" icon={Plus}>New loan or invest</ActionButton>
+    <ActionButton href="/dashboard/lending" variant="primary" icon={Plus} className="transition active:scale-[0.98]">New loan or invest</ActionButton>
   );
 
   return (
@@ -156,7 +161,7 @@ export default function FinanceDashboardPage() {
         </div>
 
         <div className="mt-5 lg:hidden">
-          <ActionButton href="/dashboard/lending" variant="primary" icon={Plus} className="h-11 w-full">New loan or invest</ActionButton>
+          <ActionButton href="/dashboard/lending" variant="primary" icon={Plus} className="h-11 w-full transition active:scale-[0.98]">New loan or invest</ActionButton>
         </div>
 
         <div className="mt-8 space-y-5 lg:mt-10">

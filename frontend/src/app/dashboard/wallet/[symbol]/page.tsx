@@ -3,18 +3,21 @@
 /**
  * One asset in the client's account, laid out like an Anchorage asset view: "BTC | Bitcoin" with
  * the network, the balance in USD over the amount, a price card with a thin line chart and range
- * tabs, then Holdings / History / About.
+ * tabs, then Holdings / History / About. Deposit / Withdraw / Convert / Buy open as pop-up sheets
+ * over the page, and History rows open the operation's details.
  */
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { assetsAPI, usersAPI } from '@/lib/api';
 import { APP_TIMEZONE, cn, formatCurrency } from '@/lib/utils';
-import { ArrowUpRight, ArrowDownLeft, ArrowRightLeft, Clock } from 'lucide-react';
+import { ArrowUpRight, ArrowDownLeft, ArrowRightLeft, ArrowDownToLine, ArrowUpFromLine, ArrowLeftRight, ChevronRight, Clock, Zap, type LucideIcon } from 'lucide-react';
 import { ResponsiveContainer, LineChart, Line, YAxis } from 'recharts';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import AssetTable from '@/components/client/AssetTable';
+import { useActions, useBalancesChanged, type ActionKind, type ActionParams } from '@/components/client/actions';
+import { AnimatedMoney, PriceTick, Stagger } from '@/components/client/motion';
 import {
-  AssetIcon, Card, Change, EmptyState, Money, Skeleton, StatusPill, TableHead, Tabs, formatAmount, formatPrice,
+  ActionButton, AssetIcon, Card, Change, EmptyState, Money, Skeleton, StatusPill, TableHead, Tabs, formatAmount, formatPrice,
 } from '@/components/client/ui';
 
 const symbolToCoinGecko: Record<string, string> = {
@@ -104,7 +107,9 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
   const [priceChangePercent, setPriceChangePercent] = useState<number>(0);
   const isPositive = priceChangePercent >= 0;
 
-  useEffect(() => {
+  const { openAction } = useActions();
+
+  const load = useCallback(() => {
     if (!symbol) return;
 
     Promise.all([
@@ -131,6 +136,10 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
 
   }, [symbol]);
 
+  useEffect(() => { load(); }, [load]);
+  // After an action in a pop-up, the balance and history refresh.
+  useBalancesChanged(load);
+
   const balanceUsd = balanceCrypto * price;
 
   // Fetch Real-time rate and generate wavy chart
@@ -150,22 +159,31 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
         return;
       }
 
+      const apply = (p: number, pct: number) => {
+        setPrice(p);
+        setPriceChangePercent(pct);
+        setPriceChangeAmount(p - (p / (1 + pct / 100)));
+        setChartData(generateWavyChartData(p, pct));
+      };
+
       try {
         const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${cgId}&vs_currencies=usd&include_24hr_change=true`);
         const data = await res.json();
 
-        if (data && data[cgId]) {
-          const p = data[cgId].usd;
-          const pct = data[cgId].usd_24h_change || 0;
-
-          setPrice(p);
-          setPriceChangePercent(pct);
-          setPriceChangeAmount(p - (p / (1 + pct / 100)));
-          setChartData(generateWavyChartData(p, pct));
+        if (data && data[cgId]?.usd) {
+          apply(data[cgId].usd, data[cgId].usd_24h_change || 0);
+          return;
         }
       } catch (err) {
         console.error("CoinGecko API error:", err);
       }
+
+      // CoinGecko refused (it rate-limits browsers): use the server's cached prices instead.
+      try {
+        const res = await assetsAPI.prices();
+        const p = res.data.prices?.[symbol];
+        if (p) apply(p, res.data.changes24h?.[symbol] || 0);
+      } catch {}
     };
 
     fetchRealRate();
@@ -176,6 +194,14 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
 
   if (!symbol) return null;
 
+  const PRESS = 'transition active:scale-[0.98]';
+  const quickActions: { label: string; kind: ActionKind; params: ActionParams; icon: LucideIcon }[] = [
+    { label: 'Deposit', kind: 'deposit', params: { asset: symbol }, icon: ArrowDownToLine },
+    { label: 'Withdraw', kind: 'withdraw', params: { asset: symbol }, icon: ArrowUpFromLine },
+    { label: 'Convert', kind: 'convert', params: { from: symbol }, icon: ArrowLeftRight },
+    { label: 'Buy', kind: 'buy', params: { asset: symbol }, icon: Zap },
+  ];
+
   const name = assetInfo?.name || symbol;
   const network = assetInfo?.network || assetInfo?.name;
   const showName = name.toUpperCase() !== symbol;
@@ -185,8 +211,9 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
       <DashboardHeader title={name} backHref="/dashboard" breadcrumb />
 
       <div className="mx-auto w-full max-w-[1180px] px-4 pb-12 pt-5 sm:px-6 lg:px-10 lg:pt-3">
-        {/* Title */}
-        <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
+        {/* Title and actions */}
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+        <div className="flex min-w-0 flex-col items-center text-center lg:items-start lg:text-left">
           <h1 className="hidden items-center gap-3 text-[28px] font-normal leading-tight text-cd-text lg:flex">
             <AssetIcon symbol={symbol} size={30} />
             <span className="truncate">
@@ -202,18 +229,43 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
                 <span className="mx-2.5 h-3.5 w-px bg-cd-line-strong" />
               </>
             )}
-            <span className="cd-num">{symbol} price {price ? formatPrice(price) : '—'}</span>
+            <span className="cd-num">{symbol} price <PriceTick value={price} className="px-0.5">{price ? formatPrice(price) : '—'}</PriceTick></span>
           </p>
+        </div>
+          <div className="hidden shrink-0 gap-2.5 lg:flex">
+            {quickActions.map(({ label, kind, params: actionParams, icon }) => (
+              <ActionButton key={label} icon={icon} variant={kind === 'deposit' ? 'primary' : 'outline'} onClick={() => openAction(kind, actionParams)} className={PRESS}>{label}</ActionButton>
+            ))}
+          </div>
         </div>
 
         {/* Balance */}
         <div className="mt-7 flex flex-col items-center text-center lg:items-start lg:text-left">
-          <Money value={balanceUsd} className="text-[38px] font-normal leading-none tracking-tight text-cd-text sm:text-[44px]" />
+          <AnimatedMoney value={balanceUsd} className="text-[38px] font-normal leading-none tracking-tight text-cd-text sm:text-[44px]" />
           <p className="mt-2 flex items-center gap-2.5 text-[13px] text-cd-muted">
             <span className="uppercase tracking-[0.08em]">Balance</span>
             <span className="h-3 w-px bg-cd-line-strong" />
             <span className="cd-num">{formatAmount(balanceCrypto, symbol)}</span>
           </p>
+        </div>
+
+        {/* Phone: the actions as a row of tiles */}
+        <div className="mt-7 grid grid-cols-4 gap-2.5 lg:hidden">
+          {quickActions.map(({ label, kind, params: actionParams, icon: Icon }) => (
+            <button
+              key={label}
+              type="button"
+              onClick={() => openAction(kind, actionParams)}
+              className={cn(
+                'flex h-[70px] flex-col items-center justify-center gap-1.5 rounded-lg text-[12.5px] font-medium',
+                kind === 'deposit' ? 'bg-cd-accent text-white' : 'cd-card border border-cd-line text-cd-text dark:border-transparent',
+                PRESS,
+              )}
+            >
+              <Icon size={20} strokeWidth={1.75} className={kind === 'deposit' ? undefined : 'text-cd-accent-text'} />
+              {label}
+            </button>
+          ))}
         </div>
 
         {/* Price chart */}
@@ -224,7 +276,7 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
               {price ? (
                 <>
                   <p className="mt-1.5 text-[26px] font-normal leading-none text-cd-text">
-                    <Money value={price} />
+                    <PriceTick value={price} className="px-0.5"><Money value={price} /></PriceTick>
                   </p>
                   <p className="mt-2 flex items-center gap-2 text-[13px]">
                     <Change value={priceChangePercent} />
@@ -295,14 +347,19 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
                     <span className="text-right">Amount</span>
                     <span className="hidden text-right sm:block">Status</span>
                   </TableHead>
-                  <ul>
+                  <Stagger className="[&>div:last-child>button]:border-b-0">
                     {transactions.map((tx, idx) => {
                       const Icon = txIcon(tx.type);
                       const txSymbol = tx.assetSymbol || tx.fromAssetSymbol;
                       const date = new Date(tx.createdAt).toLocaleDateString('en-US', { timeZone: APP_TIMEZONE });
                       const incoming = tx.type === 'deposit' || tx.type === 'earn';
                       return (
-                        <li key={idx} className={cn(HISTORY_GRID, 'border-b border-cd-line px-3 py-3.5 last:border-b-0 sm:px-4')}>
+                        <button
+                          key={tx.id || idx}
+                          type="button"
+                          onClick={() => openAction('transaction', { transaction: tx })}
+                          className={cn(HISTORY_GRID, 'group w-full border-b border-cd-line px-3 py-3.5 text-left transition hover:bg-cd-raised/60 active:scale-[0.995] sm:px-4')}
+                        >
                           <div className="flex min-w-0 items-center gap-3.5">
                             <span className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full bg-cd-raised text-cd-muted">
                               <Icon size={15} strokeWidth={1.75} />
@@ -319,11 +376,14 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
                             </p>
                             <StatusPill status={tx.status} className="mt-1 sm:hidden" />
                           </div>
-                          <div className="hidden justify-end sm:flex"><StatusPill status={tx.status} /></div>
-                        </li>
+                          <div className="hidden items-center justify-end gap-1.5 sm:flex">
+                            <StatusPill status={tx.status} />
+                            <ChevronRight size={14} className="shrink-0 text-cd-faint transition-transform group-hover:translate-x-0.5" />
+                          </div>
+                        </button>
                       );
                     })}
-                  </ul>
+                  </Stagger>
                 </div>
               )}
             </Card>

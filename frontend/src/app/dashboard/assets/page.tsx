@@ -5,12 +5,12 @@
  * style — the asset with its network, the balance, and a small switch — under a search field.
  */
 import { Search } from 'lucide-react';
-import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { assetsAPI, usersAPI } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
 import DashboardHeader from '@/components/layout/DashboardHeader';
+import { useActions, useBalancesChanged } from '@/components/client/actions';
 import { AssetIcon, AssetName, Card, EmptyState, PageHeader, Skeleton, TableHead, formatAmount } from '@/components/client/ui';
 
 /** A small on/off switch: the accent when on, the strong line colour when off. */
@@ -44,8 +44,9 @@ export default function CryptoAssetsPage() {
   const [loadingToggle, setLoadingToggle] = useState<Record<string, boolean>>({});
   const [assetsLoading, setAssetsLoading] = useState(true);
   const { user, refreshUser } = useAuth();
+  const { openAction } = useActions();
 
-  useEffect(() => {
+  const load = useCallback(() => {
     Promise.all([
       assetsAPI.list(),
       usersAPI.getDashboardStats()
@@ -55,6 +56,9 @@ export default function CryptoAssetsPage() {
     }).catch(console.error)
       .finally(() => setAssetsLoading(false));
   }, []);
+
+  useEffect(() => { load(); }, [load]);
+  useBalancesChanged(load);
 
   useEffect(() => {
     if (user && dbAssets.length > 0) {
@@ -151,9 +155,10 @@ export default function CryptoAssetsPage() {
                 const symbol = String(asset.symbol).toUpperCase();
                 return (
                   <li key={asset.symbol} className={cn(GRID, 'border-b border-cd-line px-3 py-3.5 last:border-b-0 sm:px-4')}>
-                    <Link
-                      href={`/dashboard/wallet/${asset.symbol.toLowerCase()}`}
-                      className="-my-1 flex min-w-0 items-center gap-3.5 rounded-[3px] py-1 transition-opacity hover:opacity-80"
+                    <button
+                      type="button"
+                      onClick={() => openAction('asset', { symbol })}
+                      className="-my-1 flex min-w-0 items-center gap-3.5 rounded-[3px] py-1 text-left transition hover:opacity-80 active:scale-[0.98]"
                     >
                       <AssetIcon symbol={asset.symbol} size={30} className={cn(!isToggled && 'opacity-50')} />
                       <div className="min-w-0">
@@ -165,7 +170,7 @@ export default function CryptoAssetsPage() {
                           <p className="cd-num mt-0.5 truncate text-[12px] text-cd-muted">{formatAmount(balance, symbol)}</p>
                         </div>
                       </div>
-                    </Link>
+                    </button>
 
                     <p className="cd-num hidden truncate text-[14px] text-cd-text sm:block">{formatAmount(balance, symbol)}</p>
 

@@ -4,17 +4,20 @@
  * Notifications built from the client's recent deposits and withdrawals, as one Anchorage card of
  * rows: a direction icon, the title and time, the message and any note from the team.
  */
-import { useEffect, useState } from 'react';
-import { Bell, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { Bell, ArrowDownLeft, ArrowUpRight, ChevronRight } from 'lucide-react';
 import { usersAPI } from '@/lib/api';
 import DashboardHeader from '@/components/layout/DashboardHeader';
+import { useActions, useBalancesChanged } from '@/components/client/actions';
+import { Stagger } from '@/components/client/motion';
 import { Card, EmptyState, PageHeader, Skeleton, StatusPill } from '@/components/client/ui';
 
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const { openAction } = useActions();
 
-  useEffect(() => {
+  const load = useCallback(() => {
     usersAPI.getDashboardStats().then((res) => {
       const txs = res.data?.recentTransactions || [];
       const clearedAt = localStorage.getItem('notificationsClearedAt');
@@ -58,12 +61,17 @@ export default function NotificationsPage() {
           time: timeStr,
           isUnread: true,
           type: tx.type,
-          status: tx.status
+          status: tx.status,
+          tx,
         };
       });
       setNotifications(mapped);
     }).catch(console.error).finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => { load(); }, [load]);
+  // A deposit or withdrawal made in a pop-up shows up here straight away.
+  useBalancesChanged(load);
 
   const handleClearAll = () => {
     setNotifications([]);
@@ -107,11 +115,16 @@ export default function NotificationsPage() {
             ) : notifications.length === 0 ? (
               <EmptyState icon={Bell} title="No notifications yet" text="Updates on your deposits and withdrawals will appear here." />
             ) : (
-              <ul>
+              <Stagger className="[&>div:last-child>button]:border-b-0">
                 {notifications.map((notif) => {
                   const Icon = notif.type === 'deposit' ? ArrowDownLeft : ArrowUpRight;
                   return (
-                    <li key={notif.id} className="flex items-start gap-3.5 border-b border-cd-line px-3 py-4 last:border-b-0 sm:px-4">
+                    <button
+                      key={notif.id}
+                      type="button"
+                      onClick={() => openAction('transaction', { transaction: notif.tx })}
+                      className="group flex w-full items-start gap-3.5 border-b border-cd-line px-3 py-4 text-left transition hover:bg-cd-raised/60 active:scale-[0.995] sm:px-4"
+                    >
                       <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-cd-raised text-cd-text">
                         <Icon size={16} strokeWidth={1.75} />
                       </span>
@@ -129,12 +142,18 @@ export default function NotificationsPage() {
                             &ldquo;{notif.adminNote}&rdquo;
                           </p>
                         )}
-                        <StatusPill status={notif.status} className="mt-2.5" />
+                        <div className="mt-2.5 flex items-center justify-between gap-3">
+                          <StatusPill status={notif.status} />
+                          <span className="flex items-center gap-1 text-[12.5px] text-cd-accent-text opacity-80 transition-opacity group-hover:opacity-100">
+                            Details
+                            <ChevronRight size={14} className="transition-transform group-hover:translate-x-0.5" />
+                          </span>
+                        </div>
                       </div>
-                    </li>
+                    </button>
                   );
                 })}
-              </ul>
+              </Stagger>
             )}
           </Card>
         </div>

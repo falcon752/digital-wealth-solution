@@ -6,7 +6,9 @@
  * row folds to the name on the left and the USD balance over the amount on the right.
  */
 import Link from 'next/link';
+import { motion, useReducedMotion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { PriceTick } from './motion';
 import { AssetIcon, AssetName, Change, Money, TableHead, formatAmount, formatPrice } from './ui';
 
 export interface HoldingRow {
@@ -28,7 +30,14 @@ export interface HoldingRow {
 
 const GRID = 'grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 sm:grid-cols-[minmax(0,1.7fr)_1fr_1fr_0.8fr]';
 
-export default function AssetTable({ rows, hidden = false, unitLabel = true }: { rows: HoldingRow[]; hidden?: boolean; unitLabel?: boolean }) {
+export default function AssetTable({ rows, hidden = false, unitLabel = true, onRowClick }: {
+  rows: HoldingRow[];
+  hidden?: boolean;
+  unitLabel?: boolean;
+  /** Makes each row a button (e.g. to open the asset's pop-up panel). Rows with an `href` stay links. */
+  onRowClick?: (row: HoldingRow) => void;
+}) {
+  const reduce = useReducedMotion();
   return (
     <div>
       <TableHead className={GRID}>
@@ -42,7 +51,7 @@ export default function AssetTable({ rows, hidden = false, unitLabel = true }: {
       </TableHead>
 
       <ul>
-        {rows.map((row) => {
+        {rows.map((row, index) => {
           const locked = row.available !== undefined && row.available < row.amount - 1e-9;
           const body = (
             <>
@@ -72,7 +81,7 @@ export default function AssetTable({ rows, hidden = false, unitLabel = true }: {
                 </p>
 
                 <div className="hidden text-right sm:block">
-                  <p className="cd-num text-[14px] text-cd-text">{formatPrice(row.price)}</p>
+                  <p className="cd-num text-[14px] text-cd-text"><PriceTick value={row.price} className="px-0.5">{formatPrice(row.price)}</PriceTick></p>
                   {row.change24h !== undefined && row.change24h !== 0 && <Change value={row.change24h} className="mt-0.5 text-[12px]" />}
                 </div>
               </div>
@@ -87,15 +96,24 @@ export default function AssetTable({ rows, hidden = false, unitLabel = true }: {
               )}
             </>
           );
-          const rowClass = 'block border-b border-cd-line px-3 py-4 last:border-b-0 sm:px-4';
+          const rowClass = 'block w-full border-b border-cd-line px-3 py-4 text-left sm:px-4';
+          const interactive = 'transition hover:bg-cd-raised/60 active:scale-[0.995]';
           return (
-            <li key={row.symbol}>
-              {row.href ? (
-                <Link href={row.href} className={cn(rowClass, 'transition-colors hover:bg-cd-raised/60')}>{body}</Link>
+            <motion.li
+              key={row.symbol}
+              className="[&:last-child>*]:border-b-0"
+              initial={reduce ? false : { opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.25, delay: Math.min(index, 12) * 0.035, ease: 'easeOut' }}
+            >
+              {row.href && !onRowClick ? (
+                <Link href={row.href} className={cn(rowClass, interactive)}>{body}</Link>
+              ) : onRowClick ? (
+                <button type="button" onClick={() => onRowClick(row)} className={cn(rowClass, interactive, 'cursor-pointer')}>{body}</button>
               ) : (
                 <div className={rowClass}>{body}</div>
               )}
-            </li>
+            </motion.li>
           );
         })}
       </ul>

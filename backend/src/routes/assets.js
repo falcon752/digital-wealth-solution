@@ -18,50 +18,56 @@ const COIN_IDS = {
 
 const router = express.Router();
 
-// GET /api/assets/prices  — live USD prices proxied from CoinGecko.
-// Kept for a minute and shared by every client, so page loads don't hit CoinGecko's rate limit;
-// if CoinGecko fails, the last good prices are served instead of none (which showed $0.00 balances).
+// ─── Live prices ──────────────────────────────────────────────────────────────
+// One CoinGecko lookup shared by every client and by swaps: kept for a minute so page loads
+// don't hit CoinGecko's rate limit. If CoinGecko fails, the last good prices are used instead
+// (pages show them; swaps only accept them when they're under five minutes old).
 const PRICE_TTL_MS = 60 * 1000;
+const SWAP_MAX_PRICE_AGE_MS = 5 * 60 * 1000;
 let priceCache = { key: '', at: 0, body: null };
 
+async function getLivePrices() {
+  const assets = await Asset.find({ isActive: true }).select('symbol').lean();
+  const symbols = assets.map((a) => a.symbol.toUpperCase());
+  const ids = [...new Set(symbols.map((s) => COIN_IDS[s]).filter(Boolean))].join(',');
+  if (!ids) return { prices: {}, changes24h: {}, at: Date.now() };
+
+  const key = `${ids}|${symbols.join(',')}`;
+  const cached = priceCache.body && priceCache.key === key ? priceCache : null;
+  if (cached && Date.now() - cached.at < PRICE_TTL_MS) return { ...cached.body, at: cached.at };
+
+  try {
+    const r = await fetch(
+      `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`,
+      { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(8000) }
+    );
+    if (!r.ok) throw new Error(`CoinGecko HTTP ${r.status}`);
+    const data = await r.json();
+
+    const prices = {};
+    const changes24h = {};
+    symbols.forEach((sym) => {
+      const cgId = COIN_IDS[sym];
+      if (cgId && data[cgId]?.usd) {
+        prices[sym] = data[cgId].usd;
+        changes24h[sym] = data[cgId].usd_24h_change || 0;
+      }
+    });
+    if (!Object.keys(prices).length) throw new Error('CoinGecko returned no prices');
+
+    priceCache = { key, at: Date.now(), body: { prices, changes24h } };
+    return { prices, changes24h, at: priceCache.at };
+  } catch (error) {
+    if (cached) return { ...cached.body, at: cached.at, stale: true };
+    throw error;
+  }
+}
+
+// GET /api/assets/prices
 router.get('/prices', authenticate, async (req, res) => {
   try {
-    const assets = await Asset.find({ isActive: true }).select('symbol').lean();
-    const symbols = assets.map((a) => a.symbol.toUpperCase());
-    const ids = [...new Set(symbols.map((s) => COIN_IDS[s]).filter(Boolean))].join(',');
-
-    if (!ids) return res.json({ prices: {} });
-
-    const key = `${ids}|${symbols.join(',')}`;
-    if (priceCache.body && priceCache.key === key && Date.now() - priceCache.at < PRICE_TTL_MS) {
-      return res.json(priceCache.body);
-    }
-
-    try {
-      const r = await fetch(
-        `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`,
-        { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(8000) }
-      );
-      if (!r.ok) throw new Error(`CoinGecko HTTP ${r.status}`);
-      const data = await r.json();
-
-      const prices = {};
-      const changes24h = {};
-      symbols.forEach((sym) => {
-        const cgId = COIN_IDS[sym];
-        if (cgId && data[cgId]?.usd) {
-          prices[sym] = data[cgId].usd;
-          changes24h[sym] = data[cgId].usd_24h_change || 0;
-        }
-      });
-      if (!Object.keys(prices).length) throw new Error('CoinGecko returned no prices');
-
-      priceCache = { key, at: Date.now(), body: { prices, changes24h } };
-      res.json(priceCache.body);
-    } catch (error) {
-      if (priceCache.body) return res.json(priceCache.body);
-      throw error;
-    }
+    const { prices, changes24h } = await getLivePrices();
+    res.json({ prices, changes24h });
   } catch {
     res.json({ prices: {}, changes24h: {} });
   }
@@ -170,23 +176,20 @@ router.post('/swap', authenticate, [
       return res.status(400).json({ error: 'Insufficient balance to swap' });
     }
 
-    // 3. Fetch live prices from CoinGecko to determine exchange rate securely
+    // 3. Prices for the exchange rate: the shared cache (at most a minute old), or fresh from
+    // CoinGecko; never prices older than five minutes.
     const symbols = [fromAsset.symbol.toUpperCase(), toAsset.symbol.toUpperCase()];
-    const ids = [...new Set(symbols.map((s) => COIN_IDS[s]).filter(Boolean))].join(',');
-    
-    if (!ids) return res.status(500).json({ error: 'Failed to fetch asset pricing' });
+    let live;
+    try {
+      live = await getLivePrices();
+    } catch {
+      return res.status(503).json({ error: 'Pricing unavailable for selected assets. Please try again in a moment.' });
+    }
+    const fromPriceUsd = live.prices[symbols[0]];
+    const toPriceUsd = live.prices[symbols[1]];
 
-    const r = await fetch(
-      `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd`,
-      { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(8000) }
-    );
-    const data = await r.json();
-
-    const fromPriceUsd = data[COIN_IDS[symbols[0]]]?.usd;
-    const toPriceUsd = data[COIN_IDS[symbols[1]]]?.usd;
-
-    if (!fromPriceUsd || !toPriceUsd) {
-      return res.status(500).json({ error: 'Pricing unavailable for selected assets' });
+    if (!fromPriceUsd || !toPriceUsd || Date.now() - live.at > SWAP_MAX_PRICE_AGE_MS) {
+      return res.status(503).json({ error: 'Pricing unavailable for selected assets. Please try again in a moment.' });
     }
 
     const usdValue = parseFloat(fromAmount) * fromPriceUsd;

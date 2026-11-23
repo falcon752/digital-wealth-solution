@@ -5,7 +5,7 @@
  * and ID with Convert / Withdraw / Deposit on the right, the total balance, then the holdings split
  * into Fiat and Crypto tables.
  */
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ArrowDownToLine, ArrowLeftRight, ArrowUpFromLine, Eye, EyeOff, Landmark, RefreshCw, Zap } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
@@ -13,8 +13,10 @@ import { usersAPI, assetsAPI } from '@/lib/api';
 import { formatCurrency } from '@/lib/utils';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import AssetTable, { type HoldingRow } from '@/components/client/AssetTable';
-import { useActions, type ActionKind } from '@/components/client/actions';
-import { ActionButton, Card, Change, EmptyState, Money, PageHeader, Skeleton, shortId } from '@/components/client/ui';
+import { useActions, useBalancesChanged, type ActionKind } from '@/components/client/actions';
+import { AnimatedMoney } from '@/components/client/motion';
+import { useLivePrices } from '@/components/client/live';
+import { ActionButton, Card, Change, EmptyState, PageHeader, Skeleton, shortId } from '@/components/client/ui';
 
 type DashboardStats = {
   balance?: number;
@@ -26,12 +28,15 @@ type DbAsset = { id: string; symbol: string; name: string; network?: string | nu
 
 const HIDE_KEY = 'dwp_hide_balances';
 
+/** A subtle press for buttons and tiles. */
+const PRESS = 'transition active:scale-[0.98]';
+
 export default function AnchorageAccountPage() {
   const { user } = useAuth();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [dbAssets, setDbAssets] = useState<DbAsset[]>([]);
-  const [prices, setPrices] = useState<Record<string, number>>({});
-  const [changes24h, setChanges24h] = useState<Record<string, number>>({});
+  // Prices refresh every 30 seconds while the page is on screen; the table flashes the ones that move.
+  const { prices, changes24h } = useLivePrices(30000);
   const [hidden, setHidden] = useState(true);
   const [assetsLoading, setAssetsLoading] = useState(true);
   const [assetsError, setAssetsError] = useState(false);
@@ -71,14 +76,18 @@ export default function AnchorageAccountPage() {
       });
   };
 
-  useEffect(() => {
+  const loadStats = useCallback(() => {
     usersAPI.getDashboardStats().then((res) => setStats(res.data)).catch(console.error);
-    loadAssets();
-    assetsAPI.prices().then((res) => {
-      setPrices(res.data.prices || {});
-      setChanges24h(res.data.changes24h || {});
-    }).catch(console.error);
   }, []);
+
+  useEffect(() => {
+    loadStats();
+    loadAssets();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // After a deposit, withdrawal or conversion in a pop-up, reload the balances.
+  useBalancesChanged(loadStats);
 
   const { cryptoRows, cryptoTotal, previousTotal } = useMemo(() => {
     let total = 0;
@@ -133,9 +142,9 @@ export default function AnchorageAccountPage() {
           actions={
             <div className="hidden gap-2.5 lg:flex">
               {actions.map((action) => (
-                <ActionButton key={action.label} onClick={() => openAction(action.kind)} icon={action.icon}>{action.label}</ActionButton>
+                <ActionButton key={action.label} onClick={() => openAction(action.kind)} icon={action.icon} className={PRESS}>{action.label}</ActionButton>
               ))}
-              <ActionButton onClick={() => openAction('deposit')} icon={ArrowDownToLine} variant="primary">Deposit</ActionButton>
+              <ActionButton onClick={() => openAction('deposit')} icon={ArrowDownToLine} variant="primary" className={PRESS}>Deposit</ActionButton>
             </div>
           }
         />
@@ -143,7 +152,7 @@ export default function AnchorageAccountPage() {
         {/* Total balance */}
         <div className="mt-7 flex flex-col items-center text-center lg:items-start lg:text-left">
           <div className="flex items-center gap-2">
-            <Money value={totalBalance} hidden={hidden} className="text-[38px] font-normal leading-none tracking-tight text-cd-text sm:text-[44px]" />
+            <AnimatedMoney value={totalBalance} hidden={hidden} className="text-[38px] font-normal leading-none tracking-tight text-cd-text sm:text-[44px]" />
             <button
               type="button"
               onClick={toggleHidden}
@@ -212,7 +221,7 @@ export default function AnchorageAccountPage() {
                 action={<ActionButton onClick={() => openAction('deposit')} variant="primary" icon={ArrowDownToLine}>Deposit</ActionButton>}
               />
             ) : (
-              <AssetTable rows={cryptoRows} hidden={hidden} />
+              <AssetTable rows={cryptoRows} hidden={hidden} onRowClick={(row) => openAction('asset', { symbol: row.symbol })} />
             )}
           </Card>
         </div>

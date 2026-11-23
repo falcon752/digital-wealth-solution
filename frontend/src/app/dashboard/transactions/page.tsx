@@ -5,11 +5,13 @@
  * tabs filter by type; a card holds the grey column band and one row per operation. On a phone each
  * row folds to two lines: type and asset on the left, amount and status on the right.
  */
-import { useEffect, useState } from 'react';
-import { ArrowDownLeft, ArrowLeftRight, ArrowUpRight, ListChecks } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { ArrowDownLeft, ArrowLeftRight, ArrowUpRight, ChevronRight, ListChecks } from 'lucide-react';
 import { usersAPI } from '@/lib/api';
 import { Transaction } from '@/types';
 import DashboardHeader from '@/components/layout/DashboardHeader';
+import { useActions, useBalancesChanged } from '@/components/client/actions';
+import { Stagger } from '@/components/client/motion';
 import { ActionButton, AssetIcon, Card, EmptyState, PageHeader, Skeleton, StatusPill, TableHead, Tabs, formatAmount } from '@/components/client/ui';
 import { cn, formatCurrency, formatDate } from '@/lib/utils';
 
@@ -51,8 +53,10 @@ export default function TransactionsPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<Filter>('all');
 
-  useEffect(() => {
-    setLoading(true);
+  const { openAction } = useActions();
+
+  const load = useCallback((quiet = false) => {
+    if (!quiet) setLoading(true);
     usersAPI.getTransactions({ page, limit: LIMIT, type: filter === 'all' ? undefined : filter })
       .then((res) => {
         setTransactions(res.data.transactions);
@@ -60,6 +64,12 @@ export default function TransactionsPage() {
       })
       .finally(() => setLoading(false));
   }, [page, filter]);
+
+  useEffect(() => { load(); }, [load]);
+
+  // A new deposit, withdrawal or conversion made in a pop-up shows up without a reload.
+  const reloadQuietly = useCallback(() => load(true), [load]);
+  useBalancesChanged(reloadQuietly);
 
   const totalPages = Math.ceil(total / LIMIT);
 
@@ -109,13 +119,18 @@ export default function TransactionsPage() {
               text={filter === 'all' ? 'Deposits, withdrawals and swaps will appear here.' : `You have no ${TABS.find((t) => t.value === filter)?.label.toLowerCase()} yet.`}
             />
           ) : (
-            <ul>
+            <Stagger key={`${filter}-${page}`} className="[&>div:last-child>button]:border-b-0">
               {transactions.map((tx) => {
                 const meta = TYPE_META[tx.type] || { label: tx.type, icon: ArrowDownLeft };
                 const assetLabel = tx.type === 'swap' && tx.toAssetSymbol ? `${tx.assetSymbol} → ${tx.toAssetSymbol}` : tx.assetSymbol;
                 const value = tx.usdValue ? formatCurrency(tx.usdValue) : '—';
                 return (
-                  <li key={tx.id} className="border-b border-cd-line px-3 py-3.5 last:border-b-0 sm:px-4">
+                  <button
+                    key={tx.id}
+                    type="button"
+                    onClick={() => openAction('transaction', { transaction: tx })}
+                    className="group block w-full border-b border-cd-line px-3 py-3.5 text-left transition hover:bg-cd-raised/60 active:scale-[0.995] sm:px-4"
+                  >
                     {/* Phone: two lines */}
                     <div className="flex items-center gap-3 md:hidden">
                       <TypeIcon type={tx.type} />
@@ -154,12 +169,15 @@ export default function TransactionsPage() {
                       </div>
                       <p className={cn('cd-num text-right text-[14px]', tx.usdValue ? 'text-cd-text' : 'text-cd-faint')}>{value}</p>
                       <div className="pl-2"><StatusPill status={tx.status} /></div>
-                      <p className="cd-num text-right text-[13px] text-cd-muted">{formatDate(tx.createdAt)}</p>
+                      <p className="cd-num flex items-center justify-end gap-1.5 text-right text-[13px] text-cd-muted">
+                        {formatDate(tx.createdAt)}
+                        <ChevronRight size={14} className="shrink-0 text-cd-faint transition-transform group-hover:translate-x-0.5 group-hover:text-cd-accent-text" />
+                      </p>
                     </div>
-                  </li>
+                  </button>
                 );
               })}
-            </ul>
+            </Stagger>
           )}
 
           {totalPages > 1 && (
