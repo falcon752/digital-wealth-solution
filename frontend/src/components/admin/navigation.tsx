@@ -37,6 +37,10 @@ export const NAVIGATION: readonly NavItem[] = [
   page("access-requests", "Access Requests", "key"),
   page("llc", "LLC Apps", "business"),
 
+  { type: "title", key: "support-title", title: "Support" },
+  page("advisors", "Advisors", "support_agent"),
+  page("support", "Support Tickets", "chat"),
+
   { type: "title", key: "money-title", title: "Money" },
   page("payment-proofs", "Payment Proofs", "request_quote"),
   page("onboarding-payments", "Onboarding Fee", "paid"),

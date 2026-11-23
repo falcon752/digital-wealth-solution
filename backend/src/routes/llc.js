@@ -6,6 +6,7 @@ const { logActivity } = require('../utils/activity');
 const { sendUserLLCStatusEmail, sendLLCNotificationEmail } = require('../utils/email');
 const { User } = require('../database');
 const { encryptSensitiveValue, decryptSensitiveValue } = require('../utils/sensitiveData');
+const { findPartnerByCode, recordCommission } = require('../utils/partners');
 
 const router = express.Router();
 
@@ -76,6 +77,13 @@ router.post('/', authenticate, [
     streetAddress, unit, city, country, postalCode, partnerCode,
   } = req.body;
   try {
+    // A partner code counts only if it belongs to someone other than the applicant.
+    let partner = null;
+    if (partnerCode) {
+      const found = await findPartnerByCode(partnerCode);
+      if (found && String(found._id) !== String(req.user.id)) partner = found;
+    }
+
     const application = await LLCApplication.create({
       userId: req.user.id,
       companyName,
@@ -94,10 +102,26 @@ router.post('/', authenticate, [
       city: city || null,
       country: country || null,
       postalCode: postalCode || null,
-      partnerCode: partnerCode || null,
+      partnerCode: partner ? (partner.partnerCode || partner.referralCode) : null,
       status: 'pending',
     });
     logActivity(req.user.id, 'LLC_APPLICATION_SUBMITTED', { companyName }, req);
+
+    // The partner earns their percent of the state fee (nothing when the fee is 0).
+    if (partner) {
+      try {
+        await recordCommission({
+          referrerId: partner._id,
+          referredUserId: req.user.id,
+          source: 'llc',
+          sourceId: application._id,
+          baseAmountUsd: application.stateFee,
+          partnerCode: application.partnerCode,
+        });
+      } catch (err) {
+        console.error('Partner commission (llc) failed:', err.message);
+      }
+    }
 
     const adminEmail = process.env.ADMIN_NOTIFY_EMAIL || process.env.ADMIN_EMAIL;
     if (adminEmail) {

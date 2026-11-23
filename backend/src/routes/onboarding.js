@@ -6,6 +6,7 @@ const { logActivity } = require('../utils/activity');
 const { PaymentVerificationError, verifyXrplPayment } = require('../utils/onboardingPayment');
 const { getLiveQuote } = require('../utils/xrpPrice');
 const { linkApprovedProofForUser } = require('../utils/paymentProofLink');
+const { recordSignupCommission } = require('../utils/partners');
 const { sendOnboardingPaymentStatusEmail, sendOnboardingPaymentAdminEmail } = require('../utils/email');
 
 const router = express.Router();
@@ -375,6 +376,8 @@ router.post('/admin/payments/:id/activate', authenticate, requireAdmin, async (r
     await logActivity(req.user.id, 'ONBOARDING_ACCOUNT_ACTIVATED', {
       paymentId: payment.id, targetUserId: currentUser.id,
     }, req);
+    // The fee is confirmed paid: the partner who referred this client earns their commission.
+    await recordSignupCommission(currentUser, payment);
     const emailDelivery = await recordPaymentEmail(payment, 'onboarding_account_activated', 'account_active', () => sendOnboardingPaymentStatusEmail({
       userEmail: currentUser.email, firstName: currentUser.firstName, type: 'activated', payment,
     }));

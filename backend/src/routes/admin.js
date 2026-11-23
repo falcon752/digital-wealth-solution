@@ -783,13 +783,14 @@ router.get('/referrals', authenticate, requireAdmin, async (req, res) => {
       { lastName: { $regex: s, $options: 'i' } },
       { email: { $regex: s, $options: 'i' } },
       { referralCode: { $regex: s, $options: 'i' } },
+      { partnerCode: { $regex: s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' } },
     ];
   }
 
   try {
     const [users, total] = await Promise.all([
       User.find(filter)
-        .populate('referredBy', 'firstName lastName email referralCode')
+        .populate('referredBy', 'firstName lastName email referralCode partnerCode')
         .sort({ createdAt: -1 })
         .skip(offset)
         .limit(parseInt(limit))
@@ -803,6 +804,7 @@ router.get('/referrals', authenticate, requireAdmin, async (req, res) => {
       lastName: u.lastName,
       email: u.email,
       referralCode: u.referralCode,
+      partnerCode: u.partnerCode || null,
       createdAt: u.createdAt,
       referredBy: u.referredBy ? {
         id: u.referredBy._id.toString(),
@@ -810,6 +812,7 @@ router.get('/referrals', authenticate, requireAdmin, async (req, res) => {
         lastName: u.referredBy.lastName,
         email: u.referredBy.email,
         referralCode: u.referredBy.referralCode,
+        partnerCode: u.referredBy.partnerCode || null,
       } : null,
     }));
 

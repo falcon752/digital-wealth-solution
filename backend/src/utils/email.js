@@ -1216,7 +1216,28 @@ async function sendKYCSubmissionReceivedEmail({ userEmail, firstName, submission
 }
 
 // To the client after an admin decision: a welcome email when approved, or what to fix when rejected.
-async function sendUserKYCStatusEmail({ userEmail, firstName, status, rejectionReason, submission = {} }) {
+/**
+ * The "Your partner code" box in the KYC approval email: the code in large type, how to use it,
+ * and the commission percent the admin set. `partner` is { code, percent }.
+ */
+function partnerCodeCallout(partner) {
+  const percent = Number(partner.percent) || 0;
+  const pct = `${percent.toLocaleString('en-US', { maximumFractionDigits: 2 })}%`;
+  const example = ((1000 * percent) / 100).toLocaleString('en-US', { maximumFractionDigits: 2 });
+  const code = `<span class="dwp-code" style="display:block;margin:2px 0 0;font-family:'Courier New',Courier,monospace;font-size:30px;line-height:1.2;font-weight:700;letter-spacing:4px;color:#20242b;">${escapeHtml(partner.code)}</span>`;
+  return {
+    title: 'Your partner code',
+    text: { html: `${code}<br /><span style="display:block;margin:0 0 10px;">Now that you are verified, you are a DWP partner. Share this code with friends, family or clients who want to join Digital Wealth Partners, and earn ${strong(pct)} commission when they do.</span>` },
+    steps: [
+      { html: `They enter ${strong(partner.code)} in the <strong>Partner code</strong> field when they create their DWP account, or when they apply for an LLC.` },
+      { html: `You earn ${strong(pct)} of their registration fee once it is confirmed paid (for example, ${escapeHtml(pct)} of a $1,000 registration fee is ${strong(`$${example}`)}), and ${strong(pct)} of the state fee on an LLC application made with your code.` },
+      { html: `Follow your referrals and commissions on your ${inlineLink(`${appUrl()}/dashboard/partner`, 'Partner program')} page.` },
+    ],
+    note: 'Commissions are reviewed by our team before they are paid. Trading and deposits do not earn commissions.',
+  };
+}
+
+async function sendUserKYCStatusEmail({ userEmail, firstName, status, rejectionReason, submission = {}, partner = null }) {
   const transporter = createTransporter();
 
   if (status === 'approved') {
@@ -1242,14 +1263,17 @@ async function sendUserKYCStatusEmail({ userEmail, firstName, status, rejectionR
       ],
       details: toDetails(rows),
       detailsVariant: 'card',
-      callout: {
-        title: 'What happens next',
-        steps: [
-          { html: 'Your verified status is saved to your DWP account. You can see it at any time on your <strong>KYC Verification</strong> page.' },
-          'Sign in to your dashboard to continue with your DWP services.',
-          { html: 'Keep your contact details up to date in <strong>Profile Settings</strong> so our team can reach you.' },
-        ],
-      },
+      callouts: [
+        {
+          title: 'What happens next',
+          steps: [
+            { html: 'Your verified status is saved to your DWP account. You can see it at any time on your <strong>KYC Verification</strong> page.' },
+            'Sign in to your dashboard to continue with your DWP services.',
+            { html: 'Keep your contact details up to date in <strong>Profile Settings</strong> so our team can reach you.' },
+          ],
+        },
+        partner?.code ? partnerCodeCallout(partner) : null,
+      ].filter(Boolean),
       action: { label: 'Go to Your Dashboard', url: `${appUrl()}/dashboard` },
       supporting: [KYC_SAFETY_NOTE, questions()],
     });

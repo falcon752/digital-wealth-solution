@@ -251,7 +251,7 @@ export function Tabs<T extends string>({ tabs, value, onChange, className }: {
             aria-selected={active}
             onClick={() => onChange(tab.value)}
             className={cn(
-              '-mb-px border-b-2 px-3 pb-2.5 pt-1 text-[14px] transition-colors first:pl-0',
+              '-mb-px shrink-0 whitespace-nowrap border-b-2 px-3 pb-2.5 pt-1 text-[14px] transition-colors first:pl-0',
               active ? 'border-cd-text font-medium text-cd-text' : 'border-transparent text-cd-muted hover:text-cd-text',
             )}
           >

@@ -2,6 +2,7 @@
 // Runs when an admin approves a proof, and again when a client without an account yet signs up
 // later with the same email (see GET /api/onboarding/me).
 const { OnboardingConfig, OnboardingPayment, PaymentProof, User } = require('../database');
+const { recordSignupCommission } = require('./partners');
 
 async function linkProofToAccount(proof, { adminId = null, activate = proof.activateAccount !== false } = {}) {
   if (proof.status !== 'approved') return { linked: false, activated: false, reason: 'not approved' };
@@ -73,6 +74,9 @@ async function linkProofToAccount(proof, { adminId = null, activate = proof.acti
     await payment.save();
   }
   await User.updateOne({ _id: user._id }, { $set: userUpdate });
+  // Activated with a confirmed fee: the partner who referred this client earns their commission.
+  // (recordSignupCommission never throws, so it cannot break the activation.)
+  if (activate) await recordSignupCommission(user, payment);
 
   proof.onboardingPaymentId = payment._id;
   await proof.save();

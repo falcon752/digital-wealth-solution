@@ -27,6 +27,8 @@ const registerSchema = z.object({
     .regex(/\d/, 'Must contain a number')
     .regex(/[@$!%*?&]/, 'Must contain a special character (@$!%*?&)'),
   confirmPassword: z.string(),
+  // The code of the DWP partner who referred them (optional).
+  partnerCode: z.string().trim().max(40, 'That code is too long').optional(),
 }).refine((d) => d.password === d.confirmPassword, {
   message: "Passwords don't match",
   path: ['confirmPassword'],
@@ -131,25 +133,39 @@ export default function RegisterPage() {
     return () => clearTimeout(t);
   }, [countdown]);
 
-  // Extract referral from URL if present
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      const ref = urlParams.get('ref');
-      if (ref) {
-        localStorage.setItem('referralCode', ref);
-        // Optional: clean up the URL without a reload
-        window.history.replaceState({}, '', '/register');
-      }
-    }
-  }, []);
-
   const {
     register,
     handleSubmit,
     setValue,
+    setError,
     formState: { errors },
   } = useForm<RegisterForm>({ resolver: zodResolver(registerSchema) });
+
+  // A partner's link (?partner=CODE, or the older ?ref= and /dashboard/<code> links, which leave
+  // the code in localStorage) fills in the Partner code field.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const urlParams = new URLSearchParams(window.location.search);
+    const fromUrl = urlParams.get('partner') || urlParams.get('ref');
+    if (fromUrl) {
+      try { localStorage.setItem('referralCode', fromUrl); } catch {}
+      // Clean up the URL without a reload
+      window.history.replaceState({}, '', '/register');
+    }
+    let stored: string | null = null;
+    try { stored = localStorage.getItem('referralCode'); } catch {}
+    const code = (fromUrl || stored || '').trim().toUpperCase();
+    if (code) setValue('partnerCode', code);
+  }, [setValue]);
+
+  const partnerCodeOf = (data: RegisterForm) => data.partnerCode?.trim().toUpperCase() || undefined;
+
+  /** The server says the partner code is unknown: show it on the field. */
+  const showPartnerCodeError = (err: unknown) => {
+    const errData = (err as { response?: { data?: { errors?: Array<{ path?: string; msg: string }> } } })?.response?.data;
+    const fieldError = errData?.errors?.find((e) => e.path === 'partnerCode');
+    if (fieldError) setError('partnerCode', { message: fieldError.msg });
+  };
 
   useEffect(() => {
     const pending = getPendingConsultation();
@@ -164,13 +180,14 @@ export default function RegisterPage() {
   const onSendOTP = async (data: RegisterForm) => {
     setIsSending(true);
     try {
-      await authAPI.sendSignupOTP({
+      const payload = {
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,
         password: data.password,
-        referralCode: typeof window !== 'undefined' ? localStorage.getItem('referralCode') || undefined : undefined,
-      });
+        partnerCode: partnerCodeOf(data),
+      };
+      await authAPI.sendSignupOTP(payload);
       setSavedFormData(data);
       setPendingEmail(data.email);
       setPendingFirstName(data.firstName);
@@ -181,6 +198,7 @@ export default function RegisterPage() {
     } catch (err: unknown) {
       const errData = (err as { response?: { data?: { error?: string; errors?: Array<{ msg: string }> } } })?.response?.data;
       const msg = errData?.error || errData?.errors?.[0]?.msg || 'Failed to send code';
+      showPartnerCodeError(err);
       toast.error(msg);
     } finally {
       setIsSending(false);
@@ -224,13 +242,14 @@ export default function RegisterPage() {
     if (!savedFormData || countdown > 0) return;
     setIsResending(true);
     try {
-      await authAPI.sendSignupOTP({
+      const payload = {
         firstName: savedFormData.firstName,
         lastName: savedFormData.lastName,
         email: savedFormData.email,
         password: savedFormData.password,
-        referralCode: typeof window !== 'undefined' ? localStorage.getItem('referralCode') || undefined : undefined,
-      });
+        partnerCode: partnerCodeOf(savedFormData),
+      };
+      await authAPI.sendSignupOTP(payload);
       setOtpDigits(Array(6).fill(''));
       setCountdown(60);
       toast.success('New verification code sent');
@@ -309,6 +328,22 @@ export default function RegisterPage() {
               error={errors.confirmPassword?.message}
               {...register('confirmPassword')}
             />
+
+            <div>
+              <Input
+                label="Partner code (optional)"
+                placeholder="e.g. DWP-7K2M9Q"
+                autoComplete="off"
+                autoCapitalize="characters"
+                spellCheck={false}
+                className="uppercase placeholder:normal-case"
+                error={errors.partnerCode?.message}
+                {...register('partnerCode')}
+              />
+              {!errors.partnerCode && (
+                <p className="mt-1.5 text-xs text-(--text-muted)">Were you referred by a DWP partner? Enter their code.</p>
+              )}
+            </div>
 
             <Button
               type="submit"

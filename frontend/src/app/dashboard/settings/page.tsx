@@ -12,7 +12,6 @@ import {
   ArrowRightLeft, ChevronRight, CreditCard, Download, Handshake, Lock, LogOut, QrCode, ShieldCheck, UserRound,
   type LucideIcon,
 } from 'lucide-react';
-import toast from 'react-hot-toast';
 import { kycAPI, usersAPI } from '@/lib/api';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { Card, PageHeader, StatusPill } from '@/components/client/ui';
@@ -82,13 +81,6 @@ export default function SettingsPage() {
   const initials = `${user?.firstName?.[0] || ''}${user?.lastName?.[0] || ''}`.toUpperCase();
   const heldAssetsCount = stats?.assetBalances ? Object.values(stats.assetBalances).filter((v: any) => v > 0).length : 0;
 
-  const copyReferral = () => {
-    if (user?.referralCode) {
-      navigator.clipboard.writeText(user.referralCode);
-      toast.success('Referral code copied!');
-    }
-  };
-
   const verificationLabel: Record<string, string> = {
     approved: 'Verified',
     pending: 'Under review',
@@ -156,10 +148,10 @@ export default function SettingsPage() {
               <SettingsRow href="/dashboard/settings/deposit-log" icon={Download} label="Deposit log" description="Your deposit history" />
               <SettingsRow href="/dashboard/cards" icon={CreditCard} label="Cards" description="Your debit cards" />
               <SettingsRow
-                onClick={copyReferral}
+                href="/dashboard/partner"
                 icon={Handshake}
-                label="Referral"
-                description={user?.referralCode ? `Tap to copy your code ${user.referralCode}` : 'Invite people you know'}
+                label="Partner program"
+                description="Your partner code and commissions"
               />
             </SettingsGroup>
 

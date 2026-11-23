@@ -43,7 +43,7 @@ app.use(cors({
     'http://localhost:3005',
   ],
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
@@ -86,7 +86,10 @@ app.use('/api/users', usersRoutes);
 app.use('/api/assets', assetsRoutes);
 app.use('/api/deposits', depositsRoutes);
 app.use('/api/withdrawals', withdrawalsRoutes);
+app.use('/api/admin/advisors', require('./routes/adminAdvisors'));
 app.use('/api/admin', adminRoutes);
+app.use('/api/support', require('./routes/support'));
+app.use('/api/advisor', require('./routes/advisor'));
 app.use('/api/llc', llcRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/loans', loansRoutes);
@@ -96,6 +99,7 @@ app.use('/api/access-requests', accessRequestsRoutes);
 app.use('/api/kyc', kycRoutes);
 app.use('/api/onboarding', onboardingRoutes);
 app.use('/api/payment-proofs', require('./routes/paymentProofs'));
+app.use('/api/partners', require('./routes/partners'));
 
 // Health check
 app.get('/api/health', (req, res) => {

@@ -6,6 +6,7 @@ const { body, validationResult } = require('express-validator');
 const { User } = require('../database');
 const { authenticate } = require('../middleware/auth');
 const { logActivity } = require('../utils/activity');
+const { findPartnerByCode } = require('../utils/partners');
 const { sendWelcomeEmail, sendSignupOTPEmail, sendAdminRegistrationNotificationEmail, sendPasswordResetEmail } = require('../utils/email');
 
 const router = express.Router();
@@ -30,16 +31,32 @@ router.post('/send-signup-otp', [
     .withMessage('Password must be 8+ chars with uppercase, lowercase, number, and special character'),
   body('firstName').trim().notEmpty().isLength({ max: 50 }),
   body('lastName').trim().notEmpty().isLength({ max: 50 }),
-  body('referralCode').optional().trim(),
+  body('referralCode').optional({ nullable: true }).trim().isLength({ max: 40 }),
+  body('partnerCode').optional({ nullable: true }).trim().isLength({ max: 40 }),
 ], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-  const { email, password, firstName, lastName, referralCode } = req.body;
+  const { email, password, firstName, lastName } = req.body;
+  // The partner code typed on the form; `referralCode` is what older links and clients send.
+  const enteredCode = String(req.body.partnerCode || req.body.referralCode || '').trim();
 
   try {
     const existing = await User.findOne({ email });
     if (existing) return res.status(409).json({ error: 'Email already registered' });
+
+    let referralCode = null;
+    if (enteredCode) {
+      const partner = await findPartnerByCode(enteredCode);
+      if (!partner && req.body.partnerCode) {
+        return res.status(400).json({
+          error: "We couldn't find that partner code. Check it, or leave the field empty.",
+          errors: [{ path: 'partnerCode', msg: "We couldn't find that partner code. Check it, or leave the field empty." }],
+        });
+      }
+      // A stale legacy code (no longer matching anyone) is ignored, as before.
+      if (partner) referralCode = partner.partnerCode || partner.referralCode;
+    }
 
     const otp = generateOTP();
     const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
@@ -101,9 +118,10 @@ router.post('/verify-signup-otp', [
     const existing = await User.findOne({ email });
     if (existing) return res.status(409).json({ error: 'Email already registered' });
 
+    // The partner whose code was entered (a partner code, or a legacy referral code).
     let referredById = null;
     if (referralCode) {
-      const parent = await User.findOne({ referralCode: referralCode.toUpperCase() });
+      const parent = await findPartnerByCode(referralCode);
       if (parent) referredById = parent._id;
     }
 

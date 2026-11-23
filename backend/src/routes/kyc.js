@@ -8,6 +8,7 @@ const { kycUpload } = require('../middleware/upload');
 const { logActivity } = require('../utils/activity');
 const { encryptSensitiveValue, decryptSensitiveValue } = require('../utils/sensitiveData');
 const { sendKYCSubmissionNotificationEmail, sendKYCSubmissionReceivedEmail, sendUserKYCStatusEmail } = require('../utils/email');
+const { issuePartnerCode, getReferralConfig } = require('../utils/partners');
 
 const router = express.Router();
 const privateKycDirectory = path.join(__dirname, '../../private_uploads/kyc');
@@ -374,12 +375,24 @@ router.put('/admin/submissions/:id', authenticate, requireAdmin, [
     ).populate('userId', 'firstName lastName email');
     if (!submission) return res.status(404).json({ error: 'Verification submission not found' });
     await logActivity(req.user.id, 'KYC_REVIEWED', { submissionId: submission.id, status: submission.status }, req);
+    // Approval makes the client a partner: their code goes in the welcome email. A failure here
+    // must not undo the approval; the code is then issued when they open the partner page.
+    let partner = null;
+    if (submission.status === 'approved') {
+      try {
+        const [code, config] = await Promise.all([issuePartnerCode(submission.userId._id), getReferralConfig()]);
+        partner = { code, percent: config.percent };
+      } catch (error) {
+        console.error('Partner code issue failed:', error.message);
+      }
+    }
     sendUserKYCStatusEmail({
       userEmail: submission.userId.email,
       firstName: submission.userId.firstName,
       status: submission.status,
       rejectionReason: submission.rejectionReason,
       submission,
+      partner,
     }).catch((error) => console.error('KYC status email failed:', error.message));
     res.json({
       message: submission.status === 'approved'

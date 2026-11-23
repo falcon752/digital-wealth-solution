@@ -119,7 +119,7 @@ const consultation = {
 };
 
 const samples = [
-  ['Client: KYC approved (welcome)', () => email.sendUserKYCStatusEmail({ userEmail: TO, firstName: 'Tom', status: 'approved', submission: kycSubmission })],
+  ['Client: KYC approved (welcome, with partner code)', () => email.sendUserKYCStatusEmail({ userEmail: TO, firstName: 'Tom', status: 'approved', submission: kycSubmission, partner: { code: 'DWP-7K2M9Q', percent: 10 } })],
   ['Client: KYC needs attention', () => email.sendUserKYCStatusEmail({ userEmail: TO, firstName: 'Tom', status: 'rejected', rejectionReason: 'Your proof of address is older than 90 days. Please upload a utility bill or bank statement from the last 90 days.', submission: kycSubmission })],
   ['Client: payment accepted, account active (KYC steps)', () => email.sendPaymentProofClientEmail({ type: 'approved', proof, accountActive: true })],
   ['Client: sign-up code', () => email.sendSignupOTPEmail(TO, 'Tom', '482913')],

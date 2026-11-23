@@ -4,7 +4,8 @@
  * The client dashboard's top bar. On a computer it is a quiet strip above the page (Anchorage puts
  * its titles in the page itself): the page name on the left, the theme switch, notifications and
  * the account on the right. On a phone it follows Anchorage's app: the menu or back arrow on the
- * left, the title centred, notifications on the right.
+ * left, the title centred, the advisor and notifications on the right. The Advisor button opens the
+ * client's advisor card (AdvisorDrawer.tsx), like the "your banker" button in banking apps.
  */
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -13,6 +14,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useSidebar } from '@/context/SidebarContext';
 import { cn } from '@/lib/utils';
 import ThemeToggle from './ThemeToggle';
+import AdvisorButton from './AdvisorDrawer';
 
 interface Tab {
   label: string;
@@ -41,7 +43,7 @@ export default function DashboardHeader({ title, subtitle, tabs, backHref, bread
 
   return (
     <header className="sticky top-0 z-20 border-b border-cd-line bg-cd-page/90 backdrop-blur-md lg:border-transparent lg:bg-cd-page">
-      <div className="grid h-14 grid-cols-[44px_1fr_auto] items-center gap-2 px-3 lg:flex lg:h-16 lg:justify-between lg:px-10">
+      <div className="grid h-14 grid-cols-[84px_1fr_84px] items-center gap-2 px-3 lg:flex lg:h-16 lg:justify-between lg:px-10">
         {/* Phone: menu or back */}
         <div className="lg:hidden">
           {backHref ? (
@@ -91,6 +93,7 @@ export default function DashboardHeader({ title, subtitle, tabs, backHref, bread
 
         <div className="flex items-center justify-end gap-1 lg:gap-2">
           <span className="hidden sm:block"><ThemeToggle /></span>
+          {user?.role === 'user' && <AdvisorButton />}
           <Link
             href="/dashboard/notifications"
             className="flex h-10 w-10 items-center justify-center rounded-md text-cd-text hover:bg-cd-raised"
