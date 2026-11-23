@@ -65,6 +65,10 @@ const authLimiter = rateLimit({
   message: { error: 'Too many authentication attempts, please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,
+  // This strict limit is for sign-in, sign-up, OTP and password attempts. The session check
+  // (GET /api/auth/me) runs on every page load, and many people share one IP behind mobile
+  // carriers, so counting it here signed real users out. The global limit still applies to it.
+  skip: (req) => req.method === 'GET' && req.path === '/me',
 });
 
 app.use('/api/', globalLimiter);

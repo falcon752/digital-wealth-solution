@@ -15,6 +15,12 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+/** True when the API says the token is no good (401/403), not for 429s, network or server errors. */
+function isSessionRejected(err: unknown): boolean {
+  const status = (err as { response?: { status?: number } })?.response?.status;
+  return status === 401 || status === 403;
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
@@ -42,7 +48,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem('dws_user', JSON.stringify(res.data.user));
       return res.data.user;
     } catch (err) {
-      logout();
+      // Only a real "not signed in" answer ends the session; a rate limit, network blip or
+      // server error keeps the person signed in with what we already know.
+      if (isSessionRejected(err)) logout();
       throw err;
     }
   }, [logout]);
@@ -74,8 +82,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setUser(res.data.user);
             localStorage.setItem('dws_user', JSON.stringify(res.data.user));
           })
-          .catch(() => {
-            // Token expired or invalid, log out
+          .catch((err) => {
+            // Token expired or invalid: log out. Anything else (rate limit, offline, server
+            // error) keeps the stored session; the next request tries again.
+            if (!isSessionRejected(err)) return;
             localStorage.removeItem('dws_token');
             localStorage.removeItem('dws_user');
             setToken(null);
