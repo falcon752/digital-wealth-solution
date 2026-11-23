@@ -1,23 +1,77 @@
 'use client';
 
+/**
+ * Lend & Invest overview, laid out like an Anchorage vault: the title with "New loan or invest" on
+ * the right, three figures (active loans, locked collateral, active deposits), then the client's
+ * loans and invest deposits as tables under grey column bands.
+ */
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Coins, HandCoins, PiggyBank, Plus, X } from 'lucide-react';
 import { loansAPI, earnsAPI, assetsAPI } from '@/lib/api';
 import DashboardHeader from '@/components/layout/DashboardHeader';
-import { formatCurrency } from '@/lib/utils';
+import { APP_TIMEZONE } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
-import { CircleDollarSign, PiggyBank, ArrowRightLeft, X, Plus } from 'lucide-react';
-import Button from '@/components/ui/Button';
+import { ActionButton, AssetIcon, Card, EmptyState, Money, PageHeader, Skeleton, StatusPill, TableHead, formatAmount } from '@/components/client/ui';
+
+type LoanRow = {
+  id?: string; _id?: string; status: string; createdAt?: string;
+  loanAsset?: string; loanAmount?: number; collateralAsset?: string; collateralAmount?: number; ltv?: number; apr?: number;
+};
+type EarnRow = {
+  id?: string; _id?: string; status: string; createdAt?: string;
+  asset?: string; amount?: number; apy?: number; monthlyReward?: number; term?: string;
+};
+
+const LOAN_GRID = 'grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1.2fr)_0.6fr_0.8fr]';
+const EARN_GRID = 'grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 sm:grid-cols-[minmax(0,1.4fr)_0.6fr_minmax(0,1.2fr)_0.8fr]';
+
+function shortDate(date?: string) {
+  if (!date) return '';
+  return new Date(date).toLocaleDateString('en-US', { timeZone: APP_TIMEZONE, month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function pct(value?: number) {
+  if (value === undefined || value === null) return '—';
+  return `${+(value * 100).toFixed(2)}%`;
+}
+
+function Stat({ label, value, loading, className }: { label: string; value: number; loading: boolean; className?: string }) {
+  return (
+    <Card className={className} bodyClassName="p-4 sm:p-5">
+      <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-cd-muted">{label}</p>
+      {loading ? (
+        <Skeleton className="mt-3 h-8 w-36" />
+      ) : (
+        <Money value={value} className="mt-2 block truncate text-[22px] font-light leading-tight text-cd-text sm:text-[30px]" />
+      )}
+    </Card>
+  );
+}
+
+function ListSkeleton() {
+  return (
+    <div className="space-y-4 px-3 py-4">
+      {[0, 1].map((i) => (
+        <div key={i} className="flex items-center gap-3.5">
+          <Skeleton className="h-8 w-8 rounded-full" />
+          <div className="flex-1 space-y-2"><Skeleton className="h-3.5 w-40" /><Skeleton className="h-3 w-20" /></div>
+          <Skeleton className="h-5 w-20 rounded-full" />
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function FinanceDashboardPage() {
   const { user } = useAuth();
-  const router = useRouter();
-  
+
   const [stats, setStats] = useState({
     activeLoansUsd: 0,
     activeCollateralUsd: 0,
     activeEarningsUsd: 0,
   });
+  const [loanRows, setLoanRows] = useState<LoanRow[]>([]);
+  const [earnRows, setEarnRows] = useState<EarnRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [bannerVisible, setBannerVisible] = useState(true);
 
@@ -51,6 +105,8 @@ export default function FinanceDashboardPage() {
           activeCollateralUsd,
           activeEarningsUsd,
         });
+        setLoanRows(loans);
+        setEarnRows(earns);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -58,95 +114,151 @@ export default function FinanceDashboardPage() {
 
   useEffect(() => { load(); }, []);
 
+  const newAction = (
+    <ActionButton href="/dashboard/lending" variant="primary" icon={Plus}>New loan or invest</ActionButton>
+  );
+
   return (
-    <div className="flex flex-col min-h-full pb-20 bg-cd-page">
-      <DashboardHeader title="Finance Dashboard" logo="dwp" />
+    <div className="min-h-full">
+      <DashboardHeader title="Lend & Invest" breadcrumb />
 
-      {/* Dismissable Purple Banner */}
-      {bannerVisible && (
-        <div className="bg-cd-accent text-white px-4 py-3 flex items-start justify-between">
-          <p className="text-[13px] font-medium leading-relaxed pr-4">
-            👋 <span className="font-semibold">Welcome, {user?.firstName || ''}!</span> Manage your active crypto loans, collateral, and earnings.
-          </p>
-          <button onClick={() => setBannerVisible(false)} className="mt-0.5 text-white/80 hover:text-white shrink-0">
-            <X size={16} strokeWidth={2.5} />
-          </button>
-        </div>
-      )}
+      <div className="mx-auto w-full max-w-[1180px] px-4 pb-12 pt-5 sm:px-6 lg:px-10 lg:pt-3">
+        <PageHeader
+          icon={Coins}
+          title="Lend & Invest"
+          titleOnPhone={false}
+          meta={['Your crypto-backed loans and interest deposits']}
+          actions={<div className="hidden lg:flex">{newAction}</div>}
+        />
 
-      <div className="flex-1 p-5 space-y-6">
-        
-        {/* Page heading */}
-        <div className="pt-2">
-          <h2 className="text-[22px] font-semibold text-cd-text leading-tight mb-1">Loan & Invest Overview</h2>
-          <p className="text-[14px] font-medium text-cd-muted leading-relaxed">
-            Track your borrowed assets and passive income deposits.
-          </p>
-        </div>
-
-        {loading ? (
-          <div className="flex items-center justify-center h-48">
-            <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {/* Stat Cards - Grid */}
-            <div className="grid grid-cols-2 gap-4">
-              
-              {/* Active Loans */}
-              <div className="bg-cd-card rounded-xl border border-cd-line p-5 flex flex-col items-center justify-center gap-3 shadow-sm">
-                <div className="w-10 h-10 rounded-full bg-[#eff6ff] dark:bg-blue-900/30 flex items-center justify-center shrink-0">
-                  <ArrowRightLeft size={18} className="text-cd-accent-text" strokeWidth={2.5} />
-                </div>
-                <div className="text-center">
-                  <p className="text-[18px] font-semibold text-cd-text leading-none mb-1">
-                    {formatCurrency(stats.activeLoansUsd)}
-                  </p>
-                  <p className="text-[13px] font-medium text-cd-muted">Active Loans</p>
-                </div>
-              </div>
-
-              {/* Active Collateral */}
-              <div className="bg-cd-card rounded-xl border border-cd-line p-5 flex flex-col items-center justify-center gap-3 shadow-sm">
-                <div className="w-10 h-10 rounded-full bg-[#fef2f2] dark:bg-red-900/30 flex items-center justify-center shrink-0">
-                  <CircleDollarSign size={18} className="text-[#ef4444]" strokeWidth={2.5} />
-                </div>
-                <div className="text-center">
-                  <p className="text-[18px] font-semibold text-cd-text leading-none mb-1">
-                    {formatCurrency(stats.activeCollateralUsd)}
-                  </p>
-                  <p className="text-[13px] font-medium text-cd-muted">Locked Collateral</p>
-                </div>
-              </div>
-
-              {/* Active Earnings */}
-              <div className="col-span-2 bg-cd-card rounded-xl border border-cd-line p-5 flex flex-col items-center justify-center gap-3 shadow-sm">
-                <div className="w-10 h-10 rounded-full bg-[#ecfdf5] dark:bg-green-900/30 flex items-center justify-center shrink-0">
-                  <PiggyBank size={18} className="text-[#10b981]" strokeWidth={2.5} />
-                </div>
-                <div className="text-center">
-                  <p className="text-[20px] font-semibold text-cd-text leading-none mb-1">
-                    {formatCurrency(stats.activeEarningsUsd)}
-                  </p>
-                  <p className="text-[13px] font-medium text-cd-muted">Active Deposits (Earnings)</p>
-                </div>
-              </div>
-
-            </div>
-
-            {/* Action Button */}
-            <div className="pt-2">
-              <Button 
-                onClick={() => router.push('/dashboard/lending')} 
-                className="w-full h-14 text-[16px] font-semibold rounded-xl flex items-center justify-center gap-2"
-              >
-                <Plus size={20} />
-                New Loan or Invest
-              </Button>
-            </div>
+        {bannerVisible && (
+          <div className="mt-6 flex items-start justify-between gap-4 rounded-md bg-cd-raised px-4 py-3">
+            <p className="text-[13.5px] leading-relaxed text-cd-muted">
+              <span className="font-medium text-cd-text">Welcome{user?.firstName ? `, ${user.firstName}` : ''}.</span>{' '}
+              Manage your active crypto loans, collateral, and earnings.
+            </p>
+            <button
+              type="button"
+              onClick={() => setBannerVisible(false)}
+              aria-label="Dismiss"
+              className="-mr-1 shrink-0 rounded p-1 text-cd-muted hover:bg-cd-band hover:text-cd-text"
+            >
+              <X size={15} strokeWidth={1.75} />
+            </button>
           </div>
         )}
 
+        {/* Figures */}
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+          <Stat label="Active loans" value={stats.activeLoansUsd} loading={loading} />
+          <Stat label="Locked collateral" value={stats.activeCollateralUsd} loading={loading} />
+          <Stat label="Active deposits" value={stats.activeEarningsUsd} loading={loading} className="col-span-2 sm:col-span-1" />
+        </div>
+
+        <div className="mt-5 lg:hidden">
+          <ActionButton href="/dashboard/lending" variant="primary" icon={Plus} className="h-11 w-full">New loan or invest</ActionButton>
+        </div>
+
+        <div className="mt-8 space-y-5 lg:mt-10">
+          {/* Loans */}
+          <Card title="Loans">
+            {loading ? (
+              <ListSkeleton />
+            ) : loanRows.length === 0 ? (
+              <EmptyState
+                icon={HandCoins}
+                title="No loans yet"
+                text="Borrow stablecoins against your crypto without selling it."
+                action={<ActionButton href="/dashboard/lending">Get a loan</ActionButton>}
+              />
+            ) : (
+              <div>
+                <TableHead className={LOAN_GRID}>
+                  <span>Loan</span>
+                  <span className="text-right sm:text-left"><span className="sm:hidden">Status</span><span className="hidden sm:inline">Collateral</span></span>
+                  <span className="hidden text-right sm:block">APR</span>
+                  <span className="hidden text-right sm:block">Status</span>
+                </TableHead>
+                <ul>
+                  {loanRows.map((loan, i) => {
+                    const symbol = (loan.loanAsset || '').toUpperCase();
+                    const collateral = (loan.collateralAsset || '').toUpperCase();
+                    return (
+                      <li key={loan.id || loan._id || i} className={`${LOAN_GRID} border-b border-cd-line px-3 py-4 last:border-b-0 sm:px-4`}>
+                        <div className="flex min-w-0 items-center gap-3.5">
+                          <AssetIcon symbol={symbol || '?'} size={30} />
+                          <div className="min-w-0">
+                            <p className="cd-num truncate text-[14px] font-medium text-cd-text">{formatAmount(loan.loanAmount || 0, symbol)}</p>
+                            <p className="cd-num mt-0.5 truncate text-[12px] text-cd-muted">
+                              <span className="sm:hidden">{formatAmount(loan.collateralAmount || 0, collateral)} collateral</span>
+                              <span className="hidden sm:inline">{shortDate(loan.createdAt)}</span>
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right sm:hidden"><StatusPill status={loan.status} /></div>
+                        <div className="hidden min-w-0 sm:block">
+                          <p className="cd-num truncate text-[14px] text-cd-text">{formatAmount(loan.collateralAmount || 0, collateral)}</p>
+                          <p className="cd-num mt-0.5 text-[12px] text-cd-muted">{pct(loan.ltv)} LTV</p>
+                        </div>
+                        <p className="cd-num hidden text-right text-[14px] text-cd-text sm:block">{pct(loan.apr)}</p>
+                        <div className="hidden text-right sm:block"><StatusPill status={loan.status} /></div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+          </Card>
+
+          {/* Invest deposits */}
+          <Card title="Invest deposits">
+            {loading ? (
+              <ListSkeleton />
+            ) : earnRows.length === 0 ? (
+              <EmptyState
+                icon={PiggyBank}
+                title="No deposits yet"
+                text="Put idle crypto to work and earn a daily reward."
+                action={<ActionButton href="/dashboard/lending">Start earning</ActionButton>}
+              />
+            ) : (
+              <div>
+                <TableHead className={EARN_GRID}>
+                  <span>Deposit</span>
+                  <span className="text-right sm:text-left"><span className="sm:hidden">Status</span><span className="hidden sm:inline">APY</span></span>
+                  <span className="hidden sm:block">Monthly reward</span>
+                  <span className="hidden text-right sm:block">Status</span>
+                </TableHead>
+                <ul>
+                  {earnRows.map((earn, i) => {
+                    const symbol = (earn.asset || '').toUpperCase();
+                    return (
+                      <li key={earn.id || earn._id || i} className={`${EARN_GRID} border-b border-cd-line px-3 py-4 last:border-b-0 sm:px-4`}>
+                        <div className="flex min-w-0 items-center gap-3.5">
+                          <AssetIcon symbol={symbol || '?'} size={30} />
+                          <div className="min-w-0">
+                            <p className="cd-num truncate text-[14px] font-medium text-cd-text">{formatAmount(earn.amount || 0, symbol)}</p>
+                            <p className="cd-num mt-0.5 truncate text-[12px] text-cd-muted">
+                              <span className="sm:hidden">{pct(earn.apy)} APY · </span>
+                              {shortDate(earn.createdAt)}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right sm:hidden"><StatusPill status={earn.status} /></div>
+                        <p className="cd-num hidden text-[14px] text-cd-text sm:block">{pct(earn.apy)}</p>
+                        <div className="hidden min-w-0 sm:block">
+                          <p className="cd-num truncate text-[14px] text-cd-text">{formatAmount(earn.monthlyReward || 0, symbol)}</p>
+                          {earn.term && <p className="mt-0.5 text-[12px] text-cd-muted">{earn.term} term</p>}
+                        </div>
+                        <div className="hidden text-right sm:block"><StatusPill status={earn.status} /></div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+          </Card>
+        </div>
       </div>
     </div>
   );

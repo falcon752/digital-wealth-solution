@@ -1,13 +1,19 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+/**
+ * Buy crypto through an outside provider or exchange. Laid out like the Convert page: the asset and
+ * a large USD amount in grey fields, the wallet the coins will land in, the provider tiles, then a
+ * short label/value summary above one full-width action that opens the provider in a new tab.
+ */
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
+import { ArrowUpRight, Check, CheckCircle2, ChevronDown, Copy, X, Zap } from 'lucide-react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { assetsAPI } from '@/lib/api';
 import { Asset } from '@/types';
-import { ArrowUpRight, CheckCircle2, ChevronDown } from 'lucide-react';
-import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
+import { cn, formatCurrency } from '@/lib/utils';
+import { ActionButton, AssetIcon, AssetName, Card, PageHeader, Tabs, formatPrice } from '@/components/client/ui';
 
 type ProviderType = 'provider' | 'exchange';
 type ProviderId = 'MoonPay' | 'Transak' | 'Simplex' | 'Ramp' | 'Coinbase' | 'Gemini' | 'Uphold' | 'Kraken';
@@ -50,12 +56,94 @@ function providerUrl(provider: ProviderId, asset: Asset, amount: string) {
 
 function PlatformLogo({ item }: { item: Platform }) {
   return (
-    <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 bg-cd-raised flex items-center justify-center border border-cd-line shadow-sm">
-      <img
-        src={item.icon}
-        alt={item.id}
-        className="w-full h-full object-cover"
-      />
+    <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-cd-raised">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={item.icon} alt="" className="h-full w-full object-cover" />
+    </span>
+  );
+}
+
+/** Convert and Buy share the Trade section; these tabs move between them. */
+function TradeTabs({ value }: { value: 'swap' | 'buy' }) {
+  const router = useRouter();
+  return (
+    <Tabs
+      className="mt-6"
+      tabs={[{ value: 'swap', label: 'Convert' }, { value: 'buy', label: 'Buy' }]}
+      value={value}
+      onChange={(next) => { if (next !== value) router.push(`/dashboard/${next}`); }}
+    />
+  );
+}
+
+/** A small dialog in the dashboard's colours: a sheet from the bottom on a phone, centred on a computer. */
+function Sheet({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: ReactNode }) {
+  useEffect(() => {
+    if (!open) return;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [open, onClose]);
+
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-label={title}>
+      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
+      <div className="relative flex max-h-[85vh] w-full flex-col rounded-t-xl border border-cd-line bg-cd-card sm:max-w-[440px] sm:rounded-lg">
+        <div className="flex items-center justify-between px-5 pb-3 pt-4">
+          <h2 className="text-[16px] font-medium text-cd-text">{title}</h2>
+          <button type="button" onClick={onClose} aria-label="Close" className="-mr-2 rounded-md p-2 text-cd-muted hover:bg-cd-raised hover:text-cd-text">
+            <X size={18} strokeWidth={1.75} />
+          </button>
+        </div>
+        <div className="overflow-y-auto px-2 pb-3">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+function FieldLabel({ children }: { children: ReactNode }) {
+  return <p className="mb-2 text-[13px] text-cd-muted">{children}</p>;
+}
+
+function PlatformGrid({ items, provider, setProvider }: { items: Platform[]; provider: ProviderId; setProvider: (id: ProviderId) => void }) {
+  return (
+    <div className="grid grid-cols-2 gap-2.5">
+      {items.map((item) => {
+        const active = item.id === provider;
+        return (
+          <button
+            key={item.id}
+            type="button"
+            onClick={() => setProvider(item.id)}
+            aria-pressed={active}
+            className={cn(
+              'flex min-w-0 items-center gap-2.5 rounded-md border px-3 py-2.5 text-left transition-colors',
+              active ? 'border-cd-accent bg-cd-accent-soft' : 'border-cd-line hover:bg-cd-raised',
+            )}
+          >
+            <PlatformLogo item={item} />
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[14px] font-medium text-cd-text">{item.id}</span>
+              <span className="block truncate text-[12px] text-cd-muted">{item.type === 'provider' ? 'Card or bank' : 'Exchange login'}</span>
+            </span>
+            {active && <CheckCircle2 size={16} strokeWidth={1.75} className="hidden shrink-0 text-cd-accent-text sm:block" />}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function DetailRow({ label, children, strong = false }: { label: string; children: ReactNode; strong?: boolean }) {
+  return (
+    <div className="flex items-start justify-between gap-4 border-t border-cd-line py-3.5 first:border-t-0">
+      <span className="text-[13.5px] text-cd-muted">{label}</span>
+      <span className={cn('cd-num text-right text-[14px] text-cd-text', strong && 'font-medium')}>{children}</span>
     </div>
   );
 }
@@ -98,148 +186,133 @@ export default function BuyCryptoPage() {
     window.open(providerUrl(provider, selectedAsset, amount), '_blank', 'noopener,noreferrer');
   };
 
-  return (
-    <div className="flex flex-col min-h-screen pb-20 bg-cd-page">
-      <DashboardHeader title="Buy Crypto" backHref="/dashboard/wallet" logo="dwp" />
+  const symbol = selectedAsset?.symbol?.toUpperCase() || '';
 
-      <div className="flex-1 p-4 mt-6">
-        <div className="w-full max-w-md mx-auto">
-          <section className="bg-cd-card rounded-xl shadow-sm border border-cd-line p-5">
-            <h2 className="text-lg font-semibold text-cd-text mb-5">Buy crypto</h2>
-            <div className="space-y-5">
-              <div>
-                <p className="text-xs font-semibold uppercase text-cd-muted mb-2">Asset</p>
+  return (
+    <div className="min-h-full">
+      <DashboardHeader title="Buy" breadcrumb />
+
+      <div className="mx-auto w-full max-w-[1180px] px-4 pb-12 pt-5 sm:px-6 lg:px-10 lg:pt-3">
+        <div className="mx-auto w-full max-w-[600px]">
+          <PageHeader
+            icon={Zap}
+            title="Buy crypto"
+            titleOnPhone={false}
+            meta={['Pay by card or bank through a trusted provider']}
+          />
+
+          <TradeTabs value="buy" />
+
+          <Card className="mt-5" bodyClassName="p-4 sm:p-6">
+            {/* Asset */}
+            <FieldLabel>Asset</FieldLabel>
+            <button
+              type="button"
+              onClick={() => setIsAssetModalOpen(true)}
+              className="flex w-full items-center gap-3 rounded-md bg-cd-input px-3.5 py-3 text-left transition-colors hover:bg-cd-raised sm:px-4"
+            >
+              {selectedAsset ? <AssetIcon symbol={selectedAsset.symbol} size={30} /> : <span className="h-[30px] w-[30px] rounded-full bg-cd-raised" />}
+              <span className="min-w-0 flex-1">
+                {selectedAsset ? (
+                  <AssetName symbol={symbol} name={selectedAsset.name} network={selectedAsset.network} />
+                ) : (
+                  <span className="text-[14px] text-cd-faint">Select asset</span>
+                )}
+              </span>
+              <ChevronDown size={17} strokeWidth={1.75} className="shrink-0 text-cd-muted" />
+            </button>
+
+            {/* Amount */}
+            <div className="mt-5">
+              <FieldLabel>Amount</FieldLabel>
+              <label className="flex items-center gap-2 rounded-md bg-cd-input px-3.5 py-3 sm:px-4">
+                <span className="text-[26px] font-light text-cd-muted sm:text-[30px]">$</span>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  min="0"
+                  value={amount}
+                  onChange={(event) => setAmount(event.target.value)}
+                  aria-label="Amount in US dollars"
+                  className="cd-num min-w-0 flex-1 bg-transparent text-[26px] font-light leading-tight text-cd-text placeholder:text-cd-faint focus:outline-none [appearance:textfield] sm:text-[30px] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  placeholder="0"
+                />
+                <span className="text-[14px] text-cd-muted">USD</span>
+              </label>
+              <p className="cd-num mt-2 px-1 text-[12.5px] text-cd-muted">≈ {estimatedAmount} {symbol}</p>
+            </div>
+
+            {/* Destination */}
+            <div className="mt-5">
+              <FieldLabel>Destination address</FieldLabel>
+              <div className="flex items-center justify-between gap-3 rounded-md bg-cd-input px-3.5 py-3 sm:px-4">
+                <span className="min-w-0 truncate font-mono text-[13px] text-cd-text">
+                  {selectedAsset?.walletAddress || <span className="font-sans text-cd-faint">No address available</span>}
+                </span>
                 <button
-                  onClick={() => setIsAssetModalOpen(true)}
-                  className="w-full flex items-center justify-between rounded-xl bg-cd-raised px-4 py-3 text-left"
+                  type="button"
+                  onClick={() => {
+                    if (selectedAsset?.walletAddress) {
+                      navigator.clipboard.writeText(selectedAsset.walletAddress);
+                      toast.success('Address copied!');
+                    }
+                  }}
+                  className="flex shrink-0 items-center gap-1.5 text-[13px] font-medium text-cd-accent-text hover:underline"
                 >
-                  <div>
-                    <p className="text-sm font-semibold text-cd-text">{selectedAsset?.name || 'Select asset'}</p>
-                    <p className="text-xs text-cd-muted">{selectedAsset?.symbol || 'Asset'}</p>
-                  </div>
-                  <ChevronDown size={18} className="text-gray-400" />
+                  <Copy size={14} strokeWidth={1.75} />
+                  Copy
                 </button>
               </div>
-
-              <div>
-                <p className="text-xs font-semibold uppercase text-cd-muted mb-2">Destination Address</p>
-                <div className="flex items-center justify-between rounded-xl bg-cd-raised px-4 py-3">
-                  <span className="text-sm font-medium text-cd-text truncate pr-4 font-mono">
-                    {selectedAsset?.walletAddress || 'No address available'}
-                  </span>
-                  <button
-                    onClick={() => {
-                      if (selectedAsset?.walletAddress) {
-                        navigator.clipboard.writeText(selectedAsset.walletAddress);
-                        toast.success('Address copied!');
-                      }
-                    }}
-                    className="text-cd-accent-text hover:text-[#2d68d8]/80 text-sm font-semibold transition"
-                  >
-                    Copy
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <p className="text-xs font-semibold uppercase text-cd-muted mb-2">Amount</p>
-                <div className="flex items-center rounded-xl bg-cd-raised px-4 py-3">
-                  <span className="text-gray-400 mr-2">$</span>
-                  <input
-                    type="number"
-                    min="0"
-                    value={amount}
-                    onChange={(event) => setAmount(event.target.value)}
-                    className="w-full bg-transparent text-3xl font-semibold text-cd-text outline-none"
-                    placeholder="0"
-                  />
-                </div>
-                <p className="text-xs text-cd-muted mt-2">Estimated {estimatedAmount} {selectedAsset?.symbol}</p>
-              </div>
-
-              <div>
-                <p className="text-xs font-semibold uppercase text-cd-muted mb-2">Exchange Provider</p>
-                <div className="grid grid-cols-2 gap-2">
-                  {PURCHASE_PROVIDERS.map((item) => {
-                    const active = item.id === provider;
-                    return (
-                      <button
-                        key={item.id}
-                        onClick={() => setProvider(item.id)}
-                        className={`flex items-center justify-between rounded-xl border px-3 py-3 text-left transition ${
-                          active ? 'border-cd-accent bg-cd-accent-soft' : 'border-cd-line hover:bg-cd-raised'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2">
-                          <PlatformLogo item={item} />
-                          <div>
-                            <p className="text-sm font-semibold text-cd-text">{item.id}</p>
-                            <p className="text-[11px] capitalize text-cd-muted">{item.type}</p>
-                          </div>
-                        </div>
-                        {active && <CheckCircle2 size={16} className="text-cd-accent-text" />}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div>
-                <p className="text-xs font-semibold uppercase text-cd-muted mb-2">Exchange</p>
-                <div className="grid grid-cols-2 gap-2">
-                  {EXCHANGES.map((item) => {
-                    const active = item.id === provider;
-                    return (
-                      <button
-                        key={item.id}
-                        onClick={() => setProvider(item.id)}
-                        className={`flex items-center justify-between rounded-xl border px-3 py-3 text-left transition ${
-                          active ? 'border-cd-accent bg-cd-accent-soft' : 'border-cd-line hover:bg-cd-raised'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2">
-                          <PlatformLogo item={item} />
-                          <div>
-                            <p className="text-sm font-semibold text-cd-text">{item.id}</p>
-                            <p className="text-[11px] text-cd-muted">Exchange login</p>
-                          </div>
-                        </div>
-                        {active && <CheckCircle2 size={16} className="text-cd-accent-text" />}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <Button onClick={openProvider} className="w-full h-14 bg-cd-accent hover:bg-blue-700 text-white">
-                Continue to {provider}
-                <ArrowUpRight size={17} />
-              </Button>
             </div>
-          </section>
+
+            {/* Providers */}
+            <div className="mt-6">
+              <FieldLabel>Payment provider</FieldLabel>
+              <PlatformGrid items={PURCHASE_PROVIDERS} provider={provider} setProvider={setProvider} />
+            </div>
+            <div className="mt-5">
+              <FieldLabel>Or buy on an exchange</FieldLabel>
+              <PlatformGrid items={EXCHANGES} provider={provider} setProvider={setProvider} />
+            </div>
+
+            {/* Summary */}
+            <div className="mt-6 border-t border-cd-line pt-1">
+              <DetailRow label="Price">{selectedAsset ? `${formatPrice(currentPrice)} / ${symbol}` : '—'}</DetailRow>
+              <DetailRow label="You pay">{formatCurrency(usdValue || 0)}</DetailRow>
+              <DetailRow label="You'll receive (est.)" strong>{estimatedAmount} {symbol}</DetailRow>
+            </div>
+
+            <ActionButton variant="primary" onClick={openProvider} className="mt-5 h-12 w-full text-[15px]">
+              Continue to {provider}
+              <ArrowUpRight size={17} strokeWidth={1.75} />
+            </ActionButton>
+            <p className="mt-3 text-center text-[12px] text-cd-faint">Opens {provider} in a new tab.</p>
+          </Card>
         </div>
       </div>
 
-      <Modal isOpen={isAssetModalOpen} onClose={() => setIsAssetModalOpen(false)} title="Select Asset">
-        <div className="space-y-1 max-h-[60vh] overflow-y-auto pr-1">
+      <Sheet open={isAssetModalOpen} onClose={() => setIsAssetModalOpen(false)} title="Select asset">
+        <ul>
           {assets.map((asset) => (
-            <button
-              key={asset.id}
-              onClick={() => {
-                setSelectedAssetId(asset.id);
-                setIsAssetModalOpen(false);
-              }}
-              className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-cd-raised transition"
-            >
-              <div>
-                <span className="block font-semibold text-sm text-cd-text">{asset.name}</span>
-                <span className="block text-xs text-cd-muted">{asset.symbol}</span>
-              </div>
-              {selectedAssetId === asset.id && <CheckCircle2 size={18} className="text-blue-500" />}
-            </button>
+            <li key={asset.id}>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedAssetId(asset.id);
+                  setIsAssetModalOpen(false);
+                }}
+                className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left transition-colors hover:bg-cd-raised"
+              >
+                <AssetIcon symbol={asset.symbol} size={30} />
+                <span className="min-w-0 flex-1">
+                  <AssetName symbol={asset.symbol.toUpperCase()} name={asset.name} network={asset.network} />
+                </span>
+                {selectedAssetId === asset.id && <Check size={17} className="shrink-0 text-cd-accent-text" />}
+              </button>
+            </li>
           ))}
-        </div>
-      </Modal>
+        </ul>
+      </Sheet>
     </div>
   );
 }

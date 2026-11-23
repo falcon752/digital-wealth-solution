@@ -1,15 +1,101 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+/**
+ * The client's Wyoming LLC card. Without a card it shows the application: a quiet eligibility
+ * notice, the form with the fee as a label/value list, and a live preview of the card beside it.
+ * With a card it follows the account page: the title with the card's actions on the right, the card
+ * and its status on the left, its details and benefits on the right.
+ */
+import { useState, useEffect, type ReactNode } from 'react';
 import axios from 'axios';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
 import DashboardHeader from '@/components/layout/DashboardHeader';
-import Button from '@/components/ui/Button';
 import toast from 'react-hot-toast';
-import Modal from '@/components/ui/Modal';
-import { APP_TIMEZONE } from '@/lib/utils';
-import { CreditCard, CheckCircle2, Clock, ShieldCheck, CircleDollarSign, Globe, Lock, Copy, Info, Eye, EyeOff, PowerOff, Trash2 } from 'lucide-react';
+import { APP_TIMEZONE, cn } from '@/lib/utils';
+import { ActionButton, Card, PageHeader, Skeleton, StatusPill } from '@/components/client/ui';
+import { CreditCard, CheckCircle2, ChevronDown, Clock, ShieldCheck, CircleDollarSign, Globe, Lock, Copy, Info, Eye, EyeOff, Loader2, PowerOff, RefreshCw, Trash2, X } from 'lucide-react';
+
+const INPUT = 'h-11 w-full rounded-md border border-transparent bg-cd-input px-3.5 text-[14px] text-cd-text placeholder:text-cd-faint focus:border-cd-accent focus:outline-none';
+
+const BENEFITS = [
+  { title: 'Fraud Protection', description: '24/7 monitoring for suspicious activity', icon: ShieldCheck },
+  { title: 'Cashback Rewards', description: 'Earn up to 2% on all purchases', icon: CircleDollarSign },
+  { title: 'Global Acceptance', description: 'Use your card worldwide with no foreign fees', icon: Globe },
+  { title: 'Secure Transactions', description: 'Enhanced security with chip technology', icon: Lock },
+];
+
+function Benefits() {
+  return (
+    <Card title="Card benefits">
+      <ul className="px-2">
+        {BENEFITS.map((b) => (
+          <li key={b.title} className="flex items-center gap-3.5 border-b border-cd-line py-3.5 last:border-b-0">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-cd-accent-soft text-cd-accent-text">
+              <b.icon size={17} strokeWidth={1.75} />
+            </span>
+            <div className="min-w-0">
+              <p className="text-[14px] font-medium text-cd-text">{b.title}</p>
+              <p className="mt-0.5 text-[12.5px] text-cd-muted">{b.description}</p>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </Card>
+  );
+}
+
+/** The card itself. Its artwork keeps fixed colours so it looks like a physical card in either theme. */
+function CardArt({ holder, number, type }: { holder: string; number: string; type: string }) {
+  return (
+    <div className="relative aspect-[1.586/1] w-full max-w-[420px] overflow-hidden rounded-xl bg-gradient-to-br from-[#2a2c31] via-[#17181b] to-[#0b0b0c] p-5 text-white shadow-lg sm:p-6">
+      <div className="absolute -right-10 -top-10 h-56 w-56 rounded-full bg-[#5580F6]/15 blur-3xl" />
+      <div className="absolute inset-0 rounded-xl ring-1 ring-inset ring-white/10" />
+      <div className="relative z-10 flex h-full flex-col justify-between">
+        <div className="flex items-center justify-between">
+          <span className="text-[13px] font-medium tracking-[0.18em] text-white/70">WYOMING LLC</span>
+          <CreditCard size={22} strokeWidth={1.5} className="text-white/60" />
+        </div>
+        <div>
+          <span className="mb-4 block h-7 w-10 rounded-[5px] bg-gradient-to-br from-[#d9c38a] to-[#a68a4e] opacity-90" />
+          <p className="font-mono text-[19px] tracking-[0.14em] text-white/90 sm:text-[22px]">{number || '•••• •••• •••• ••••'}</p>
+          <div className="mt-4 flex items-end justify-between gap-3">
+            <div className="min-w-0">
+              <p className="mb-1 text-[10px] uppercase tracking-[0.12em] text-white/45">Card holder</p>
+              <p className="truncate text-[14px] font-medium uppercase tracking-wide">{holder}</p>
+            </div>
+            <p className="shrink-0 text-[17px] font-semibold italic text-white/80">{type}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** The dashboard's dialog: a sheet from the bottom on a phone, a centred panel on a computer. */
+function Sheet({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: ReactNode }) {
+  useEffect(() => {
+    if (!open) return;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, [open]);
+
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-label={title}>
+      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
+      <div className="relative flex max-h-[90vh] w-full flex-col rounded-t-xl border border-cd-line bg-cd-card sm:max-w-[520px] sm:rounded-lg">
+        <div className="flex items-center justify-between border-b border-cd-line px-5 py-4">
+          <h2 className="text-[16px] font-medium text-cd-text">{title}</h2>
+          <button type="button" onClick={onClose} aria-label="Close" className="-mr-2 rounded-md p-2 text-cd-muted hover:bg-cd-raised hover:text-cd-text">
+            <X size={18} strokeWidth={1.75} />
+          </button>
+        </div>
+        <div className="overflow-y-auto px-5 py-5">{children}</div>
+      </div>
+    </div>
+  );
+}
 
 type UserCard = {
   id: string;
@@ -180,10 +266,15 @@ export default function CardsPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col min-h-screen bg-cd-page">
-        <DashboardHeader title="Cards" logo="dwp" />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="min-h-full">
+        <DashboardHeader title="Cards" breadcrumb />
+        <div className="mx-auto w-full max-w-[1180px] px-4 pb-12 pt-5 sm:px-6 lg:px-10 lg:pt-3">
+          <Skeleton className="hidden h-8 w-48 lg:block" />
+          <Skeleton className="mx-auto mt-3 h-4 w-64 lg:mx-0" />
+          <div className="mt-8 grid gap-5 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
+            <Skeleton className="aspect-[1.586/1] w-full rounded-xl" />
+            <Skeleton className="h-64 w-full rounded-lg" />
+          </div>
         </div>
       </div>
     );
@@ -203,160 +294,94 @@ export default function CardsPage() {
       { label: 'Issued', value: formatCardDate(card.createdAt) },
       { label: 'Valid Thru', value: hideInfo ? '••/••' : getValidThru(card.createdAt), mono: true },
     ];
+    const status = isPending
+      ? { icon: Clock, tone: 'bg-cd-warning/10 text-cd-warning', title: 'Under Review', text: 'Your card application is currently being processed. This usually takes 1-2 business days.' }
+      : isApproved
+        ? { icon: CheckCircle2, tone: 'bg-cd-positive/10 text-cd-positive', title: 'Card Active', text: 'Your digital card is active and ready to use.' }
+        : isRejected
+          ? { icon: Clock, tone: 'bg-cd-negative/10 text-cd-negative', title: 'Application Rejected', text: card.adminNote || 'Unfortunately, your application could not be approved at this time.' }
+          : isDisabled
+            ? { icon: PowerOff, tone: 'bg-cd-raised text-cd-muted', title: 'Card Disabled', text: 'Your card has been disabled successfully and can no longer be used. You can delete it to apply for a new one.' }
+            : null;
+
+    const actions = (
+      <>
+        <ActionButton icon={hideInfo ? Eye : EyeOff} onClick={() => setHideInfo(!hideInfo)}>
+          {hideInfo ? 'Show info' : 'Hide info'}
+        </ActionButton>
+        <ActionButton
+          variant="ghost"
+          icon={PowerOff}
+          onClick={handleDisableCard}
+          disabled={card.status === 'disabled' || card.status === 'rejected'}
+          className="border-[1.5px] border-cd-line-strong text-cd-text hover:bg-cd-raised"
+        >
+          Disable
+        </ActionButton>
+        <button
+          type="button"
+          onClick={handleDeleteCard}
+          title="Delete card"
+          aria-label="Delete card"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-[4px] border-[1.5px] border-cd-line-strong text-cd-negative transition-colors hover:border-cd-negative hover:bg-cd-negative/10"
+        >
+          <Trash2 size={17} strokeWidth={1.75} />
+        </button>
+      </>
+    );
 
     return (
-      <div className="flex flex-col min-h-screen bg-cd-page pb-20">
-        <DashboardHeader title="Your Card" logo="dwp" />
-        
-        <div className="p-4 flex-1 flex flex-col items-center mt-6">
-          <div className="w-full max-w-sm aspect-[1.586/1] rounded-xl p-6 relative overflow-hidden shadow-xl bg-gradient-to-br from-gray-800 to-gray-900 text-white">
-            {/* Card Background elements */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
-            
-            <div className="relative z-10 h-full flex flex-col justify-between">
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium tracking-widest text-gray-300">Wyoming LLC</span>
-                <CreditCard size={24} className="text-gray-300 opacity-80" />
-              </div>
-              
-              <div className="space-y-4">
-                <div className="text-2xl font-mono tracking-widest text-gray-200">
-                  {hideInfo ? '•••• •••• •••• ••••' : card.cardNumber}
-                </div>
-                <div className="flex justify-between items-end">
-                  <div>
-                    <div className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Card Holder</div>
-                    <div className="font-medium tracking-wide uppercase">{hideInfo ? '••••••••••••' : card.cardHolderName}</div>
+      <div className="min-h-full">
+        <DashboardHeader title="Your Card" breadcrumb />
+
+        <div className="mx-auto w-full max-w-[1180px] px-4 pb-12 pt-5 sm:px-6 lg:px-10 lg:pt-3">
+          <PageHeader
+            icon={CreditCard}
+            title="Your Card"
+            titleOnPhone={false}
+            meta={[card.cardType, `Issued ${formatCardDate(card.createdAt)}`]}
+            actions={<div className="hidden gap-2.5 lg:flex">{actions}</div>}
+          />
+
+          <div className="mt-8 grid items-start gap-5 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
+            <div className="space-y-5">
+              <CardArt holder={hideInfo ? '••••••••••••' : card.cardHolderName} number={hideInfo ? '•••• •••• •••• ••••' : card.cardNumber} type={card.cardType} />
+
+              <div className="flex justify-center gap-2.5 lg:hidden">{actions}</div>
+
+              {status && (
+                <Card bodyClassName="p-4 sm:p-5">
+                  <div className="flex items-start gap-3.5">
+                    <span className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-full', status.tone)}>
+                      <status.icon size={19} strokeWidth={1.75} />
+                    </span>
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="text-[15px] font-medium text-cd-text">{status.title}</h3>
+                        <StatusPill status={card.status} />
+                      </div>
+                      <p className="mt-1 text-[13px] leading-relaxed text-cd-muted">{status.text}</p>
+                    </div>
                   </div>
-                  <div className="font-semibold italic text-lg opacity-80">
-                    {card.cardType}
-                  </div>
-                </div>
-              </div>
+                </Card>
+              )}
             </div>
-          </div>
 
-          <div className="w-full max-w-sm mt-5 bg-cd-card rounded-xl p-5 border border-cd-line shadow-sm">
-            <h3 className="font-semibold text-cd-text mb-4">Card Information</h3>
-            <div className="grid grid-cols-2 gap-3">
-              {cardInfo.map((item) => (
-                <div key={item.label} className="rounded-xl bg-cd-raised px-4 py-3">
-                  <div className="text-[11px] font-semibold uppercase tracking-wide text-cd-faint">
-                    {item.label}
-                  </div>
-                  <div className={`mt-1 text-sm font-semibold text-cd-text break-words ${item.mono ? 'font-mono' : ''}`}>
-                    {item.value}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+            <div className="space-y-5">
+              <Card title="Card information">
+                <dl className="px-2 sm:px-2">
+                  {cardInfo.map((item) => (
+                    <div key={item.label} className="flex items-center justify-between gap-4 border-b border-cd-line py-3.5 last:border-b-0">
+                      <dt className="text-[13.5px] text-cd-muted">{item.label}</dt>
+                      <dd className={cn('min-w-0 break-words text-right text-[14px] text-cd-text', item.mono && 'cd-num font-mono text-[13.5px]')}>
+                        {item.label === 'Status' ? <StatusPill status={card.status} /> : item.value}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              </Card>
 
-          <div className="w-full max-w-sm mt-4 flex gap-3">
-            <button
-              onClick={() => setHideInfo(!hideInfo)}
-              className="flex-[2] flex items-center justify-center gap-2 py-3 bg-cd-card border border-cd-line rounded-xl text-sm font-medium text-cd-text/85 shadow-sm hover:bg-cd-raised transition"
-            >
-              {hideInfo ? <Eye size={18} /> : <EyeOff size={18} />}
-              {hideInfo ? 'Show Info' : 'Hide Info'}
-            </button>
-            <button
-              onClick={handleDisableCard}
-              disabled={card.status === 'disabled' || card.status === 'rejected'}
-              className="flex-[2] flex items-center justify-center gap-2 py-3 bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/20 rounded-xl text-sm font-medium text-amber-600 dark:text-amber-400 shadow-sm hover:bg-amber-100 dark:hover:bg-amber-900/30 transition disabled:opacity-50"
-            >
-              <PowerOff size={18} />
-              Disable
-            </button>
-            <button
-              onClick={handleDeleteCard}
-              className="flex-1 flex items-center justify-center gap-2 py-3 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20 rounded-xl text-sm font-medium text-red-600 dark:text-red-400 shadow-sm hover:bg-red-100 dark:hover:bg-red-900/30 transition"
-              title="Delete Card"
-            >
-              <Trash2 size={18} />
-            </button>
-          </div>
-
-          <div className="w-full max-w-sm mt-6 bg-cd-card rounded-xl p-6 border border-cd-line shadow-sm">
-            <h3 className="font-semibold text-cd-text mb-4 text-center">Card Status</h3>
-            
-            {isPending && (
-              <div className="flex flex-col items-center text-center gap-3">
-                <div className="w-16 h-16 rounded-full bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center text-amber-500">
-                  <Clock size={32} />
-                </div>
-                <div>
-                  <h4 className="font-semibold text-cd-text">Under Review</h4>
-                  <p className="text-sm text-cd-muted mt-1">
-                    Your card application is currently being processed. This usually takes 1-2 business days.
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {isApproved && (
-              <div className="flex flex-col items-center text-center gap-3">
-                <div className="w-16 h-16 rounded-full bg-green-50 dark:bg-green-900/20 flex items-center justify-center text-green-500">
-                  <CheckCircle2 size={32} />
-                </div>
-                <div>
-                  <h4 className="font-semibold text-cd-text">Card Active</h4>
-                  <p className="text-sm text-cd-muted mt-1">
-                    Your digital card is active and ready to use.
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {isRejected && (
-              <div className="flex flex-col items-center text-center gap-3">
-                <div className="w-16 h-16 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center text-red-500">
-                  <Clock size={32} />
-                </div>
-                <div>
-                  <h4 className="font-semibold text-cd-text">Application Rejected</h4>
-                  <p className="text-sm text-cd-muted mt-1">
-                    {card.adminNote || 'Unfortunately, your application could not be approved at this time.'}
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {isDisabled && (
-              <div className="flex flex-col items-center text-center gap-3">
-                <div className="w-16 h-16 rounded-full bg-cd-raised/20 flex items-center justify-center text-gray-500">
-                  <PowerOff size={32} />
-                </div>
-                <div>
-                  <h4 className="font-semibold text-cd-text">Card Disabled</h4>
-                  <p className="text-sm text-cd-muted mt-1">
-                    Your card has been disabled successfully and can no longer be used. You can delete it to apply for a new one.
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-          
-          {/* Card Benefits Section */}
-          <div className="w-full max-w-sm mt-8 mb-4">
-            <h3 className="font-semibold text-cd-text mb-4 text-base">Card Benefits</h3>
-            <div className="space-y-3">
-              {[
-                { title: 'Fraud Protection', description: '24/7 monitoring for suspicious activity', icon: ShieldCheck },
-                { title: 'Cashback Rewards', description: 'Earn up to 2% on all purchases', icon: CircleDollarSign },
-                { title: 'Global Acceptance', description: 'Use your card worldwide with no foreign fees', icon: Globe },
-                { title: 'Secure Transactions', description: 'Enhanced security with chip technology', icon: Lock },
-              ].map((b, i) => (
-                <div key={i} className="flex items-center gap-4 bg-cd-card rounded-xl p-4 shadow-sm border border-cd-line">
-                  <div className="w-10 h-10 rounded-xl bg-cd-accent-soft flex items-center justify-center text-blue-500 shrink-0">
-                    <b.icon size={20} />
-                  </div>
-                  <div>
-                    <div className="font-semibold text-sm text-cd-text">{b.title}</div>
-                    <div className="text-[12px] text-cd-muted mt-0.5">{b.description}</div>
-                  </div>
-                </div>
-              ))}
+              <Benefits />
             </div>
           </div>
         </div>
@@ -366,199 +391,171 @@ export default function CardsPage() {
 
   // Application form
   return (
-    <div className="flex flex-col min-h-screen bg-cd-page pb-20">
-      <DashboardHeader title="Cards" logo="dwp" />
+    <div className="min-h-full">
+      <DashboardHeader title="Cards" breadcrumb />
 
-      <form onSubmit={handleSubmit} className="p-4 flex-1 mt-2">
-        <div className="w-full max-w-sm mx-auto mb-6 bg-cd-accent-soft border border-blue-100 dark:border-blue-500/20 rounded-xl p-5 shadow-sm">
-          <div className="flex items-start gap-3">
-            <Info className="text-cd-accent-text shrink-0 mt-0.5" size={20} />
-            <div>
-              <h3 className="font-semibold text-blue-900 dark:text-blue-300 text-sm mb-1">Accredited Investors Only</h3>
-              <p className="text-[13px] text-blue-800 dark:text-blue-200 leading-relaxed">
-                To be eligible for the Wyoming LLC MasterCard, you must have an investment portfolio / social capital of over <strong>$1,000,000</strong>.
-              </p>
-            </div>
-          </div>
+      <div className="mx-auto w-full max-w-[1180px] px-4 pb-12 pt-5 sm:px-6 lg:px-10 lg:pt-3">
+        <PageHeader
+          icon={CreditCard}
+          title="Wyoming LLC Card"
+          titleOnPhone={false}
+          meta={['Accredited investors only', 'Activation fee $5,555.67']}
+        />
+
+        <div className="mt-6 flex items-start gap-3 rounded-md bg-cd-raised px-4 py-3">
+          <Info size={17} strokeWidth={1.75} className="mt-0.5 shrink-0 text-cd-accent-text" />
+          <p className="text-[13.5px] leading-relaxed text-cd-muted">
+            <span className="font-medium text-cd-text">Accredited Investors Only.</span>{' '}
+            To be eligible for the Wyoming LLC MasterCard, you must have an investment portfolio / social capital of over <span className="font-medium text-cd-text">$1,000,000</span>.
+          </p>
         </div>
 
-        <div className="bg-cd-card rounded-xl shadow-sm border border-cd-line p-5 space-y-5 mx-auto max-w-sm">
-          
-          <div className="space-y-1.5">
-            <label className="text-sm font-semibold text-cd-text">
-              Card Holder Name
-            </label>
-            <input
-              type="text"
-              value={cardHolderName}
-              onChange={(e) => setCardHolderName(e.target.value)}
-              className="w-full bg-cd-raised border-none rounded-xl px-4 py-3.5 text-sm font-medium text-cd-text focus:ring-2 focus:ring-blue-500"
-              required
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-sm font-semibold text-cd-text">
-              Card Number
-            </label>
-            <input
-              type="text"
-              value={cardNumber}
-              readOnly
-              className="w-full bg-cd-raised border-none rounded-xl px-4 py-3.5 text-sm font-medium text-cd-muted font-mono"
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-sm font-semibold text-cd-text">
-              Card Type
-            </label>
-            <select
-              value={cardType}
-              onChange={(e) => setCardType(e.target.value)}
-              className="w-full bg-cd-raised border-none rounded-xl px-4 py-3.5 text-sm font-medium text-cd-text focus:ring-2 focus:ring-blue-500 appearance-none"
-            >
-              <option value="MasterCard">MasterCard</option>
-              <option value="Visa">Visa</option>
-            </select>
-          </div>
-
-          <button
-            type="button"
-            onClick={generateMockCardNumber}
-            className="flex items-center gap-2 px-4 py-2 bg-cd-card border border-cd-line rounded-lg text-sm font-semibold text-cd-text/85 shadow-sm hover:bg-cd-raised transition"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 2v6h-6"></path>
-              <path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path>
-              <path d="M3 22v-6h6"></path>
-              <path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path>
-            </svg>
-            Generate Card
-          </button>
-
-          <div className="pt-4 border-t border-cd-line">
-            <p className="text-[13px] text-cd-muted leading-relaxed mb-3">
-              The Wyoming LLC (Card) is a Decentralized concept that combines quantum security and blockchain technology and has created a new financial system.
-            </p>
-            <div className="bg-cd-raised/30 p-3 rounded-xl border border-cd-line">
-              <p className="text-[14px] font-semibold text-cd-text mb-2 flex items-center justify-between">
-                <span>Activation Fee: <span className="text-cd-accent-text">$5,555.67</span></span>
-                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider bg-gray-200 dark:bg-gray-700 px-2 py-0.5 rounded-full">Accredited Only</span>
-              </p>
-              <div className="text-[11.5px] text-cd-muted">
-                <p><strong>Eligibility Rule:</strong> To qualify as an accredited investor, you must hold a social capital or investment portfolio exceeding <strong>$1,000,000</strong>.</p>
-              </div>
-            </div>
-          </div>
-
-          <Button
-            type="submit"
-            loading={isSubmitting}
-            className="w-full py-4 text-[15px] font-semibold mt-2"
-          >
-            Submit Application
-          </Button>
-
-        </div>
-
-        {/* Card Benefits Section */}
-        <div className="w-full max-w-sm mx-auto mt-8 mb-4">
-          <h3 className="font-semibold text-cd-text mb-4 text-base">Card Benefits</h3>
-          <div className="space-y-3">
-            {[
-              { title: 'Fraud Protection', description: '24/7 monitoring for suspicious activity', icon: ShieldCheck },
-              { title: 'Cashback Rewards', description: 'Earn up to 2% on all purchases', icon: CircleDollarSign },
-              { title: 'Global Acceptance', description: 'Use your card worldwide with no foreign fees', icon: Globe },
-              { title: 'Secure Transactions', description: 'Enhanced security with chip technology', icon: Lock },
-            ].map((b, i) => (
-              <div key={i} className="flex items-center gap-4 bg-cd-card rounded-xl p-4 shadow-sm border border-cd-line">
-                <div className="w-10 h-10 rounded-xl bg-cd-accent-soft flex items-center justify-center text-blue-500 shrink-0">
-                  <b.icon size={20} />
-                </div>
+        <div className="mt-6 grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,420px)]">
+          <form onSubmit={handleSubmit} className="min-w-0">
+            <Card title="Apply for a card" bodyClassName="px-4 pb-4 sm:px-5 sm:pb-5">
+              <div className="space-y-4 pt-1">
                 <div>
-                  <div className="font-semibold text-sm text-cd-text">{b.title}</div>
-                  <div className="text-[12px] text-cd-muted mt-0.5">{b.description}</div>
+                  <label htmlFor="card-holder" className="mb-2 block text-[13px] text-cd-muted">Card holder name</label>
+                  <input
+                    id="card-holder"
+                    type="text"
+                    value={cardHolderName}
+                    onChange={(e) => setCardHolderName(e.target.value)}
+                    className={INPUT}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <div className="mb-2 flex items-center justify-between">
+                    <label htmlFor="card-number" className="text-[13px] text-cd-muted">Card number</label>
+                    <button
+                      type="button"
+                      onClick={generateMockCardNumber}
+                      className="flex items-center gap-1.5 text-[13px] font-medium text-cd-accent-text hover:underline"
+                    >
+                      <RefreshCw size={13} strokeWidth={2} />
+                      Generate card
+                    </button>
+                  </div>
+                  <input
+                    id="card-number"
+                    type="text"
+                    value={cardNumber}
+                    readOnly
+                    className={cn(INPUT, 'cd-num font-mono text-cd-muted')}
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="card-type" className="mb-2 block text-[13px] text-cd-muted">Card type</label>
+                  <div className="relative">
+                    <select
+                      id="card-type"
+                      value={cardType}
+                      onChange={(e) => setCardType(e.target.value)}
+                      className={cn(INPUT, 'appearance-none pr-10')}
+                    >
+                      <option value="MasterCard">MasterCard</option>
+                      <option value="Visa">Visa</option>
+                    </select>
+                    <ChevronDown size={16} strokeWidth={1.75} className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-cd-muted" />
+                  </div>
                 </div>
               </div>
-            ))}
+
+              <div className="mt-6 border-t border-cd-line pt-1">
+                <div className="flex items-center justify-between gap-4 border-b border-cd-line py-3.5">
+                  <span className="text-[13.5px] text-cd-muted">Activation fee</span>
+                  <span className="cd-num text-[14px] font-medium text-cd-text">$5,555.67</span>
+                </div>
+                <div className="flex items-start justify-between gap-4 border-b border-cd-line py-3.5">
+                  <span className="text-[13.5px] text-cd-muted">Eligibility</span>
+                  <span className="text-right text-[14px] text-cd-text">Portfolio over $1,000,000</span>
+                </div>
+              </div>
+
+              <p className="mt-3.5 text-[12.5px] leading-relaxed text-cd-faint">
+                The Wyoming LLC (Card) is a Decentralized concept that combines quantum security and blockchain technology and has created a new financial system.
+              </p>
+
+              <ActionButton type="submit" variant="primary" disabled={isSubmitting} className="mt-5 h-12 w-full text-[15px]">
+                {isSubmitting && <Loader2 size={17} className="animate-spin" />}
+                Submit application
+              </ActionButton>
+            </Card>
+          </form>
+
+          <div className="space-y-5">
+            <div>
+              <p className="mb-3 text-[11px] font-medium uppercase tracking-[0.08em] text-cd-muted">Preview</p>
+              <CardArt holder={cardHolderName || 'Card holder'} number={cardNumber} type={cardType} />
+            </div>
+            <Benefits />
           </div>
         </div>
-      </form>
+      </div>
 
-      <Modal isOpen={showPaymentModal} onClose={() => !isSubmitting && setShowPaymentModal(false)} title="Card Activation Fee" size="md">
-        <div className="space-y-6">
-          <div className="text-[15px] text-cd-muted">
+      <Sheet open={showPaymentModal} onClose={() => !isSubmitting && setShowPaymentModal(false)} title="Card activation fee">
+        <div className="space-y-5">
+          <p className="text-[14px] leading-relaxed text-cd-muted">
             To proceed with your MasterCard request, please complete the payment for the activation fee. This offer is available for Accredited investors only.
-          </div>
-          
-          <div className="bg-cd-raised border border-cd-line rounded-xl p-5 space-y-3">
-            <div className="flex justify-between items-center text-[15px]">
-              <span className="text-cd-muted">Card Activation Fee (Incl. Tax)</span>
-              <span className="font-semibold text-cd-text">$5,555.67</span>
+          </p>
+
+          <div className="rounded-md bg-cd-raised px-4 py-1">
+            <div className="flex items-center justify-between gap-4 border-b border-cd-line py-3">
+              <span className="text-[13.5px] text-cd-muted">Card activation fee (incl. tax)</span>
+              <span className="cd-num text-[14px] text-cd-text">$5,555.67</span>
             </div>
-            <div className="border-t border-cd-line pt-3 flex justify-between items-center">
-              <span className="font-semibold text-cd-text">Total Amount</span>
-              <span className="text-lg font-bold text-green-600 dark:text-green-500">$5,555.67</span>
+            <div className="flex items-center justify-between gap-4 py-3">
+              <span className="text-[14px] font-medium text-cd-text">Total amount</span>
+              <span className="cd-num text-[20px] font-light text-cd-text">$5,555<span className="text-[0.62em]">.67</span></span>
             </div>
           </div>
 
-          <div className="space-y-3">
-            <h3 className="font-semibold text-cd-text text-[16px]">Payment Method</h3>
-            <p className="text-[14px] text-cd-muted">
-              Payment is only accepted via <strong className="text-cd-text">USDT</strong> on the <strong className="text-cd-text">TRC20 network</strong>. Sending any other coin or using a different network may result in loss of funds.
+          <div>
+            <h3 className="text-[15px] font-medium text-cd-text">Payment method</h3>
+            <p className="mt-1.5 text-[13.5px] leading-relaxed text-cd-muted">
+              Payment is only accepted via <strong className="font-medium text-cd-text">USDT</strong> on the <strong className="font-medium text-cd-text">TRC20 network</strong>. Sending any other coin or using a different network may result in loss of funds.
             </p>
-            
-            <div className="mt-2">
-              <label className="block text-[13px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Company USDT TRC20 Address</label>
-              <div className="flex items-center gap-2">
-                <input 
-                  type="text" 
-                  readOnly 
-                  value={TRC20_WALLET}
-                  className="flex-1 bg-cd-raised border border-cd-line text-gray-900 dark:text-gray-300 text-[14px] rounded-lg px-4 py-3 focus:outline-none"
-                />
-                <button 
-                  onClick={() => copyToClipboard(TRC20_WALLET)}
-                  className="p-3 bg-cd-accent-soft text-cd-accent-text rounded-lg hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-colors"
-                >
-                  <Copy size={18} />
-                </button>
-              </div>
+
+            <label htmlFor="trc20" className="mb-2 mt-4 block text-[11px] font-medium uppercase tracking-[0.06em] text-cd-muted">Company USDT TRC20 address</label>
+            <div className="flex items-center gap-2">
+              <input
+                id="trc20"
+                type="text"
+                readOnly
+                value={TRC20_WALLET}
+                className={cn(INPUT, 'min-w-0 flex-1 font-mono text-[13px]')}
+              />
+              <button
+                type="button"
+                onClick={() => copyToClipboard(TRC20_WALLET)}
+                aria-label="Copy address"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-cd-accent-soft text-cd-accent-text transition-colors hover:bg-cd-raised"
+              >
+                <Copy size={17} strokeWidth={1.75} />
+              </button>
             </div>
           </div>
 
-          <div className="bg-cd-accent-soft border border-blue-100 dark:border-blue-500/20 rounded-xl p-4 flex gap-3">
-            <div className="mt-0.5 text-cd-accent-text"><Info size={18} /></div>
-            <p className="text-[14px] text-blue-800 dark:text-blue-300 font-medium">
+          <div className="flex items-start gap-3 rounded-md bg-cd-accent-soft px-4 py-3">
+            <Info size={17} strokeWidth={1.75} className="mt-0.5 shrink-0 text-cd-accent-text" />
+            <p className="text-[13.5px] leading-relaxed text-cd-text">
               Your card will be processed and issued within 1-2 business days after payment confirmation.
             </p>
           </div>
 
-          <div className="pt-2 flex gap-3">
-            <button
-              type="button"
-              onClick={() => setShowPaymentModal(false)}
-              disabled={isSubmitting}
-              className="flex-1 px-4 py-3 rounded-xl border border-cd-line font-semibold text-cd-text/85 hover:bg-cd-raised transition-colors disabled:opacity-50"
-            >
+          <div className="flex gap-2.5 pt-1">
+            <ActionButton onClick={() => setShowPaymentModal(false)} disabled={isSubmitting} className="h-11 flex-1">
               Cancel
-            </button>
-            <button
-              type="button"
-              onClick={confirmPayment}
-              disabled={isSubmitting}
-              className="flex-[2] bg-green-600 hover:bg-green-700 disabled:opacity-70 text-white font-semibold py-3 rounded-xl transition-colors flex justify-center items-center gap-2"
-            >
-              {isSubmitting ? (
-                <span className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-              ) : (
-                'Confirm Payment'
-              )}
-            </button>
+            </ActionButton>
+            <ActionButton variant="primary" onClick={confirmPayment} disabled={isSubmitting} className="h-11 flex-[2]">
+              {isSubmitting ? <Loader2 size={17} className="animate-spin" /> : 'Confirm payment'}
+            </ActionButton>
           </div>
         </div>
-      </Modal>
+      </Sheet>
     </div>
   );
 }

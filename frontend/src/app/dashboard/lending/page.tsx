@@ -1,37 +1,134 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+/**
+ * Borrow against crypto or put it to work, in two steps. Step 1 is a calculator laid out like the
+ * Convert page (grey fields with the asset on the left and a large light amount on the right, the
+ * LTV and APR pickers, one full-width action). Step 2 follows Anchorage's review screen: a title,
+ * then label/value lists split by thin lines, the contact fields and the confirm button.
+ */
+import { useEffect, useState, type ReactNode } from 'react';
 import { assetsAPI, loansAPI, earnsAPI } from '@/lib/api';
-import { formatCurrency } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 import { Asset } from '@/types';
 import DashboardHeader from '@/components/layout/DashboardHeader';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
-import { ArrowDown, X, ChevronDown, Check, ChevronLeft, Search, Info } from 'lucide-react';
+import { ActionButton, AssetIcon, AssetName, Card, PageHeader, Tabs, formatAmount } from '@/components/client/ui';
+import { ArrowDown, ArrowLeft, Check, ChevronDown, Coins, Loader2, Search, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 
-// Helper for crypto icons
-function getAssetColor(symbol: string) {
-  const colors: Record<string, string> = {
-    BTC: '#F7931A', ETH: '#627EEA', DOGE: '#C2A633', LTC: '#BFBBBB',
-    XRP: '#23292F', XLM: '#08B5E5', USDT: '#26A17B', USDC: '#2775CA',
-    BNB: '#F3BA2F', SOL: '#14F195', ADA: '#0033AD'
-  };
-  return colors[symbol.toUpperCase()] || '#3b82f6';
+const INPUT = 'h-11 w-full rounded-md border border-transparent bg-cd-input px-3.5 text-[14px] text-cd-text placeholder:text-cd-faint focus:border-cd-accent focus:outline-none';
+const AMOUNT_INPUT = 'cd-num w-full bg-transparent text-right text-[26px] font-light leading-tight text-cd-text placeholder:text-cd-faint focus:outline-none [appearance:textfield] sm:text-[30px] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none';
+
+/** The asset button on the left of a grey amount field. */
+function AssetButton({ asset, onClick }: { asset: Asset | null; onClick: () => void }) {
+  return (
+    <button type="button" onClick={onClick} className="flex shrink-0 items-center gap-2.5 rounded-md py-1 pr-1.5 text-left transition-opacity hover:opacity-80">
+      {asset ? <AssetIcon symbol={asset.symbol} size={28} /> : <span className="h-7 w-7 rounded-full bg-cd-raised" />}
+      <span className="min-w-0">
+        <span className="block text-[15px] font-medium leading-tight text-cd-text">{asset?.symbol?.toUpperCase() || 'Select'}</span>
+        {asset?.name && <span className="block max-w-[110px] truncate text-[12px] leading-tight text-cd-muted sm:max-w-[160px]">{asset.name}</span>}
+      </span>
+      <ChevronDown size={16} strokeWidth={1.75} className="text-cd-muted" />
+    </button>
+  );
 }
 
-function AssetIcon({ symbol }: { symbol: string }) {
+/** A grey field: the asset on the left, the amount (input or figure) on the right with its USD value under it. */
+function AmountField({ label, asset, onPick, usd, children }: { label: string; asset: Asset | null; onPick: () => void; usd: number; children: ReactNode }) {
   return (
-    <img 
-      src={`https://assets.coincap.io/assets/icons/${symbol.toLowerCase()}@2x.png`} 
-      alt={symbol} 
-      className="w-6 h-6 rounded-full object-cover shrink-0" 
-      onError={(e) => {
-        e.currentTarget.onerror = null; 
-        e.currentTarget.src = `https://ui-avatars.com/api/?name=${symbol[0]}&background=${getAssetColor(symbol).replace('#','')}&color=fff&rounded=true&bold=true`;
-      }}
-    />
+    <div>
+      <p className="mb-2 text-[13px] text-cd-muted">{label}</p>
+      <div className="flex items-center justify-between gap-3 rounded-md bg-cd-input px-3.5 py-3 sm:px-4">
+        <AssetButton asset={asset} onClick={onPick} />
+        <div className="min-w-0 flex-1 text-right">
+          {children}
+          <p className="cd-num mt-0.5 text-[12.5px] text-cd-muted">≈ {formatCurrency(usd)}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** A label/value row; `stacked` puts the label in a fixed column like Anchorage's review screen. */
+function Row({ label, children, stacked = false }: { label: string; children: ReactNode; stacked?: boolean }) {
+  if (stacked) {
+    return (
+      <div className="grid grid-cols-[minmax(0,120px)_minmax(0,1fr)] gap-4 py-2.5 sm:grid-cols-[170px_minmax(0,1fr)]">
+        <span className="text-[13.5px] text-cd-muted">{label}</span>
+        <div className="cd-num min-w-0 break-words text-[14px] text-cd-text">{children}</div>
+      </div>
+    );
+  }
+  return (
+    <div className="flex items-start justify-between gap-4 border-t border-cd-line py-3.5 first:border-t-0">
+      <span className="text-[13.5px] text-cd-muted">{label}</span>
+      <span className="cd-num text-right text-[14px] text-cd-text">{children}</span>
+    </div>
+  );
+}
+
+/** A group of review rows, separated from the next by a thin line. */
+function Group({ children }: { children: ReactNode }) {
+  return <div className="border-t border-cd-line py-3 first:border-t-0 first:pt-0">{children}</div>;
+}
+
+/** A figure in the review list: the amount with its unit set smaller, and the USD value underneath. */
+function Figure({ amount, symbol, sub }: { amount: string; symbol?: string; sub?: ReactNode }) {
+  return (
+    <div>
+      <p className="text-[18px] font-light leading-tight text-cd-text">
+        {amount} {symbol && <span className="text-[13px] font-normal">{symbol}</span>}
+      </p>
+      {sub && <p className="mt-1 text-[13px] text-cd-muted">{sub}</p>}
+    </div>
+  );
+}
+
+/** The dashboard's dialog: full height from the bottom on a phone, a centred panel on a computer. */
+function Sheet({ title, onClose, children, full = false }: { title: string; onClose: () => void; children: ReactNode; full?: boolean }) {
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [onClose]);
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-label={title}>
+      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
+      <div className={cn(
+        'relative flex w-full flex-col border border-cd-line bg-cd-card sm:max-h-[80vh] sm:max-w-[440px] sm:rounded-lg',
+        full ? 'h-full sm:h-auto' : 'max-h-[85vh] rounded-t-xl',
+      )}>
+        <div className="flex items-center justify-between px-5 pb-3 pt-4">
+          <h2 className="text-[16px] font-medium text-cd-text">{title}</h2>
+          <button type="button" onClick={onClose} aria-label="Close" className="-mr-2 rounded-md p-2 text-cd-muted hover:bg-cd-raised hover:text-cd-text">
+            <X size={18} strokeWidth={1.75} />
+          </button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function Terms({ id, checked, onChange }: { id: string; checked: boolean; onChange: (value: boolean) => void }) {
+  return (
+    <div className="flex items-start gap-3">
+      <input
+        type="checkbox"
+        id={id}
+        className="mt-0.5 h-4 w-4 shrink-0 accent-cd-accent"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+      />
+      <label htmlFor={id} className="text-[13px] leading-relaxed text-cd-muted">
+        I&apos;ve read and agree to the Platform&apos;s <a href="#" className="text-cd-accent-text hover:underline">Terms of Use</a> and <a href="#" className="text-cd-accent-text hover:underline">Privacy Policy</a>
+      </label>
+    </div>
   );
 }
 
@@ -161,514 +258,372 @@ export default function LendingPage() {
     a.symbol.toLowerCase().includes(search.toLowerCase())
   );
 
+  const headerTitle = step === 1 ? (activeTab === 'borrow' ? "Crypto Lending" : "Crypto Invest") : (activeTab === 'borrow' ? "Confirm Loan" : "Confirm Invest");
+  const colSymbol = collateralAsset?.symbol?.toUpperCase() || '';
+  const loanSymbol = loanAsset?.symbol?.toUpperCase() || '';
+  const earnSymbol = earnAsset?.symbol?.toUpperCase() || '';
+  const pickerAsset = modalType === 'collateral' ? collateralAsset : modalType === 'earn' ? earnAsset : loanAsset;
+
   return (
-    <div className="flex flex-col min-h-full pb-20 bg-cd-page">
-      <DashboardHeader title={step === 1 ? (activeTab === 'borrow' ? "Crypto Lending" : "Crypto Invest") : (activeTab === 'borrow' ? "Confirm Loan" : "Confirm Invest")} logo="dwp" />
+    <div className="min-h-full">
+      <DashboardHeader title={headerTitle} backHref="/dashboard/finance" breadcrumb />
 
-      {/* STEP 1: CALCULATOR */}
-      {step === 1 && (
-        <div className="flex-1 p-4 md:p-6 max-w-2xl mx-auto w-full">
-          <h1 className="text-[32px] md:text-[40px] font-bold text-cd-text leading-tight mb-4">
-            Borrow, Invest, Earn. Build Wealth with Confidence.
-          </h1>
-          <p className="text-cd-muted text-[15px] leading-relaxed mb-8">
-            Access flexible crypto-backed loans, earn competitive yields, and grow your digital assets all on Digital Wealth Partners.
-          </p>
+      <div className="mx-auto w-full max-w-[1180px] px-4 pb-12 pt-5 sm:px-6 lg:px-10 lg:pt-3">
+        <div className="mx-auto w-full max-w-[600px]">
 
-          <div className="bg-cd-card rounded-[28px] p-2 shadow-sm border border-cd-line">
-            {/* Tabs */}
-            <div className="flex bg-cd-raised rounded-xl p-1 mb-4">
-              <button 
-                onClick={() => setActiveTab('borrow')}
-                className={`flex-1 py-2.5 rounded-xl shadow-sm text-sm font-semibold transition-colors ${activeTab === 'borrow' ? 'bg-cd-card text-cd-text' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
-              >Borrow</button>
-              <button 
-                onClick={() => setActiveTab('earn')}
-                className={`flex-1 py-2.5 rounded-xl shadow-sm text-sm font-semibold transition-colors ${activeTab === 'earn' ? 'bg-cd-card text-cd-text' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
-              >Invest</button>
-            </div>
+          {/* STEP 1: CALCULATOR */}
+          {step === 1 && (
+            <>
+              <PageHeader
+                icon={Coins}
+                title="Borrow, invest, earn"
+                titleOnPhone={false}
+                meta={['Crypto-backed loans and competitive yields on your digital assets']}
+              />
 
-            {activeTab === 'borrow' ? (
-              <>
-                {/* Collateral Input */}
-                <div className="bg-cd-raised rounded-xl p-4 mb-2">
-                  <div className="text-sm font-medium text-cd-muted mb-2">Collateral</div>
-                  <div className="flex items-center justify-between gap-4">
-                    <input 
-                      type="number" 
-                      value={collateralAmount}
-                      onChange={(e) => setCollateralAmount(e.target.value)}
-                      className="bg-transparent text-[24px] font-semibold text-cd-text w-full focus:outline-none"
-                      placeholder="0.00"
-                    />
-                    <button 
-                      onClick={() => setModalType('collateral')}
-                      className="flex items-center gap-2 bg-cd-card px-3 py-2 rounded-xl shadow-sm border border-cd-line shrink-0 hover:bg-gray-50 transition-colors"
+              <Tabs
+                className="mt-6"
+                tabs={[{ value: 'borrow', label: 'Borrow' }, { value: 'earn', label: 'Invest' }]}
+                value={activeTab}
+                onChange={setActiveTab}
+              />
+
+              <Card className="mt-5" bodyClassName="p-4 sm:p-6">
+                {activeTab === 'borrow' ? (
+                  <>
+                    <AmountField label="Collateral" asset={collateralAsset} onPick={() => setModalType('collateral')} usd={colUsd}>
+                      <input
+                        type="number"
+                        inputMode="decimal"
+                        aria-label="Collateral amount"
+                        value={collateralAmount}
+                        onChange={(e) => setCollateralAmount(e.target.value)}
+                        className={AMOUNT_INPUT}
+                        placeholder="0.00"
+                      />
+                    </AmountField>
+
+                    <div className="my-4 flex items-center gap-3" aria-hidden>
+                      <span className="h-px flex-1 bg-cd-line" />
+                      <span className="flex h-10 w-10 items-center justify-center rounded-full border border-cd-line-strong text-cd-muted">
+                        <ArrowDown size={17} strokeWidth={1.75} />
+                      </span>
+                      <span className="h-px flex-1 bg-cd-line" />
+                    </div>
+
+                    <AmountField label="Loan" asset={loanAsset} onPick={() => setModalType('loan')} usd={loanUsd}>
+                      <p className="cd-num truncate text-[26px] font-light leading-tight text-cd-text sm:text-[30px]">{loanAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                    </AmountField>
+
+                    {/* LTV and APR */}
+                    <div className="mt-5 grid grid-cols-2 gap-2.5">
+                      {[
+                        { key: 'ltv' as const, label: 'LTV', value: `${ltv * 100}%` },
+                        { key: 'apr' as const, label: 'APR', value: aprOption.label },
+                      ].map((item) => (
+                        <button
+                          key={item.key}
+                          type="button"
+                          onClick={() => setModalType(item.key)}
+                          className="flex h-12 items-center justify-between gap-2 rounded-md bg-cd-input px-3.5 text-left transition-colors hover:bg-cd-raised"
+                        >
+                          <span className="text-[13px] text-cd-muted">{item.label}</span>
+                          <span className="cd-num flex items-center gap-1.5 text-[14px] font-medium text-cd-text">
+                            {item.value}
+                            <ChevronDown size={15} strokeWidth={1.75} className="text-cd-muted" />
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="mt-5 border-t border-cd-line pt-1">
+                      <Row label="Monthly interest">{formatAmount(monthlyInterest, loanSymbol)}</Row>
+                      <Row label="Duration">{aprOption.term}</Row>
+                    </div>
+
+                    <ActionButton
+                      variant="primary"
+                      className="mt-5 h-12 w-full text-[15px]"
+                      onClick={() => {
+                        if (Number(collateralAmount) > 0) setStep(2);
+                        else toast.error('Please enter a collateral amount');
+                      }}
                     >
-                      {collateralAsset && <AssetIcon symbol={collateralAsset.symbol} />}
-                      <span className="font-semibold text-cd-text">{collateralAsset?.symbol}</span>
-                      <ChevronDown size={16} className="text-gray-400" />
-                    </button>
-                  </div>
-                  <div className="text-sm font-medium text-gray-500 mt-2">
-                    ~{formatCurrency(colUsd)}
-                  </div>
-                </div>
+                      Get loan
+                    </ActionButton>
+                  </>
+                ) : (
+                  <>
+                    <AmountField label="Your deposit" asset={earnAsset} onPick={() => setModalType('earn')} usd={earnUsd}>
+                      <input
+                        type="number"
+                        inputMode="decimal"
+                        aria-label="Deposit amount"
+                        value={earnAmount}
+                        onChange={(e) => setEarnAmount(e.target.value)}
+                        className={AMOUNT_INPUT}
+                        placeholder="0.00"
+                      />
+                    </AmountField>
 
-                {/* Divider */}
-                <div className="relative flex justify-center -my-3 z-10">
-                  <div className="w-8 h-8 rounded-full bg-cd-card border border-cd-line shadow-sm flex items-center justify-center text-gray-400">
-                    <ArrowDown size={16} />
-                  </div>
-                </div>
-
-                {/* Loan Output */}
-                <div className="bg-cd-raised rounded-xl p-4 mt-2 mb-4">
-                  <div className="text-sm font-medium text-cd-muted mb-2">Loan</div>
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="text-[24px] font-semibold text-cd-text truncate">
-                      {loanAmount.toFixed(2)}
+                    <div className="mt-5 border-t border-cd-line pt-1">
+                      <Row label="25% APY">{earnTotal1Year.toFixed(2)} {earnSymbol} in 1 year</Row>
+                      <Row label="Earn term">Unlimited</Row>
+                      <Row label="Interest accrual">Daily</Row>
+                      <Row label="Monthly reward">{earnMonthlyReward.toFixed(2)} {earnSymbol}</Row>
+                      <Row label="Daily reward">{earnDailyReward.toFixed(2)} {earnSymbol}</Row>
                     </div>
-                    <button 
-                      onClick={() => setModalType('loan')}
-                      className="flex items-center gap-2 bg-cd-card px-3 py-2 rounded-xl shadow-sm border border-cd-line shrink-0 hover:bg-gray-50 transition-colors"
+
+                    <ActionButton
+                      variant="primary"
+                      className="mt-5 h-12 w-full text-[15px]"
+                      onClick={() => {
+                        if (Number(earnAmount) > 0) setStep(2);
+                        else toast.error('Please enter a deposit amount');
+                      }}
                     >
-                      {loanAsset && <AssetIcon symbol={loanAsset.symbol} />}
-                      <span className="font-semibold text-cd-text">{loanAsset?.symbol}</span>
-                      <ChevronDown size={16} className="text-gray-400" />
-                    </button>
-                  </div>
-                  <div className="text-sm font-medium text-gray-500 mt-2">
-                    ~{formatCurrency(loanUsd)}
-                  </div>
-                </div>
+                      Start earning
+                    </ActionButton>
+                  </>
+                )}
+              </Card>
+            </>
+          )}
 
-                {/* Stats */}
-                <div className="flex gap-2 mb-4">
-                  <div 
-                    onClick={() => setModalType('ltv')}
-                    className="flex-1 bg-cd-raised rounded-xl p-3 flex justify-between items-center cursor-pointer hover:bg-cd-raised transition-colors"
-                  >
-                    <div className="flex items-center gap-1 text-sm font-medium text-gray-500">
-                      LTV <Info size={14} />
-                    </div>
-                    <div className="flex items-center gap-1 text-sm font-semibold text-cd-text">
-                      {ltv * 100}% <ChevronDown size={14} />
-                    </div>
-                  </div>
-                  <div 
-                    onClick={() => setModalType('apr')}
-                    className="flex-1 bg-cd-raised rounded-xl p-3 flex justify-between items-center cursor-pointer hover:bg-cd-raised transition-colors"
-                  >
-                    <div className="flex items-center gap-1 text-sm font-medium text-gray-500">
-                      APR <Info size={14} />
-                    </div>
-                    <div className="flex items-center gap-1 text-sm font-semibold text-cd-text">
-                      {aprOption.label} <ChevronDown size={14} />
-                    </div>
-                  </div>
-                </div>
-
-                <Button 
-                  className="w-full mt-2 py-4 text-lg rounded-xl bg-blue-600! hover:bg-blue-700! text-white! shadow-lg shadow-blue-600/30!"
-                  onClick={() => {
-                    if (Number(collateralAmount) > 0) setStep(2);
-                    else toast.error('Please enter a collateral amount');
-                  }}
-                >
-                  Get loan
-                </Button>
-              </>
-            ) : (
-              <>
-                {/* Earn Input */}
-                <div className="bg-cd-raised rounded-xl p-4 mb-4 mt-2">
-                  <div className="text-sm font-medium text-cd-muted mb-2">Your deposit</div>
-                  <div className="flex items-center justify-between gap-4">
-                    <input 
-                      type="number" 
-                      value={earnAmount}
-                      onChange={(e) => setEarnAmount(e.target.value)}
-                      className="bg-transparent text-[24px] font-semibold text-cd-text w-full focus:outline-none"
-                      placeholder="0.00"
-                    />
-                    <button 
-                      onClick={() => setModalType('earn')}
-                      className="flex items-center gap-2 bg-cd-card px-3 py-2 rounded-xl shadow-sm border border-cd-line shrink-0 hover:bg-gray-50 transition-colors"
-                    >
-                      {earnAsset && <AssetIcon symbol={earnAsset.symbol} />}
-                      <span className="font-semibold text-cd-text">{earnAsset?.symbol}</span>
-                      <ChevronDown size={16} className="text-gray-400" />
-                    </button>
-                  </div>
-                  <div className="text-sm font-medium text-gray-500 mt-2">
-                    ~{formatCurrency(earnUsd)}
-                  </div>
-                </div>
-
-                {/* Earn Stats */}
-                <div className="space-y-4 px-2 mb-6">
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-gray-500 border-b border-dashed border-gray-400 pb-0.5">25% APY</span>
-                    <span className="font-medium text-cd-text">{earnTotal1Year.toFixed(2)} {earnAsset?.symbol} in 1 year</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-gray-500 border-b border-dashed border-gray-400 pb-0.5">Earn term</span>
-                    <span className="font-medium text-cd-text">Unlimited</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-gray-500 border-b border-dashed border-gray-400 pb-0.5">Interest accrual</span>
-                    <span className="font-medium text-cd-text">Daily</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-gray-500 border-b border-dashed border-gray-400 pb-0.5">Monthly reward</span>
-                    <span className="font-medium text-cd-text">{earnMonthlyReward.toFixed(2)} {earnAsset?.symbol}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-gray-500 border-b border-dashed border-gray-400 pb-0.5">Daily reward</span>
-                    <span className="font-medium text-cd-text">{earnDailyReward.toFixed(2)} {earnAsset?.symbol}</span>
-                  </div>
-                </div>
-
-                <Button
-                  className="w-full mt-2 py-4 text-lg rounded-xl bg-blue-600! hover:bg-blue-700! text-white! shadow-lg shadow-blue-600/30!"
-                  onClick={() => {
-                    if (Number(earnAmount) > 0) setStep(2);
-                    else toast.error('Please enter a deposit amount');
-                  }}
-                >
-                  Start earning
-                </Button>
-              </>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* STEP 2: CONFIRM */}
-      {step === 2 && (
-        <div className="flex-1 p-4 md:p-6 max-w-md mx-auto w-full">
-          <div className="flex items-center gap-3 mb-6">
-            <button onClick={() => setStep(1)} className="p-2 -ml-2 rounded-full hover:bg-cd-raised transition-colors">
-              <ChevronLeft size={24} className="text-cd-text" />
-            </button>
-            <h1 className="text-[24px] font-semibold text-cd-text">
-              {activeTab === 'borrow' ? "Confirm your loan" : "Confirm your saving"}
-            </h1>
-          </div>
-
-          {activeTab === 'borrow' ? (
-            <div className="space-y-6">
-              {/* Pairs */}
-              <div className="flex flex-col gap-4">
-                <div className="flex items-center gap-3">
-                  {collateralAsset && <AssetIcon symbol={collateralAsset.symbol} />}
-                  <div>
-                    <div className="text-xs font-medium text-gray-500">Your Collateral</div>
-                    <div className="text-xl font-semibold text-cd-text">{collateralAsset?.symbol}</div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  {loanAsset && <AssetIcon symbol={loanAsset.symbol} />}
-                  <div>
-                    <div className="text-xs font-medium text-gray-500">Your loan</div>
-                    <div className="text-xl font-semibold text-cd-text flex items-center gap-2">
-                      {loanAsset?.symbol}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Details List */}
-              <div className="space-y-4 py-4 border-y border-cd-line">
-                <div className="flex justify-between items-center text-sm">
-                  <span className="flex items-center gap-1 text-gray-500">Loan-to-Value <Info size={14} /></span>
-                  <span className="font-semibold text-cd-text">{ltv * 100}%</span>
-                </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="flex items-center gap-1 text-gray-500">APR <Info size={14} /></span>
-                  <span className="font-semibold text-cd-text">{aprOption.label}</span>
-                </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="flex items-center gap-1 text-gray-500">Duration <Info size={14} /></span>
-                  <span className="font-semibold text-cd-text">{aprOption.term}</span>
-                </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="flex items-center gap-1 text-gray-500">Monthly interest <Info size={14} /></span>
-                  <span className="font-semibold text-cd-text">{monthlyInterest.toFixed(6)} {loanAsset?.symbol}</span>
-                </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="flex items-center gap-1 text-gray-500">Origination fee <Info size={14} /></span>
-                  <span className="font-semibold text-cd-text">{originationFee.toFixed(6)} {loanAsset?.symbol}</span>
-                </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="flex items-center gap-1 text-gray-500">Margin call <Info size={14} /></span>
-                  <span className="font-semibold text-cd-text">{marginCallPrice.toFixed(2)} {collateralAsset?.symbol}/USD</span>
-                </div>
-              </div>
-
-              {/* Inputs */}
-              <div className="space-y-4">
-                <div>
-                  <label className="flex justify-between items-center text-sm font-medium text-gray-500 mb-2">
-                    <span className="flex items-center gap-1">Your {loanAsset?.symbol} payout address <Info size={14} /></span>
-                  </label>
-                  <Input 
-                    type="text" 
-                    placeholder={`Enter your ${loanAsset?.symbol || 'wallet'} address`} 
-                    value={payoutAddress}
-                    onChange={(e) => setPayoutAddress(e.target.value)}
-                    className="rounded-xl"
-                  />
-                </div>
-
-                <div>
-                  <label className="flex justify-between items-center text-sm font-medium text-gray-500 mb-2">
-                    <span className="flex items-center gap-1">Email <Info size={14} /></span>
-                    <span className="text-blue-600 cursor-pointer">Verify with Phone</span>
-                  </label>
-                  <Input 
-                    type="email" 
-                    placeholder="example@domain.com" 
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="rounded-xl"
-                  />
-                </div>
-
-                <div className="flex items-start gap-3 pt-2">
-                  <input 
-                    type="checkbox" 
-                    id="terms" 
-                    className="mt-1 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600"
-                    checked={termsAccepted}
-                    onChange={(e) => setTermsAccepted(e.target.checked)}
-                  />
-                  <label htmlFor="terms" className="text-sm text-gray-500">
-                    I've read and agree to the Platform's <a href="#" className="text-blue-600 hover:underline">Terms of Use</a> and <a href="#" className="text-blue-600 hover:underline">Privacy Policy</a>
-                  </label>
-                </div>
-              </div>
-
-              <Button 
-                className="w-full mt-2 py-4 text-lg rounded-xl bg-blue-600! hover:bg-blue-700! text-white! shadow-lg shadow-blue-600/30!"
-                onClick={handleConfirmBorrow}
-                loading={isSubmitting}
+          {/* STEP 2: REVIEW */}
+          {step === 2 && (
+            <>
+              <button
+                type="button"
+                onClick={() => setStep(1)}
+                className="-ml-1 mb-4 flex items-center gap-1.5 rounded-md px-1 py-1 text-[13.5px] text-cd-muted transition-colors hover:text-cd-text"
               >
-                Confirm
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              <p className="text-cd-muted text-[15px]">
-                Don't just hold, but make daily profits on your cryptocurrency.
+                <ArrowLeft size={16} strokeWidth={1.75} />
+                Back to {activeTab === 'borrow' ? 'loan' : 'invest'} calculator
+              </button>
+
+              <h1 className="text-[24px] font-normal leading-tight text-cd-text sm:text-[28px]">
+                {activeTab === 'borrow' ? "Confirm your loan" : "Confirm your saving"}
+              </h1>
+              <p className="mt-2 text-[14px] text-cd-muted">
+                {activeTab === 'borrow'
+                  ? `Borrow ${loanSymbol} against your ${colSymbol}`
+                  : "Don't just hold, but make daily profits on your cryptocurrency."}
               </p>
 
-              <div className="flex items-center gap-3 py-2">
-                {earnAsset && <AssetIcon symbol={earnAsset.symbol} />}
-                <div>
-                  <div className="text-xs font-medium text-gray-500">Your deposit</div>
-                  <div className="text-xl font-semibold text-cd-text flex items-center gap-2">
-                    {earnAmount} {earnAsset?.symbol}
-                  </div>
-                </div>
-              </div>
+              <Card className="mt-6" bodyClassName="p-4 sm:p-6">
+                {activeTab === 'borrow' ? (
+                  <>
+                    <Group>
+                      <Row stacked label="Collateral">
+                        <Figure amount={formatAmount(Number(collateralAmount) || 0)} symbol={colSymbol} sub={`${formatCurrency(colUsd)} @ ${formatCurrency(colPrice)}/${colSymbol}`} />
+                      </Row>
+                      <Row stacked label="Loan">
+                        <Figure amount={formatAmount(loanAmount)} symbol={loanSymbol} sub={formatCurrency(loanUsd)} />
+                      </Row>
+                    </Group>
+                    <Group>
+                      <Row stacked label="Assets">
+                        <div className="space-y-2.5">
+                          {collateralAsset && (
+                            <div className="flex items-center gap-2.5"><AssetIcon symbol={collateralAsset.symbol} size={22} /><AssetName symbol={colSymbol} name={collateralAsset.name} /></div>
+                          )}
+                          {loanAsset && (
+                            <div className="flex items-center gap-2.5"><AssetIcon symbol={loanAsset.symbol} size={22} /><AssetName symbol={loanSymbol} name={loanAsset.name} /></div>
+                          )}
+                        </div>
+                      </Row>
+                    </Group>
+                    <Group>
+                      <Row stacked label="Loan-to-Value">{ltv * 100}%</Row>
+                      <Row stacked label="APR">{aprOption.label}</Row>
+                      <Row stacked label="Duration">{aprOption.term}</Row>
+                      <Row stacked label="Monthly interest">{monthlyInterest.toFixed(6)} {loanAsset?.symbol}</Row>
+                      <Row stacked label="Origination fee">{originationFee.toFixed(6)} {loanAsset?.symbol}</Row>
+                      <Row stacked label="Margin call">{marginCallPrice.toFixed(2)} {collateralAsset?.symbol}/USD</Row>
+                    </Group>
 
-              {/* Details List */}
-              <div className="space-y-4 py-4 border-y border-cd-line">
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-500">Annual percentage yield</span>
-                  <span className="font-semibold text-cd-text">25%</span>
-                </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-500">Daily Reward</span>
-                  <span className="font-semibold text-cd-text flex items-center gap-1">
-                    {earnDailyReward.toFixed(2)} {earnAsset?.symbol}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-500">Monthly Reward</span>
-                  <span className="font-semibold text-cd-text flex items-center gap-1">
-                    {earnMonthlyReward.toFixed(2)} {earnAsset?.symbol}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-500">Yearly Reward</span>
-                  <span className="font-semibold text-cd-text flex items-center gap-1">
-                    {earnYearlyReward.toFixed(2)} {earnAsset?.symbol}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-500">Earn term</span>
-                  <span className="font-semibold text-cd-text">Unlimited</span>
-                </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-500">Interest accumulation period</span>
-                  <span className="font-semibold text-cd-text">Daily</span>
-                </div>
-              </div>
+                    {/* Contact */}
+                    <div className="space-y-4 border-t border-cd-line pt-5">
+                      <div>
+                        <label htmlFor="payout" className="mb-2 block text-[13px] text-cd-muted">Your {loanAsset?.symbol} payout address</label>
+                        <input
+                          id="payout"
+                          type="text"
+                          placeholder={`Enter your ${loanAsset?.symbol || 'wallet'} address`}
+                          value={payoutAddress}
+                          onChange={(e) => setPayoutAddress(e.target.value)}
+                          className={cn(INPUT, 'font-mono text-[13px]')}
+                        />
+                      </div>
 
-              {/* Inputs */}
-              <div className="space-y-4">
-                <div>
-                  <label className="flex justify-between items-center text-sm font-medium text-gray-500 mb-2">
-                    <span className="flex items-center gap-1">Email <Info size={14} /></span>
-                  </label>
-                  <Input 
-                    type="email" 
-                    placeholder="example@domain.com" 
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="rounded-xl bg-cd-raised"
-                  />
-                  <div className="mt-2 text-sm text-blue-600 cursor-pointer font-medium">Verify with Phone</div>
-                </div>
+                      <div>
+                        <div className="mb-2 flex items-center justify-between">
+                          <label htmlFor="email" className="text-[13px] text-cd-muted">Email</label>
+                          <span className="cursor-pointer text-[13px] font-medium text-cd-accent-text">Verify with Phone</span>
+                        </div>
+                        <input
+                          id="email"
+                          type="email"
+                          placeholder="example@domain.com"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          className={INPUT}
+                        />
+                      </div>
 
-                <Button 
-                  className="w-full py-4 text-[15px] font-medium rounded-xl bg-white! dark:bg-cd-card! text-gray-900! dark:text-white! border! border-gray-200! dark:border-cd-line! hover:bg-gray-50! dark:hover:bg-gray-700!"
-                  onClick={() => toast.success('Verification link sent to email')}
-                >
-                  Verify
-                </Button>
+                      <Terms id="terms" checked={termsAccepted} onChange={setTermsAccepted} />
+                    </div>
 
-                <div className="flex items-start gap-3 pt-2">
-                  <input 
-                    type="checkbox" 
-                    id="terms-earn" 
-                    className="mt-1 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600"
-                    checked={termsAccepted}
-                    onChange={(e) => setTermsAccepted(e.target.checked)}
-                  />
-                  <label htmlFor="terms-earn" className="text-sm text-gray-500">
-                    I've read and agree to the Platform's <a href="#" className="text-blue-600 hover:underline">Terms of Use</a> and <a href="#" className="text-blue-600 hover:underline">Privacy Policy</a>
-                  </label>
-                </div>
+                    <ActionButton variant="primary" className="mt-6 h-12 w-full text-[15px]" onClick={handleConfirmBorrow} disabled={isSubmitting}>
+                      {isSubmitting && <Loader2 size={17} className="animate-spin" />}
+                      Confirm
+                    </ActionButton>
+                  </>
+                ) : (
+                  <>
+                    <Group>
+                      <Row stacked label="Deposit">
+                        <Figure amount={String(earnAmount)} symbol={earnAsset?.symbol} sub={formatCurrency(earnUsd)} />
+                      </Row>
+                      {earnAsset && (
+                        <Row stacked label="Asset">
+                          <div className="flex items-center gap-2.5"><AssetIcon symbol={earnAsset.symbol} size={22} /><AssetName symbol={earnSymbol} name={earnAsset.name} /></div>
+                        </Row>
+                      )}
+                    </Group>
+                    <Group>
+                      <Row stacked label="Annual percentage yield">25%</Row>
+                      <Row stacked label="Daily reward">{earnDailyReward.toFixed(2)} {earnAsset?.symbol}</Row>
+                      <Row stacked label="Monthly reward">{earnMonthlyReward.toFixed(2)} {earnAsset?.symbol}</Row>
+                      <Row stacked label="Yearly reward">{earnYearlyReward.toFixed(2)} {earnAsset?.symbol}</Row>
+                      <Row stacked label="Earn term">Unlimited</Row>
+                      <Row stacked label="Interest accumulation period">Daily</Row>
+                    </Group>
 
-                <Button 
-                  className="w-full py-4 text-[15px] font-semibold rounded-xl bg-blue-600! hover:bg-blue-700! text-white!"
-                  onClick={handleConfirmEarn}
-                  loading={isSubmitting}
-                >
-                  Confirm
-                </Button>
-              </div>
-            </div>
+                    {/* Contact */}
+                    <div className="space-y-4 border-t border-cd-line pt-5">
+                      <div>
+                        <label htmlFor="email-earn" className="mb-2 block text-[13px] text-cd-muted">Email</label>
+                        <input
+                          id="email-earn"
+                          type="email"
+                          placeholder="example@domain.com"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          className={INPUT}
+                        />
+                        <p className="mt-2 cursor-pointer text-[13px] font-medium text-cd-accent-text">Verify with Phone</p>
+                      </div>
+
+                      <ActionButton variant="outline" className="h-11 w-full" onClick={() => toast.success('Verification link sent to email')}>
+                        Verify
+                      </ActionButton>
+
+                      <Terms id="terms-earn" checked={termsAccepted} onChange={setTermsAccepted} />
+                    </div>
+
+                    <ActionButton variant="primary" className="mt-6 h-12 w-full text-[15px]" onClick={handleConfirmEarn} disabled={isSubmitting}>
+                      {isSubmitting && <Loader2 size={17} className="animate-spin" />}
+                      Confirm
+                    </ActionButton>
+                  </>
+                )}
+              </Card>
+            </>
           )}
         </div>
-      )}
+      </div>
 
-      {/* Asset Selector Modal */}
+      {/* Asset picker */}
       {(modalType === 'collateral' || modalType === 'loan' || modalType === 'earn') && (
-        <div className="fixed inset-0 z-[100] flex flex-col bg-cd-page animate-in slide-in-from-bottom-full duration-300">
-          <div className="flex items-center justify-between p-4 bg-cd-card border-b border-cd-line sticky top-0">
-            <h2 className="text-lg font-semibold text-cd-text">Choose asset</h2>
-            <button onClick={() => setModalType(null)} className="p-2 -mr-2 text-gray-400 hover:text-gray-600">
-              <X size={24} />
-            </button>
-          </div>
-          
-          <div className="p-4 bg-cd-card border-b border-cd-line">
+        <Sheet title="Choose asset" onClose={() => setModalType(null)} full>
+          <div className="px-5 pb-3">
             <div className="relative">
-              <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input 
-                type="text" 
-                placeholder="Search crypto" 
+              <Search size={16} strokeWidth={1.75} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-cd-faint" />
+              <input
+                type="text"
+                placeholder="Search crypto"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full bg-cd-raised text-cd-text placeholder:text-gray-400 text-[15px] py-3 pl-10 pr-4 rounded-xl focus:outline-none border border-cd-line"
+                className={cn(INPUT, 'pl-10')}
               />
             </div>
-            <div className="text-sm font-medium text-gray-500 mt-4 px-1">Crypto assets</div>
+            <p className="mt-4 text-[11px] font-medium uppercase tracking-[0.06em] text-cd-muted">Crypto assets</p>
           </div>
 
-          <div className="flex-1 overflow-y-auto bg-cd-card pb-safe">
+          <ul className="flex-1 overflow-y-auto px-2 pb-3">
             {filteredAssets.map((asset) => {
-              const isSelected = modalType === 'collateral' 
-                ? collateralAsset?.symbol === asset.symbol 
-                : modalType === 'earn' ? earnAsset?.symbol === asset.symbol : loanAsset?.symbol === asset.symbol;
-                
+              const isSelected = pickerAsset?.symbol === asset.symbol;
               return (
-                <div 
-                  key={asset.id} 
-                  onClick={() => {
-                    if (modalType === 'collateral') setCollateralAsset(asset);
-                    else if (modalType === 'earn') setEarnAsset(asset);
-                    else setLoanAsset(asset);
-                    setModalType(null);
-                    setSearch('');
-                  }}
-                  className="flex items-center justify-between p-4 hover:bg-cd-raised cursor-pointer transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <AssetIcon symbol={asset.symbol} />
-                    <div className="flex flex-col">
-                      <span className="font-semibold text-cd-text">{asset.symbol}</span>
-                      <span className="text-sm text-gray-500">{asset.name}</span>
-                    </div>
-                  </div>
-                  {isSelected && <Check size={20} className="text-blue-600" />}
-                </div>
+                <li key={asset.id}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (modalType === 'collateral') setCollateralAsset(asset);
+                      else if (modalType === 'earn') setEarnAsset(asset);
+                      else setLoanAsset(asset);
+                      setModalType(null);
+                      setSearch('');
+                    }}
+                    className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left transition-colors hover:bg-cd-raised"
+                  >
+                    <AssetIcon symbol={asset.symbol} size={30} />
+                    <span className="min-w-0 flex-1">
+                      <AssetName symbol={asset.symbol.toUpperCase()} name={asset.name} network={asset.network} />
+                    </span>
+                    {isSelected && <Check size={17} className="shrink-0 text-cd-accent-text" />}
+                  </button>
+                </li>
               );
             })}
-          </div>
-        </div>
+            {filteredAssets.length === 0 && <li className="px-3 py-8 text-center text-[13px] text-cd-muted">No assets match “{search}”</li>}
+          </ul>
+        </Sheet>
       )}
 
-      {/* LTV & APR Modals */}
+      {/* LTV & APR pickers */}
       {(modalType === 'ltv' || modalType === 'apr') && (
-        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/40 animate-in fade-in duration-200" onClick={() => setModalType(null)}>
-          <div 
-            className="w-full sm:max-w-md bg-cd-card rounded-t-[32px] sm:rounded-xl flex flex-col animate-in slide-in-from-bottom-full duration-300 pb-safe"
-            onClick={e => e.stopPropagation()}
-          >
-            {/* Header */}
-            <div className="flex justify-between items-center p-6 mb-2">
-              <h2 className="text-[20px] font-medium text-cd-text">
-                {modalType === 'ltv' ? 'Choose LTV' : 'Choose APR'}
-              </h2>
-              <button onClick={() => setModalType(null)} className="text-gray-400 hover:text-gray-600">
-                <X size={24} />
-              </button>
-            </div>
-            
-            {/* List */}
-            <div className="flex flex-col pb-8 px-2">
-              {modalType === 'ltv' && [0.35, 0.60, 0.80, 0.90].map((val) => (
-                <div 
-                  key={val}
+        <Sheet title={modalType === 'ltv' ? 'Choose LTV' : 'Choose APR'} onClose={() => setModalType(null)}>
+          <ul className="overflow-y-auto px-2 pb-4">
+            {modalType === 'ltv' && [0.35, 0.60, 0.80, 0.90].map((val) => (
+              <li key={val}>
+                <button
+                  type="button"
                   onClick={() => { setLtv(val); setModalType(null); }}
-                  className="flex items-center justify-between px-6 py-4 cursor-pointer hover:bg-cd-raised transition-colors"
+                  className="flex w-full items-center justify-between rounded-md px-3 py-3.5 text-left transition-colors hover:bg-cd-raised"
                 >
-                  <span className="text-[17px] italic text-cd-text">{Math.round(val * 100)}%</span>
-                  {ltv === val && <Check size={20} className="text-blue-600" />}
-                </div>
-              ))}
+                  <span className="cd-num text-[15px] text-cd-text">{Math.round(val * 100)}%</span>
+                  {ltv === val && <Check size={17} className="text-cd-accent-text" />}
+                </button>
+              </li>
+            ))}
 
-              {modalType === 'apr' && [
-                { apr: 0.1195, label: '11.95%', liqLtv: '80% Liq. LTV', term: 'Unlimited' },
-                { apr: 0.15, label: '15%', liqLtv: '95% Liq. LTV', term: 'Unlimited' },
-                { apr: 0.14, label: '14%', liqLtv: '95% Liq. LTV', term: '30 days' },
-              ].map((opt, idx) => (
-                <div 
-                  key={idx}
+            {modalType === 'apr' && [
+              { apr: 0.1195, label: '11.95%', liqLtv: '80% Liq. LTV', term: 'Unlimited' },
+              { apr: 0.15, label: '15%', liqLtv: '95% Liq. LTV', term: 'Unlimited' },
+              { apr: 0.14, label: '14%', liqLtv: '95% Liq. LTV', term: '30 days' },
+            ].map((opt, idx) => (
+              <li key={idx}>
+                <button
+                  type="button"
                   onClick={() => { setAprOption(opt); setModalType(null); }}
-                  className="flex items-center justify-between px-6 py-4 cursor-pointer hover:bg-cd-raised transition-colors"
+                  className="flex w-full items-center justify-between rounded-md px-3 py-3 text-left transition-colors hover:bg-cd-raised"
                 >
-                  <div className="flex flex-col gap-1">
-                    <span className="text-[17px] text-cd-text">{opt.label}</span>
-                    <span className="text-[15px] text-gray-400">{opt.liqLtv}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-[17px] text-cd-text">{opt.term}</span>
-                    {aprOption.apr === opt.apr && <Check size={20} className="text-blue-600" />}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+                  <span>
+                    <span className="cd-num block text-[15px] text-cd-text">{opt.label}</span>
+                    <span className="mt-0.5 block text-[12.5px] text-cd-muted">{opt.liqLtv}</span>
+                  </span>
+                  <span className="flex items-center gap-3">
+                    <span className="text-[14px] text-cd-text">{opt.term}</span>
+                    <span className="w-[17px]">{aprOption.apr === opt.apr && <Check size={17} className="text-cd-accent-text" />}</span>
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </Sheet>
       )}
-
     </div>
   );
 }

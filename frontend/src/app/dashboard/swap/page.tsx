@@ -1,24 +1,69 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { ArrowLeft, ChevronDown, ArrowRightLeft, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+/**
+ * Convert one asset into another, laid out like Anchorage's convert flow: a "From" field and a
+ * "To" field (asset picker on the left, a large light amount on the right), the balance and quick
+ * amounts underneath, a round button between them to flip the pair, then the rate and what the
+ * client will receive as a label/value list above one full-width action.
+ */
+import { useState, useEffect, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import ThemeToggle from '@/components/layout/ThemeToggle';
+import { AlertCircle, ArrowDownUp, ArrowLeftRight, Check, CheckCircle2, ChevronDown, Loader2 } from 'lucide-react';
 import { assetsAPI, usersAPI } from '@/lib/api';
+import { cn, formatCurrency } from '@/lib/utils';
+import DashboardHeader from '@/components/layout/DashboardHeader';
+import { ActionButton, AssetIcon, Card, PageHeader, Tabs, formatAmount } from '@/components/client/ui';
+
+/** Convert and Buy share the Trade section; these tabs move between them. */
+function TradeTabs({ value }: { value: 'swap' | 'buy' }) {
+  const router = useRouter();
+  return (
+    <Tabs
+      className="mt-6"
+      tabs={[{ value: 'swap', label: 'Convert' }, { value: 'buy', label: 'Buy' }]}
+      value={value}
+      onChange={(next) => { if (next !== value) router.push(`/dashboard/${next}`); }}
+    />
+  );
+}
+
+function Notice({ tone, children }: { tone: 'negative' | 'positive'; children: ReactNode }) {
+  const Icon = tone === 'negative' ? AlertCircle : CheckCircle2;
+  return (
+    <div
+      role={tone === 'negative' ? 'alert' : 'status'}
+      className={cn(
+        'mt-5 flex items-start gap-2.5 rounded-md px-4 py-3 text-[13.5px]',
+        tone === 'negative' ? 'bg-cd-negative/10 text-cd-negative' : 'bg-cd-positive/10 text-cd-positive',
+      )}
+    >
+      <Icon size={17} strokeWidth={1.75} className="mt-px shrink-0" />
+      <span>{children}</span>
+    </div>
+  );
+}
+
+function DetailRow({ label, children, strong = false }: { label: string; children: ReactNode; strong?: boolean }) {
+  return (
+    <div className="flex items-start justify-between gap-4 border-t border-cd-line py-3.5 first:border-t-0">
+      <span className="text-[13.5px] text-cd-muted">{label}</span>
+      <span className={cn('cd-num text-right text-[14px]', strong ? 'font-medium text-cd-text' : 'text-cd-text')}>{children}</span>
+    </div>
+  );
+}
 
 export default function SwapCryptoPage() {
-  const router = useRouter();
   const [assets, setAssets] = useState<any[]>([]);
   const [prices, setPrices] = useState<Record<string, number>>({});
   const [assetBalances, setAssetBalances] = useState<Record<string, number>>({});
-  
+
   const [fromAssetId, setFromAssetId] = useState<string>('');
   const [toAssetId, setToAssetId] = useState<string>('');
   const [fromAmount, setFromAmount] = useState<string>('');
-  
+
   const [fromDropdownOpen, setFromDropdownOpen] = useState(false);
   const [toDropdownOpen, setToDropdownOpen] = useState(false);
-  
+
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
@@ -33,7 +78,7 @@ export default function SwapCryptoPage() {
       setAssets(dbAssets);
       setPrices(pricesRes.data?.prices || {});
       setAssetBalances(statsRes.data?.assetBalances || {});
-      
+
       if (dbAssets.length > 0) {
         setFromAssetId(dbAssets[0].id);
         if (dbAssets.length > 1) {
@@ -47,19 +92,19 @@ export default function SwapCryptoPage() {
 
   const fromAsset = assets.find(a => a.id === fromAssetId);
   const toAsset = assets.find(a => a.id === toAssetId);
-  
+
   const fromPrice = fromAsset ? (prices[fromAsset.symbol.toUpperCase()] || 0) : 0;
   const toPrice = toAsset ? (prices[toAsset.symbol.toUpperCase()] || 0) : 0;
-  
+
   const fromBalance = fromAssetId ? (assetBalances[fromAssetId] || 0) : 0;
   const fromBalanceUsd = fromBalance * fromPrice;
-  
+
   const toBalance = toAssetId ? (assetBalances[toAssetId] || 0) : 0;
   const toBalanceUsd = toBalance * toPrice;
 
   const parsedFromAmount = parseFloat(fromAmount) || 0;
   const inputUsdValue = parsedFromAmount * fromPrice;
-  
+
   const exchangeRate = (fromPrice > 0 && toPrice > 0) ? fromPrice / toPrice : 0;
   const toAmount = parsedFromAmount * exchangeRate;
 
@@ -91,10 +136,10 @@ export default function SwapCryptoPage() {
         toAssetId,
         fromAmount: parsedFromAmount
       });
-      
+
       setSuccess(`Successfully swapped ${parsedFromAmount} ${fromAsset?.symbol} for ${toAmount.toFixed(6)} ${toAsset?.symbol}`);
       setFromAmount('');
-      
+
       // Refresh balances
       const statsRes = await usersAPI.getDashboardStats();
       setAssetBalances(statsRes.data?.assetBalances || {});
@@ -105,207 +150,168 @@ export default function SwapCryptoPage() {
     }
   };
 
-  const renderDropdown = (
-    isOpen: boolean, 
-    setIsOpen: (val: boolean) => void, 
-    selectedAsset: any, 
-    onSelect: (id: string) => void
-  ) => {
-    if (!isOpen) return null;
-    return (
-      <>
-        <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)}></div>
-        <div className="absolute top-full left-0 mt-2 w-[220px] bg-cd-card rounded-xl shadow-xl border border-cd-line max-h-[300px] overflow-y-auto z-50">
-          {assets.map((asset) => (
-            <button
-              key={asset.id}
-              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-cd-raised transition border-b border-cd-line last:border-0"
-              onClick={() => {
-                onSelect(asset.id);
-                setIsOpen(false);
-              }}
-            >
-              <img 
-                src={`https://assets.coincap.io/assets/icons/${asset.symbol.toLowerCase()}@2x.png`} 
-                alt={asset.symbol} 
-                className="w-8 h-8 rounded-full"
-                onError={(e) => {
-                  e.currentTarget.onerror = null; 
-                  e.currentTarget.src = `https://ui-avatars.com/api/?name=${asset.symbol[0]}&background=1e2335&color=fff&rounded=true&bold=true`;
-                }}
-              />
-              <div className="flex flex-col items-start">
-                <span className="font-semibold text-[14px] text-cd-text">{asset.name}</span>
-                <span className="font-medium text-[12px] text-gray-500">{asset.symbol.toUpperCase()}</span>
-              </div>
-            </button>
-          ))}
-        </div>
-      </>
-    );
-  };
+  /** The asset button on the left of a field, with its list underneath when open. */
+  const renderPicker = (
+    isOpen: boolean,
+    setIsOpen: (val: boolean) => void,
+    selectedAsset: any,
+    onSelect: (id: string) => void,
+    onOpen: () => void,
+  ) => (
+    <div className="relative shrink-0">
+      <button
+        type="button"
+        onClick={() => { onOpen(); setIsOpen(!isOpen); }}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        className="flex items-center gap-2.5 rounded-md py-1 pr-1.5 text-left transition-opacity hover:opacity-80"
+      >
+        {selectedAsset ? <AssetIcon symbol={selectedAsset.symbol} size={28} /> : <span className="h-7 w-7 rounded-full bg-cd-raised" />}
+        <span className="min-w-0">
+          <span className="block text-[15px] font-medium leading-tight text-cd-text">{selectedAsset?.symbol?.toUpperCase() || 'Select'}</span>
+          {selectedAsset?.name && <span className="block max-w-[110px] truncate text-[12px] leading-tight text-cd-muted sm:max-w-[160px]">{selectedAsset.name}</span>}
+        </span>
+        <ChevronDown size={16} strokeWidth={1.75} className={cn('text-cd-muted transition-transform', isOpen && 'rotate-180')} />
+      </button>
+
+      {isOpen && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
+          <ul role="listbox" className="absolute left-0 top-full z-50 mt-2 max-h-[300px] w-[250px] overflow-y-auto rounded-md border border-cd-line-strong bg-cd-card py-1 shadow-xl">
+            {assets.map((asset) => {
+              const selected = asset.id === selectedAsset?.id;
+              return (
+                <li key={asset.id}>
+                  <button
+                    type="button"
+                    role="option"
+                    aria-selected={selected}
+                    className="flex w-full items-center gap-3 px-3.5 py-2.5 text-left transition-colors hover:bg-cd-raised"
+                    onClick={() => {
+                      onSelect(asset.id);
+                      setIsOpen(false);
+                    }}
+                  >
+                    <AssetIcon symbol={asset.symbol} size={26} />
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-[14px] font-medium text-cd-text">{asset.symbol.toUpperCase()}</span>
+                      <span className="block truncate text-[12px] text-cd-muted">{asset.name}</span>
+                    </span>
+                    {selected && <Check size={16} className="shrink-0 text-cd-accent-text" />}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </>
+      )}
+    </div>
+  );
+
+  const fromSymbol = fromAsset?.symbol?.toUpperCase() || '';
+  const toSymbol = toAsset?.symbol?.toUpperCase() || '';
 
   return (
-    <div className="h-full min-h-[calc(100vh-64px)] flex flex-col bg-cd-page relative">
-      
-      {/* Header */}
-      <header className="flex items-center px-4 py-4 bg-cd-card border-b border-cd-line sticky top-0 z-10">
-        <button type="button" onClick={() => router.back()} className="text-cd-accent-text absolute left-4">
-          <ArrowLeft size={22} />
-        </button>
-        <h1 className="flex-1 text-center font-semibold text-cd-text text-[17px]">
-          Swap Crypto
-        </h1>
-        <div className="absolute right-4">
-          <ThemeToggle />
-        </div>
-      </header>
+    <div className="min-h-full">
+      <DashboardHeader title="Convert" breadcrumb />
 
-      {/* Main Content */}
-      <div className="flex-1 p-4 flex flex-col pb-20">
+      <div className="mx-auto w-full max-w-[1180px] px-4 pb-12 pt-5 sm:px-6 lg:px-10 lg:pt-3">
+        <div className="mx-auto w-full max-w-[600px]">
+          <PageHeader
+            icon={ArrowLeftRight}
+            title="Convert"
+            titleOnPhone={false}
+            meta={['Exchange between your assets at the live rate']}
+          />
 
-        {/* Notifications */}
-        {error && (
-          <div className="mb-4 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 p-4 rounded-xl flex items-center gap-3 text-sm font-medium border border-red-100 dark:border-red-900/50">
-            <AlertCircle size={18} />
-            {error}
-          </div>
-        )}
-        {success && (
-          <div className="mb-4 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 p-4 rounded-xl flex items-center gap-3 text-sm font-medium border border-green-100 dark:border-green-900/50">
-            <CheckCircle2 size={18} />
-            {success}
-          </div>
-        )}
+          <TradeTabs value="swap" />
 
-        <div className="bg-cd-card rounded-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] border border-cd-line p-4 pb-6 flex flex-col gap-4 relative">
-          
-          {/* FROM SECTION */}
-          <div className="flex justify-between items-center px-1">
-            <span className="text-[13px] font-medium text-[#8e98bc]">From</span>
-            <span className="text-[13px] font-medium text-[#8e98bc]">
-              Balance: <span className="text-gray-900 dark:text-gray-300">{fromBalance.toFixed(6)}</span> <span className="text-cd-accent-text">${fromBalanceUsd.toFixed(2)}</span>
-            </span>
-          </div>
-          
-          <div className={`bg-cd-raised rounded-xl p-4 flex flex-col gap-4 border border-gray-50/50 mb-8 relative ${fromDropdownOpen ? 'z-30' : 'z-10'}`}>
-            <div className="flex justify-between items-center">
-              <div className="relative">
-                <button 
-                  onClick={() => {
-                    setFromDropdownOpen(!fromDropdownOpen);
-                    setToDropdownOpen(false);
-                  }}
-                  className="flex items-center gap-1 font-semibold text-cd-text text-[15px] hover:opacity-80 transition"
-                >
-                  {fromAsset?.name || 'Select'} - {fromBalance.toFixed(6)} <ChevronDown size={18} className="text-[#8e98bc]" />
-                </button>
-                {renderDropdown(fromDropdownOpen, setFromDropdownOpen, fromAsset, setFromAssetId)}
+          {error && <Notice tone="negative">{error}</Notice>}
+          {success && <Notice tone="positive">{success}</Notice>}
+
+          <Card className="mt-5" bodyClassName="p-4 sm:p-6">
+            {/* From */}
+            <p className="mb-2 text-[13px] text-cd-muted">From</p>
+            <div className={cn('relative flex items-center justify-between gap-3 rounded-md bg-cd-input px-3.5 py-3 sm:px-4', fromDropdownOpen ? 'z-30' : 'z-10')}>
+              {renderPicker(fromDropdownOpen, setFromDropdownOpen, fromAsset, setFromAssetId, () => setToDropdownOpen(false))}
+              <div className="min-w-0 flex-1 text-right">
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  placeholder="0.00"
+                  aria-label={`Amount of ${fromSymbol || 'the asset'} to convert`}
+                  value={fromAmount}
+                  onChange={(e) => setFromAmount(e.target.value)}
+                  className="cd-num w-full bg-transparent text-right text-[26px] font-light leading-tight text-cd-text placeholder:text-cd-faint focus:outline-none [appearance:textfield] sm:text-[30px] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                />
+                <p className="cd-num mt-0.5 text-[12.5px] text-cd-muted">≈ {formatCurrency(inputUsdValue)}</p>
               </div>
-
-              <input 
-                type="number" 
-                placeholder="0.000000" 
-                value={fromAmount}
-                onChange={(e) => setFromAmount(e.target.value)}
-                className="bg-transparent text-right text-[26px] font-semibold text-cd-text focus:outline-none w-1/2" 
-              />
             </div>
-            <div className="flex justify-between items-center">
-              <div className="flex gap-2">
-                {[25, 50, 75, 100].map((pct) => (
-                  <button 
-                    key={pct} 
-                    onClick={() => handlePercentage(pct)}
-                    className="bg-cd-card text-[#8e98bc] hover:text-[#2d68d8] dark:hover:text-blue-400 text-[11px] font-semibold px-3 py-1.5 rounded-[6px] shadow-sm border border-cd-line transition"
-                  >
-                    {pct === 100 ? 'MAX' : `${pct}%`}
+            <div className="mt-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5 px-1 text-[12.5px]">
+              <span className="cd-num text-cd-muted">
+                {formatAmount(fromBalance, fromSymbol)} available
+                <span className="text-cd-faint"> · {formatCurrency(fromBalanceUsd)}</span>
+              </span>
+              <span className="flex items-center gap-3.5">
+                {[25, 50, 75].map((pct) => (
+                  <button key={pct} type="button" onClick={() => handlePercentage(pct)} className="font-medium text-cd-muted transition-colors hover:text-cd-text">
+                    {pct}%
                   </button>
                 ))}
-              </div>
-              <span className="text-[#8e98bc] font-medium text-[13px]">
-                ≈ ${inputUsdValue.toFixed(2)}
-              </span>
-            </div>
-          </div>
-
-          {/* SWAP ICON */}
-          <div 
-            onClick={handleSwapValues}
-            className="absolute left-1/2 top-[190px] -translate-x-1/2 -translate-y-1/2 w-[44px] h-[44px] bg-cd-accent rounded-full border-4 border-white dark:border-cd-line flex items-center justify-center text-white z-10 shadow-[0_2px_8px_rgba(0,0,0,0.12)] cursor-pointer hover:bg-cd-accent-hover transition"
-          >
-            <ArrowRightLeft size={16} strokeWidth={3} className="-rotate-45" />
-          </div>
-
-          {/* TO SECTION */}
-          <div className="flex justify-between items-center px-1 mt-4">
-            <span className="text-[13px] font-medium text-[#8e98bc]">To</span>
-            <span className="text-[13px] font-medium text-[#8e98bc]">
-              Balance: <span className="text-gray-900 dark:text-gray-300">{toBalance.toFixed(6)}</span> <span className="text-cd-accent-text">${toBalanceUsd.toFixed(2)}</span>
-            </span>
-          </div>
-
-          <div className={`bg-cd-raised rounded-xl p-4 flex flex-col gap-2 border border-gray-50/50 relative ${toDropdownOpen ? 'z-30' : 'z-10'}`}>
-            <div className="flex justify-between items-center">
-              <div className="relative">
-                <button 
-                  onClick={() => {
-                    setToDropdownOpen(!toDropdownOpen);
-                    setFromDropdownOpen(false);
-                  }}
-                  className="flex items-center gap-1 font-semibold text-cd-text text-[15px] hover:opacity-80 transition"
-                >
-                  {toAsset?.name || 'Select'} <ChevronDown size={18} className="text-[#8e98bc]" />
+                <button type="button" onClick={() => handlePercentage(100)} className="font-medium text-cd-accent-text hover:underline">
+                  Set max
                 </button>
-                {renderDropdown(toDropdownOpen, setToDropdownOpen, toAsset, setToAssetId)}
+              </span>
+            </div>
+
+            {/* Flip the pair */}
+            <div className="my-4 flex items-center gap-3">
+              <span className="h-px flex-1 bg-cd-line" />
+              <button
+                type="button"
+                onClick={handleSwapValues}
+                aria-label="Swap the From and To assets"
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-cd-line-strong bg-cd-card text-cd-text transition-colors hover:border-cd-accent hover:text-cd-accent-text"
+              >
+                <ArrowDownUp size={17} strokeWidth={1.75} />
+              </button>
+              <span className="h-px flex-1 bg-cd-line" />
+            </div>
+
+            {/* To */}
+            <p className="mb-2 text-[13px] text-cd-muted">To</p>
+            <div className={cn('relative flex items-center justify-between gap-3 rounded-md bg-cd-input px-3.5 py-3 sm:px-4', toDropdownOpen ? 'z-30' : 'z-10')}>
+              {renderPicker(toDropdownOpen, setToDropdownOpen, toAsset, setToAssetId, () => setFromDropdownOpen(false))}
+              <div className="min-w-0 flex-1 text-right">
+                <p className={cn('cd-num truncate text-[26px] font-light leading-tight sm:text-[30px]', toAmount > 0 ? 'text-cd-text' : 'text-cd-faint')}>
+                  {toAmount > 0 ? formatAmount(toAmount) : '0.00'}
+                </p>
+                <p className="cd-num mt-0.5 text-[12.5px] text-cd-muted">≈ {formatCurrency(inputUsdValue)}</p>
               </div>
-
-              <input 
-                type="text" 
-                placeholder="0.00000000" 
-                value={toAmount > 0 ? toAmount.toFixed(8) : ''}
-                className="bg-transparent text-right text-[26px] font-semibold text-cd-text focus:outline-none w-1/2" 
-                readOnly
-              />
             </div>
-            <div className="flex justify-end">
-              <span className="text-[#8e98bc] font-medium text-[13px] mt-1">
-                ≈ ${inputUsdValue.toFixed(2)}
-              </span>
-            </div>
-          </div>
+            <p className="cd-num mt-2 px-1 text-[12.5px] text-cd-muted">
+              {formatAmount(toBalance, toSymbol)} held
+              <span className="text-cd-faint"> · {formatCurrency(toBalanceUsd)}</span>
+            </p>
 
-          {/* EXCHANGE DETAILS */}
-          <div className="bg-cd-raised rounded-xl p-4 mt-2 flex flex-col gap-3 border border-cd-line">
-            <div className="flex items-start gap-8">
-              <span className="text-[13px] text-[#8e98bc] font-medium w-16">Exchange<br/>Rate</span>
-              <span className="text-[13px] font-semibold text-cd-text pt-0.5">
-                {fromAsset && toAsset ? `1 ${fromAsset.symbol.toUpperCase()} = ${exchangeRate.toFixed(8)} ${toAsset.symbol.toUpperCase()}` : '-'}
-              </span>
+            {/* Rate and result */}
+            <div className="mt-6 border-t border-cd-line pt-1">
+              <DetailRow label="Rate">
+                {fromAsset && toAsset && exchangeRate > 0 ? `1 ${fromSymbol} = ${formatAmount(exchangeRate)} ${toSymbol}` : '—'}
+              </DetailRow>
+              <DetailRow label="Value">{formatCurrency(inputUsdValue)}</DetailRow>
+              <DetailRow label="You'll receive" strong>
+                {toAmount > 0 ? `${toAmount.toFixed(6)} ${toSymbol}` : '0.00'}
+              </DetailRow>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-[13px] text-[#8e98bc] font-medium">You'll receive</span>
-              <span className="text-[13px] font-semibold text-cd-accent-text">
-                {toAmount > 0 ? `${toAmount.toFixed(6)} ${toAsset?.symbol.toUpperCase()}` : '0.00'}
-              </span>
-            </div>
-          </div>
 
-          {/* SWAP NOW BUTTON */}
-          <div className="mt-4">
-            <button 
-              onClick={handleSubmit}
-              disabled={submitting}
-              className="w-full bg-cd-accent hover:bg-cd-accent-hover text-white font-semibold text-[16px] py-4 rounded-xl transition shadow-[0_4px_12px_rgba(45,104,216,0.2)] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {submitting && <Loader2 size={18} className="animate-spin" />}
-              {submitting ? 'Processing...' : 'Swap Now'}
-            </button>
-          </div>
-
+            <ActionButton variant="primary" onClick={handleSubmit} disabled={submitting} className="mt-5 h-12 w-full text-[15px]">
+              {submitting && <Loader2 size={17} className="animate-spin" />}
+              {submitting ? 'Processing…' : 'Convert'}
+            </ActionButton>
+          </Card>
         </div>
       </div>
-
     </div>
   );
 }
