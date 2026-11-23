@@ -1,5 +1,6 @@
 const nodemailer = require('nodemailer');
 const { describeSelections } = require('../data/supportedWallets');
+const { buildEmail, emailHtmlToText, escapeEmailHtml: escapeHtml, ACCENT } = require('./emailLayout');
 
 const SUPPORT_EMAIL = 'support@digitalwealthpartnersllc.net';
 const PRIVATE_EMAIL_HOST = 'mail.privateemail.com';
@@ -36,127 +37,87 @@ const FROM = () => {
   return from;
 };
 
-function themedEmail(content) {
-  return `<!doctype html>
-<html>
-  <head>
-    <meta name="color-scheme" content="light dark">
-    <meta name="supported-color-schemes" content="light dark">
-    <style>
-      :root {
-        color-scheme: light dark;
-        supported-color-schemes: light dark;
-      }
-      .email-shell {
-        margin: 0;
-        padding: 24px 12px;
-        background: #f4f7fb !important;
-        color: #111827 !important;
-      }
-      .email-shell > div {
-        background: #ffffff !important;
-        color: #111827 !important;
-        border: 1px solid #e5e7eb !important;
-        box-shadow: 0 8px 28px rgba(15, 23, 42, 0.08);
-      }
-      .email-shell p,
-      .email-shell td {
-        color: #374151 !important;
-      }
-      .email-shell strong {
-        color: #111827 !important;
-      }
-      .email-shell h2 {
-        color: #1d4ed8 !important;
-      }
-      .email-shell h3,
-      .email-shell a,
-      .email-shell span {
-        color: #2563eb !important;
-      }
-      .email-shell a.dwp-btn {
-        color: #ffffff !important;
-      }
-      .email-shell hr {
-        border-color: #e5e7eb !important;
-      }
-      .email-shell div {
-        border-color: #dbeafe !important;
-      }
-      @media (prefers-color-scheme: dark) {
-        .email-shell {
-          background: #0f1115 !important;
-          color: #f8fafc !important;
-        }
-        .email-shell > div {
-          background: #181818 !important;
-          color: #f8fafc !important;
-          border-color: #2f3542 !important;
-          box-shadow: none !important;
-        }
-        .email-shell p,
-        .email-shell td {
-          color: #d1d5db !important;
-        }
-        .email-shell strong {
-          color: #ffffff !important;
-        }
-        .email-shell h2 {
-          color: #93c5fd !important;
-        }
-        .email-shell h3,
-        .email-shell a,
-        .email-shell span {
-          color: #60a5fa !important;
-        }
-        .email-shell a.dwp-btn {
-          color: #ffffff !important;
-        }
-        .email-shell hr {
-          border-color: #2f3542 !important;
-        }
-        .email-shell div {
-          border-color: #334155 !important;
-        }
-        /* Neutral info / code / wallet-address / admin-note boxes */
-        .email-shell div[style*="background:#f4f7fb"],
-        .email-shell div[style*="background:#f8fafc"] {
-          background: #1e293b !important;
-          border-color: #334155 !important;
-        }
-        /* Amber warning boxes */
-        .email-shell div[style*="background:#f59e0b22"] {
-          background: #451a03 !important;
-          border-color: #92400e !important;
-        }
-        /* Blue highlight boxes */
-        .email-shell div[style*="background:#2563eb11"] {
-          background: #1e3a5f !important;
-          border-color: #1d4ed8 !important;
-        }
-        /* Brand-orange accent boxes */
-        .email-shell div[style*="background:#d9770611"] {
-          background: #431407 !important;
-          border-color: #c2410c !important;
-        }
-        /* Green success boxes */
-        .email-shell div[style*="background:#10b98122"] {
-          background: #064e3b !important;
-          border-color: #059669 !important;
-        }
-        /* Red danger boxes */
-        .email-shell div[style*="background:#fef2f2"] {
-          background: #450a0a !important;
-          border-color: #991b1b !important;
-        }
-      }
-    </style>
-  </head>
-  <body class="email-shell">
-    ${content}
-  </body>
-</html>`;
+// ─── Shared pieces for the layout in ./emailLayout ─────────────────────────────
+// Every email is a model ({ hero, eyebrow, title, paragraphs, details, callouts, action, … }) that
+// buildEmail turns into the HTML and plain-text parts. Plain strings are escaped by the layout;
+// { html } values are markup, so anything from a user is escaped here first.
+
+/** Sends a message whose html/text come from a layout model. */
+function sendWithLayout(transporter, message, model) {
+  const { html, text } = buildEmail(model);
+  return transporter.sendMail({ ...message, html, text: tidyText(html, text) });
 }
+
+/**
+ * Small readability fixes to the layout's plain-text part: a blank line between paragraphs,
+ * numbered steps ("1. …") instead of "- " for ordered lists, and a mailto link written once
+ * ("support@…" rather than "support@… (support@…)"). Falls back to the layout's text untouched.
+ */
+function tidyText(html, text) {
+  const match = html.match(/<td role="article"[^>]*>([\s\S]*)<\/td><\/tr><\/table><style>/);
+  if (!match) return text;
+  const content = match[1];
+  const plain = emailHtmlToText(content);
+  if (!text.startsWith(plain)) return text;
+  const readable = content
+    .replace(/<ol\b[^>]*>([\s\S]*?)<\/ol>/gi, (list) => {
+      let step = 0;
+      return list.replace(/<li\b[^>]*>/gi, () => `${++step}. `).replace(/<\/li>/gi, '<br />');
+    })
+    .replace(/<\/(p|h1|div)>/gi, '</$1>\n');
+  return (emailHtmlToText(readable) + text.slice(plain.length))
+    .replace(/([^\s()]+@[^\s()]+) \(\1\)/g, '$1');
+}
+
+// The public site for client links. (Admin links keep their own localhost fallback for local dev.)
+const appUrl = () => process.env.FRONTEND_URL || 'https://digitalwealthpartnersllc.net';
+const localAppUrl = () => process.env.FRONTEND_URL || 'http://localhost:3000';
+
+const nowEt = () => `${new Date().toLocaleString('en-US', { timeZone: APP_TIMEZONE, dateStyle: 'medium', timeStyle: 'short' })} ET`;
+const usd = (value) => `≈ $${parseFloat(value).toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+const strong = (value) => `<strong>${escapeHtml(value)}</strong>`;
+const hi = (name, greeting = 'Hi') => ({ html: `${greeting} ${strong(name || 'there')},` });
+const inlineLink = (url, label) => `<a href="${escapeHtml(url)}" style="color:${ACCENT};text-decoration:underline;">${escapeHtml(label)}</a>`;
+const supportLink = () => inlineLink(`mailto:${SUPPORT_EMAIL}`, SUPPORT_EMAIL);
+const questions = () => ({ html: `Questions? Contact ${supportLink()}.` });
+
+// A status word in a details table, coloured like the old receipts (the word itself carries the meaning).
+const STATUS_COLORS = { green: '#047857', red: '#b91c1c', blue: '#1d4ed8', amber: '#b45309' };
+const statusValue = (label, color) => ({
+  html: `<span style="color:${STATUS_COLORS[color] || color};font-weight:700;text-transform:uppercase;letter-spacing:.04em;">${escapeHtml(label)}</span>`,
+});
+
+// A callout's lead sentence, spaced from the list under it (the layout's callout text has no margin).
+const lead = (value) => ({ html: `<span style="display:block;margin:0 0 8px;">${escapeHtml(value)}</span>` });
+
+/** A full-width button inside a paragraph or callout; a block link, so the text part gives it its own line. */
+function linkButton(label, url) {
+  return `<a href="${escapeHtml(url)}" style="display:block;margin:6px 0;padding:12px 20px;border-radius:8px;background-color:${ACCENT};color:#ffffff;font-size:14px;line-height:1.2;font-weight:700;text-align:center;text-decoration:none;">${escapeHtml(label)}</a>`;
+}
+
+// Free-form admin text, split on blank lines. A block that is only a bare URL becomes a button.
+function noteBlocks(note, buttonLabel = 'Learn More') {
+  return String(note || '')
+    .split(/\n\s*\n/)
+    .map((block) => block.trim())
+    .filter(Boolean)
+    .map((block) => (/^https?:\/\/\S+$/.test(block)
+      ? { button: true, html: linkButton(buttonLabel, block) }
+      : { button: false, html: escapeHtml(block).replace(/\n/g, '<br />') }));
+}
+
+/** The note as one block of markup for a callout (no raw newlines: the callout keeps them). */
+function noteHtml(note, buttonLabel) {
+  const blocks = noteBlocks(note, buttonLabel);
+  return blocks.map((block, index) => {
+    const previous = blocks[index - 1];
+    const gap = index === 0 || block.button || previous.button ? '' : '<br /><br />';
+    return gap + block.html;
+  }).join('');
+}
+
+/** The note as paragraphs (each bare-URL block is its own button). */
+const noteParagraphs = (note, buttonLabel) => noteBlocks(note, buttonLabel).map(({ html }) => ({ html }));
 
 // How a newly activated client starts account setup and KYC. Shown above the sign-in button in every
 // "your account is active" email (wording supplied by DWP).
@@ -171,97 +132,36 @@ const KYC_STEPS = [
 ];
 const KYC_NOTE = 'Kindly ensure all required documents are available and correctly uploaded to avoid any delays in verification.';
 
-function kycInstructionsHtml(lead = KYC_INTRO) {
-  const steps = KYC_STEPS.map((step, index) => `
-          <tr>
-            <td style="width:28px;padding:6px 10px 6px 0;vertical-align:top;"><div style="width:24px;height:24px;line-height:24px;border-radius:12px;background:#0033AD;color:#ffffff;font-size:12px;font-weight:700;text-align:center;">${index + 1}</div></td>
-            <td style="padding:8px 0 6px;font-size:14px;line-height:1.5;color:#111827;vertical-align:top;">${step}</td>
-          </tr>`).join('');
-  return `
-      <div style="background:#f8fafc;border:1px solid #dbeafe;border-radius:10px;padding:18px 18px 10px;margin:22px 0;">
-        <p style="margin:0 0 4px;font-size:15px;font-weight:700;color:#111827;">How to set up your account and complete KYC</p>
-        <p style="margin:0 0 10px;font-size:14px;line-height:1.6;color:#374151;">${lead}</p>
-        <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;">${steps}
-        </table>
-        <p style="margin:10px 0 8px;font-size:13px;line-height:1.6;color:#4b5563;">${KYC_NOTE}</p>
-      </div>`;
-}
-
-function kycInstructionsText(lead = KYC_INTRO) {
-  const steps = KYC_STEPS.map((step, index) => `${index + 1}. ${step.replace(/<[^>]*>/g, '').replace(/&amp;/g, '&')}`).join('\n');
-  return `How to set up your account and complete KYC\n${lead}\n${steps}\n${KYC_NOTE}`;
-}
-
-function escapeHtml(str) {
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
-// Renders free-form admin note text as HTML, turning any line that is
-// solely a bare URL into a real styled button instead of plain text.
-function renderNoteHtml(note, buttonLabel = 'Learn More') {
-  const blocks = String(note).split(/\n\s*\n/);
-  return blocks.map((block) => {
-    const trimmed = block.trim();
-    const urlMatch = trimmed.match(/^(https?:\/\/\S+)$/);
-    if (urlMatch) {
-      const url = escapeHtml(urlMatch[1]);
-      return `
-        <table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0 16px 0;">
-          <tr>
-            <td bgcolor="#0033AD" style="border-radius:8px;background:#0033AD;">
-              <a href="${url}" class="dwp-btn" style="display:inline-block;padding:12px 24px;font-weight:600;text-decoration:none;font-family:sans-serif;color:#ffffff !important;">${buttonLabel}</a>
-            </td>
-          </tr>
-        </table>`;
-    }
-    const escaped = escapeHtml(block).replace(/\n/g, '<br/>');
-    return `<p style="margin:0 0 14px 0;font-size:14px;line-height:1.6;">${escaped}</p>`;
-  }).join('');
-}
-
-function renderNoticeMessageHtml(note) {
-  const blocks = String(note).split(/\n\s*\n/);
-  return blocks.map((block) => {
-    const escaped = escapeHtml(block.trim()).replace(/\n/g, '<br/>');
-    return `<p style="margin:0 0 14px 0;font-size:14px;line-height:1.6;">${escaped}</p>`;
-  }).join('');
+function kycInstructionsCallout(intro = KYC_INTRO) {
+  return {
+    title: 'How to set up your account and complete KYC',
+    text: lead(intro),
+    steps: KYC_STEPS.map((html) => ({ html })),
+    note: KYC_NOTE,
+  };
 }
 
 // ─── Signup OTP email ────────────────────────────────────────────────────────
 async function sendSignupOTPEmail(to, firstName, otp) {
   const transporter = createTransporter();
 
-  const html = `
-    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
-      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
-      <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">Email Verification</p>
-
-      <p>Hi <strong>${firstName}</strong>,</p>
-      <p>To complete your account registration, enter the verification code below on the sign-up page:</p>
-
-      <div style="background:#f4f7fb;border:1px solid #dbeafe;padding:24px;text-align:center;border-radius:12px;margin:24px 0;">
-        <span style="font-size:44px;font-weight:bold;letter-spacing:14px;color:#60a5fa;">${otp}</span>
-      </div>
-
-      <p style="color:#6b7280;font-size:13px;">
-        This code expires in <strong style="color:#111827;">10 minutes</strong>.
-        If you did not attempt to register an account, please ignore this email.
-      </p>
-      <hr style="border-color:#e5e7eb;margin:24px 0;" />
-      <p style="color:#6b7280;font-size:12px;">© Digital Wealth Partners — do not reply to this email.</p>
-    </div>
-  `;
-
-  await transporter.sendMail({
+  await sendWithLayout(transporter, {
     from: FROM(),
     to,
     subject: 'Verify your email — Digital Wealth Partners',
-    html: themedEmail(html),
+  }, {
+    hero: 'security',
+    preheader: 'Your Digital Wealth Partners verification code expires in 10 minutes.',
+    eyebrow: 'Email verification',
+    title: 'Verify your email',
+    paragraphs: [
+      hi(firstName),
+      'To complete your account registration, enter the verification code below on the sign-up page:',
+    ],
+    code: otp,
+    supporting: [
+      { html: 'This code expires in <strong>10 minutes</strong>. If you did not attempt to register an account, please ignore this email.' },
+    ],
   });
 }
 
@@ -280,154 +180,77 @@ async function sendDepositNotificationEmail({
 }) {
   const transporter = createTransporter();
 
-  const usdLine = usdValue
-    ? `<tr><td style="color:#9ca3af;padding:6px 0;">USD Value</td><td style="color:#111827;font-weight:600;text-align:right;">≈ $${parseFloat(usdValue).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td></tr>`
-    : '';
-
-  const txHashLine = txHash
-    ? `<tr><td style="color:#9ca3af;padding:6px 0;">Transaction Hash</td><td style="color:#60a5fa;font-weight:600;text-align:right;word-break:break-all;">${txHash}</td></tr>`
-    : '';
-
-  const sourceLine = sourceType || provider
-    ? `<tr><td style="color:#9ca3af;padding:6px 0;">Source</td><td style="color:#111827;font-weight:600;text-align:right;">${provider || sourceType}</td></tr>`
-    : '';
-
-  const providerReferenceLine = providerReference
-    ? `<tr><td style="color:#9ca3af;padding:6px 0;">Provider Reference</td><td style="color:#111827;font-weight:600;text-align:right;word-break:break-all;">${providerReference}</td></tr>`
-    : '';
-
-  const now = new Date().toLocaleString('en-US', { timeZone: APP_TIMEZONE, dateStyle: 'medium', timeStyle: 'short' });
-
-  const html = `
-    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
-      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
-      <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">New Deposit Submitted - Action Required</p>
-
-      <div style="background:#f59e0b22;border:1px solid #f59e0b55;border-radius:10px;padding:14px 18px;margin-bottom:24px;">
-        <p style="margin:0;color:#fcd34d;font-size:14px;">
-          A user has confirmed sending funds to the company wallet. Please verify receipt before approving the deposit on the platform.
-        </p>
-      </div>
-
-      <!-- User details -->
-      <h3 style="color:#60a5fa;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">User</h3>
-      <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
-        <tr><td style="color:#9ca3af;padding:6px 0;">Name</td><td style="color:#111827;font-weight:600;text-align:right;">${user.firstName} ${user.lastName}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">Email</td><td style="color:#111827;text-align:right;">${user.email}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">User ID</td><td style="color:#6b7280;font-size:12px;text-align:right;">${user.id}</td></tr>
-      </table>
-
-      <!-- Deposit details -->
-      <h3 style="color:#60a5fa;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Deposit Details</h3>
-      <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
-        <tr><td style="color:#9ca3af;padding:6px 0;">Asset</td><td style="color:#111827;font-weight:600;text-align:right;">${asset.name} (${asset.symbol})</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">Amount</td><td style="color:#111827;font-weight:600;text-align:right;">${amount} ${asset.symbol}</td></tr>
-        ${sourceLine}
-        ${usdLine}
-        ${txHashLine}
-        ${providerReferenceLine}
-        <tr><td style="color:#9ca3af;padding:6px 0;">Deposit ID</td><td style="color:#6b7280;font-size:12px;text-align:right;">${depositId}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">Submitted At</td><td style="color:#111827;text-align:right;">${now} ET</td></tr>
-      </table>
-
-      <!-- Wallet -->
-      <h3 style="color:#60a5fa;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Your Wallet Address (${asset.symbol})</h3>
-      <div style="background:#f4f7fb;border:1px solid #dbeafe;padding:14px 18px;border-radius:10px;margin-bottom:28px;word-break:break-all;">
-        <span style="color:#60a5fa;font-weight:600;font-size:14px;">${asset.walletAddress}</span>
-      </div>
-
-      <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/admin/deposits?highlight=${depositId}"
-         class="dwp-btn" style="display:inline-block;background:#2563eb;color:#ffffff !important;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">
-        Review &amp; Approve Deposit →
-      </a>
-
-      <hr style="border-color:#e5e7eb;margin:28px 0;" />
-      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners. Do not reply.</p>
-    </div>
-  `;
-
-  await transporter.sendMail({
+  await sendWithLayout(transporter, {
     from: FROM(),
     to: adminEmail,
     subject: `[Deposit Alert] ${user.firstName} ${user.lastName} - ${amount} ${asset.symbol}`,
-    html: themedEmail(html),
+  }, {
+    hero: 'admin',
+    preheader: `${user.firstName} ${user.lastName} confirmed sending ${amount} ${asset.symbol}. Verify receipt before approving.`,
+    eyebrow: 'Team alert',
+    title: 'New deposit submitted',
+    paragraphs: [
+      { html: '<strong>Action required.</strong> A user has confirmed sending funds to the company wallet. Please verify receipt before approving the deposit on the platform.' },
+    ],
+    details: [
+      { label: 'Name', value: `${user.firstName} ${user.lastName}` },
+      { label: 'Email', value: user.email },
+      { label: 'User ID', value: user.id },
+      { label: 'Asset', value: `${asset.name} (${asset.symbol})` },
+      { label: 'Amount', value: `${amount} ${asset.symbol}` },
+      { label: 'Source', value: provider || sourceType },
+      { label: 'USD value', value: usdValue ? usd(usdValue) : null },
+      { label: 'Transaction hash', value: txHash },
+      { label: 'Provider reference', value: providerReference },
+      { label: 'Deposit ID', value: depositId },
+      { label: 'Submitted at', value: nowEt() },
+    ],
+    detailsVariant: 'card',
+    callout: { title: `Your wallet address (${asset.symbol})`, text: asset.walletAddress },
+    action: { label: 'Review & Approve Deposit', url: `${localAppUrl()}/admin/deposits?highlight=${depositId}` },
   });
 }
 
 // ─── Withdrawal OTP email ─────────────────────────────────────────────────────
 async function sendOTPEmail(to, firstName, otp, antiPhishingPhrase = null, withdrawalDetails = null) {
   const transporter = createTransporter();
-  const phishingBlock = antiPhishingPhrase
-    ? `<div style="background:#f4f7fb;border:1px solid #dbeafe;padding:12px 20px;border-radius:8px;margin-bottom:20px;">
-        <p style="color:#60a5fa;margin:0;font-size:13px;">Your Anti-Phishing Phrase:</p>
-        <p style="color:#ffffff;margin:4px 0 0;font-size:18px;font-weight:bold;">${antiPhishingPhrase}</p>
-       </div>`
-    : '';
 
-  let slipHtml = '';
+  let details = [];
   if (withdrawalDetails) {
     const { amount, usdValue, assetSymbol, destinationAddress } = withdrawalDetails;
-    const usdString = usdValue ? `(≈ $${parseFloat(usdValue).toLocaleString('en-US', { minimumFractionDigits: 2 })})` : '';
-    
-    slipHtml = `
-      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:24px;margin-bottom:24px;">
-        <h3 style="margin-top:0;color:#1e293b;font-size:16px;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #e2e8f0;padding-bottom:12px;margin-bottom:16px;">Withdrawal Slip</h3>
-        <table style="width:100%;border-collapse:collapse;font-size:14px;">
-          <tr>
-            <td style="color:#64748b;padding:8px 0;width:40%;">Amount</td>
-            <td style="color:#0f172a;font-weight:700;text-align:right;">${amount} ${assetSymbol} <span style="color:#64748b;font-weight:400;font-size:13px;">${usdString}</span></td>
-          </tr>
-          <tr>
-            <td style="color:#64748b;padding:8px 0;">Destination</td>
-            <td style="color:#0f172a;font-weight:600;text-align:right;word-break:break-all;">${destinationAddress}</td>
-          </tr>
-          <tr>
-            <td style="color:#64748b;padding:8px 0;">Status</td>
-            <td style="color:#f59e0b;font-weight:600;text-align:right;">Pending Verification</td>
-          </tr>
-        </table>
-      </div>
-    `;
+    details = [
+      { label: 'Amount', value: `${amount} ${assetSymbol}${usdValue ? ` (${usd(usdValue)})` : ''}` },
+      { label: 'Destination', value: destinationAddress },
+      { label: 'Status', value: statusValue('Pending Verification', 'amber') },
+    ];
   }
 
-  const html = `
-    <div style="font-family:sans-serif;max-width:600px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);">
-      <h2 style="color:#2563eb;margin-bottom:8px;font-size:24px;">Digital Wealth Partners</h2>
-      <p style="color:#60a5fa;margin-bottom:24px;font-size:16px;">Withdrawal Verification</p>
-      
-      ${phishingBlock}
-      
-      <p style="font-size:15px;line-height:1.6;">Hi <strong>${firstName}</strong>,</p>
-      <p style="font-size:15px;line-height:1.6;">You have initiated a withdrawal from your wallet. Please review the details below:</p>
-      
-      ${slipHtml}
-      
-      <p style="font-size:15px;line-height:1.6;">Enter the following OTP code on the withdrawal page to authorize this transaction:</p>
-      <div style="background:#f4f7fb;border:1px solid #dbeafe;padding:24px;text-align:center;border-radius:12px;margin:24px 0;">
-        <span style="font-size:48px;font-weight:bold;letter-spacing:16px;color:#2563eb;">${otp}</span>
-      </div>
-      <p style="color:#ef4444;font-size:13px;font-weight:600;text-align:center;">This code expires in 10 minutes. Do not share it with anyone.</p>
-
-      <div style="text-align:center;margin:32px 0;">
-        <a href="${process.env.FRONTEND_URL || 'https://digitalwealthpartnersllc.net'}/login" class="dwp-btn" style="display:inline-block;background:#2563eb;color:#ffffff !important;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;">Login to Your Wallet</a>
-      </div>
-      
-      <hr style="border-color:#e5e7eb;margin:32px 0;" />
-      
-      <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:16px;">
-        <p style="color:#991b1b;font-size:13px;margin:0 0 8px 0;font-weight:600;">Didn't request this?</p>
-        <p style="color:#7f1d1d;font-size:13px;margin:0;">
-          If you did not authorize this, please secure your account and contact us at <a href="mailto:support@digitalwealthpartnersllc.net" style="color:#dc2626;text-decoration:underline;">support@digitalwealthpartnersllc.net</a>.
-        </p>
-      </div>
-    </div>
-  `;
-
-  await transporter.sendMail({
+  await sendWithLayout(transporter, {
     from: FROM(),
     to,
     subject: 'Action Required: Withdrawal OTP Verification - Digital Wealth Partners',
-    html: themedEmail(html),
+  }, {
+    hero: 'security',
+    preheader: 'Enter this code to authorize your withdrawal. It expires in 10 minutes.',
+    eyebrow: 'Withdrawal verification',
+    title: 'Authorize your withdrawal',
+    paragraphs: [
+      antiPhishingPhrase ? { html: `Your anti-phishing phrase: ${strong(antiPhishingPhrase)}` } : null,
+      hi(firstName),
+      withdrawalDetails
+        ? 'You have initiated a withdrawal from your wallet. Enter the OTP code below on the withdrawal page to authorize this transaction, and review the withdrawal details under it.'
+        : 'You have initiated a withdrawal from your wallet. Enter the OTP code below on the withdrawal page to authorize this transaction.',
+      { html: '<strong>This code expires in 10 minutes. Do not share it with anyone.</strong>' },
+    ],
+    code: otp,
+    details,
+    detailsVariant: 'card',
+    callout: {
+      tone: 'danger',
+      title: "Didn't request this?",
+      text: { html: `If you did not authorize this, please secure your account and contact us at ${supportLink()}.` },
+    },
+    action: { label: 'Login to Your Wallet', url: `${appUrl()}/login` },
   });
 }
 
@@ -435,38 +258,23 @@ async function sendOTPEmail(to, firstName, otp, antiPhishingPhrase = null, withd
 async function sendWelcomeEmail(to, firstName) {
   const transporter = createTransporter();
 
-  const html = `
-    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
-      <h2 style="color:#2563eb;margin-bottom:8px;">Digital Wealth Partners</h2>
-      <p style="color:#60a5fa;margin-bottom:24px;">Welcome to the platform</p>
-      <p>Hi <strong>${firstName}</strong>,</p>
-      <p>Your account has been created successfully. You can now log in and start managing your crypto portfolio.</p>
-
-      <table role="presentation" cellpadding="0" cellspacing="0" style="margin:20px 0;">
-        <tr>
-          <td bgcolor="#0033AD" style="border-radius:8px;background:#0033AD;">
-            <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/login"
-               class="dwp-btn"
-               style="display:inline-block;padding:12px 24px;font-weight:600;text-decoration:none;font-family:sans-serif;color:#ffffff !important;">
-              Log In to Your Account
-            </a>
-          </td>
-        </tr>
-      </table>
-
-      <hr style="border-color:#e5e7eb;margin:28px 0;" />
-      <p style="color:#6b7280;font-size:12px;">
-        Need help or have a concern? Contact us anytime at
-        <a href="mailto:support@digitalwealthpartnersllc.net" style="color:#2563eb;">support@digitalwealthpartnersllc.net</a>.
-      </p>
-    </div>
-  `;
-
-  await transporter.sendMail({
+  await sendWithLayout(transporter, {
     from: FROM(),
     to,
     subject: 'Welcome to Digital Wealth Partners',
-    html: themedEmail(html),
+  }, {
+    hero: 'welcome',
+    preheader: 'Your account has been created. You can now log in.',
+    eyebrow: 'Welcome',
+    title: 'Welcome to the platform',
+    paragraphs: [
+      hi(firstName),
+      'Your account has been created successfully. You can now log in and start managing your crypto portfolio.',
+    ],
+    action: { label: 'Log In to Your Account', url: `${localAppUrl()}/login` },
+    supporting: [
+      { html: `Need help or have a concern? Contact us anytime at ${supportLink()}.` },
+    ],
   });
 }
 
@@ -474,62 +282,31 @@ async function sendWelcomeEmail(to, firstName) {
 async function sendWithdrawalNotificationEmail({ adminEmail, user, asset, amount, usdValue, destinationAddress, withdrawalId }) {
   const transporter = createTransporter();
 
-  const usdLine = usdValue
-    ? `<tr><td style="color:#9ca3af;padding:6px 0;">USD Value</td><td style="color:#111827;font-weight:600;text-align:right;">≈ $${parseFloat(usdValue).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td></tr>`
-    : '';
-
-  const now = new Date().toLocaleString('en-US', { timeZone: APP_TIMEZONE, dateStyle: 'medium', timeStyle: 'short' });
-
-  const html = `
-    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
-      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
-      <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">New Withdrawal Request - Action Required</p>
-
-      <div style="background:#f59e0b22;border:1px solid #f59e0b55;border-radius:10px;padding:14px 18px;margin-bottom:24px;">
-        <p style="margin:0;color:#fcd34d;font-size:14px;">
-          A user has submitted a verified withdrawal request. Please review and send funds to their wallet.
-        </p>
-      </div>
-
-      <!-- User details -->
-      <h3 style="color:#60a5fa;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">User</h3>
-      <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
-        <tr><td style="color:#9ca3af;padding:6px 0;">Name</td><td style="color:#111827;font-weight:600;text-align:right;">${user.firstName} ${user.lastName}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">Email</td><td style="color:#111827;text-align:right;">${user.email}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">User ID</td><td style="color:#6b7280;font-size:12px;text-align:right;">${user.id}</td></tr>
-      </table>
-
-      <!-- Withdrawal details -->
-      <h3 style="color:#60a5fa;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Withdrawal Details</h3>
-      <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
-        <tr><td style="color:#9ca3af;padding:6px 0;">Asset</td><td style="color:#111827;font-weight:600;text-align:right;">${asset.name} (${asset.symbol})</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">Amount</td><td style="color:#111827;font-weight:600;text-align:right;">${amount} ${asset.symbol}</td></tr>
-        ${usdLine}
-        <tr><td style="color:#9ca3af;padding:6px 0;">Withdrawal ID</td><td style="color:#6b7280;font-size:12px;text-align:right;">${withdrawalId}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">Submitted At</td><td style="color:#111827;text-align:right;">${now} ET</td></tr>
-      </table>
-
-      <!-- Destination wallet -->
-      <h3 style="color:#60a5fa;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Send Funds To (User's Wallet)</h3>
-      <div style="background:#f4f7fb;border:1px solid #dbeafe;padding:14px 18px;border-radius:10px;margin-bottom:28px;word-break:break-all;">
-        <span style="color:#60a5fa;font-weight:600;font-size:14px;">${destinationAddress}</span>
-      </div>
-
-      <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/admin/withdrawals?highlight=${withdrawalId}"
-         class="dwp-btn" style="display:inline-block;background:#2563eb;color:#ffffff !important;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">
-        Review &amp; Approve Withdrawal →
-      </a>
-
-      <hr style="border-color:#e5e7eb;margin:28px 0;" />
-      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners. Do not reply.</p>
-    </div>
-  `;
-
-  await transporter.sendMail({
+  await sendWithLayout(transporter, {
     from: FROM(),
     to: adminEmail,
     subject: `[Withdrawal Request] ${user.firstName} ${user.lastName} - ${amount} ${asset.symbol}`,
-    html: themedEmail(html),
+  }, {
+    hero: 'admin',
+    preheader: `${user.firstName} ${user.lastName} requested a verified withdrawal of ${amount} ${asset.symbol}.`,
+    eyebrow: 'Team alert',
+    title: 'New withdrawal request',
+    paragraphs: [
+      { html: '<strong>Action required.</strong> A user has submitted a verified withdrawal request. Please review and send funds to their wallet.' },
+    ],
+    details: [
+      { label: 'Name', value: `${user.firstName} ${user.lastName}` },
+      { label: 'Email', value: user.email },
+      { label: 'User ID', value: user.id },
+      { label: 'Asset', value: `${asset.name} (${asset.symbol})` },
+      { label: 'Amount', value: `${amount} ${asset.symbol}` },
+      { label: 'USD value', value: usdValue ? usd(usdValue) : null },
+      { label: 'Withdrawal ID', value: withdrawalId },
+      { label: 'Submitted at', value: nowEt() },
+    ],
+    detailsVariant: 'card',
+    callout: { title: "Send funds to (user's wallet)", text: destinationAddress },
+    action: { label: 'Review & Approve Withdrawal', url: `${localAppUrl()}/admin/withdrawals?highlight=${withdrawalId}` },
   });
 }
 
@@ -537,43 +314,24 @@ async function sendWithdrawalNotificationEmail({ adminEmail, user, asset, amount
 async function sendAdminRegistrationNotificationEmail({ adminEmail, user }) {
   const transporter = createTransporter();
 
-  const now = new Date().toLocaleString('en-US', { timeZone: APP_TIMEZONE, dateStyle: 'medium', timeStyle: 'short' });
-
-  const html = `
-    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
-      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
-      <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">New User Registration - Info</p>
-
-      <div style="background:#2563eb11;border:1px solid #2563eb44;border-radius:10px;padding:14px 18px;margin-bottom:24px;">
-        <p style="margin:0;color:#60a5fa;font-size:14px;">
-          A new user has just completed their registration and verified their email.
-        </p>
-      </div>
-
-      <!-- User details -->
-      <h3 style="color:#60a5fa;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">User Details</h3>
-      <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
-        <tr><td style="color:#9ca3af;padding:6px 0;">Name</td><td style="color:#111827;font-weight:600;text-align:right;">${user.firstName} ${user.lastName}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">Email</td><td style="color:#111827;text-align:right;">${user.email}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">User ID</td><td style="color:#6b7280;font-size:12px;text-align:right;">${user.id}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">Registered At</td><td style="color:#111827;text-align:right;">${now} ET</td></tr>
-      </table>
-
-      <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/admin/users?highlight=${user.id}"
-         class="dwp-btn" style="display:inline-block;background:#2563eb;color:#ffffff !important;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">
-        View User Profile →
-      </a>
-
-      <hr style="border-color:#e5e7eb;margin:28px 0;" />
-      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners. Do not reply.</p>
-    </div>
-  `;
-
-  await transporter.sendMail({
+  await sendWithLayout(transporter, {
     from: FROM(),
     to: adminEmail,
     subject: `[New User] ${user.firstName} ${user.lastName} - Digital Wealth Partners`,
-    html: themedEmail(html),
+  }, {
+    hero: 'admin',
+    preheader: `${user.firstName} ${user.lastName} registered and verified their email.`,
+    eyebrow: 'Team alert',
+    title: 'New user registration',
+    paragraphs: ['A new user has just completed their registration and verified their email.'],
+    details: [
+      { label: 'Name', value: `${user.firstName} ${user.lastName}` },
+      { label: 'Email', value: user.email },
+      { label: 'User ID', value: user.id },
+      { label: 'Registered at', value: nowEt() },
+    ],
+    detailsVariant: 'card',
+    action: { label: 'View User Profile', url: `${localAppUrl()}/admin/users?highlight=${user.id}` },
   });
 }
 
@@ -581,31 +339,24 @@ async function sendAdminRegistrationNotificationEmail({ adminEmail, user }) {
 async function sendPasswordResetEmail(to, firstName, otp) {
   const transporter = createTransporter();
 
-  const html = `
-    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
-      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
-      <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">Password Reset Request</p>
-
-      <p>Hi <strong>${firstName}</strong>,</p>
-      <p>We received a request to reset your password. Use the verification code below to proceed. If you did not request this, please ignore this email — your password will not change.</p>
-
-      <div style="background:#f4f7fb;border:1px solid #dbeafe;padding:24px;text-align:center;border-radius:12px;margin:24px 0;">
-        <span style="font-size:44px;font-weight:bold;letter-spacing:14px;color:#60a5fa;">${otp}</span>
-      </div>
-
-      <p style="color:#6b7280;font-size:13px;">
-        This code expires in <strong style="color:#111827;">15 minutes</strong>. Do not share it with anyone.
-      </p>
-      <hr style="border-color:#e5e7eb;margin:24px 0;" />
-      <p style="color:#6b7280;font-size:12px;">© Digital Wealth Partners — do not reply to this email.</p>
-    </div>
-  `;
-
-  await transporter.sendMail({
+  await sendWithLayout(transporter, {
     from: FROM(),
     to,
     subject: 'Reset your password — Digital Wealth Partners',
-    html: themedEmail(html),
+  }, {
+    hero: 'security',
+    preheader: 'Use this code to reset your password. It expires in 15 minutes.',
+    eyebrow: 'Security',
+    title: 'Reset your password',
+    paragraphs: [
+      hi(firstName),
+      'We received a request to reset your password. Use the verification code below to proceed.',
+    ],
+    code: otp,
+    supporting: [
+      { html: 'This code expires in <strong>15 minutes</strong>. Do not share it with anyone.' },
+      'If you did not request this, please ignore this email — your password will not change.',
+    ],
   });
 }
 
@@ -645,90 +396,48 @@ async function sendGeneralContactEmail({ adminEmail, contactData }) {
     message,
   } = contactData;
 
-  const now = new Date().toLocaleString('en-US', { timeZone: APP_TIMEZONE, dateStyle: 'medium', timeStyle: 'short' });
-  const safe = {
-    topic: escapeHtml(topic),
-    firstName: escapeHtml(firstName),
-    lastName: escapeHtml(lastName),
-    email: escapeHtml(email),
-    phone: escapeHtml(phone),
-    married: escapeHtml(married),
-    children: escapeHtml(children),
-    investableAssets: escapeHtml(investableAssets),
-    digitalAllocation: escapeHtml(digitalAllocation),
-    holdsXRP: escapeHtml(holdsXRP),
-    existingClient: escapeHtml(existingClient),
-    address: escapeHtml(formatAddress(contactData)),
-    clientType: escapeHtml(clientType || ''),
-    hasEntity: escapeHtml(hasEntity ? `${hasEntity}${hasEntity === 'Yes' && entityName ? ` (${entityName})` : ''}` : ''),
-    hasCryptoIRA: escapeHtml(hasCryptoIRA || ''),
-    areasOfInterest: escapeHtml(Array.isArray(areasOfInterest) && areasOfInterest.length ? areasOfInterest.join(', ') : 'None selected'),
-    custodyAssets: escapeHtml(Array.isArray(custodyAssets) ? custodyAssets.join(', ') : ''),
-    referralSource: escapeHtml(referralSource),
-    referralOfficial: escapeHtml(referralOfficial || ''),
-    walletsUsed: escapeHtml(describeSelections(walletsUsed, walletOther)),
-    exchangesUsed: escapeHtml(describeSelections(exchangesUsed, exchangeOther)),
-    message: escapeHtml(message),
-  };
-
-  const html = `
-    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
-      <h2 style="color:#d97706;margin-bottom:4px;">Digital Wealth Partners</h2>
-      <p style="color:#fbbf24;margin-bottom:28px;margin-top:0;">New Contact Form Submission - DWP Landing Page</p>
-
-      <div style="background:#d9770611;border:1px solid #d9770644;border-radius:10px;padding:14px 18px;margin-bottom:24px;">
-        <p style="margin:0;color:#fbbf24;font-size:14px;">
-          You have received a new inquiry from the public website contact form.
-        </p>
-      </div>
-
-      <h3 style="color:#fbbf24;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Submission Details</h3>
-      <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
-        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Topic</td><td style="color:#111827;text-align:right;font-size:14px;font-weight:bold;">${safe.topic}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Name</td><td style="color:#111827;text-align:right;font-size:14px;font-weight:bold;">${safe.firstName} ${safe.lastName}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Email</td><td style="color:#111827;text-align:right;font-size:14px;"><a href="mailto:${safe.email}" style="color:#fbbf24;text-decoration:none;">${safe.email}</a></td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Phone</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.phone}</td></tr>
-        ${safe.address ? `<tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;vertical-align:top;">Address</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.address}</td></tr>` : ''}
-        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Married</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.married}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Children</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.children}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Investable Assets</td><td style="color:#111827;text-align:right;font-size:14px;font-weight:bold;color:#10b981;">${safe.investableAssets}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Digital Allocation</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.digitalAllocation}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Holds 50k+ XRP</td><td style="color:#111827;text-align:right;font-size:14px;font-weight:bold;color:#f59e0b;">${safe.holdsXRP}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">DWP Client</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.existingClient}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Client Type</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.clientType}</td></tr>
-        ${safe.hasEntity ? `<tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Has LLC, Trust or Corp</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.hasEntity}</td></tr>` : ''}
-        ${safe.hasCryptoIRA ? `<tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Has a Crypto IRA</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.hasCryptoIRA}</td></tr>` : ''}
-        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Areas of Interest</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.areasOfInterest}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Assets to Move to Custody</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.custodyAssets}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Wallets Used</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.walletsUsed}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Exchanges Used</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.exchangesUsed}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Referral Source</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.referralSource}</td></tr>
-        ${safe.referralOfficial ? `<tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Referred by (DWP official)</td><td style="color:#111827;text-align:right;font-size:14px;">${safe.referralOfficial}</td></tr>` : ''}
-        <tr><td style="color:#9ca3af;padding:6px 0;font-size:14px;">Submitted At</td><td style="color:#111827;text-align:right;font-size:14px;">${now} ET</td></tr>
-      </table>
-
-      <h3 style="color:#fbbf24;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Message</h3>
-      <div style="background:#f4f7fb;border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin-bottom:24px;line-height:1.6;font-size:14px;white-space:pre-wrap;">${safe.message}</div>
-
-      <hr style="border-color:#e5e7eb;margin:28px 0;" />
-      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners. Do not reply.</p>
-    </div>
-  `;
-
-  return transporter.sendMail({
+  return sendWithLayout(transporter, {
     from: FROM(),
     to: adminEmail,
     subject: `[Contact Form] ${topic} - From ${firstName} ${lastName}`,
     replyTo: email,
-    text: `New consultation request\n\nTopic: ${topic}\nName: ${firstName} ${lastName}\nEmail: ${email}\nPhone: ${phone}\nAddress: ${formatAddress(contactData)}\nClient type: ${clientType}\nHas LLC, trust or corporation: ${hasEntity || ''}${entityName ? ` (${entityName})` : ''}\nHas a crypto IRA: ${hasCryptoIRA || ''}\nAreas of interest: ${(areasOfInterest || []).join(', ') || 'None selected'}\nAssets to move to custody: ${(custodyAssets || []).join(', ')}\nWallets used: ${describeSelections(walletsUsed, walletOther)}\nExchanges used: ${describeSelections(exchangesUsed, exchangeOther)}\n\n${message}`,
-    html: themedEmail(html),
+  }, {
+    hero: 'admin',
+    preheader: `${firstName} ${lastName} sent a consultation request about ${topic}.`,
+    eyebrow: 'Team alert',
+    title: 'New contact form submission',
+    paragraphs: ['You have received a new inquiry from the public website contact form (DWP landing page). Reply to this email to answer the applicant directly.'],
+    details: [
+      { label: 'Topic', value: topic },
+      { label: 'Name', value: `${firstName} ${lastName}` },
+      { label: 'Email', value: email ? { html: inlineLink(`mailto:${email}`, email) } : null },
+      { label: 'Phone', value: phone },
+      { label: 'Address', value: formatAddress(contactData) },
+      { label: 'Married', value: married },
+      { label: 'Children', value: children },
+      { label: 'Investable assets', value: investableAssets },
+      { label: 'Digital allocation', value: digitalAllocation },
+      { label: 'Holds 50k+ XRP', value: holdsXRP },
+      { label: 'DWP client', value: existingClient },
+      { label: 'Client type', value: clientType },
+      { label: 'Has LLC, trust or corp', value: hasEntity ? `${hasEntity}${hasEntity === 'Yes' && entityName ? ` (${entityName})` : ''}` : null },
+      { label: 'Has a crypto IRA', value: hasCryptoIRA },
+      { label: 'Areas of interest', value: Array.isArray(areasOfInterest) && areasOfInterest.length ? areasOfInterest.join(', ') : 'None selected' },
+      { label: 'Assets to move to custody', value: Array.isArray(custodyAssets) ? custodyAssets.join(', ') : '' },
+      { label: 'Wallets used', value: describeSelections(walletsUsed, walletOther) },
+      { label: 'Exchanges used', value: describeSelections(exchangesUsed, exchangeOther) },
+      { label: 'Referral source', value: referralSource },
+      { label: 'Referred by (DWP official)', value: referralOfficial },
+      { label: 'Submitted at', value: nowEt() },
+    ],
+    detailsVariant: 'card',
+    callout: message ? { title: 'Message', text: String(message) } : null,
   });
 }
 
 // ─── Applicant: "Consultation Request Received" summary ───────────────────────
 async function sendConsultationReceivedEmail({ contactData }) {
   const transporter = createTransporter();
-  const appUrl = process.env.FRONTEND_URL || 'https://digitalwealthpartnersllc.net';
   const d = contactData;
   const rows = [
     ['Topic', d.topic],
@@ -752,32 +461,35 @@ async function sendConsultationReceivedEmail({ contactData }) {
     ['Referral source', d.referralSource],
     ['Referred by', d.referralOfficial],
   ].filter(([, value]) => value);
-  const html = `
-    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
-      <h2 style="margin:0 0 4px;">Digital Wealth Partners</h2>
-      <p style="color:#60a5fa;margin:0 0 28px;">Consultation request received</p>
-      <p>Hi <strong>${escapeHtml(d.firstName)}</strong>,</p>
-      <p>Thank you for contacting Digital Wealth Partners. Your consultation request has been received and your information has been submitted to our team. Here is a copy of what you sent us.</p>
-      <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:1px;color:#6b7280;margin:28px 0 8px;">Your submission</h3>
-      <table style="width:100%;border-collapse:collapse;">
-        ${rows.map(([label, value]) => `<tr><td style="padding:7px 12px 7px 0;color:#4b5563;font-size:14px;vertical-align:top;border-bottom:1px solid #f3f4f6;">${escapeHtml(label)}</td><td style="padding:7px 0;font-size:14px;text-align:right;border-bottom:1px solid #f3f4f6;color:#111827;">${escapeHtml(value)}</td></tr>`).join('')}
-      </table>
-      <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:1px;color:#6b7280;margin:24px 0 8px;">Your message</h3>
-      <div style="background:#f4f7fb;border:1px solid #e5e7eb;border-radius:8px;padding:14px;font-size:14px;line-height:1.6;white-space:pre-wrap;">${escapeHtml(d.message)}</div>
-      <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:1px;color:#6b7280;margin:24px 0 8px;">What happens next</h3>
-      <p style="margin:0 0 8px;">Our team will review your request and follow up with you. To continue your onboarding, create your DWP account with this email address on the onboarding page. We will email you again when the status of your request changes.</p>
-      <table role="presentation" cellpadding="0" cellspacing="0" style="margin:20px 0;"><tr><td bgcolor="#0033AD" style="border-radius:8px;background:#0033AD;"><a href="${appUrl}/pay-onboarding" class="dwp-btn" style="display:inline-block;padding:12px 24px;font-weight:600;text-decoration:none;color:#ffffff !important;">Continue Onboarding</a></td></tr></table>
-      <p>Questions? Contact us at <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a>.</p>
-      <hr style="border-color:#e5e7eb;margin:28px 0;" />
-      <p style="color:#6b7280;font-size:12px;">You are receiving this email because this address was used to request a consultation with Digital Wealth Partners.</p>
-    </div>`;
-  return transporter.sendMail({
+
+  return sendWithLayout(transporter, {
     from: FROM(),
     replyTo: SUPPORT_EMAIL,
     to: d.email,
     subject: 'DWP | Consultation Request Received',
-    text: `Hi ${d.firstName},\n\nThank you for contacting Digital Wealth Partners. Your consultation request has been received and your information has been submitted to our team.\n\nYour submission\n${rows.map(([label, value]) => `${label}: ${value}`).join('\n')}\n\nYour message\n${d.message}\n\nWhat happens next\nOur team will review your request and follow up with you. To continue your onboarding, create your DWP account with this email address: ${appUrl}/pay-onboarding\n\nQuestions? ${SUPPORT_EMAIL}\n\nDigital Wealth Partners`,
-    html: themedEmail(html),
+  }, {
+    hero: 'consultation',
+    preheader: 'Your consultation request has been received. Here is a copy of what you sent us.',
+    eyebrow: 'Consultation request',
+    title: 'Consultation request received',
+    paragraphs: [
+      hi(d.firstName),
+      'Thank you for contacting Digital Wealth Partners. Your consultation request has been received and your information has been submitted to our team. Here is a copy of what you sent us.',
+    ],
+    details: rows.map(([label, value]) => ({ label, value })),
+    detailsVariant: 'card',
+    callouts: [
+      d.message ? { title: 'Your message', text: String(d.message) } : null,
+      {
+        title: 'What happens next',
+        text: 'Our team will review your request and follow up with you. To continue your onboarding, create your DWP account with this email address on the onboarding page. We will email you again when the status of your request changes.',
+      },
+    ].filter(Boolean),
+    action: { label: 'Continue Onboarding', url: `${appUrl()}/pay-onboarding` },
+    supporting: [
+      questions(),
+      'You are receiving this email because this address was used to request a consultation with Digital Wealth Partners.',
+    ],
   });
 }
 
@@ -785,53 +497,31 @@ async function sendConsultationReceivedEmail({ contactData }) {
 async function sendLoanNotificationEmail({ adminEmail, user, loanData }) {
   const transporter = createTransporter();
 
-  const now = new Date().toLocaleString('en-US', { timeZone: APP_TIMEZONE, dateStyle: 'medium', timeStyle: 'short' });
-
-  const html = `
-    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
-      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
-      <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">New Loan Request - Action Required</p>
-
-      <div style="background:#f59e0b22;border:1px solid #f59e0b55;border-radius:10px;padding:14px 18px;margin-bottom:24px;">
-        <p style="margin:0;color:#fcd34d;font-size:14px;">
-          A user has submitted a new crypto loan request. Please review and process the funds.
-        </p>
-      </div>
-
-      <!-- User details -->
-      <h3 style="color:#60a5fa;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">User</h3>
-      <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
-        <tr><td style="color:#9ca3af;padding:6px 0;">Name</td><td style="color:#111827;font-weight:600;text-align:right;">${user.firstName} ${user.lastName}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">Email</td><td style="color:#111827;text-align:right;">${user.email}</td></tr>
-      </table>
-
-      <!-- Loan details -->
-      <h3 style="color:#60a5fa;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Loan Details</h3>
-      <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
-        <tr><td style="color:#9ca3af;padding:6px 0;">Contact Email</td><td style="color:#111827;font-weight:600;text-align:right;">${loanData.contactEmail || user.email}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">Collateral</td><td style="color:#111827;font-weight:600;text-align:right;">${loanData.collateralAmount} ${loanData.collateralAsset}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">Loan Amount</td><td style="color:#111827;font-weight:600;text-align:right;">${loanData.loanAmount.toFixed(2)} ${loanData.loanAsset}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">LTV</td><td style="color:#111827;text-align:right;">${(loanData.ltv * 100).toFixed(0)}%</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">APR</td><td style="color:#111827;text-align:right;">${(loanData.apr * 100).toFixed(0)}%</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">Payout Address</td><td style="color:#6b7280;font-size:12px;text-align:right;word-break:break-all;">${loanData.payoutAddress}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">Submitted At</td><td style="color:#111827;text-align:right;">${now} ET</td></tr>
-      </table>
-
-      <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/admin/loans?highlight=${loanData._id}"
-         class="dwp-btn" style="display:inline-block;background:#2563eb;color:#ffffff !important;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">
-        Review &amp; Manage Loan →
-      </a>
-
-      <hr style="border-color:#e5e7eb;margin:28px 0;" />
-      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners. Do not reply.</p>
-    </div>
-  `;
-
-  await transporter.sendMail({
+  await sendWithLayout(transporter, {
     from: FROM(),
     to: adminEmail,
     subject: `[Loan Request] ${user.firstName} ${user.lastName} - ${loanData.loanAmount.toFixed(2)} ${loanData.loanAsset}`,
-    html: themedEmail(html),
+  }, {
+    hero: 'admin',
+    preheader: `${user.firstName} ${user.lastName} requested a ${loanData.loanAmount.toFixed(2)} ${loanData.loanAsset} loan.`,
+    eyebrow: 'Team alert',
+    title: 'New loan request',
+    paragraphs: [
+      { html: '<strong>Action required.</strong> A user has submitted a new crypto loan request. Please review and process the funds.' },
+    ],
+    details: [
+      { label: 'Name', value: `${user.firstName} ${user.lastName}` },
+      { label: 'Email', value: user.email },
+      { label: 'Contact email', value: loanData.contactEmail || user.email },
+      { label: 'Collateral', value: `${loanData.collateralAmount} ${loanData.collateralAsset}` },
+      { label: 'Loan amount', value: `${loanData.loanAmount.toFixed(2)} ${loanData.loanAsset}` },
+      { label: 'LTV', value: `${(loanData.ltv * 100).toFixed(0)}%` },
+      { label: 'APR', value: `${(loanData.apr * 100).toFixed(0)}%` },
+      { label: 'Payout address', value: loanData.payoutAddress },
+      { label: 'Submitted at', value: nowEt() },
+    ],
+    detailsVariant: 'card',
+    action: { label: 'Review & Manage Loan', url: `${localAppUrl()}/admin/loans?highlight=${loanData._id}` },
   });
 }
 
@@ -839,203 +529,74 @@ async function sendLoanNotificationEmail({ adminEmail, user, loanData }) {
 async function sendEarnNotificationEmail({ adminEmail, user, earnData }) {
   const transporter = createTransporter();
 
-  const now = new Date().toLocaleString('en-US', { timeZone: APP_TIMEZONE, dateStyle: 'medium', timeStyle: 'short' });
-
-  const html = `
-    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
-      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
-      <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">New Saving/Earn Request - Action Required</p>
-
-      <div style="background:#10b98122;border:1px solid #10b98155;border-radius:10px;padding:14px 18px;margin-bottom:24px;">
-        <p style="margin:0;color:#34d399;font-size:14px;">
-          A user has submitted a new crypto earning/savings deposit.
-        </p>
-      </div>
-
-      <!-- User details -->
-      <h3 style="color:#60a5fa;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">User</h3>
-      <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
-        <tr><td style="color:#9ca3af;padding:6px 0;">Name</td><td style="color:#111827;font-weight:600;text-align:right;">${user.firstName} ${user.lastName}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">Account Email</td><td style="color:#111827;text-align:right;">${user.email}</td></tr>
-      </table>
-
-      <!-- Deposit details -->
-      <h3 style="color:#60a5fa;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Saving Details</h3>
-      <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
-        <tr><td style="color:#9ca3af;padding:6px 0;">Contact Email</td><td style="color:#111827;font-weight:600;text-align:right;">${earnData.contactEmail || user.email}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">Asset</td><td style="color:#111827;font-weight:600;text-align:right;">${earnData.asset}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">Deposit Amount</td><td style="color:#111827;font-weight:600;text-align:right;">${earnData.amount} ${earnData.asset}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">APY</td><td style="color:#111827;text-align:right;">${(earnData.apy * 100).toFixed(0)}%</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">Term</td><td style="color:#111827;text-align:right;">${earnData.term}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">Submitted At</td><td style="color:#111827;text-align:right;">${now} ET</td></tr>
-      </table>
-
-      <hr style="border-color:#e5e7eb;margin:28px 0;" />
-      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners. Do not reply.</p>
-    </div>
-  `;
-
-  await transporter.sendMail({
+  await sendWithLayout(transporter, {
     from: FROM(),
     to: adminEmail,
     subject: `[Saving Request] ${user.firstName} ${user.lastName} - ${earnData.amount} ${earnData.asset}`,
-    html: themedEmail(html),
+  }, {
+    hero: 'admin',
+    preheader: `${user.firstName} ${user.lastName} submitted a ${earnData.amount} ${earnData.asset} saving/earn deposit.`,
+    eyebrow: 'Team alert',
+    title: 'New saving/earn request',
+    paragraphs: [
+      { html: '<strong>Action required.</strong> A user has submitted a new crypto earning/savings deposit.' },
+    ],
+    details: [
+      { label: 'Name', value: `${user.firstName} ${user.lastName}` },
+      { label: 'Account email', value: user.email },
+      { label: 'Contact email', value: earnData.contactEmail || user.email },
+      { label: 'Asset', value: earnData.asset },
+      { label: 'Deposit amount', value: `${earnData.amount} ${earnData.asset}` },
+      { label: 'APY', value: `${(earnData.apy * 100).toFixed(0)}%` },
+      { label: 'Term', value: earnData.term },
+      { label: 'Submitted at', value: nowEt() },
+    ],
+    detailsVariant: 'card',
   });
 }
 
 // === USER NOTIFICATION EMAILS (STATUS UPDATES) ===
 
+const TRANSACTION_HELP = () => ({
+  html: `Need assistance? If you have any questions or need to report an issue with this transaction, please reply directly to this email or contact our support team at ${supportLink()}.`,
+});
+
 async function sendUserDepositStatusEmail({ userEmail, firstName, assetSymbol, amount, status, adminNote, usdValue, isManual }) {
   const transporter = createTransporter();
-  const statusColor = status === 'confirmed' ? '#10b981' : '#ef4444';
-  const statusText = status === 'confirmed' ? 'Confirmed' : 'Rejected';
+  const confirmed = status === 'confirmed';
+  const statusText = confirmed ? 'Confirmed' : 'Rejected';
 
   let introText;
-  if (isManual && status === 'confirmed') {
+  if (isManual && confirmed) {
     introText = 'Our team has credited your account directly. Please see the reason for this credit below.';
-  } else if (status === 'confirmed') {
+  } else if (confirmed) {
     introText = 'Your deposit has been confirmed and credited to your account. Please review your official transaction slip below.';
   } else {
     introText = 'Your deposit has been processed. Please review your official transaction slip below.';
   }
-  const noteLabel = isManual ? 'Reason For Credit' : 'Administrator Note';
+  const noteLabel = isManual ? 'Reason for credit' : 'Administrator note';
 
-  const usdString = usdValue ? `≈ $${parseFloat(usdValue).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '';
-  const now = new Date().toLocaleString('en-US', { timeZone: APP_TIMEZONE, dateStyle: 'medium', timeStyle: 'short' });
-
-  const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="color-scheme" content="light dark">
-      <meta name="supported-color-schemes" content="light dark">
-      <style>
-        :root {
-          color-scheme: light dark;
-          supported-color-schemes: light dark;
-        }
-        .bg-main { background-color: #f4f7fb; }
-        .bg-card { background-color: #ffffff; border-color: #e5e7eb; }
-        .bg-slip { background-color: #f8fafc; border-color: #e2e8f0; }
-        .bg-footer { background-color: #f8fafc; border-color: #e5e7eb; }
-        .bg-note { background-color: #eff6ff; }
-        
-        .text-main { color: #111827; }
-        .text-muted { color: #64748b; }
-        .text-accent { color: #2563eb; }
-        .border-line { border-color: #e2e8f0; }
-        .dwp-banner-title { color: #ffffff; }
-        .dwp-banner-sub { color: #93c5fd; }
-        
-        @media (prefers-color-scheme: dark) {
-          .bg-main { background-color: #050505 !important; }
-          .bg-card { background-color: #101010 !important; border-color: #222222 !important; box-shadow: none !important; }
-          .bg-slip { background-color: #0a0a0a !important; border-color: #222222 !important; }
-          .bg-footer { background-color: #0a0a0a !important; border-color: #222222 !important; }
-          .bg-note { background-color: #1e293b !important; }
-          
-          .text-main { color: #f8fafc !important; }
-          .text-muted { color: #9ca3af !important; }
-          .text-accent { color: #60a5fa !important; }
-          .border-line { border-color: #1a1a1a !important; }
-          .dwp-banner-title { color: #ffffff !important; }
-          .dwp-banner-sub { color: #93c5fd !important; }
-        }
-      </style>
-    </head>
-    <body class="bg-main" style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
-      <div class="bg-main" style="padding: 40px 20px; width: 100%; box-sizing: border-box;">
-        <div class="bg-card" style="max-width: 800px; margin: 0 auto; border: 1px solid; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);">
-          
-          <!-- Header Area -->
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-            <tr>
-              <td bgcolor="#1e3a8a" style="background: linear-gradient(135deg, #1e3a8a 0%, #172554 100%); padding: 40px; text-align: center; border-bottom: 1px solid #1e40af;">
-                <h1 class="dwp-banner-title" style="margin: 0; font-size: 28px; font-weight: 700; letter-spacing: 2px; color: #ffffff !important; text-transform: uppercase;">Digital Wealth Partners</h1>
-                <p class="dwp-banner-sub" style="margin: 12px 0 0 0; font-size: 16px; color: #93c5fd !important; font-weight: 500; letter-spacing: 1px;">DEPOSIT ${statusText.toUpperCase()}</p>
-              </td>
-            </tr>
-          </table>
-
-          <!-- Body Content -->
-          <div style="padding: 40px 40px 20px 40px;">
-            <p class="text-muted" style="font-size: 16px; line-height: 1.6; margin-top: 0;">Hi <strong class="text-main">${firstName}</strong>,</p>
-            <p class="text-muted" style="font-size: 16px; line-height: 1.6; margin-bottom: 32px;">${introText}</p>
-
-            <!-- Receipt Box -->
-            <div class="bg-slip border-line" style="border: 1px solid; border-radius: 12px; padding: 32px; position: relative;">
-              <div style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background-color: ${statusColor}; border-top-left-radius: 12px; border-top-right-radius: 12px;"></div>
-
-              <h3 class="text-main border-line" style="margin: 0 0 24px 0; font-size: 18px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid; padding-bottom: 16px;">Deposit Slip</h3>
-              
-              <table style="width: 100%; border-collapse: collapse; font-size: 15px;">
-                <tr>
-                  <td class="text-muted border-line" style="padding: 12px 0; width: 35%; border-bottom: 1px solid;">Date & Time</td>
-                  <td class="text-main border-line" style="font-weight: 600; text-align: right; border-bottom: 1px solid;">${now} ET</td>
-                </tr>
-                <tr>
-                  <td class="text-muted border-line" style="padding: 12px 0; border-bottom: 1px solid;">Asset Deposited</td>
-                  <td class="text-main border-line" style="font-weight: 700; text-align: right; border-bottom: 1px solid;">${assetSymbol}</td>
-                </tr>
-                <tr>
-                  <td class="text-muted border-line" style="padding: 12px 0; border-bottom: 1px solid;">Amount (Crypto)</td>
-                  <td class="text-accent border-line" style="font-weight: 700; font-size: 18px; text-align: right; border-bottom: 1px solid;">${amount} ${assetSymbol}</td>
-                </tr>
-                ${usdString ? `
-                <tr>
-                  <td class="text-muted border-line" style="padding: 12px 0; border-bottom: 1px solid;">Amount (USD)</td>
-                  <td class="text-main border-line" style="font-weight: 600; text-align: right; border-bottom: 1px solid;">${usdString}</td>
-                </tr>
-                ` : ''}
-                <tr>
-                  <td class="text-muted" style="padding: 16px 0 4px 0;">Status</td>
-                  <td style="color: ${statusColor}; font-weight: 700; text-align: right; padding: 16px 0 4px 0; text-transform: uppercase; letter-spacing: 1px;">${statusText}</td>
-                </tr>
-              </table>
-            </div>
-
-            ${adminNote ? `
-            <div class="bg-note" style="border-left: 4px solid #3b82f6; padding: 20px; border-radius: 0 8px 8px 0; margin: 32px 0;">
-              <p class="text-accent" style="font-size: 12px; margin: 0 0 8px 0; text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">${noteLabel}</p>
-              <p class="text-main" style="margin: 0; font-size: 15px; line-height: 1.5;">${escapeHtml(adminNote)}</p>
-            </div>
-            ` : ''}
-
-            <!-- Action Button -->
-            <div style="text-align: center; margin: 48px 0 24px 0;">
-              <a href="${process.env.FRONTEND_URL || 'https://digitalwealthpartnersllc.net'}/login" style="display: inline-block; background-color: #2563eb; color: #ffffff; padding: 16px 40px; border-radius: 12px; text-decoration: none; font-weight: 600; font-size: 16px; letter-spacing: 0.5px; box-shadow: 0 4px 14px 0 rgba(37, 99, 235, 0.39);">
-                LOGIN TO YOUR WALLET
-              </a>
-            </div>
-          </div>
-
-          <!-- Footer Area -->
-          <div class="bg-footer border-line" style="padding: 40px; border-top: 1px solid; text-align: center;">
-            <h4 class="text-main" style="font-size: 16px; margin: 0 0 12px 0;">Need Assistance?</h4>
-            <p class="text-muted" style="font-size: 14px; line-height: 1.6; margin: 0 0 16px 0;">
-              If you have any questions or need to report an issue with this transaction, please reply directly to this email or contact our support team.
-            </p>
-            <a class="text-accent" href="mailto:support@digitalwealthpartnersllc.net" style="font-weight: 600; text-decoration: none; font-size: 15px;">
-              support@digitalwealthpartnersllc.net
-            </a>
-            <div class="border-line" style="margin-top: 32px; padding-top: 24px; border-top: 1px solid;">
-              <p style="color: #6b7280; font-size: 12px; margin: 0;">&copy; ${new Date().getFullYear()} Digital Wealth Partners. All rights reserved.</p>
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </body>
-    </html>
-  `;
-
-  await transporter.sendMail({
+  await sendWithLayout(transporter, {
     from: FROM(),
     to: userEmail,
     subject: `Deposit ${statusText}: ${amount} ${assetSymbol} - Digital Wealth Partners`,
-    html: html,
+  }, {
+    hero: 'deposit',
+    preheader: `Deposit ${statusText.toLowerCase()}: ${amount} ${assetSymbol}.`,
+    eyebrow: 'Deposits',
+    title: `Deposit ${statusText.toLowerCase()}`,
+    paragraphs: [hi(firstName), introText],
+    details: [
+      { label: 'Date & time', value: nowEt() },
+      { label: 'Asset deposited', value: assetSymbol },
+      { label: 'Amount (crypto)', value: { html: strong(`${amount} ${assetSymbol}`) } },
+      { label: 'Amount (USD)', value: usdValue ? usd(usdValue) : null },
+      { label: 'Status', value: statusValue(statusText, confirmed ? 'green' : 'red') },
+    ],
+    detailsVariant: 'card',
+    callout: adminNote ? { title: noteLabel, text: String(adminNote), tone: confirmed ? undefined : 'danger' } : null,
+    action: { label: 'Login to Your Wallet', url: `${appUrl()}/login` },
+    supporting: [TRANSACTION_HELP()],
   });
 }
 
@@ -1047,13 +608,7 @@ async function sendUserWithdrawalStatusEmail({ userEmail, firstName, assetSymbol
     'rejected': 'Rejected'
   };
   const statusText = statusMap[status] || status;
-
-  const statusColorMap = {
-    'approved': '#3b82f6', // blue
-    'completed': '#10b981', // green
-    'rejected': '#ef4444' // red
-  };
-  const statusColor = statusColorMap[status] || '#f59e0b';
+  const statusColor = { approved: 'blue', completed: 'green', rejected: 'red' }[status] || 'amber';
 
   let introText;
   if (isManual && status === 'completed') {
@@ -1061,238 +616,90 @@ async function sendUserWithdrawalStatusEmail({ userEmail, firstName, assetSymbol
   } else {
     introText = 'Your withdrawal request has been updated. Please review your official transaction slip below.';
   }
-  const noteLabel = isManual ? 'Reason For Adjustment' : 'Administrator Note';
+  const noteLabel = isManual ? 'Reason for adjustment' : 'Administrator note';
 
-  const usdString = usdValue ? `≈ $${parseFloat(usdValue).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '';
-  const now = new Date().toLocaleString('en-US', { timeZone: APP_TIMEZONE, dateStyle: 'medium', timeStyle: 'short' });
-  const txHash = ''; // Will be added later if needed
-
-  const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="color-scheme" content="light dark">
-      <meta name="supported-color-schemes" content="light dark">
-      <style>
-        :root {
-          color-scheme: light dark;
-          supported-color-schemes: light dark;
-        }
-        .bg-main { background-color: #f4f7fb; }
-        .bg-card { background-color: #ffffff; border-color: #e5e7eb; }
-        .bg-slip { background-color: #f8fafc; border-color: #e2e8f0; }
-        .bg-footer { background-color: #f8fafc; border-color: #e5e7eb; }
-        .bg-note { background-color: #eff6ff; }
-        
-        .text-main { color: #111827; }
-        .text-muted { color: #64748b; }
-        .text-accent { color: #2563eb; }
-        .border-line { border-color: #e2e8f0; }
-        .dwp-banner-title { color: #ffffff; }
-        .dwp-banner-sub { color: #93c5fd; }
-        
-        @media (prefers-color-scheme: dark) {
-          .bg-main { background-color: #050505 !important; }
-          .bg-card { background-color: #101010 !important; border-color: #222222 !important; box-shadow: none !important; }
-          .bg-slip { background-color: #0a0a0a !important; border-color: #222222 !important; }
-          .bg-footer { background-color: #0a0a0a !important; border-color: #222222 !important; }
-          .bg-note { background-color: #1e293b !important; }
-          
-          .text-main { color: #f8fafc !important; }
-          .text-muted { color: #9ca3af !important; }
-          .text-accent { color: #60a5fa !important; }
-          .border-line { border-color: #1a1a1a !important; }
-          .dwp-banner-title { color: #ffffff !important; }
-          .dwp-banner-sub { color: #93c5fd !important; }
-        }
-      </style>
-    </head>
-    <body class="bg-main" style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
-      <div class="bg-main" style="padding: 40px 20px; width: 100%; box-sizing: border-box;">
-        <div class="bg-card" style="max-width: 800px; margin: 0 auto; border: 1px solid; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);">
-          
-          <!-- Header Area -->
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-            <tr>
-              <td bgcolor="#1e3a8a" style="background: linear-gradient(135deg, #1e3a8a 0%, #172554 100%); padding: 40px; text-align: center; border-bottom: 1px solid #1e40af;">
-                <h1 class="dwp-banner-title" style="margin: 0; font-size: 28px; font-weight: 700; letter-spacing: 2px; color: #ffffff !important; text-transform: uppercase;">Digital Wealth Partners</h1>
-                <p class="dwp-banner-sub" style="margin: 12px 0 0 0; font-size: 16px; color: #93c5fd !important; font-weight: 500; letter-spacing: 1px;">WITHDRAWAL ${statusText.toUpperCase()}</p>
-              </td>
-            </tr>
-          </table>
-
-          <!-- Body Content -->
-          <div style="padding: 40px 40px 20px 40px;">
-            <p class="text-muted" style="font-size: 16px; line-height: 1.6; margin-top: 0;">Hi <strong class="text-main">${firstName}</strong>,</p>
-            <p class="text-muted" style="font-size: 16px; line-height: 1.6; margin-bottom: 32px;">${introText}</p>
-            
-            <!-- Receipt Box -->
-            <div class="bg-slip border-line" style="border: 1px solid; border-radius: 12px; padding: 32px; position: relative;">
-              <div style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background-color: ${statusColor}; border-top-left-radius: 12px; border-top-right-radius: 12px;"></div>
-              
-              <h3 class="text-main border-line" style="margin: 0 0 24px 0; font-size: 18px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid; padding-bottom: 16px;">Withdrawal Slip</h3>
-              
-              <table style="width: 100%; border-collapse: collapse; font-size: 15px;">
-                <tr>
-                  <td class="text-muted border-line" style="padding: 12px 0; width: 35%; border-bottom: 1px solid;">Date & Time</td>
-                  <td class="text-main border-line" style="font-weight: 600; text-align: right; border-bottom: 1px solid;">${now} ET</td>
-                </tr>
-                <tr>
-                  <td class="text-muted border-line" style="padding: 12px 0; border-bottom: 1px solid;">Asset Withdrawn</td>
-                  <td class="text-main border-line" style="font-weight: 700; text-align: right; border-bottom: 1px solid;">${assetSymbol}</td>
-                </tr>
-                <tr>
-                  <td class="text-muted border-line" style="padding: 12px 0; border-bottom: 1px solid;">Amount (Crypto)</td>
-                  <td class="text-accent border-line" style="font-weight: 700; font-size: 18px; text-align: right; border-bottom: 1px solid;">${amount} ${assetSymbol}</td>
-                </tr>
-                ${usdString ? `
-                <tr>
-                  <td class="text-muted border-line" style="padding: 12px 0; border-bottom: 1px solid;">Amount (USD)</td>
-                  <td class="text-main border-line" style="font-weight: 600; text-align: right; border-bottom: 1px solid;">${usdString}</td>
-                </tr>
-                ` : ''}
-                ${destinationAddress ? `
-                <tr>
-                  <td class="text-muted border-line" style="padding: 16px 0 12px 0; border-bottom: 1px solid; vertical-align: top;">Destination Address</td>
-                  <td class="text-main border-line" style="font-weight: 600; font-family: monospace; font-size: 14px; text-align: right; word-break: break-all; border-bottom: 1px solid; padding: 16px 0 12px 0;">${destinationAddress}</td>
-                </tr>
-                ` : ''}
-                <tr>
-                  <td class="text-muted" style="padding: 16px 0 4px 0;">Status</td>
-                  <td style="color: ${statusColor}; font-weight: 700; text-align: right; padding: 16px 0 4px 0; text-transform: uppercase; letter-spacing: 1px;">${statusText}</td>
-                </tr>
-              </table>
-            </div>
-
-            ${adminNote ? `
-            <div class="bg-note" style="border-left: 4px solid #3b82f6; padding: 20px; border-radius: 0 8px 8px 0; margin: 32px 0;">
-              <p class="text-accent" style="font-size: 12px; margin: 0 0 8px 0; text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">${noteLabel}</p>
-              <p class="text-main" style="margin: 0; font-size: 15px; line-height: 1.5;">${escapeHtml(adminNote)}</p>
-            </div>
-            ` : ''}
-
-            <!-- Action Button -->
-            <div style="text-align: center; margin: 48px 0 24px 0;">
-              <a href="${process.env.FRONTEND_URL || 'https://digitalwealthpartnersllc.net'}/login" style="display: inline-block; background-color: #2563eb; color: #ffffff; padding: 16px 40px; border-radius: 12px; text-decoration: none; font-weight: 600; font-size: 16px; letter-spacing: 0.5px; box-shadow: 0 4px 14px 0 rgba(37, 99, 235, 0.39);">
-                LOGIN TO YOUR WALLET
-              </a>
-            </div>
-          </div>
-
-          <!-- Footer Area -->
-          <div class="bg-footer border-line" style="padding: 40px; border-top: 1px solid; text-align: center;">
-            <h4 class="text-main" style="font-size: 16px; margin: 0 0 12px 0;">Need Assistance?</h4>
-            <p class="text-muted" style="font-size: 14px; line-height: 1.6; margin: 0 0 16px 0;">
-              If you have any questions or need to report an issue with this transaction, please reply directly to this email or contact our support team.
-            </p>
-            <a class="text-accent" href="mailto:support@digitalwealthpartnersllc.net" style="font-weight: 600; text-decoration: none; font-size: 15px;">
-              support@digitalwealthpartnersllc.net
-            </a>
-            <div class="border-line" style="margin-top: 32px; padding-top: 24px; border-top: 1px solid;">
-              <p style="color: #6b7280; font-size: 12px; margin: 0;">&copy; ${new Date().getFullYear()} Digital Wealth Partners. All rights reserved.</p>
-            </div>
-          </div>
-          
-        </div>
-      </div>
-    </body>
-    </html>
-  `;
-
-  await transporter.sendMail({
+  await sendWithLayout(transporter, {
     from: FROM(),
     to: userEmail,
     subject: `Withdrawal ${statusText}: ${amount} ${assetSymbol} - Digital Wealth Partners`,
-    html: html,
+  }, {
+    hero: 'withdrawal',
+    preheader: `Withdrawal ${String(statusText).toLowerCase()}: ${amount} ${assetSymbol}.`,
+    eyebrow: 'Withdrawals',
+    title: `Withdrawal ${String(statusText).toLowerCase()}`,
+    paragraphs: [hi(firstName), introText],
+    details: [
+      { label: 'Date & time', value: nowEt() },
+      { label: 'Asset withdrawn', value: assetSymbol },
+      { label: 'Amount (crypto)', value: { html: strong(`${amount} ${assetSymbol}`) } },
+      { label: 'Amount (USD)', value: usdValue ? usd(usdValue) : null },
+      { label: 'Destination address', value: destinationAddress },
+      { label: 'Status', value: statusValue(statusText, statusColor) },
+    ],
+    detailsVariant: 'card',
+    callout: adminNote ? { title: noteLabel, text: String(adminNote), tone: status === 'rejected' ? 'danger' : undefined } : null,
+    action: { label: 'Login to Your Wallet', url: `${appUrl()}/login` },
+    supporting: [TRANSACTION_HELP()],
   });
 }
 
 async function sendUserLoanStatusEmail({ userEmail, firstName, loanAsset, loanAmount, status, adminNote }) {
   const transporter = createTransporter();
-  
-  const html = `
-    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
-      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
-      <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">Loan Application Update</p>
 
-      <p>Hi <strong>${firstName}</strong>,</p>
-      <p>Your crypto loan application for <strong>${loanAmount} ${loanAsset}</strong> has been updated to: <strong>${status}</strong>.</p>
-      
-      ${adminNote ? `<div style="background:#f4f7fb;border:1px solid #dbeafe;padding:16px;border-radius:8px;margin:20px 0;">
-        <p style="color:#60a5fa;font-size:13px;margin:0 0 8px 0;text-transform:uppercase;">Admin Note</p>
-        <p style="margin:0;font-size:14px;">${adminNote}</p>
-      </div>` : ''}
-
-      <hr style="border-color:#e5e7eb;margin:28px 0;" />
-      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners. Do not reply.</p>
-    </div>
-  `;
-
-  await transporter.sendMail({
+  await sendWithLayout(transporter, {
     from: FROM(),
     to: userEmail,
     subject: `Loan Application ${status}: ${loanAmount} ${loanAsset}`,
-    html: themedEmail(html),
+  }, {
+    hero: 'lending',
+    preheader: `Your loan application for ${loanAmount} ${loanAsset} is now ${status}.`,
+    eyebrow: 'Lending',
+    title: 'Loan application update',
+    paragraphs: [
+      hi(firstName),
+      { html: `Your crypto loan application for ${strong(`${loanAmount} ${loanAsset}`)} has been updated to: ${strong(status)}.` },
+    ],
+    callout: adminNote ? { title: 'Admin note', text: String(adminNote) } : null,
   });
 }
 
 async function sendUserEarnStatusEmail({ userEmail, firstName, asset, amount, status, adminNote }) {
   const transporter = createTransporter();
-  
-  const html = `
-    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
-      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
-      <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">Earn Deposit Update</p>
 
-      <p>Hi <strong>${firstName}</strong>,</p>
-      <p>Your earn/savings deposit of <strong>${amount} ${asset}</strong> has been updated to: <strong>${status}</strong>.</p>
-      
-      ${adminNote ? `<div style="background:#f4f7fb;border:1px solid #dbeafe;padding:16px;border-radius:8px;margin:20px 0;">
-        <p style="color:#60a5fa;font-size:13px;margin:0 0 8px 0;text-transform:uppercase;">Admin Note</p>
-        <p style="margin:0;font-size:14px;">${adminNote}</p>
-      </div>` : ''}
-
-      <hr style="border-color:#e5e7eb;margin:28px 0;" />
-      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners. Do not reply.</p>
-    </div>
-  `;
-
-  await transporter.sendMail({
+  await sendWithLayout(transporter, {
     from: FROM(),
     to: userEmail,
     subject: `Earn Deposit ${status}: ${amount} ${asset}`,
-    html: themedEmail(html),
+  }, {
+    hero: 'lending',
+    preheader: `Your earn/savings deposit of ${amount} ${asset} is now ${status}.`,
+    eyebrow: 'Earn',
+    title: 'Earn deposit update',
+    paragraphs: [
+      hi(firstName),
+      { html: `Your earn/savings deposit of ${strong(`${amount} ${asset}`)} has been updated to: ${strong(status)}.` },
+    ],
+    callout: adminNote ? { title: 'Admin note', text: String(adminNote) } : null,
   });
 }
 
 async function sendUserLLCStatusEmail({ userEmail, firstName, companyName, status, adminNote }) {
   const transporter = createTransporter();
-  
-  const html = `
-    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
-      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
-      <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">LLC Application Update</p>
 
-      <p>Hi <strong>${firstName}</strong>,</p>
-      <p>Your LLC application for <strong>${companyName}</strong> has been updated to: <strong>${status}</strong>.</p>
-      
-      ${adminNote ? `<div style="background:#f4f7fb;border:1px solid #dbeafe;padding:16px;border-radius:8px;margin:20px 0;">
-        <p style="color:#60a5fa;font-size:13px;margin:0 0 8px 0;text-transform:uppercase;">Admin Note</p>
-        <p style="margin:0;font-size:14px;">${adminNote}</p>
-      </div>` : ''}
-
-      <hr style="border-color:#e5e7eb;margin:28px 0;" />
-      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners. Do not reply.</p>
-    </div>
-  `;
-
-  await transporter.sendMail({
+  await sendWithLayout(transporter, {
     from: FROM(),
     to: userEmail,
     subject: `LLC Application ${status}: ${companyName}`,
-    html: themedEmail(html),
+  }, {
+    hero: 'llc',
+    preheader: `Your LLC application for ${companyName} is now ${status}.`,
+    eyebrow: 'LLC formation',
+    title: 'LLC application update',
+    paragraphs: [
+      hi(firstName),
+      { html: `Your LLC application for ${strong(companyName)} has been updated to: ${strong(status)}.` },
+    ],
+    callout: adminNote ? { title: 'Admin note', text: String(adminNote) } : null,
   });
 }
 
@@ -1300,50 +707,33 @@ async function sendLLCNotificationEmail({ adminEmail, user, application }) {
   const transporter = createTransporter();
 
   const rows = [
+    ['User name', `${user.firstName} ${user.lastName}`],
+    ['User email', user.email],
     ['Company', application.companyName],
-    ['Entity Type', application.entityType],
-    ['Business Ending', application.businessEnding],
-    ['Formation State', application.state],
-    ['Contact Name', [application.contactFirstName, application.contactLastName].filter(Boolean).join(' ')],
-    ['Contact Email', application.contactEmail],
-    ['Contact Phone', application.contactPhone],
+    ['Entity type', application.entityType],
+    ['Business ending', application.businessEnding],
+    ['Formation state', application.state],
+    ['Contact name', [application.contactFirstName, application.contactLastName].filter(Boolean).join(' ')],
+    ['Contact email', application.contactEmail],
+    ['Contact phone', application.contactPhone],
     ['Address', [application.streetAddress, application.unit, application.city, application.state, application.postalCode, application.country].filter(Boolean).join(', ')],
-    ['Partner Code', application.partnerCode],
+    ['Partner code', application.partnerCode],
     ['Application ID', application.id || application._id?.toString()],
-  ].filter(([, value]) => value);
+  ];
 
-  const detailRows = rows.map(([label, value]) => (
-    `<tr><td style="color:#9ca3af;padding:7px 0;">${label}</td><td style="color:#111827;font-weight:600;text-align:right;word-break:break-word;">${value}</td></tr>`
-  )).join('');
-
-  const html = `
-    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
-      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
-      <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">New LLC Application Submitted</p>
-
-      <h3 style="color:#60a5fa;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Platform User</h3>
-      <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
-        <tr><td style="color:#9ca3af;padding:6px 0;">Name</td><td style="color:#111827;font-weight:600;text-align:right;">${user.firstName} ${user.lastName}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">Email</td><td style="color:#111827;text-align:right;">${user.email}</td></tr>
-      </table>
-
-      <h3 style="color:#60a5fa;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Application Details</h3>
-      <table style="width:100%;border-collapse:collapse;margin-bottom:28px;">
-        ${detailRows}
-      </table>
-
-      <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/admin/llc"
-         class="dwp-btn" style="display:inline-block;background:#2563eb;color:#ffffff !important;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">
-        Review LLC Application
-      </a>
-    </div>
-  `;
-
-  await transporter.sendMail({
+  await sendWithLayout(transporter, {
     from: FROM(),
     to: adminEmail,
     subject: `[LLC Application] ${application.companyName}`,
-    html: themedEmail(html),
+  }, {
+    hero: 'admin',
+    preheader: `${user.firstName} ${user.lastName} applied to form ${application.companyName}.`,
+    eyebrow: 'Team alert',
+    title: 'New LLC application submitted',
+    paragraphs: [{ html: `${strong(`${user.firstName} ${user.lastName}`)} submitted a new LLC application on the platform.` }],
+    details: rows.map(([label, value]) => ({ label, value })),
+    detailsVariant: 'card',
+    action: { label: 'Review LLC Application', url: `${localAppUrl()}/admin/llc` },
   });
 }
 
@@ -1356,100 +746,113 @@ async function sendUserContactStatusEmail({ userEmail, firstName, topic, status,
     pending: 'Received',
   };
   const statusText = statusTextMap[status] || status;
-  const appUrl = process.env.FRONTEND_URL || 'https://digitalwealthpartnersllc.net';
-  const onboardingUrl = `${appUrl}/pay-onboarding`;
+  const onboardingUrl = `${appUrl()}/pay-onboarding`;
   const refundPath = onboardingConfig?.refundPolicyUrl || '/legal/refund-policy';
   const refundUrl = /^https?:\/\//i.test(refundPath)
     ? refundPath
-    : `${appUrl}${refundPath.startsWith('/') ? refundPath : `/${refundPath}`}`;
-  const supportUrl = `mailto:${SUPPORT_EMAIL}`;
-  const safeFirstName = escapeHtml(firstName || 'there');
-  const topicText = topic ? ` about ${escapeHtml(topic)}` : '';
-  const safeStatusUrl = escapeHtml(statusUrl || `${appUrl}/contact`);
+    : `${appUrl()}${refundPath.startsWith('/') ? refundPath : `/${refundPath}`}`;
+  const topicText = topic ? ` about ${topic}` : '';
+  const viewStatusUrl = statusUrl || `${appUrl()}/contact`;
   const feeUsd = Number(onboardingConfig?.feeUsd ?? 1000).toLocaleString('en-US');
   const renewalFeeUsd = Number(onboardingConfig?.renewalFeeUsd ?? 100).toLocaleString('en-US');
   const coverageMonths = Number(onboardingConfig?.coverageMonths ?? 12);
-  const quoteText = `the XRP equivalent of $${feeUsd} USD at the live market rate, shown on the onboarding portal at payment time`;
-  const quoteLine = `<p><strong>Payment amount:</strong> the XRP equivalent of $${feeUsd} USD at the live market rate, shown on the onboarding portal at payment time.</p>`;
 
-  const bodyByStatus = {
-    pending: `
-      <p>Hi <strong>${safeFirstName}</strong>,</p>
-      <p>We received your consultation request${topicText}. It is awaiting review by our client advisory team.</p>
-      <p>Your request is being reviewed. We will send another notification when the status changes.</p>
-      <p><a href="${safeStatusUrl}">View consultation status</a></p>
-    `,
-    processing: `
-      <p>Hi <strong>${safeFirstName}</strong>,</p>
-      <p>Your consultation request${topicText} is currently being reviewed by our client advisory team.</p>
-      <p>You will receive another notification when the review is complete.</p>
-      <p><a href="${safeStatusUrl}">View consultation status</a></p>
-    `,
-    approved: `
-      <p>Dear <strong>${safeFirstName}</strong>,</p>
-      <p>Welcome to Digital Wealth Partners (DWP). Your consultation request${topicText} has been approved.</p>
-      <p>DWP provides client advisory and onboarding support, institutional XRP custody onboarding guidance, information about eligible XRP yield products, crypto-backed lending guidance, and KYC and identity-verification assistance.</p>
-      <h3 style="margin:24px 0 8px;">Onboarding fee and services</h3>
-      <p><strong>Initial onboarding fee: $${feeUsd} USD</strong><br/>Coverage: first ${coverageMonths} months</p>
-      <ul style="line-height:1.7;color:#374151;">
-        <li>Initial consultation and onboarding assistance.</li>
-        <li>Assignment of a personal advisor.</li>
-        <li>Access to client advisory and support services.</li>
-        <li>Guidance on institutional custody and identity verification.</li>
-        <li>Assistance understanding eligible XRP yield and crypto-backed lending products.</li>
-      </ul>
-      <p><strong>Renewal fee: $${renewalFeeUsd} after the initial ${coverageMonths} months</strong>, subject to applicable renewal terms.</p>
-      <p>The onboarding fee covers advisory and support services. Custody, yield, lending, and other financial products require separate eligibility checks, approvals, and applicable agreements.</p>
-      ${quoteLine}
-      <table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0;">
-        <tr>
-          <td bgcolor="#0033AD" style="border-radius:8px;background:#0033AD;">
-            <a href="${onboardingUrl}" class="dwp-btn" style="display:inline-block;padding:12px 24px;font-weight:600;text-decoration:none;font-family:sans-serif;color:#ffffff !important;">Begin Your Onboarding</a>
-          </td>
-        </tr>
-      </table>
-      <p>The portal shows the services and pricing, applicable terms and refund conditions, the active XRP quote, the approved destination, and payment-confirmation instructions. Clicking “I've made this transfer” submits the transaction for verification and administrative review; it does not automatically approve payment.</p>
-      <h3 style="margin:24px 0 8px;">Account access</h3>
-      <ol style="line-height:1.7;color:#374151;">
-        <li>Create an account using this email address, or log in if you already have one.</li>
-        <li>Verify your email using the one-time code.</li>
-        <li>Submit the transaction reference after transferring the quoted amount.</li>
-        <li>Access the dashboard after payment confirmation and account activation.</li>
-        <li>Complete your profile and required KYC information.</li>
-      </ol>
-      <h3 style="margin:24px 0 8px;">Refund terms</h3>
-      <p>Refund requests may be submitted in writing within 7 calendar days of the initial onboarding payment, provided substantive onboarding services have not commenced. Requests after services have commenced will be reviewed under the applicable agreement and relevant law.</p>
-      <p><a href="${refundUrl}">Read the complete refund policy</a></p>
-    `,
-    rejected: `
-      <p>Hi <strong>${safeFirstName}</strong>,</p>
-      <p>Thank you for your interest in Digital Wealth Partners. After review, we are unable to approve your consultation request${topicText} at this time.</p>
-      <p>If an explanation is available, it appears in the note below. For further assistance, contact <a href="${supportUrl}">${SUPPORT_EMAIL}</a>.</p>
-      <p><a href="${safeStatusUrl}">View consultation status</a></p>
-    `,
+  const teamNote = adminNote
+    ? { title: 'Note from our team', text: { html: noteHtml(adminNote, 'Learn More') }, tone: status === 'rejected' ? 'danger' : undefined }
+    : null;
+  const viewStatus = { label: 'View Consultation Status', url: viewStatusUrl };
+
+  const models = {
+    pending: {
+      title: 'Consultation request received',
+      preheader: 'Your consultation request is awaiting review by our client advisory team.',
+      paragraphs: [
+        hi(firstName),
+        `We received your consultation request${topicText}. It is awaiting review by our client advisory team.`,
+        'Your request is being reviewed. We will send another notification when the status changes.',
+      ],
+      action: viewStatus,
+    },
+    processing: {
+      title: 'Consultation under review',
+      preheader: 'Our client advisory team is reviewing your consultation request.',
+      paragraphs: [
+        hi(firstName),
+        `Your consultation request${topicText} is currently being reviewed by our client advisory team.`,
+        'You will receive another notification when the review is complete.',
+      ],
+      action: viewStatus,
+    },
+    approved: {
+      hero: 'consultation',
+      title: 'Your consultation is approved',
+      preheader: 'Welcome to DWP. Here are your onboarding fee, payment instructions and services.',
+      paragraphs: [
+        hi(firstName, 'Dear'),
+        `Welcome to Digital Wealth Partners (DWP). Your consultation request${topicText} has been approved.`,
+        'DWP provides client advisory and onboarding support, institutional XRP custody onboarding guidance, information about eligible XRP yield products, crypto-backed lending guidance, and KYC and identity-verification assistance.',
+      ],
+      details: [
+        { label: 'Initial onboarding fee', value: { html: strong(`$${feeUsd} USD`) } },
+        { label: 'Coverage', value: `First ${coverageMonths} months` },
+        { label: 'Renewal fee', value: `$${renewalFeeUsd} after the initial ${coverageMonths} months, subject to applicable renewal terms` },
+        { label: 'Payment amount', value: `The XRP equivalent of $${feeUsd} USD at the live market rate, shown on the onboarding portal at payment time` },
+      ],
+      detailsVariant: 'card',
+      callouts: [
+        {
+          title: 'Onboarding fee and services',
+          text: lead('The onboarding fee includes:'),
+          items: [
+            'Initial consultation and onboarding assistance.',
+            'Assignment of a personal advisor.',
+            'Access to client advisory and support services.',
+            'Guidance on institutional custody and identity verification.',
+            'Assistance understanding eligible XRP yield and crypto-backed lending products.',
+          ],
+          note: 'The onboarding fee covers advisory and support services. Custody, yield, lending, and other financial products require separate eligibility checks, approvals, and applicable agreements.',
+        },
+        {
+          title: 'Account access',
+          steps: [
+            'Create an account using this email address, or log in if you already have one.',
+            'Verify your email using the one-time code.',
+            'Submit the transaction reference after transferring the quoted amount.',
+            'Access the dashboard after payment confirmation and account activation.',
+            'Complete your profile and required KYC information.',
+          ],
+        },
+        {
+          title: 'Refund terms',
+          text: 'Refund requests may be submitted in writing within 7 calendar days of the initial onboarding payment, provided substantive onboarding services have not commenced. Requests after services have commenced will be reviewed under the applicable agreement and relevant law.',
+          note: { html: inlineLink(refundUrl, 'Read the complete refund policy') },
+        },
+      ],
+      action: { label: 'Begin Your Onboarding', url: onboardingUrl },
+      supporting: [
+        'The portal shows the services and pricing, applicable terms and refund conditions, the active XRP quote, the approved destination, and payment-confirmation instructions. Clicking “I\'ve made this transfer” submits the transaction for verification and administrative review; it does not automatically approve payment.',
+        statusUrl ? { html: inlineLink(statusUrl, 'View your consultation status') } : null,
+      ],
+    },
+    rejected: {
+      title: 'Consultation request update',
+      preheader: 'An update on your consultation request with Digital Wealth Partners.',
+      paragraphs: [
+        hi(firstName),
+        `Thank you for your interest in Digital Wealth Partners. After review, we are unable to approve your consultation request${topicText} at this time.`,
+        { html: `If an explanation is available, it appears in the note below. For further assistance, contact ${supportLink()}.` },
+      ],
+      action: viewStatus,
+    },
   };
 
-  const statusBody = bodyByStatus[status] || `
-    <p>Hi <strong>${safeFirstName}</strong>,</p>
-    <p>Your consultation request is now <strong>${statusText}</strong>.</p>
-  `;
-
-  const html = `
-    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
-      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
-      <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">Consultation ${statusText}</p>
-
-      ${statusBody}
-
-      ${adminNote ? `<div style="background:#f4f7fb;border:1px solid #dbeafe;padding:16px;border-radius:8px;margin:20px 0;">
-        <p style="color:#60a5fa;font-size:13px;margin:0 0 8px 0;text-transform:uppercase;">Note From Our Team</p>
-        ${renderNoteHtml(adminNote, 'Learn More')}
-      </div>` : ''}
-
-      <hr style="border-color:#e5e7eb;margin:28px 0;" />
-      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners. Do not reply.</p>
-    </div>
-  `;
+  const model = models[status] || {
+    title: `Consultation ${statusText}`,
+    paragraphs: [hi(firstName), { html: `Your consultation request is now ${strong(statusText)}.` }],
+    action: statusUrl ? viewStatus : null,
+  };
+  // The team note goes after the status-specific callouts.
+  const callouts = [...(model.callouts || []), teamNote].filter(Boolean);
 
   const subjects = {
     pending: 'Consultation Request Received - Digital Wealth Partners',
@@ -1457,121 +860,95 @@ async function sendUserContactStatusEmail({ userEmail, firstName, topic, status,
     approved: 'DWP Client Onboarding, Payment Instructions & Services',
     rejected: 'Consultation Request Update - Digital Wealth Partners',
   };
-  const text = [
-    `Digital Wealth Partners - Consultation ${statusText}`,
-    '',
-    `Hi ${firstName || 'there'},`,
-    '',
-    status === 'pending' ? 'We received your consultation request. It is awaiting review.' : '',
-    status === 'processing' ? 'Your consultation request is currently under review.' : '',
-    status === 'approved' ? [
-      'Your consultation is approved. Welcome to Digital Wealth Partners (DWP).',
-      `Initial onboarding fee: $${feeUsd} USD. Coverage: first ${coverageMonths} months.`,
-      'Included services: initial consultation and onboarding assistance; assignment of a personal advisor; client advisory and support; institutional custody and identity-verification guidance; and assistance understanding eligible XRP yield and crypto-backed lending products.',
-      `Renewal fee: $${renewalFeeUsd} after the initial ${coverageMonths} months, subject to applicable renewal terms.`,
-      'The fee covers advisory and support services. Custody, yield, lending, and other financial products require separate eligibility checks, approvals, and agreements.',
-      `Payment amount: ${quoteText}`,
-      `Begin your onboarding: ${onboardingUrl}`,
-      'Register with this email address or log in, verify your email, review the payment amount and official destination, make the transfer, and submit the transaction reference. Submission starts server verification and administrative review; it does not automatically approve payment or activate the account.',
-      'Dashboard access begins only after payment confirmation and separate account activation. Complete your profile and required KYC information after activation.',
-      'Refund requests may be submitted in writing within 7 calendar days of the initial onboarding payment, provided substantive onboarding services have not commenced. Requests after services have commenced will be reviewed under the applicable agreement and relevant law.',
-      `Refund policy: ${refundUrl}`,
-    ].join('\n\n') : '',
-    status === 'rejected' ? `We are unable to approve your consultation request at this time. Contact ${SUPPORT_EMAIL} for assistance.` : '',
-    adminNote ? `Team note: ${adminNote}` : '',
-    statusUrl ? `Status: ${statusUrl}` : '',
-    '',
-    'Digital Wealth Partners',
-  ].filter(Boolean).join('\n');
 
-  return transporter.sendMail({
+  return sendWithLayout(transporter, {
     from: FROM(),
     replyTo: SUPPORT_EMAIL,
     to: userEmail,
     subject: subjects[status] || `Consultation ${statusText} - Digital Wealth Partners`,
-    text,
-    html: themedEmail(html),
+  }, {
+    hero: 'consultation',
+    eyebrow: 'Consultation',
+    ...model,
+    callouts,
   });
 }
 
 async function sendOnboardingPaymentStatusEmail({ userEmail, firstName, type, payment, rejectionReason }) {
   const transporter = createTransporter();
-  const appUrl = process.env.FRONTEND_URL || 'https://digitalwealthpartnersllc.net';
   const details = {
     submitted: {
       subject: 'Onboarding Payment Under Review - Digital Wealth Partners',
       heading: 'Payment submitted for review',
       message: 'We received your transaction reference. The payment remains under review and has not yet activated your account.',
       action: 'View Payment Status',
-      url: `${appUrl}/pay-onboarding?status=pending`,
+      url: `${appUrl()}/pay-onboarding?status=pending`,
     },
     confirmed: {
       subject: 'Onboarding Payment Confirmed - Digital Wealth Partners',
       heading: 'Payment confirmed',
       message: 'Your onboarding payment has been confirmed. Account activation is the next separate administrative step, and we will notify you when access is active.',
       action: 'View Payment Status',
-      url: `${appUrl}/pay-onboarding?status=confirmed`,
+      url: `${appUrl()}/pay-onboarding?status=confirmed`,
     },
     rejected: {
       subject: 'Onboarding Payment Requires Attention - Digital Wealth Partners',
       heading: 'Payment not approved',
-      message: `We could not approve the submitted payment.${rejectionReason ? ` Reason: ${escapeHtml(rejectionReason)}` : ''}`,
+      message: 'We could not approve the submitted payment.',
       action: 'Review Onboarding Instructions',
-      url: `${appUrl}/pay-onboarding?status=rejected`,
+      url: `${appUrl()}/pay-onboarding?status=rejected`,
     },
     activated: {
       subject: 'Your DWP Account Is Active',
       heading: 'Account access activated',
       message: 'Your onboarding payment is confirmed and your client account is now active. You can sign in, complete your profile, and continue to KYC verification.',
       action: 'Open Your Dashboard',
-      url: `${appUrl}/login`,
+      url: `${appUrl()}/login`,
     },
   }[type];
   if (!details) throw new Error('Unknown onboarding payment email type');
   const reference = payment?.transactionReference || 'Not available';
-  const showKyc = type === 'activated';
-  const html = `
-    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
-      <h2 style="margin:0 0 4px;">Digital Wealth Partners</h2>
-      <p style="color:#60a5fa;margin:0 0 28px;">${details.heading}</p>
-      <p>Hi <strong>${escapeHtml(firstName || 'there')}</strong>,</p>
-      <p>${details.message}</p>
-      <div style="background:#f4f7fb;border:1px solid #dbeafe;padding:16px;border-radius:8px;margin:20px 0;">
-        <p style="margin:0 0 6px;"><strong>Transaction reference</strong></p>
-        <p style="margin:0;word-break:break-all;font-family:monospace;">${escapeHtml(reference)}</p>
-      </div>
-      ${showKyc ? kycInstructionsHtml() : ''}
-      <table role="presentation" cellpadding="0" cellspacing="0" style="margin:20px 0;"><tr><td bgcolor="#0033AD" style="border-radius:8px;background:#0033AD;"><a href="${details.url}" class="dwp-btn" style="display:inline-block;padding:12px 24px;font-weight:600;text-decoration:none;color:#ffffff !important;">${details.action}</a></td></tr></table>
-      <p>Questions? Contact <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a>.</p>
-      <hr style="border-color:#e5e7eb;margin:28px 0;" />
-      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners.</p>
-    </div>`;
-  return transporter.sendMail({
+  const activated = type === 'activated';
+  const reason = type === 'rejected' && rejectionReason ? String(rejectionReason) : '';
+
+  return sendWithLayout(transporter, {
     from: FROM(), replyTo: SUPPORT_EMAIL, to: userEmail, subject: details.subject,
-    text: `${details.heading}\n\nHi ${firstName || 'there'},\n\n${details.message.replace(/<[^>]*>/g, '')}\n\nTransaction reference: ${reference}\n\n${showKyc ? `${kycInstructionsText()}\n\n` : ''}${details.action}: ${details.url}\n\nDigital Wealth Partners`,
-    html: themedEmail(html),
+  }, {
+    hero: activated ? 'welcome' : 'payment',
+    preheader: details.message,
+    eyebrow: activated ? 'Account activated' : 'Onboarding payment',
+    title: details.heading,
+    paragraphs: [hi(firstName), details.message],
+    details: [{ label: 'Transaction reference', value: reference }],
+    detailsVariant: 'card',
+    callouts: [
+      reason ? { tone: 'danger', title: 'Reason', text: reason } : null,
+      activated ? kycInstructionsCallout() : null,
+    ].filter(Boolean),
+    action: { label: details.action, url: details.url },
+    supporting: [questions()],
   });
 }
 
 async function sendOnboardingPaymentAdminEmail({ adminEmail, user, payment }) {
   const transporter = createTransporter();
-  const appUrl = process.env.FRONTEND_URL || 'https://digitalwealthpartnersllc.net';
-  const html = `
-    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
-      <h2 style="margin:0 0 4px;">Onboarding payment submitted</h2>
-      <p>${escapeHtml(user.firstName)} ${escapeHtml(user.lastName)} (${escapeHtml(user.email)}) submitted a transaction for review.</p>
-      <table style="width:100%;border-collapse:collapse;margin:20px 0;">
-        <tr><td style="padding:6px 8px 6px 0;color:#4b5563;vertical-align:top;">Quote</td><td style="text-align:right;font-weight:600;color:#111827;">${escapeHtml(payment.assetAmount)} ${escapeHtml(payment.asset)}</td></tr>
-        <tr><td style="padding:6px 8px 6px 0;color:#4b5563;vertical-align:top;">Network check</td><td style="text-align:right;font-weight:600;color:#111827;">${escapeHtml(payment.verification.state)}</td></tr>
-        <tr><td style="padding:6px 8px 6px 0;color:#4b5563;vertical-align:top;">Reference</td><td style="text-align:right;word-break:break-all;color:#111827;">${escapeHtml(payment.transactionReference)}</td></tr>
-      </table>
-      <a href="${appUrl}/admin/onboarding-payments" class="dwp-btn" style="display:inline-block;background:#0033AD;color:#ffffff !important;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">Review Payment</a>
-    </div>`;
-  return transporter.sendMail({
+
+  return sendWithLayout(transporter, {
     from: FROM(), replyTo: SUPPORT_EMAIL, to: adminEmail,
     subject: `Onboarding payment submitted - ${user.email}`,
-    text: `Onboarding payment submitted by ${user.firstName} ${user.lastName} (${user.email}).\nTransaction: ${payment.transactionReference}\nVerification: ${payment.verification.state}\nReview: ${appUrl}/admin/onboarding-payments`,
-    html: themedEmail(html),
+  }, {
+    hero: 'admin',
+    preheader: `${user.firstName} ${user.lastName} submitted an onboarding payment for review.`,
+    eyebrow: 'Team alert',
+    title: 'Onboarding payment submitted',
+    paragraphs: [`${user.firstName} ${user.lastName} (${user.email}) submitted a transaction for review.`],
+    details: [
+      { label: 'Quote', value: `${payment.assetAmount} ${payment.asset}` },
+      { label: 'Network check', value: payment.verification.state },
+      { label: 'Reference', value: payment.transactionReference },
+    ],
+    detailsVariant: 'card',
+    action: { label: 'Review Payment', url: `${appUrl()}/admin/onboarding-payments` },
   });
 }
 
@@ -1593,31 +970,32 @@ function proofRows(proof) {
 
 async function sendPaymentProofAdminEmail({ adminEmail, proof, accountExists, screenshotPath }) {
   const transporter = createTransporter();
-  const appUrl = process.env.FRONTEND_URL || 'https://digitalwealthpartnersllc.net';
-  const rows = proofRows(proof);
-  const html = `
-    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
-      <h2 style="margin:0 0 4px;">New onboarding fee payment proof</h2>
-      <p>${escapeHtml(proof.fullName)} says they have made the onboarding fee payment. Review the proof and approve or decline it.</p>
-      <table style="width:100%;border-collapse:collapse;margin:20px 0;">
-        ${rows.map(([label, value]) => `<tr><td style="padding:6px 8px 6px 0;color:#6b7280;vertical-align:top;white-space:nowrap;">${escapeHtml(label)}</td><td style="padding:6px 0;text-align:right;font-weight:600;word-break:break-all;color:#111827;">${escapeHtml(value)}</td></tr>`).join('')}
-      </table>
-      <p style="color:#374151;">${accountExists ? 'This email already has a DWP account. Approving will record the payment on it.' : 'No DWP account uses this email yet. If you approve, the payment is applied when they create an account with this email.'}</p>
-      <p style="color:#6b7280;font-size:13px;">The screenshot is attached and also shown on the admin page.</p>
-      <a href="${appUrl}/admin/payment-proofs" class="dwp-btn" style="display:inline-block;background:#0033AD;color:#ffffff !important;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">Review Payment Proof</a>
-    </div>`;
-  return transporter.sendMail({
+
+  return sendWithLayout(transporter, {
     from: FROM(), replyTo: proof.email, to: adminEmail,
     subject: `Onboarding fee payment proof - ${proof.fullName} (${proof.amount} ${proof.asset || 'XRP'})`,
-    text: `New onboarding fee payment proof\n\n${rows.map(([label, value]) => `${label}: ${value}`).join('\n')}\n\n${accountExists ? 'Has a DWP account.' : 'No DWP account yet.'}\nReview: ${appUrl}/admin/payment-proofs`,
-    html: themedEmail(html),
     attachments: screenshotPath ? [{ filename: `payment-proof-${proof.screenshot.originalName || proof.screenshot.filename}`.slice(0, 120), path: screenshotPath, contentType: proof.screenshot.mimeType }] : [],
+  }, {
+    hero: 'admin',
+    preheader: `${proof.fullName} says they have paid the onboarding fee (${proof.amount} ${proof.asset || 'XRP'}).`,
+    eyebrow: 'Team alert',
+    title: 'New onboarding fee payment proof',
+    paragraphs: [`${proof.fullName} says they have made the onboarding fee payment. Review the proof and approve or decline it.`],
+    details: proofRows(proof).map(([label, value]) => ({ label, value })),
+    detailsVariant: 'card',
+    callout: {
+      title: accountExists ? 'Has a DWP account' : 'No DWP account yet',
+      text: accountExists
+        ? 'This email already has a DWP account. Approving will record the payment on it.'
+        : 'No DWP account uses this email yet. If you approve, the payment is applied when they create an account with this email.',
+      note: 'The screenshot is attached and also shown on the admin page.',
+    },
+    action: { label: 'Review Payment Proof', url: `${appUrl()}/admin/payment-proofs` },
   });
 }
 
 async function sendPaymentProofClientEmail({ type, proof, accountActive = false, hasAccount = false }) {
   const transporter = createTransporter();
-  const appUrl = process.env.FRONTEND_URL || 'https://digitalwealthpartnersllc.net';
   const firstName = String(proof.fullName || '').split(' ')[0] || 'there';
   const approvedMessage = accountActive
     ? 'Welcome to Digital Wealth Partners. Your one-time onboarding fee payment has been confirmed and accepted, and your client account is now active. You can sign in, complete your profile and continue to KYC verification.'
@@ -1630,21 +1008,21 @@ async function sendPaymentProofClientEmail({ type, proof, accountActive = false,
       heading: 'Payment confirmation received',
       message: 'Thank you. We have received your onboarding fee payment details and screenshot. Our team will check the transfer and email you as soon as it has been reviewed.',
       action: 'View Onboarding Page',
-      url: `${appUrl}/pay-onboarding`,
+      url: `${appUrl()}/pay-onboarding`,
     },
     approved: {
       subject: 'Onboarding Fee Payment Accepted - Digital Wealth Partners',
       heading: 'Payment accepted',
       message: approvedMessage,
       action: accountActive ? 'Sign In' : hasAccount ? 'View Onboarding Status' : 'Create Your Account',
-      url: accountActive ? `${appUrl}/login` : hasAccount ? `${appUrl}/pay-onboarding` : `${appUrl}/register`,
+      url: accountActive ? `${appUrl()}/login` : hasAccount ? `${appUrl()}/pay-onboarding` : `${appUrl()}/register`,
     },
     declined: {
       subject: 'Onboarding Fee Payment Requires Attention - Digital Wealth Partners',
       heading: 'Payment not approved',
-      message: `We could not approve the payment details you sent.${proof.adminNote ? ` Reason: ${escapeHtml(proof.adminNote)}` : ''} Please review the payment instructions and send your confirmation again, or contact support.`,
+      message: 'We could not approve the payment details you sent. Please review the payment instructions and send your confirmation again, or contact support.',
       action: 'Review Payment Instructions',
-      url: `${appUrl}/pay-onboarding`,
+      url: `${appUrl()}/pay-onboarding`,
     },
   }[type];
   if (!details) throw new Error('Unknown payment proof email type');
@@ -1654,30 +1032,29 @@ async function sendPaymentProofClientEmail({ type, proof, accountActive = false,
     : accountActive ? KYC_INTRO
       : hasAccount ? `Once your account is active, ${KYC_INTRO.charAt(0).toLowerCase()}${KYC_INTRO.slice(1)}`
         : `After you create your account with this email, ${KYC_INTRO.charAt(0).toLowerCase()}${KYC_INTRO.slice(1)}`;
+  const reason = type === 'declined' && proof.adminNote ? String(proof.adminNote) : '';
   const summary = [
     ['Amount', `${proof.amount} ${proof.asset || 'XRP'}`],
     ['Sent from', proof.senderAddress],
     ['Transaction hash', proof.transactionHash],
   ].filter(([, value]) => value);
-  const html = `
-    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
-      <h2 style="margin:0 0 4px;">Digital Wealth Partners</h2>
-      <p style="color:#60a5fa;margin:0 0 28px;">${details.heading}</p>
-      <p>Hi <strong>${escapeHtml(firstName)}</strong>,</p>
-      <p>${details.message}</p>
-      <div style="background:#f4f7fb;border:1px solid #dbeafe;padding:16px;border-radius:8px;margin:20px 0;">
-        ${summary.map(([label, value]) => `<p style="margin:0 0 6px;"><strong>${escapeHtml(label)}:</strong> <span style="word-break:break-all;">${escapeHtml(value)}</span></p>`).join('')}
-      </div>
-      ${kycLead ? kycInstructionsHtml(kycLead) : ''}
-      <table role="presentation" cellpadding="0" cellspacing="0" style="margin:20px 0;"><tr><td bgcolor="#0033AD" style="border-radius:8px;background:#0033AD;"><a href="${details.url}" class="dwp-btn" style="display:inline-block;padding:12px 24px;font-weight:600;text-decoration:none;color:#ffffff !important;">${details.action}</a></td></tr></table>
-      <p>Questions? Contact <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a>.</p>
-      <hr style="border-color:#e5e7eb;margin:28px 0;" />
-      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners.</p>
-    </div>`;
-  return transporter.sendMail({
+
+  return sendWithLayout(transporter, {
     from: FROM(), replyTo: SUPPORT_EMAIL, to: proof.email, subject: details.subject,
-    text: `${details.heading}\n\nHi ${firstName},\n\n${details.message.replace(/<[^>]*>/g, '')}\n\n${summary.map(([label, value]) => `${label}: ${value}`).join('\n')}\n\n${kycLead ? `${kycInstructionsText(kycLead)}\n\n` : ''}${details.action}: ${details.url}\n\nDigital Wealth Partners`,
-    html: themedEmail(html),
+  }, {
+    hero: 'payment',
+    preheader: details.message,
+    eyebrow: 'Onboarding payment',
+    title: details.heading,
+    paragraphs: [hi(firstName), details.message],
+    details: summary.map(([label, value]) => ({ label, value })),
+    detailsVariant: 'card',
+    callouts: [
+      reason ? { tone: 'danger', title: 'Reason', text: reason } : null,
+      kycLead ? kycInstructionsCallout(kycLead) : null,
+    ].filter(Boolean),
+    action: { label: details.action, url: details.url },
+    supporting: [questions()],
   });
 }
 
@@ -1685,111 +1062,68 @@ async function sendPaymentProofClientEmail({ type, proof, accountActive = false,
 async function sendAccessCodeEmail({ userEmail, firstName, code }) {
   const transporter = createTransporter();
 
-  const html = `
-    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
-      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
-      <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">Access Request Approved</p>
-
-      <p>Hi <strong>${firstName}</strong>,</p>
-      <p>Your request for access has been approved. Enter the code below on the access page to continue:</p>
-
-      <div style="background:#f4f7fb;border:1px solid #dbeafe;padding:24px;text-align:center;border-radius:12px;margin:24px 0;">
-        <span style="font-size:36px;font-weight:bold;letter-spacing:8px;color:#60a5fa;">${code}</span>
-      </div>
-
-      <p style="color:#6b7280;font-size:13px;">
-        Keep this code private — it's tied to your access and can be revoked if shared.
-      </p>
-      <hr style="border-color:#e5e7eb;margin:24px 0;" />
-      <p style="color:#6b7280;font-size:12px;">© Digital Wealth Partners — do not reply to this email.</p>
-    </div>
-  `;
-
-  await transporter.sendMail({
+  await sendWithLayout(transporter, {
     from: FROM(),
     to: userEmail,
     subject: 'Your Access Code - Digital Wealth Partners',
-    html: themedEmail(html),
+  }, {
+    hero: 'security',
+    preheader: 'Your request for access has been approved. Your access code is inside.',
+    eyebrow: 'Site access',
+    title: 'Access request approved',
+    paragraphs: [
+      hi(firstName),
+      'Your request for access has been approved. Enter the code below on the access page to continue:',
+    ],
+    code,
+    supporting: ['Keep this code private — it\'s tied to your access and can be revoked if shared.'],
   });
 }
 
 async function sendAccessRequestNotificationEmail({ adminEmail, name, email, reason }) {
   const transporter = createTransporter();
 
-  const html = `
-    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
-      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
-      <p style="color:#60a5fa;margin-bottom:28px;margin-top:0;">New Access Request</p>
-
-      <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
-        <tr><td style="color:#9ca3af;padding:6px 0;">Name</td><td style="color:#111827;font-weight:600;text-align:right;">${escapeHtml(name)}</td></tr>
-        <tr><td style="color:#9ca3af;padding:6px 0;">Email</td><td style="color:#111827;text-align:right;">${escapeHtml(email)}</td></tr>
-      </table>
-
-      ${reason ? `<div style="background:#f4f7fb;border:1px solid #dbeafe;padding:16px;border-radius:8px;margin-bottom:24px;">
-        <p style="color:#60a5fa;font-size:13px;margin:0 0 8px 0;text-transform:uppercase;">Reason</p>
-        <p style="margin:0;">${escapeHtml(reason)}</p>
-      </div>` : ''}
-
-      <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/admin/access-requests"
-         class="dwp-btn" style="display:inline-block;background:#2563eb;color:#ffffff !important;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">
-        Review Request
-      </a>
-    </div>
-  `;
-
-  await transporter.sendMail({
+  await sendWithLayout(transporter, {
     from: FROM(),
     to: adminEmail,
     subject: `[Access Request] ${name}`,
-    html: themedEmail(html),
+  }, {
+    hero: 'admin',
+    preheader: `${name} requested access to the site.`,
+    eyebrow: 'Team alert',
+    title: 'New access request',
+    paragraphs: [{ html: `${strong(name)} requested access to the site.` }],
+    details: [
+      { label: 'Name', value: name },
+      { label: 'Email', value: email },
+    ],
+    detailsVariant: 'card',
+    callout: reason ? { title: 'Reason', text: String(reason) } : null,
+    action: { label: 'Review Request', url: `${localAppUrl()}/admin/access-requests` },
   });
 }
 
 async function sendBroadcastEmail({ userEmail, firstName, subject, title, message }) {
   const transporter = createTransporter();
-  const safeTitle = escapeHtml(title || subject);
-  const safeFirstName = escapeHtml(firstName || 'there');
-  const rawMessage = message || '';
-  const messageHtml = renderNoticeMessageHtml(rawMessage);
-  const textParts = [
-    `Digital Wealth Partners - ${title || subject}`,
-    '',
-    `Hi ${firstName || 'there'},`,
-    '',
-    String(rawMessage).trim(),
-  ];
+  const heading = title || subject;
+  const firstLine = String(message || '').trim().split('\n')[0];
 
-  textParts.push('', 'This is an automated notification from Digital Wealth Partners. Do not reply.');
-
-  const html = `
-    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
-      <h2 style="color:#2563eb;margin-bottom:4px;">Digital Wealth Partners</h2>
-
-      <p>Hi <strong>${safeFirstName}</strong>,</p>
-
-      <div style="background:#f4f7fb;border:1px solid #dbeafe;padding:16px;border-radius:8px;margin:20px 0;">
-        <p style="color:#60a5fa;font-size:13px;margin:0 0 8px 0;text-transform:uppercase;">${safeTitle}</p>
-        ${messageHtml}
-      </div>
-
-      <hr style="border-color:#e5e7eb;margin:28px 0;" />
-      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners. Do not reply.</p>
-    </div>
-  `;
-
-  await transporter.sendMail({
+  await sendWithLayout(transporter, {
     from: FROM(),
     replyTo: SUPPORT_EMAIL,
     to: userEmail,
     subject,
-    text: textParts.join('\n'),
-    html: themedEmail(html),
+  }, {
+    hero: 'notice',
+    preheader: /^https?:\/\//.test(firstLine) ? heading : firstLine,
+    eyebrow: 'Notice',
+    title: heading,
+    paragraphs: [hi(firstName), ...noteParagraphs(message, 'Learn More')],
   });
 }
 
 // ─── KYC verification emails ───────────────────────────────────────────────
-// Shared pieces for the client's KYC emails: who/what was reviewed, numbered steps and the button.
+// Shared pieces for the KYC emails: who/what was reviewed.
 function kycDate(value) {
   return new Date(value || Date.now()).toLocaleDateString('en-US', { timeZone: APP_TIMEZONE, dateStyle: 'long' });
 }
@@ -1804,53 +1138,13 @@ function kycLegalName(submission = {}) {
   return `${submission.legalFirstName || ''} ${submission.legalLastName || ''}`.trim();
 }
 
-function kycSummaryHtml(rows) {
-  return `
-      <div style="background:#f4f7fb;border:1px solid #dbeafe;padding:16px;border-radius:8px;margin:20px 0;">
-        ${rows.map(([label, value]) => `<p style="margin:0 0 6px;"><strong>${escapeHtml(label)}:</strong> ${escapeHtml(value)}</p>`).join('')}
-      </div>`;
-}
-
-function kycStepsHtml(title, steps) {
-  const rows = steps.map((step, index) => `
-          <tr>
-            <td style="width:28px;padding:6px 10px 6px 0;vertical-align:top;"><div style="width:24px;height:24px;line-height:24px;border-radius:12px;background:#0033AD;color:#ffffff;font-size:12px;font-weight:700;text-align:center;">${index + 1}</div></td>
-            <td style="padding:8px 0 6px;font-size:14px;line-height:1.5;color:#111827;vertical-align:top;">${step}</td>
-          </tr>`).join('');
-  return `
-      <div style="background:#f8fafc;border:1px solid #dbeafe;border-radius:10px;padding:18px 18px 10px;margin:22px 0;">
-        <p style="margin:0 0 6px;font-size:15px;font-weight:700;color:#111827;">${title}</p>
-        <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;">${rows}
-        </table>
-      </div>`;
-}
-
-function kycStepsText(title, steps) {
-  return `${title}\n${steps.map((step, index) => `${index + 1}. ${step.replace(/<[^>]*>/g, '').replace(/&amp;/g, '&')}`).join('\n')}`;
-}
-
-function kycButtonHtml(label, url) {
-  return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0 20px;"><tr><td bgcolor="#0033AD" style="border-radius:8px;background:#0033AD;"><a href="${url}" class="dwp-btn" style="display:inline-block;padding:12px 24px;font-weight:600;text-decoration:none;color:#ffffff !important;">${label}</a></td></tr></table>`;
-}
-
-function kycEmailShell(subtitle, body) {
-  return `
-    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
-      <h2 style="margin:0 0 4px;">Digital Wealth Partners</h2>
-      <p style="color:#60a5fa;margin:0 0 28px;">${subtitle}</p>
-      ${body}
-      <p>Questions? Contact <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a>.</p>
-      <hr style="border-color:#e5e7eb;margin:28px 0;" />
-      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners.</p>
-    </div>`;
-}
+const toDetails = (rows) => rows.map(([label, value]) => ({ label, value }));
 
 const KYC_SAFETY_NOTE = 'DWP will never ask for your seed phrase or ask you to send cryptocurrency by email, Discord, Telegram or any other informal channel.';
 
 // To the admin: a client has sent KYC information and documents for review.
 async function sendKYCSubmissionNotificationEmail({ adminEmail, user, submission = {} }) {
   const transporter = createTransporter();
-  const appUrl = process.env.FRONTEND_URL || 'https://digitalwealthpartnersllc.net';
   const accountName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
   const legalName = kycLegalName(submission) || accountName || 'A client';
   const documents = (submission.documents || []).map((document) => document.requirementName);
@@ -1862,123 +1156,134 @@ async function sendKYCSubmissionNotificationEmail({ adminEmail, user, submission
     ['Country', submission.country],
     ['Documents', documents.length ? `${documents.length}: ${documents.join(', ')}` : null],
     ['Submitted', kycDate(submission.submittedAt)],
-  ].filter(([, value]) => value);
-  const html = `
-    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#ffffff;color:#111827;padding:40px;border-radius:16px;">
-      <h2 style="margin:0 0 4px;">New KYC verification</h2>
-      <p><strong>${escapeHtml(legalName)}</strong> sent identity information and documents for review.</p>
-      <table style="width:100%;border-collapse:collapse;margin:20px 0;">
-        ${rows.map(([label, value]) => `<tr><td style="padding:6px 8px 6px 0;color:#4b5563;vertical-align:top;white-space:nowrap;">${escapeHtml(label)}</td><td style="padding:6px 0;text-align:right;font-weight:600;color:#111827;">${escapeHtml(value)}</td></tr>`).join('')}
-      </table>
-      <p>Approving sends the client their welcome email. Rejecting sends them your reason so they can correct it.</p>
-      ${kycButtonHtml('Review Verification', `${appUrl}/admin/kyc`)}
-      <hr style="border-color:#e5e7eb;margin:24px 0;" />
-      <p style="color:#6b7280;font-size:12px;">This is an automated notification from Digital Wealth Partners.</p>
-    </div>`;
-  await transporter.sendMail({
+  ];
+
+  await sendWithLayout(transporter, {
     from: FROM(),
     to: adminEmail,
     subject: `KYC verification submitted - ${legalName}`,
-    text: `New KYC verification\n\n${rows.map(([label, value]) => `${label}: ${value}`).join('\n')}\n\nReview: ${appUrl}/admin/kyc`,
-    html: themedEmail(html),
+  }, {
+    hero: 'admin',
+    preheader: `${legalName} sent identity information and documents for review.`,
+    eyebrow: 'Team alert',
+    title: 'New KYC verification',
+    paragraphs: [{ html: `${strong(legalName)} sent identity information and documents for review.` }],
+    details: toDetails(rows),
+    detailsVariant: 'card',
+    supporting: ['Approving sends the client their welcome email. Rejecting sends them your reason so they can correct it.'],
+    action: { label: 'Review Verification', url: `${appUrl()}/admin/kyc` },
+    actionAfterSupporting: true,
   });
 }
 
 // To the client, right after they submit: we have it and this is what happens next.
 async function sendKYCSubmissionReceivedEmail({ userEmail, firstName, submission = {} }) {
   const transporter = createTransporter();
-  const appUrl = process.env.FRONTEND_URL || 'https://digitalwealthpartnersllc.net';
   const documents = (submission.documents || []).map((document) => document.requirementName);
   const rows = [
     ['Applicant type', kycApplicantType(submission)],
     ['Documents received', documents.length ? documents.join(', ') : null],
     ['Submitted', kycDate(submission.submittedAt)],
-  ].filter(([, value]) => value);
-  const steps = [
-    'Our compliance team reviews your information and documents.',
-    'You receive an email as soon as a decision is made.',
-    'If anything needs to change, that email explains exactly what to update.',
   ];
-  const intro = 'Thank you for submitting your identity verification. We have received your information and documents, and our compliance team will review them.';
-  const html = kycEmailShell('Verification received', `
-      <p>Hi <strong>${escapeHtml(firstName || 'there')}</strong>,</p>
-      <p>${intro}</p>
-      ${kycSummaryHtml(rows)}
-      ${kycStepsHtml('What happens next', steps)}
-      ${kycButtonHtml('View Verification Status', `${appUrl}/dashboard/settings/kyc`)}`);
-  await transporter.sendMail({
+
+  await sendWithLayout(transporter, {
     from: FROM(),
     replyTo: SUPPORT_EMAIL,
     to: userEmail,
     subject: 'We Received Your Identity Verification - Digital Wealth Partners',
-    text: `Verification received\n\nHi ${firstName || 'there'},\n\n${intro}\n\n${rows.map(([label, value]) => `${label}: ${value}`).join('\n')}\n\n${kycStepsText('What happens next', steps)}\n\nView your verification status: ${appUrl}/dashboard/settings/kyc\n\nDigital Wealth Partners`,
-    html: themedEmail(html),
+  }, {
+    hero: 'kyc',
+    preheader: 'We have received your identity verification. Our compliance team will review it.',
+    eyebrow: 'Identity verification',
+    title: 'Verification received',
+    paragraphs: [
+      hi(firstName),
+      'Thank you for submitting your identity verification. We have received your information and documents, and our compliance team will review them.',
+    ],
+    details: toDetails(rows),
+    detailsVariant: 'card',
+    callout: {
+      title: 'What happens next',
+      steps: [
+        'Our compliance team reviews your information and documents.',
+        'You receive an email as soon as a decision is made.',
+        'If anything needs to change, that email explains exactly what to update.',
+      ],
+    },
+    action: { label: 'View Verification Status', url: `${appUrl()}/dashboard/settings/kyc` },
+    supporting: [questions()],
   });
 }
 
 // To the client after an admin decision: a welcome email when approved, or what to fix when rejected.
 async function sendUserKYCStatusEmail({ userEmail, firstName, status, rejectionReason, submission = {} }) {
   const transporter = createTransporter();
-  const appUrl = process.env.FRONTEND_URL || 'https://digitalwealthpartnersllc.net';
-  const name = firstName || 'there';
 
   if (status === 'approved') {
     const rows = [
       ['Verified name', kycLegalName(submission)],
       ['Account type', kycApplicantType(submission)],
       ['Approved on', kycDate(submission.reviewedAt)],
-    ].filter(([, value]) => value);
-    const welcome = 'Welcome to Digital Wealth Partners. Thank you for completing your identity verification. Our compliance team has reviewed your information and documents, and everything is in order.';
-    const steps = [
-      'Your verified status is saved to your DWP account. You can see it at any time on your <strong>KYC Verification</strong> page.',
-      'Sign in to your dashboard to continue with your DWP services.',
-      'Keep your contact details up to date in <strong>Profile Settings</strong> so our team can reach you.',
     ];
-    const html = kycEmailShell('Identity verification approved', `
-      <div style="background:#10b98122;border-radius:10px;padding:16px 18px;margin:0 0 22px;">
-        <p style="margin:0;font-size:16px;"><strong>&#10003; You're verified</strong></p>
-        <p style="margin:4px 0 0;font-size:14px;">Your KYC review is complete and your DWP account is now verified.</p>
-      </div>
-      <p>Hi <strong>${escapeHtml(name)}</strong>,</p>
-      <p>${welcome}</p>
-      ${kycSummaryHtml(rows)}
-      ${kycStepsHtml('What happens next', steps)}
-      ${kycButtonHtml('Go to Your Dashboard', `${appUrl}/dashboard`)}
-      <p style="font-size:13px;color:#4b5563;">${KYC_SAFETY_NOTE}</p>`);
-    await transporter.sendMail({
+    await sendWithLayout(transporter, {
       from: FROM(),
       replyTo: SUPPORT_EMAIL,
       to: userEmail,
       subject: 'Welcome to Digital Wealth Partners - Your Identity Is Verified',
-      text: `You're verified\n\nHi ${name},\n\n${welcome}\n\nYour KYC review is complete and your DWP account is now verified.\n\n${rows.map(([label, value]) => `${label}: ${value}`).join('\n')}\n\n${kycStepsText('What happens next', steps)}\n\nGo to your dashboard: ${appUrl}/dashboard\n\n${KYC_SAFETY_NOTE}\n\nDigital Wealth Partners`,
-      html: themedEmail(html),
+    }, {
+      hero: 'verified',
+      preheader: 'Your KYC review is complete and your DWP account is now verified.',
+      eyebrow: 'Identity verification',
+      title: "You're verified",
+      paragraphs: [
+        hi(firstName),
+        'Welcome to Digital Wealth Partners. Thank you for completing your identity verification. Our compliance team has reviewed your information and documents, and everything is in order.',
+        { html: '<strong>Your KYC review is complete and your DWP account is now verified.</strong>' },
+      ],
+      details: toDetails(rows),
+      detailsVariant: 'card',
+      callout: {
+        title: 'What happens next',
+        steps: [
+          { html: 'Your verified status is saved to your DWP account. You can see it at any time on your <strong>KYC Verification</strong> page.' },
+          'Sign in to your dashboard to continue with your DWP services.',
+          { html: 'Keep your contact details up to date in <strong>Profile Settings</strong> so our team can reach you.' },
+        ],
+      },
+      action: { label: 'Go to Your Dashboard', url: `${appUrl()}/dashboard` },
+      supporting: [KYC_SAFETY_NOTE, questions()],
     });
     return;
   }
 
-  const intro = 'Thank you for submitting your identity verification. Our compliance team reviewed it, but we are not able to approve it yet.';
   const reason = String(rejectionReason || '').trim() || 'Please review your information and documents.';
-  const steps = [
-    'Sign in to your DWP account.',
-    'Open <strong>Profile Settings</strong> and select <strong>KYC Verification</strong>.',
-    'Update the details or upload the corrected documents, then select <strong>Resubmit Verification</strong>.',
-  ];
-  const html = kycEmailShell('Identity verification needs attention', `
-      <p>Hi <strong>${escapeHtml(name)}</strong>,</p>
-      <p>${intro}</p>
-      <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:16px 18px;margin:20px 0;">
-        <p style="margin:0 0 6px;font-size:15px;"><strong>What needs to change</strong></p>
-        <p style="margin:0;font-size:14px;line-height:1.6;white-space:pre-line;">${escapeHtml(reason)}</p>
-      </div>
-      ${kycStepsHtml('How to resubmit', steps)}
-      ${kycButtonHtml('Update My Verification', `${appUrl}/dashboard/settings/kyc`)}`);
-  await transporter.sendMail({
+  await sendWithLayout(transporter, {
     from: FROM(),
     replyTo: SUPPORT_EMAIL,
     to: userEmail,
     subject: 'Action Needed: Update Your Identity Verification - Digital Wealth Partners',
-    text: `Identity verification needs attention\n\nHi ${name},\n\n${intro}\n\nWhat needs to change:\n${reason}\n\n${kycStepsText('How to resubmit', steps)}\n\nUpdate your verification: ${appUrl}/dashboard/settings/kyc\n\nDigital Wealth Partners`,
-    html: themedEmail(html),
+  }, {
+    hero: 'kyc',
+    preheader: 'Your identity verification needs an update before we can approve it.',
+    eyebrow: 'Identity verification',
+    title: 'Identity verification needs attention',
+    paragraphs: [
+      hi(firstName),
+      'Thank you for submitting your identity verification. Our compliance team reviewed it, but we are not able to approve it yet.',
+    ],
+    callouts: [
+      { tone: 'danger', title: 'What needs to change', text: reason },
+      {
+        title: 'How to resubmit',
+        steps: [
+          'Sign in to your DWP account.',
+          { html: 'Open <strong>Profile Settings</strong> and select <strong>KYC Verification</strong>.' },
+          { html: 'Update the details or upload the corrected documents, then select <strong>Resubmit Verification</strong>.' },
+        ],
+      },
+    ],
+    action: { label: 'Update My Verification', url: `${appUrl()}/dashboard/settings/kyc` },
+    supporting: [questions()],
   });
 }
 

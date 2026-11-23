@@ -1,9 +1,12 @@
-# "Run workflow" on the Actions tab sends one sample of each changed email (made-up data) to the
-# address typed into the "to" box (or, if left empty, the SAMPLE_EMAIL_TO repository secret). It runs scripts/send-sample-emails.js on the
-# production VPS, because only the server has the SMTP settings. No database is touched.
+# "Run workflow" on the Actions tab sends a spread of sample emails (made-up data) to the address
+# typed into the "to" box (or, if left empty, the SAMPLE_EMAIL_TO repository secret).
 #
-# Uses the deploy secrets VPS_HOST, VPS_USER,
-# VPS_SSH_KEY and VPS_KNOWN_HOSTS (see deploy.yml).
+# It sends the code of the branch it is run on, so emails can be reviewed before they are
+# deployed: the branch's backend code, the sample script and the email banners are copied to a
+# temporary folder on the VPS (which has the SMTP settings), run there with the live backend's
+# node_modules and .env, then deleted. The deployed app and the database are not touched.
+#
+# Uses the deploy secrets VPS_HOST, VPS_USER, VPS_SSH_KEY and VPS_KNOWN_HOSTS (see deploy.yml).
 name: Send sample emails
 
 on:
@@ -38,5 +41,26 @@ jobs:
           printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
-          ssh -i ~/.ssh/deploy_key -o BatchMode=yes -o StrictHostKeyChecking=yes \
-            "$VPS_USER@$VPS_HOST" "cd /var/www/app/backend && SAMPLE_TO=$(printf '%q' "$SAMPLE_TO") node -" < scripts/send-sample-emails.js
+
+          # The branch's backend code, the sample script and the banners (assets/email/*.jpg).
+          mkdir -p bundle/assets
+          cp -R backend/src bundle/backend-src
+          cp scripts/send-sample-emails.js bundle/
+          cp -R frontend/public/email bundle/assets/email 2>/dev/null || true
+          cp frontend/public/dwp-logo-dark.png bundle/assets/ 2>/dev/null || true
+
+          TO_Q=$(printf '%q' "$SAMPLE_TO")
+          tar -czf - -C bundle . | ssh -i ~/.ssh/deploy_key -o BatchMode=yes -o StrictHostKeyChecking=yes "$VPS_USER@$VPS_HOST" "
+            set -e
+            T=\$(mktemp -d)
+            trap 'rm -rf \"\$T\"' EXIT
+            tar -xzf - -C \"\$T\"
+            mkdir -p \"\$T/backend\"
+            mv \"\$T/backend-src\" \"\$T/backend/src\"
+            ln -s /var/www/app/backend/node_modules \"\$T/backend/node_modules\"
+            ln -s /var/www/app/backend/.env \"\$T/backend/.env\"
+            # Inside the backend folder, so the script finds the backend's packages and .env.
+            mv \"\$T/send-sample-emails.js\" \"\$T/backend/\"
+            cd \"\$T/backend\"
+            SAMPLE_TO=$TO_Q SAMPLE_ASSETS=\"\$T/assets\" node send-sample-emails.js
+          "
