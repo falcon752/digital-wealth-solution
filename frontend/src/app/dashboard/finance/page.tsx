@@ -42,7 +42,7 @@ function Stat({ label, value, loading, className }: { label: string; value: numb
       {loading ? (
         <Skeleton className="mt-3 h-8 w-36" />
       ) : (
-        <Money value={value} className="mt-2 block truncate text-[22px] font-light leading-tight text-cd-text sm:text-[30px]" />
+        <Money value={value} className="mt-2 block truncate text-[22px] font-normal leading-tight text-cd-text sm:text-[30px]" />
       )}
     </Card>
   );

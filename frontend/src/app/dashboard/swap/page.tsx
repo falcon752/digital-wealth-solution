@@ -242,7 +242,7 @@ export default function SwapCryptoPage() {
                   aria-label={`Amount of ${fromSymbol || 'the asset'} to convert`}
                   value={fromAmount}
                   onChange={(e) => setFromAmount(e.target.value)}
-                  className="cd-num w-full bg-transparent text-right text-[26px] font-light leading-tight text-cd-text placeholder:text-cd-faint focus:outline-none [appearance:textfield] sm:text-[30px] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  className="cd-num w-full bg-transparent text-right text-[26px] font-normal leading-tight text-cd-text placeholder:text-cd-faint focus:outline-none [appearance:textfield] sm:text-[30px] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                 />
                 <p className="cd-num mt-0.5 text-[12.5px] text-cd-muted">≈ {formatCurrency(inputUsdValue)}</p>
               </div>
@@ -283,7 +283,7 @@ export default function SwapCryptoPage() {
             <div className={cn('relative flex items-center justify-between gap-3 rounded-md bg-cd-input px-3.5 py-3 sm:px-4', toDropdownOpen ? 'z-30' : 'z-10')}>
               {renderPicker(toDropdownOpen, setToDropdownOpen, toAsset, setToAssetId, () => setFromDropdownOpen(false))}
               <div className="min-w-0 flex-1 text-right">
-                <p className={cn('cd-num truncate text-[26px] font-light leading-tight sm:text-[30px]', toAmount > 0 ? 'text-cd-text' : 'text-cd-faint')}>
+                <p className={cn('cd-num truncate text-[26px] font-normal leading-tight sm:text-[30px]', toAmount > 0 ? 'text-cd-text' : 'text-cd-faint')}>
                   {toAmount > 0 ? formatAmount(toAmount) : '0.00'}
                 </p>
                 <p className="cd-num mt-0.5 text-[12.5px] text-cd-muted">≈ {formatCurrency(inputUsdValue)}</p>

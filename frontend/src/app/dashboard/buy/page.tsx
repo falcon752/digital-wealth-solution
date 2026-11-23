@@ -226,7 +226,7 @@ export default function BuyCryptoPage() {
             <div className="mt-5">
               <FieldLabel>Amount</FieldLabel>
               <label className="flex items-center gap-2 rounded-md bg-cd-input px-3.5 py-3 sm:px-4">
-                <span className="text-[26px] font-light text-cd-muted sm:text-[30px]">$</span>
+                <span className="text-[26px] font-normal text-cd-muted sm:text-[30px]">$</span>
                 <input
                   type="number"
                   inputMode="decimal"
@@ -234,7 +234,7 @@ export default function BuyCryptoPage() {
                   value={amount}
                   onChange={(event) => setAmount(event.target.value)}
                   aria-label="Amount in US dollars"
-                  className="cd-num min-w-0 flex-1 bg-transparent text-[26px] font-light leading-tight text-cd-text placeholder:text-cd-faint focus:outline-none [appearance:textfield] sm:text-[30px] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  className="cd-num min-w-0 flex-1 bg-transparent text-[26px] font-normal leading-tight text-cd-text placeholder:text-cd-faint focus:outline-none [appearance:textfield] sm:text-[30px] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                   placeholder="0"
                 />
                 <span className="text-[14px] text-cd-muted">USD</span>

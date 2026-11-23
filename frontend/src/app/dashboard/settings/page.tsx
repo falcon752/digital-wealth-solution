@@ -131,7 +131,7 @@ export default function SettingsPage() {
               ].map(([label, value]) => (
                 <div key={label} className="px-4 py-3.5 sm:px-5">
                   <p className="text-[11px] font-medium uppercase tracking-[0.06em] text-cd-muted">{label}</p>
-                  <p className="cd-num mt-1 text-[20px] font-light leading-none text-cd-text">{value}</p>
+                  <p className="cd-num mt-1 text-[20px] font-normal leading-none text-cd-text">{value}</p>
                 </div>
               ))}
             </div>

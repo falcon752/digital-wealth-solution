@@ -19,7 +19,7 @@ import { cn } from '@/lib/utils';
 import toast from 'react-hot-toast';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import {
-  ActionButton, AssetIcon, AssetName, Card, Change, EmptyState, Money, Skeleton, TableHead, Tabs,
+  ActionButton, AssetIcon, AssetName, Card, Change, EmptyState, Money, Skeleton, TableHead, Tabs, formatAmount,
 } from '@/components/client/ui';
 
 const COINGECKO_ID: Record<string, string> = {
@@ -96,7 +96,7 @@ export default function CoinDetailPage() {
   const [priceChange, setPriceChange] = useState(0);
   const [chartData, setChartData] = useState<number[]>([]);
   const [chartLoading, setChartLoading] = useState(false);
-  const [userBalance, setUserBalance] = useState(0);
+  const [holding, setHolding] = useState(0);
   const [pageLoading, setPageLoading] = useState(true);
 
   const [period, setPeriod] = useState<Period>('1H');
@@ -115,15 +115,15 @@ export default function CoinDetailPage() {
 
   useEffect(() => {
     setPageLoading(true);
-    Promise.all([assetsAPI.list(), assetsAPI.prices(), usersAPI.getBalance()])
-      .then(([listRes, pricesRes, balRes]) => {
+    Promise.all([assetsAPI.list(), assetsAPI.prices(), usersAPI.getDashboardStats()])
+      .then(([listRes, pricesRes, statsRes]) => {
         const found: Asset | undefined = listRes.data.assets.find(
           (a: Asset) => a.symbol.toUpperCase() === symbol,
         );
         setAsset(found ?? null);
         const prices: Record<string, number> = pricesRes.data.prices ?? {};
         setPrice(prices[symbol] ?? 0);
-        setUserBalance(balRes.data.balance ?? 0);
+        setHolding(found ? statsRes.data?.assetBalances?.[found.id] || 0 : 0);
       })
       .catch(console.error)
       .finally(() => setPageLoading(false));
@@ -252,7 +252,7 @@ export default function CoinDetailPage() {
 
         {/* Price */}
         <div className="mt-7 flex flex-col items-center text-center lg:items-start lg:text-left">
-          <Money value={price} className="text-[38px] font-light leading-none tracking-tight text-cd-text sm:text-[44px]" />
+          <Money value={price} className="text-[38px] font-normal leading-none tracking-tight text-cd-text sm:text-[44px]" />
           <p className="mt-2 flex items-center gap-2.5 text-[13px] text-cd-muted">
             <span className="uppercase tracking-[0.08em]">Price</span>
             {priceChange !== 0 && (
@@ -320,8 +320,8 @@ export default function CoinDetailPage() {
                   <AssetName symbol={symbol} name={asset?.name} network={asset?.network || asset?.name} />
                 </div>
                 <div className="text-right">
-                  <Money value={userBalance} className="text-[14px] text-cd-text" centsClassName="text-[1em]" />
-                  <p className="cd-num mt-0.5 text-[12px] text-cd-muted">0.00000 {symbol}</p>
+                  <Money value={holding * price} className="text-[14px] text-cd-text" centsClassName="text-[1em]" />
+                  <p className="cd-num mt-0.5 text-[12px] text-cd-muted">{formatAmount(holding, symbol)}</p>
                 </div>
               </div>
             </Card>

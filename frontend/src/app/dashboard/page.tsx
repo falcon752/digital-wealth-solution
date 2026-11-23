@@ -140,7 +140,7 @@ export default function AnchorageAccountPage() {
         {/* Total balance */}
         <div className="mt-7 flex flex-col items-center text-center lg:items-start lg:text-left">
           <div className="flex items-center gap-2">
-            <Money value={totalBalance} hidden={hidden} className="text-[38px] font-light leading-none tracking-tight text-cd-text sm:text-[44px]" />
+            <Money value={totalBalance} hidden={hidden} className="text-[38px] font-normal leading-none tracking-tight text-cd-text sm:text-[44px]" />
             <button
               type="button"
               onClick={toggleHidden}

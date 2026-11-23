@@ -151,9 +151,10 @@ export default function CardsPage() {
     if (user) {
       setCardHolderName(`${user.firstName} ${user.lastName}`);
       
-      // Calculate total portfolio value (Fiat + Crypto)
+      // Calculate total portfolio value (Fiat + Crypto). /users/dashboard-stats has the per-asset
+      // balances; /users/balance only returns the USD figure, which counted every client's crypto as $0.
       Promise.all([
-        api.get('/users/balance'),
+        api.get('/users/dashboard-stats'),
         api.get('/assets'),
         api.get('/assets/prices')
       ]).then(([statsRes, assetsRes, pricesRes]) => {
@@ -168,7 +169,7 @@ export default function CardsPage() {
           return acc + (balanceCrypto * price);
         }, 0);
         
-        setTotalPortfolioValue((user.balance || 0) + cryptoUsdValue);
+        setTotalPortfolioValue((stats?.balance ?? user.balance ?? 0) + cryptoUsdValue);
       }).catch(console.error).finally(() => setStatsLoading(false));
     }
     generateMockCardNumber();
@@ -509,7 +510,7 @@ export default function CardsPage() {
             </div>
             <div className="flex items-center justify-between gap-4 py-3">
               <span className="text-[14px] font-medium text-cd-text">Total amount</span>
-              <span className="cd-num text-[20px] font-light text-cd-text">$5,555<span className="text-[0.62em]">.67</span></span>
+              <span className="cd-num text-[20px] font-normal text-cd-text">$5,555<span className="text-[0.62em]">.67</span></span>
             </div>
           </div>
 

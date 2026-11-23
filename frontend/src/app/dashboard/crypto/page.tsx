@@ -38,6 +38,9 @@ type ActiveTab = 'crypto' | 'nfts';
 
 interface AssetRow extends Asset {
   price?: number;
+  /** The client's balance in this asset, and the part not locked in loans or earn. */
+  amount?: number;
+  available?: number;
 }
 
 // ─── Local building blocks ──────────────────────────────────────────────────
@@ -313,12 +316,10 @@ type SendForm = z.infer<typeof sendSchema>;
 
 function SendModal({
   asset,
-  userBalance,
   onClose,
   onSuccess,
 }: {
   asset: AssetRow;
-  userBalance: number;
   onClose: () => void;
   onSuccess: () => void;
 }) {
@@ -347,13 +348,12 @@ function SendModal({
   const onSubmit = async (data: SendForm) => {
     const n = Number(data.amount);
     const usdAmount = amountMode === 'usd' ? n : (asset.price ? n * asset.price : 0);
+    const cryptoAmount = amountMode === 'usd' ? (asset.price ? n / asset.price : 0) : n;
 
-    if (usdAmount > userBalance) {
+    if (cryptoAmount > (asset.available || 0)) {
       setValidationError('Insufficient balance.');
       return;
     }
-
-    const cryptoAmount = amountMode === 'usd' ? (asset.price ? n / asset.price : 0) : n;
 
     setIsSubmitting(true);
     try {
@@ -530,16 +530,21 @@ export default function CryptoAssetsPage() {
     Promise.all([
       assetsAPI.list(),
       assetsAPI.prices(),
-      usersAPI.getBalance(),
+      usersAPI.getDashboardStats(),
     ])
-      .then(([listRes, pricesRes, balRes]) => {
+      .then(([listRes, pricesRes, statsRes]) => {
         const fetched: Asset[] = listRes.data.assets;
         const prices: Record<string, number> = pricesRes.data.prices || {};
-        setAssets(fetched.map((a) => ({
+        const balances: Record<string, number> = statsRes.data?.assetBalances || {};
+        const available: Record<string, number> = statsRes.data?.availableAssetBalances || balances;
+        const rows: AssetRow[] = fetched.map((a) => ({
           ...a,
           price: prices[a.symbol.toUpperCase()],
-        })));
-        setBalance(balRes.data.balance || 0);
+          amount: balances[a.id] || 0,
+          available: available[a.id] ?? balances[a.id] ?? 0,
+        }));
+        setAssets(rows);
+        setBalance(rows.reduce((sum, row) => sum + (row.amount || 0) * (row.price || 0), 0));
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -594,7 +599,7 @@ export default function CryptoAssetsPage() {
           {loading ? (
             <Skeleton className="h-11 w-64" />
           ) : (
-            <Money value={balance} className="text-[38px] font-light leading-none tracking-tight text-cd-text sm:text-[44px]" />
+            <Money value={balance} className="text-[38px] font-normal leading-none tracking-tight text-cd-text sm:text-[44px]" />
           )}
           <p className="mt-2 text-[13px] uppercase tracking-[0.08em] text-cd-muted">Balance</p>
         </div>
@@ -660,9 +665,9 @@ export default function CryptoAssetsPage() {
                         </div>
                         <div className="text-right">
                           <p className="cd-num text-[14px] text-cd-text">{formatPrice(asset.price || 0)}</p>
-                          <p className="cd-num mt-0.5 text-[12px] text-cd-muted sm:hidden">{formatAmount(0, symbol)}</p>
+                          <p className="cd-num mt-0.5 text-[12px] text-cd-muted sm:hidden">{formatAmount(asset.amount || 0, symbol)}</p>
                         </div>
-                        <p className="cd-num hidden truncate pl-4 text-[14px] text-cd-text sm:block">{formatAmount(0, symbol)}</p>
+                        <p className="cd-num hidden truncate pl-4 text-[14px] text-cd-text sm:block">{formatAmount(asset.amount || 0, symbol)}</p>
                         <span className="flex items-center justify-end gap-1 text-cd-faint">
                           <span className="hidden text-[13px] text-cd-accent-text sm:inline">View details</span>
                           <ChevronRight size={15} className="sm:text-cd-accent-text" />
@@ -722,7 +727,6 @@ export default function CryptoAssetsPage() {
       {sendAsset && (
         <SendModal
           asset={sendAsset}
-          userBalance={balance}
           onClose={() => setSendAsset(null)}
           onSuccess={() => { setSendAsset(null); load(); }}
         />

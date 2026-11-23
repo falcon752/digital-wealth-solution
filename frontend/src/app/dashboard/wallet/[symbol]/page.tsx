@@ -208,7 +208,7 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
 
         {/* Balance */}
         <div className="mt-7 flex flex-col items-center text-center lg:items-start lg:text-left">
-          <Money value={balanceUsd} className="text-[38px] font-light leading-none tracking-tight text-cd-text sm:text-[44px]" />
+          <Money value={balanceUsd} className="text-[38px] font-normal leading-none tracking-tight text-cd-text sm:text-[44px]" />
           <p className="mt-2 flex items-center gap-2.5 text-[13px] text-cd-muted">
             <span className="uppercase tracking-[0.08em]">Balance</span>
             <span className="h-3 w-px bg-cd-line-strong" />
@@ -223,7 +223,7 @@ export default function SingleAssetWalletPage({ params }: { params: Promise<{ sy
               <p className="text-[11px] font-medium uppercase tracking-[0.06em] text-cd-muted">Price</p>
               {price ? (
                 <>
-                  <p className="mt-1.5 text-[26px] font-light leading-none text-cd-text">
+                  <p className="mt-1.5 text-[26px] font-normal leading-none text-cd-text">
                     <Money value={price} />
                   </p>
                   <p className="mt-2 flex items-center gap-2 text-[13px]">

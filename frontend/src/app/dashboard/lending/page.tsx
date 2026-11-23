@@ -17,7 +17,7 @@ import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 
 const INPUT = 'h-11 w-full rounded-md border border-transparent bg-cd-input px-3.5 text-[14px] text-cd-text placeholder:text-cd-faint focus:border-cd-accent focus:outline-none';
-const AMOUNT_INPUT = 'cd-num w-full bg-transparent text-right text-[26px] font-light leading-tight text-cd-text placeholder:text-cd-faint focus:outline-none [appearance:textfield] sm:text-[30px] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none';
+const AMOUNT_INPUT = 'cd-num w-full bg-transparent text-right text-[26px] font-normal leading-tight text-cd-text placeholder:text-cd-faint focus:outline-none [appearance:textfield] sm:text-[30px] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none';
 
 /** The asset button on the left of a grey amount field. */
 function AssetButton({ asset, onClick }: { asset: Asset | null; onClick: () => void }) {
@@ -76,7 +76,7 @@ function Group({ children }: { children: ReactNode }) {
 function Figure({ amount, symbol, sub }: { amount: string; symbol?: string; sub?: ReactNode }) {
   return (
     <div>
-      <p className="text-[18px] font-light leading-tight text-cd-text">
+      <p className="text-[18px] font-normal leading-tight text-cd-text">
         {amount} {symbol && <span className="text-[13px] font-normal">{symbol}</span>}
       </p>
       {sub && <p className="mt-1 text-[13px] text-cd-muted">{sub}</p>}
@@ -312,7 +312,7 @@ export default function LendingPage() {
                     </div>
 
                     <AmountField label="Loan" asset={loanAsset} onPick={() => setModalType('loan')} usd={loanUsd}>
-                      <p className="cd-num truncate text-[26px] font-light leading-tight text-cd-text sm:text-[30px]">{loanAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                      <p className="cd-num truncate text-[26px] font-normal leading-tight text-cd-text sm:text-[30px]">{loanAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                     </AmountField>
 
                     {/* LTV and APR */}

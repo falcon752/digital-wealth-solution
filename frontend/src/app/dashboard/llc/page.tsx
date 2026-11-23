@@ -30,7 +30,7 @@ function KpiTile({ label, value, caption, tone = 'muted', loading }: { label: st
       {loading ? (
         <Skeleton className="mt-3 h-8 w-12" />
       ) : (
-        <p className="cd-num mt-2.5 text-[32px] font-light leading-none text-cd-text sm:text-[36px]">{value}</p>
+        <p className="cd-num mt-2.5 text-[32px] font-normal leading-none text-cd-text sm:text-[36px]">{value}</p>
       )}
       <p className={cn('mt-2.5 truncate text-[12.5px]', TONE_TEXT[tone])}>{caption}</p>
     </div>

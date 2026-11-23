@@ -49,7 +49,7 @@ export default function AssetTable({ rows, hidden = false, unitLabel = true }: {
               <div className={GRID}>
                 <div className="flex min-w-0 items-center gap-3.5">
                   {row.glyph ? (
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center text-[20px] font-light text-cd-text">{row.glyph}</span>
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center text-[20px] font-normal text-cd-text">{row.glyph}</span>
                   ) : (
                     <AssetIcon symbol={row.symbol} size={30} />
                   )}

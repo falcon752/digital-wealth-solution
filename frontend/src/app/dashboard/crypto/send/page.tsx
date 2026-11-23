@@ -10,7 +10,7 @@ import { ArrowUpFromLine, ChevronRight, Search } from 'lucide-react';
 import { assetsAPI, usersAPI } from '@/lib/api';
 import { Asset } from '@/types';
 import DashboardHeader from '@/components/layout/DashboardHeader';
-import { AssetIcon, AssetName, Card, EmptyState, PageHeader, Skeleton } from '@/components/client/ui';
+import { AssetIcon, AssetName, Card, EmptyState, PageHeader, Skeleton, formatAmount } from '@/components/client/ui';
 
 const INPUT = 'h-11 w-full rounded-md border border-transparent bg-cd-input px-3.5 text-[14px] text-cd-text placeholder:text-cd-faint focus:border-cd-accent focus:outline-none';
 
@@ -20,12 +20,14 @@ export default function SendAssetsPage() {
   const [filtered, setFiltered] = useState<Asset[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [balances, setBalances] = useState<Record<string, number>>({});
 
   useEffect(() => {
-    Promise.all([assetsAPI.list(), usersAPI.getBalance()])
-      .then(([listRes]) => {
+    Promise.all([assetsAPI.list(), usersAPI.getDashboardStats()])
+      .then(([listRes, statsRes]) => {
         setAssets(listRes.data.assets);
         setFiltered(listRes.data.assets);
+        setBalances(statsRes.data?.availableAssetBalances || statsRes.data?.assetBalances || {});
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -84,14 +86,14 @@ export default function SendAssetsPage() {
                   <li key={asset.id}>
                     <button
                       type="button"
-                      onClick={() => router.push(`/dashboard/crypto/send/${asset.id}`)}
+                      onClick={() => router.push(`/dashboard/withdraw?asset=${encodeURIComponent(asset.symbol)}`)}
                       className="flex w-full items-center gap-3.5 rounded-md border-b border-cd-line px-3 py-3.5 text-left transition-colors last:border-b-0 hover:bg-cd-raised/60 sm:px-4"
                     >
                       <AssetIcon symbol={asset.symbol} size={30} />
                       <div className="min-w-0 flex-1">
                         <AssetName symbol={asset.symbol} name={asset.name} network={asset.network || asset.name} />
                       </div>
-                      <span className="cd-num hidden shrink-0 text-[13px] text-cd-muted sm:block">0.00000000 {asset.symbol}</span>
+                      <span className="cd-num shrink-0 text-[13px] text-cd-muted">{formatAmount(balances[asset.id] || 0, asset.symbol)}</span>
                       <ChevronRight size={18} className="shrink-0 text-cd-faint" />
                     </button>
                   </li>
