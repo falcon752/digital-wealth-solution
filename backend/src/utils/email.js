@@ -54,7 +54,7 @@ function sendWithLayout(transporter, message, model) {
  * ("support@…" rather than "support@… (support@…)"). Falls back to the layout's text untouched.
  */
 function tidyText(html, text) {
-  const match = html.match(/<td role="article"[^>]*>([\s\S]*)<\/td><\/tr><\/table><style>/);
+  const match = html.match(/<!--dwp-content-->([\s\S]*)<!--\/dwp-content-->/);
   if (!match) return text;
   const content = match[1];
   const plain = emailHtmlToText(content);

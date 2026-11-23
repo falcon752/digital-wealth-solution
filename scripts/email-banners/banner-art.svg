@@ -1,16 +1,54 @@
 <!--
-  The decoration rules from DirectStay's banner art (directstay-admin-frontend/public/dashboard-banner-art.svg),
-  in DWP blue (#0033AD) instead of DirectStay blue (#4569FD):
-    - thin isometric line shapes, 1px stroke in the accent (one set at 56% opacity);
-    - small solid triangles in the accent;
+  The banner decoration, following the rules of DirectStay's banner art
+  (directstay-admin-frontend/public/dashboard-banner-art.svg), with crypto-asset line icons in
+  place of DirectStay's building shapes:
+    - thin line icons, 1px stroke in the accent (some at 56% opacity);
+    - small solid triangles in the accent (DirectStay's own "darts");
     - one faint circle: accent fill at 8%, 0.5px accent stroke.
-  build-banners.js places these shapes around each banner; the paths are DirectStay's own.
+  Each icon is drawn in a 100 x 100 box. build-banners.js places and scales them, and swaps
+  #0033AD for the light or dark accent.
 -->
-<svg width="777" height="89" viewBox="0 0 777 89" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path id="cubes" d="M767.544 49.3127L779.664 41.2961L756.772 40.8655L743.192 40.6101L728.254 40.3292L724.092 40.2509L702.097 92.602L714.822 84.1847M724.092 40.2509L714.822 84.1847M715.112 85.2816L734.088 113.97L725.907 119.381L747.117 105.352M794.384 74.0873L787.112 78.8972M787.112 78.8972L767.544 49.3127M787.112 78.8972L772.871 88.3166M767.544 49.3127L753.303 58.7321M753.303 58.7321L772.871 88.3166M753.303 58.7321L741.486 66.5482L727.548 75.7673M772.871 88.3166L764.58 93.8008M747.117 105.352L727.548 75.7673M747.117 105.352L754.086 100.742M727.548 75.7673L714.822 84.1847M754.086 100.742L761.055 96.1328L764.58 93.8008M754.086 100.742L743.554 84.8199L754.048 77.8784L764.58 93.8008" stroke="#0033AD"/>
-  <path id="box" d="M42.4321 99.4113L30.7071 93.2473L32.9781 88.9276L52.5243 51.7472L91.138 46.8421L107.796 82.5767L86.7091 122.688L75.1384 116.605M42.4321 99.4113L61.005 64.0822L93.7114 81.2764L75.1384 116.605M42.4321 99.4113L75.1384 116.605M63.5554 84.3266L59.1758 92.6575M76.9377 58.8712L89.8968 65.684M75.5527 65.6258L82.4951 69.2755" stroke="#0033AD" stroke-opacity="0.56"/>
-  <path id="dart-top" d="M407.437 -18L435.596 18.6081L407.321 4.98402L396.698 -2.26707L407.437 -18Z" fill="#0033AD"/>
-  <circle id="ring" cx="353.507" cy="93.806" r="35.75" transform="rotate(-12.2207 353.507 93.806)" fill="#0033AD" fill-opacity="0.08" stroke="#0033AD" stroke-width="0.5"/>
-  <path id="dart-right" d="M461.913 78.7422L505.678 63.9851L483.616 86.3091L473.311 94.0048L461.913 78.7422Z" fill="#0033AD"/>
-  <path id="dart-left" d="M42.6556 -2.46094L5.28244e-06 19.5474L19.718 -6.56057L29.2567 -16.0003L42.6556 -2.46094Z" fill="#0033AD"/>
+<svg width="700" height="100" viewBox="0 0 700 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- A Bitcoin coin: rim, inner ring, and the ₿ mark. -->
+  <g id="bitcoin" stroke="#0033AD">
+    <circle cx="50" cy="50" r="42"/>
+    <circle cx="50" cy="50" r="34" stroke-opacity="0.56"/>
+    <path d="M40 30H56C65 30 65 48 56 48H40M40 48H58C68 48 68 70 58 70H40M40 30V70M45 23V30M53 23V30M45 70V77M53 70V77"/>
+  </g>
+  <!-- The Ethereum diamond. -->
+  <g id="ethereum" stroke="#0033AD" transform="translate(100 0)">
+    <path d="M50 4L78 50L50 66L22 50Z M50 4V66 M22 50L50 38L78 50 M22 56L50 96L78 56L50 72Z M50 72V96"/>
+  </g>
+  <!-- A candlestick chart with its trend line. -->
+  <g id="candles" stroke="#0033AD" transform="translate(200 0)">
+    <path d="M15 30V82M39 16V66M63 36V80M87 6V56"/>
+    <rect x="10" y="42" width="10" height="28" rx="1"/>
+    <rect x="34" y="26" width="10" height="28" rx="1"/>
+    <rect x="58" y="46" width="10" height="22" rx="1"/>
+    <rect x="82" y="16" width="10" height="28" rx="1"/>
+    <path d="M6 92L34 70L60 78L96 38" stroke-opacity="0.56"/>
+  </g>
+  <!-- Blocks in a chain. -->
+  <g id="blocks" stroke="#0033AD" transform="translate(300 0)">
+    <rect x="2" y="36" width="26" height="26" rx="5"/>
+    <rect x="37" y="36" width="26" height="26" rx="5"/>
+    <rect x="72" y="36" width="26" height="26" rx="5"/>
+    <path d="M28 49H37M63 49H72M8 45H22M8 53H17M43 45H57M43 53H52M78 45H92M78 53H87" stroke-opacity="0.56"/>
+  </g>
+  <!-- The XRP mark in a coin. -->
+  <g id="xrp" stroke="#0033AD" transform="translate(400 0)">
+    <circle cx="50" cy="50" r="42" stroke-opacity="0.56"/>
+    <path d="M24 26C36 38 43 45 50 45C57 45 64 38 76 26M24 74C36 62 43 55 50 55C57 55 64 62 76 74"/>
+  </g>
+  <!-- A wallet. -->
+  <g id="wallet" stroke="#0033AD" transform="translate(500 0)">
+    <path d="M10 34H84C87 34 88 35 88 38V84C88 87 87 88 84 88H14C11 88 10 87 10 84V34Z M10 34L66 14L72 34"/>
+    <rect x="62" y="52" width="26" height="18" rx="4" stroke-opacity="0.56"/>
+    <circle cx="71" cy="61" r="2.5"/>
+  </g>
+  <!-- DirectStay's small solid triangles. -->
+  <path id="dart-a" d="M42.6556 -2.46094L5.28244e-06 19.5474L19.718 -6.56057L29.2567 -16.0003L42.6556 -2.46094Z" fill="#0033AD" transform="translate(600 30)"/>
+  <path id="dart-b" d="M461.913 78.7422L505.678 63.9851L483.616 86.3091L473.311 94.0048L461.913 78.7422Z" fill="#0033AD" transform="translate(180 -40)"/>
+  <!-- DirectStay's faint circle. -->
+  <circle id="ring" cx="650" cy="50" r="36" fill="#0033AD" fill-opacity="0.08" stroke="#0033AD" stroke-width="0.5"/>
 </svg>
