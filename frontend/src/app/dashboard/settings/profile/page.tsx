@@ -89,14 +89,14 @@ export default function EditProfilePage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#f4f5f8] dark:bg-[#050505] pb-20">
+    <div className="flex flex-col min-h-screen bg-cd-page pb-20">
       <DashboardHeader title="Edit Profile" backHref="/dashboard/settings" logo="dwp" />
 
       <form onSubmit={handleSubmit} className="p-4 flex-1">
         
         {/* User Card */}
-        <div className="bg-white dark:bg-[#101010] rounded-3xl p-5 flex items-center gap-4 shadow-sm mb-6">
-          <div className="w-16 h-16 rounded-full bg-orange-100 overflow-hidden flex items-center justify-center shrink-0 border border-gray-100 dark:border-gray-700">
+        <div className="bg-cd-card rounded-xl p-5 flex items-center gap-4 shadow-sm mb-6">
+          <div className="w-16 h-16 rounded-full bg-orange-100 overflow-hidden flex items-center justify-center shrink-0 border border-cd-line">
             {previewImage ? (
               <img src={previewImage} alt="Profile" className="w-full h-full object-cover" />
             ) : (
@@ -104,10 +104,10 @@ export default function EditProfilePage() {
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <h2 className="text-[17px] font-semibold text-gray-900 dark:text-white truncate">
+            <h2 className="text-[17px] font-semibold text-cd-text truncate">
               {fullName || 'Loading...'}
             </h2>
-            <p className="text-[14px] text-gray-500 dark:text-gray-400 truncate underline decoration-gray-300 dark:decoration-gray-600 underline-offset-2 mt-0.5">
+            <p className="text-[14px] text-cd-muted truncate underline decoration-gray-300 dark:decoration-gray-600 underline-offset-2 mt-0.5">
               {email}
             </p>
           </div>
@@ -117,7 +117,7 @@ export default function EditProfilePage() {
         <div className="space-y-5">
           
           <div className="space-y-2">
-            <label className="text-[15px] font-semibold text-gray-900 dark:text-white ml-1">
+            <label className="text-[15px] font-semibold text-cd-text ml-1">
               Upload Image
             </label>
             <div className="flex items-center gap-3">
@@ -128,7 +128,7 @@ export default function EditProfilePage() {
               >
                 Choose File
               </button>
-              <span className="text-[13px] text-gray-500 dark:text-gray-400">
+              <span className="text-[13px] text-cd-muted">
                 {profileImage ? profileImage.name : 'no file selected'}
               </span>
               <input 
@@ -142,106 +142,106 @@ export default function EditProfilePage() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-[15px] font-semibold text-gray-900 dark:text-white ml-1">
+            <label className="text-[15px] font-semibold text-cd-text ml-1">
               Full Name
             </label>
             <input
               type="text"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              className="w-full bg-white dark:bg-[#101010] border-none rounded-2xl px-4 py-4 text-[15px] font-medium text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 shadow-sm"
+              className="w-full bg-cd-card border-none rounded-xl px-4 py-4 text-[15px] font-medium text-cd-text focus:ring-2 focus:ring-blue-500 shadow-sm"
               required
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-[15px] font-semibold text-gray-900 dark:text-white ml-1">
+            <label className="text-[15px] font-semibold text-cd-text ml-1">
               Username
             </label>
             <input
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full bg-white dark:bg-[#101010] border-none rounded-2xl px-4 py-4 text-[15px] font-medium text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 shadow-sm"
+              className="w-full bg-cd-card border-none rounded-xl px-4 py-4 text-[15px] font-medium text-cd-text focus:ring-2 focus:ring-blue-500 shadow-sm"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-[15px] font-semibold text-gray-900 dark:text-white ml-1">
+            <label className="text-[15px] font-semibold text-cd-text ml-1">
               Email
             </label>
             <input
               type="email"
               value={email}
               readOnly
-              className="w-full bg-white dark:bg-[#101010] border-none rounded-2xl px-4 py-4 text-[15px] font-medium text-gray-900 dark:text-white opacity-80 shadow-sm"
+              className="w-full bg-cd-card border-none rounded-xl px-4 py-4 text-[15px] font-medium text-cd-text opacity-80 shadow-sm"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-[15px] font-semibold text-gray-900 dark:text-white ml-1">
+            <label className="text-[15px] font-semibold text-cd-text ml-1">
               Phone Number
             </label>
             <input
               type="tel"
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
-              className="w-full bg-white dark:bg-[#101010] border-none rounded-2xl px-4 py-4 text-[15px] font-medium text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 shadow-sm"
+              className="w-full bg-cd-card border-none rounded-xl px-4 py-4 text-[15px] font-medium text-cd-text focus:ring-2 focus:ring-blue-500 shadow-sm"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-[15px] font-semibold text-gray-900 dark:text-white ml-1">
+            <label className="text-[15px] font-semibold text-cd-text ml-1">
               Address
             </label>
             <input
               type="text"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
-              className="w-full bg-white dark:bg-[#101010] border-none rounded-2xl px-4 py-4 text-[15px] font-medium text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 shadow-sm"
+              className="w-full bg-cd-card border-none rounded-xl px-4 py-4 text-[15px] font-medium text-cd-text focus:ring-2 focus:ring-blue-500 shadow-sm"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-[15px] font-semibold text-gray-900 dark:text-white ml-1">
+            <label className="text-[15px] font-semibold text-cd-text ml-1">
               City
             </label>
             <input
               type="text"
               value={city}
               onChange={(e) => setCity(e.target.value)}
-              className="w-full bg-white dark:bg-[#101010] border-none rounded-2xl px-4 py-4 text-[15px] font-medium text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 shadow-sm"
+              className="w-full bg-cd-card border-none rounded-xl px-4 py-4 text-[15px] font-medium text-cd-text focus:ring-2 focus:ring-blue-500 shadow-sm"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-[15px] font-semibold text-gray-900 dark:text-white ml-1">
+            <label className="text-[15px] font-semibold text-cd-text ml-1">
               State
             </label>
             <input
               type="text"
               value={state}
               onChange={(e) => setState(e.target.value)}
-              className="w-full bg-white dark:bg-[#101010] border-none rounded-2xl px-4 py-4 text-[15px] font-medium text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 shadow-sm"
+              className="w-full bg-cd-card border-none rounded-xl px-4 py-4 text-[15px] font-medium text-cd-text focus:ring-2 focus:ring-blue-500 shadow-sm"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-[15px] font-semibold text-gray-900 dark:text-white ml-1">
+            <label className="text-[15px] font-semibold text-cd-text ml-1">
               Country
             </label>
             <input
               type="text"
               value={country}
               onChange={(e) => setCountry(e.target.value)}
-              className="w-full bg-white dark:bg-[#101010] border-none rounded-2xl px-4 py-4 text-[15px] font-medium text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 shadow-sm"
+              className="w-full bg-cd-card border-none rounded-xl px-4 py-4 text-[15px] font-medium text-cd-text focus:ring-2 focus:ring-blue-500 shadow-sm"
             />
           </div>
 
           <Button
             type="submit"
             loading={isSubmitting}
-            className="w-full py-4 rounded-xl text-[16px] font-medium bg-[#6366f1] hover:bg-[#4f46e5] text-white mt-8"
+            className="w-full py-4 rounded-xl text-[16px] font-medium bg-cd-accent hover:bg-[#4f46e5] text-white mt-8"
           >
             Save Changes
           </Button>

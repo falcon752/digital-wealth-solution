@@ -95,28 +95,28 @@ export default function DepositPage() {
 
   if (submitted) {
     return (
-      <div className="fixed inset-0 z-[100] flex flex-col bg-white dark:bg-[#050505] pb-8 animate-in fade-in zoom-in-95 duration-300">
+      <div className="fixed inset-0 z-[100] flex flex-col bg-cd-page pb-8 animate-in fade-in zoom-in-95 duration-300">
         <div className="flex-1 flex flex-col items-center justify-center p-6">
           <div className="w-24 h-24 rounded-full bg-green-50 dark:bg-green-900/20 flex items-center justify-center mx-auto mb-6">
             <div className="w-16 h-16 rounded-full bg-green-500 text-white flex items-center justify-center shadow-lg shadow-green-500/30">
               <Check size={36} strokeWidth={3} />
             </div>
           </div>
-          <h2 className="text-[28px] font-semibold text-gray-900 dark:text-white mb-3 tracking-tight">Deposit Submitted</h2>
-          <p className="text-gray-500 dark:text-gray-400 text-[15px] text-center max-w-[280px] font-medium leading-relaxed">
+          <h2 className="text-[28px] font-semibold text-cd-text mb-3 tracking-tight">Deposit Submitted</h2>
+          <p className="text-cd-muted text-[15px] text-center max-w-[280px] font-medium leading-relaxed">
             Your deposit request has been submitted. The admin will verify and confirm your balance shortly.
           </p>
         </div>
         
         <div className="px-6 flex flex-col gap-3 w-full max-w-md mx-auto">
           <Link href="/dashboard/wallet" className="w-full">
-            <Button className="w-full bg-[#2d68d8] text-white hover:bg-blue-700 h-[52px] text-[16px] font-semibold rounded-2xl border-none">
+            <Button className="w-full bg-cd-accent text-white hover:bg-blue-700 h-[52px] text-[16px] font-semibold rounded-xl border-none">
               Done
             </Button>
           </Link>
           <Button 
             onClick={resetFlow} 
-            className="w-full bg-[#f4f5f8] dark:bg-[#101010] text-gray-900 dark:text-white h-[52px] text-[16px] font-semibold rounded-2xl hover:bg-gray-200 dark:hover:bg-gray-700 border-none"
+            className="w-full bg-cd-raised text-cd-text h-[52px] text-[16px] font-semibold rounded-xl hover:bg-cd-raised border-none"
           >
             Make another deposit
           </Button>
@@ -131,15 +131,15 @@ export default function DepositPage() {
         <>
           <DashboardHeader title="Receive Crypto" subtitle="Select an asset to receive" backHref="/dashboard/wallet" logo="dwp" />
           <div className="flex-1 p-5">
-            <h2 className="text-[18px] font-semibold text-gray-900 dark:text-white mb-4 px-1">Available Assets</h2>
+            <h2 className="text-[18px] font-semibold text-cd-text mb-4 px-1">Available Assets</h2>
             <div className="space-y-3">
               {assets.map((a) => (
                 <div
                   key={a.id}
                   onClick={() => setSelectedAsset(a)}
-                  className="flex items-center p-4 bg-white dark:bg-[#101010] rounded-2xl border border-gray-100 dark:border-gray-700/50 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                  className="flex items-center p-4 bg-cd-card rounded-xl border border-cd-line shadow-sm hover:shadow-md transition-shadow cursor-pointer"
                 >
-                  <div className="w-11 h-11 rounded-full overflow-hidden shrink-0 bg-gray-50 dark:bg-gray-700 flex items-center justify-center border border-gray-100 dark:border-gray-600">
+                  <div className="w-11 h-11 rounded-full overflow-hidden shrink-0 bg-cd-raised flex items-center justify-center border border-cd-line">
                     <img 
                       src={`https://assets.coincap.io/assets/icons/${a.symbol.toLowerCase()}@2x.png`} 
                       alt={a.symbol} 
@@ -151,8 +151,8 @@ export default function DepositPage() {
                     />
                   </div>
                   <div className="ml-4 flex-1">
-                    <p className="font-semibold text-[16px] text-gray-900 dark:text-white">{a.name}</p>
-                    <p className="text-[13px] font-medium text-gray-500 dark:text-gray-400 mt-0.5">{a.network || a.symbol}</p>
+                    <p className="font-semibold text-[16px] text-cd-text">{a.name}</p>
+                    <p className="text-[13px] font-medium text-cd-muted mt-0.5">{a.network || a.symbol}</p>
                   </div>
                   <ChevronRight size={20} className="text-gray-400" />
                 </div>
@@ -161,20 +161,20 @@ export default function DepositPage() {
           </div>
         </>
       ) : (
-        <div className="flex-1 bg-gray-50 dark:bg-[#050505] flex flex-col">
+        <div className="flex-1 bg-cd-page flex flex-col">
           {/* Custom Header for Step 2 */}
-          <div className="flex items-center justify-between px-5 h-16 bg-white dark:bg-[#101010] border-b border-gray-100 dark:border-gray-800 sticky top-0 z-10">
-            <button onClick={() => setSelectedAsset(null)} className="p-2 -ml-2 text-[#2d68d8] hover:text-blue-700 transition-colors">
+          <div className="flex items-center justify-between px-5 h-16 bg-cd-card border-b border-cd-line sticky top-0 z-10">
+            <button onClick={() => setSelectedAsset(null)} className="p-2 -ml-2 text-cd-accent-text hover:text-blue-700 transition-colors">
               <X size={20} strokeWidth={2.5} />
             </button>
-            <h1 className="text-[17px] font-semibold text-gray-900 dark:text-white">Receive {selectedAsset.name}</h1>
+            <h1 className="text-[17px] font-semibold text-cd-text">Receive {selectedAsset.name}</h1>
             <div className="w-10"></div> {/* Spacer for exact centering */}
           </div>
 
           <div className="flex-1 p-5 max-w-md mx-auto w-full space-y-6">
             
             {/* Screenshot Card UI */}
-            <div className="bg-white dark:bg-[#101010] rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none dark:border dark:border-gray-700/50 flex flex-col items-center border border-gray-50">
+            <div className="bg-cd-card rounded-xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none dark:border dark:border-cd-line flex flex-col items-center border border-gray-50">
               
               <div className="flex items-center justify-center gap-3 mb-2">
                 <div className="w-9 h-9 rounded-full bg-[#fef4ed] dark:bg-orange-900/20 flex items-center justify-center overflow-hidden shrink-0">
@@ -189,14 +189,14 @@ export default function DepositPage() {
                   />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-[16px] text-gray-900 dark:text-white">{selectedAsset.network || selectedAsset.name} Network</h3>
+                  <h3 className="font-semibold text-[16px] text-cd-text">{selectedAsset.network || selectedAsset.name} Network</h3>
                 </div>
               </div>
               
-              <p className="text-[14px] font-medium text-[#8f9bb3] dark:text-gray-400 mb-8 text-center">Scan QR code to receive</p>
+              <p className="text-[14px] font-medium text-cd-muted mb-8 text-center">Scan QR code to receive</p>
               
               {selectedAsset.qrCodeImage ? (
-                <div className="bg-white p-2 rounded-2xl mb-8">
+                <div className="bg-white p-2 rounded-xl mb-8">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={`${apiBase}${selectedAsset.qrCodeImage}`}
@@ -205,20 +205,20 @@ export default function DepositPage() {
                   />
                 </div>
               ) : (
-                <div className="w-48 h-48 bg-gray-50 dark:bg-gray-700 rounded-2xl mb-8 flex items-center justify-center text-gray-400 text-sm font-medium">
+                <div className="w-48 h-48 bg-cd-raised rounded-xl mb-8 flex items-center justify-center text-gray-400 text-sm font-medium">
                   No QR Code
                 </div>
               )}
 
-              <div className="w-full bg-[#f4f6fa] dark:bg-[#101010] rounded-[14px] p-2 flex items-center justify-between gap-3 mb-4">
+              <div className="w-full bg-cd-raised rounded-[14px] p-2 flex items-center justify-between gap-3 mb-4">
                 <div className="flex-1 overflow-hidden">
-                  <p className="text-[13px] font-medium text-gray-600 dark:text-gray-300 truncate w-full pl-3">
+                  <p className="text-[13px] font-medium text-cd-muted truncate w-full pl-3">
                     {selectedAsset.walletAddress}
                   </p>
                 </div>
                 <button
                   onClick={copyAddress}
-                  className="bg-[#2d68d8] text-white px-5 py-2.5 rounded-[10px] text-[14px] font-semibold flex items-center gap-2 hover:bg-blue-700 transition-colors shrink-0"
+                  className="bg-cd-accent text-white px-5 py-2.5 rounded-[10px] text-[14px] font-semibold flex items-center gap-2 hover:bg-blue-700 transition-colors shrink-0"
                 >
                   {copied ? <Check size={16} strokeWidth={2.5} /> : <Copy size={16} strokeWidth={2.5} />}
                   Copy
@@ -226,10 +226,10 @@ export default function DepositPage() {
               </div>
 
               {selectedAsset.memo ? (
-                <div className="w-full bg-[#f4f6fa] dark:bg-[#101010] rounded-[14px] p-2 flex items-center justify-between gap-3">
+                <div className="w-full bg-cd-raised rounded-[14px] p-2 flex items-center justify-between gap-3">
                   <div className="flex-1 overflow-hidden">
                     <p className="text-[11px] font-semibold text-[#8f9bb3] uppercase tracking-wider mb-0.5 pl-3">Memo / Tag Required</p>
-                    <p className="text-[13px] font-semibold text-gray-900 dark:text-white truncate w-full pl-3">
+                    <p className="text-[13px] font-semibold text-cd-text truncate w-full pl-3">
                       {selectedAsset.memo}
                     </p>
                   </div>
@@ -239,7 +239,7 @@ export default function DepositPage() {
                       navigator.clipboard.writeText(selectedAsset.memo!);
                       toast.success('Memo copied!');
                     }}
-                    className="bg-[#2d68d8]/10 text-[#2d68d8] dark:bg-blue-900/30 dark:text-blue-400 px-4 py-2.5 rounded-[10px] text-[14px] font-semibold flex items-center gap-2 hover:bg-[#2d68d8]/20 transition-colors shrink-0"
+                    className="bg-cd-accent/10 text-cd-accent-text dark:bg-blue-900/30 dark:text-blue-400 px-4 py-2.5 rounded-[10px] text-[14px] font-semibold flex items-center gap-2 hover:bg-[#2d68d8]/20 transition-colors shrink-0"
                   >
                     <Copy size={16} strokeWidth={2.5} />
                     Copy
@@ -247,7 +247,7 @@ export default function DepositPage() {
                 </div>
               ) : (
                 <div className="mt-1 mb-2 flex justify-center">
-                  <span className="text-[14px] font-semibold text-gray-900 dark:text-white border-b-[3px] border-[#10b981] pb-0.5 inline-block">
+                  <span className="text-[14px] font-semibold text-cd-text border-b-[3px] border-[#10b981] pb-0.5 inline-block">
                     No memo required
                   </span>
                 </div>
@@ -255,8 +255,8 @@ export default function DepositPage() {
             </div>
 
             {/* Submission Form below */}
-            <div className="bg-white dark:bg-[#101010] rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-700/50">
-              <h3 className="text-[16px] font-semibold text-gray-900 dark:text-white mb-5">Confirm Deposit</h3>
+            <div className="bg-cd-card rounded-xl p-6 shadow-sm border border-cd-line">
+              <h3 className="text-[16px] font-semibold text-cd-text mb-5">Confirm Deposit</h3>
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <Input
                   label="Amount sent"
@@ -283,7 +283,7 @@ export default function DepositPage() {
                   {...register('txHash')}
                 />
 
-                <Button type="submit" className="w-full bg-[#1e3a8a] text-white mt-2" size="lg" loading={isSubmitting}>
+                <Button type="submit" className="w-full bg-cd-accent text-white mt-2" size="lg" loading={isSubmitting}>
                   Submit Details
                 </Button>
               </form>

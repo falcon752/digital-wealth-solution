@@ -82,14 +82,14 @@ export default function CryptoAssetsPage() {
   };
 
   return (
-    <div className="min-h-full flex flex-col bg-white dark:bg-[#050505] pb-10">
+    <div className="min-h-full flex flex-col bg-cd-page pb-10">
       
       {/* Header */}
-      <header className="flex items-center px-4 py-4 bg-white dark:bg-[#101010] sticky top-0 z-10 border-b border-gray-50 dark:border-gray-800">
-        <button type="button" onClick={() => router.back()} className="text-[#2d68d8] dark:text-blue-500 absolute left-4">
+      <header className="flex items-center px-4 py-4 bg-cd-card sticky top-0 z-10 border-b border-cd-line">
+        <button type="button" onClick={() => router.back()} className="text-cd-accent-text absolute left-4">
           <ArrowLeft size={22} />
         </button>
-        <h1 className="flex-1 text-center font-semibold text-gray-900 dark:text-white text-[17px]">
+        <h1 className="flex-1 text-center font-semibold text-cd-text text-[17px]">
           Crypto Assets
         </h1>
         <div className="absolute right-4">
@@ -101,7 +101,7 @@ export default function CryptoAssetsPage() {
       <div className="flex-1 flex flex-col">
         
         {/* Search Bar */}
-        <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800">
+        <div className="px-4 py-3 border-b border-cd-line">
           <div className="relative">
             <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-semibold" />
             <input 
@@ -109,7 +109,7 @@ export default function CryptoAssetsPage() {
               placeholder="Search networks" 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-[#f4f5f8] dark:bg-[#101010] text-gray-900 dark:text-white placeholder:text-[#a0a8b9] font-medium text-[15px] py-3 pl-10 pr-4 rounded-xl focus:outline-none"
+              className="w-full bg-cd-raised text-cd-text placeholder:text-[#a0a8b9] font-medium text-[15px] py-3 pl-10 pr-4 rounded-xl focus:outline-none"
             />
           </div>
         </div>
@@ -119,15 +119,15 @@ export default function CryptoAssetsPage() {
           {assetsLoading && (
             <div className="flex flex-col" aria-label="Loading assets">
               {[0, 1, 2, 3, 4, 5].map((item) => (
-                <div key={item} className="flex items-center justify-between px-4 py-4 border-b border-gray-50 dark:border-gray-800/50">
+                <div key={item} className="flex items-center justify-between px-4 py-4 border-b border-cd-line">
                   <div className="flex items-center gap-4 flex-1">
-                    <div className="w-[42px] h-[42px] rounded-full bg-gray-100 dark:bg-[#101010] animate-pulse shrink-0" />
+                    <div className="w-[42px] h-[42px] rounded-full bg-cd-raised animate-pulse shrink-0" />
                     <div className="flex flex-col gap-2.5">
-                      <div className="h-4 w-36 rounded bg-gray-100 dark:bg-[#101010] animate-pulse" />
-                      <div className="h-3 w-28 rounded bg-gray-100 dark:bg-[#101010] animate-pulse" />
+                      <div className="h-4 w-36 rounded bg-cd-raised animate-pulse" />
+                      <div className="h-3 w-28 rounded bg-cd-raised animate-pulse" />
                     </div>
                   </div>
-                  <div className="h-7 w-12 rounded-full bg-gray-100 dark:bg-[#101010] animate-pulse" />
+                  <div className="h-7 w-12 rounded-full bg-cd-raised animate-pulse" />
                 </div>
               ))}
             </div>
@@ -137,20 +137,20 @@ export default function CryptoAssetsPage() {
             const isToggled = toggledAssets[asset.symbol] ?? true;
             const balance = assetBalances[asset.id] || 0;
             return (
-              <div key={asset.symbol} className="flex items-center justify-between px-4 py-4 border-b border-gray-50 dark:border-gray-800/50 hover:bg-gray-50 dark:hover:bg-gray-800/20 transition">
+              <div key={asset.symbol} className="flex items-center justify-between px-4 py-4 border-b border-cd-line hover:bg-cd-raised transition">
                 
                 <Link href={`/dashboard/wallet/${asset.symbol.toLowerCase()}`} className="flex items-center gap-4 flex-1">
                   <img 
                     src={`https://assets.coincap.io/assets/icons/${asset.symbol.toLowerCase()}@2x.png`} 
                     alt={asset.symbol} 
-                    className="w-[42px] h-[42px] rounded-full object-cover shadow-sm shrink-0 bg-white dark:bg-[#101010]"
+                    className="w-[42px] h-[42px] rounded-full object-cover shadow-sm shrink-0 bg-cd-card"
                     onError={(e) => {
                       e.currentTarget.onerror = null; 
                       e.currentTarget.src = `https://ui-avatars.com/api/?name=${asset.symbol[0]}&background=${getAssetColor(asset.symbol).replace('#','')}&color=fff&rounded=true&bold=true`;
                     }}
                   />
                   <div className="flex flex-col">
-                    <span className="font-semibold text-gray-900 dark:text-white text-[16px] tracking-wide">
+                    <span className="font-semibold text-cd-text text-[16px] tracking-wide">
                       {asset.name} ({asset.symbol})
                     </span>
                     <span className="text-[13px] text-[#a0a8b9] font-medium mt-0.5">
@@ -164,7 +164,7 @@ export default function CryptoAssetsPage() {
                   onClick={(e) => toggleAsset(asset.symbol, e)}
                   className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ease-in-out ${
                     loadingToggle[asset.symbol] ? 'opacity-50 cursor-not-allowed' : ''
-                  } ${isToggled ? 'bg-[#2d68d8]' : 'bg-gray-200 dark:bg-gray-700'}`}
+                  } ${isToggled ? 'bg-cd-accent' : 'bg-gray-200 dark:bg-gray-700'}`}
                 >
                   <span
                     className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${isToggled ? 'translate-x-[22px]' : 'translate-x-1'}`}

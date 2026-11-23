@@ -29,7 +29,7 @@ export default function DepositLogPage() {
   const totalPages = Math.ceil(total / LIMIT);
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#f4f5f8] dark:bg-[#050505] pb-20">
+    <div className="flex flex-col min-h-screen bg-cd-page pb-20">
       <DashboardHeader title="Deposit Log" backHref="/dashboard/settings" logo="dwp" />
 
       <div className="flex-1 p-4 flex flex-col space-y-4 mt-2">
@@ -43,25 +43,25 @@ export default function DepositLogPage() {
             <div className="w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-500 mb-4">
               <Download size={32} />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No Deposits Yet</h3>
-            <p className="text-[14px] text-gray-500 dark:text-gray-400 text-center max-w-[250px]">
+            <h3 className="text-lg font-semibold text-cd-text mb-2">No Deposits Yet</h3>
+            <p className="text-[14px] text-cd-muted text-center max-w-[250px]">
               You haven't made any deposits yet. Your deposit history will appear here.
             </p>
           </div>
         ) : (
           <div className="space-y-3">
             {transactions.map((tx) => (
-              <div key={tx.id} className="bg-white dark:bg-[#101010] rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700/50 flex flex-col gap-3">
+              <div key={tx.id} className="bg-cd-card rounded-xl p-4 shadow-sm border border-cd-line flex flex-col gap-3">
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-500">
                       <Download size={20} />
                     </div>
                     <div>
-                      <h4 className="font-semibold text-[15px] text-gray-900 dark:text-white">
+                      <h4 className="font-semibold text-[15px] text-cd-text">
                         {tx.assetName || tx.assetSymbol} Deposit
                       </h4>
-                      <p className="text-[13px] text-gray-500 dark:text-gray-400 mt-0.5">
+                      <p className="text-[13px] text-cd-muted mt-0.5">
                         {formatDate(tx.createdAt)}
                       </p>
                     </div>
@@ -71,15 +71,15 @@ export default function DepositLogPage() {
                       +{tx.amount} {tx.assetSymbol}
                     </p>
                     {tx.usdValue ? (
-                      <p className="text-[13px] text-gray-500 dark:text-gray-400 mt-0.5">
+                      <p className="text-[13px] text-cd-muted mt-0.5">
                         ~{formatCurrency(tx.usdValue)}
                       </p>
                     ) : null}
                   </div>
                 </div>
                 
-                <div className="flex items-center justify-between pt-3 border-t border-gray-50 dark:border-gray-700/50">
-                  <span className="text-[13px] text-gray-500 dark:text-gray-400 font-medium">Status</span>
+                <div className="flex items-center justify-between pt-3 border-t border-cd-line">
+                  <span className="text-[13px] text-cd-muted font-medium">Status</span>
                   <span className={`text-[12px] font-semibold px-3 py-1 rounded-full ${
                     tx.status === 'confirmed' ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' :
                     tx.status === 'pending' ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400' :

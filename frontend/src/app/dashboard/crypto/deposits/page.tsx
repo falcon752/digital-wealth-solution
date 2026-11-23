@@ -80,21 +80,21 @@ export default function DepositsPage() {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-full bg-gray-100 dark:bg-[#050505]">
+    <div className="flex flex-col min-h-full bg-cd-page">
       {/* Header */}
-      <div className="bg-white dark:bg-[#101010] border-b border-gray-200 dark:border-gray-800">
+      <div className="bg-cd-card border-b border-cd-line">
         <div className="flex items-center justify-between px-4 h-14">
           <button
             onClick={() => router.back()}
-            className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+            className="flex items-center gap-1.5 text-sm text-cd-muted hover:text-gray-900 dark:hover:text-white transition-colors"
           >
             <ArrowLeft size={16} />
             Back
           </button>
-          <h1 className="text-base font-semibold text-gray-900 dark:text-white">Deposits Transactions</h1>
+          <h1 className="text-base font-semibold text-cd-text">Deposits Transactions</h1>
           <button
             onClick={() => router.push('/dashboard/crypto')}
-            className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+            className="flex items-center gap-1.5 text-sm text-cd-muted hover:text-gray-900 dark:hover:text-white transition-colors"
           >
             Home
             <Home size={16} />
@@ -103,19 +103,19 @@ export default function DepositsPage() {
       </div>
 
       <div className="flex-1 px-4 py-5">
-        <div className="bg-white dark:bg-[#101010] rounded-2xl border border-gray-200 dark:border-gray-800 p-5">
-          <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Deposit Assets History</h2>
+        <div className="bg-cd-card rounded-xl border border-cd-line p-5">
+          <h2 className="text-sm font-semibold text-cd-text mb-4">Deposit Assets History</h2>
 
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="w-7 h-7 border-2 border-[#2d5be3] border-t-transparent rounded-full animate-spin" />
+              <div className="w-7 h-7 border-2 border-cd-accent border-t-transparent rounded-full animate-spin" />
             </div>
           ) : deposits.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 gap-2">
-              <p className="text-sm text-gray-400 dark:text-gray-500">No deposits yet</p>
+              <p className="text-sm text-cd-faint">No deposits yet</p>
               <button
                 onClick={() => router.push('/dashboard/crypto/deposit')}
-                className="text-sm text-[#2d5be3] hover:underline"
+                className="text-sm text-cd-accent-text hover:underline"
               >
                 Make your first deposit
               </button>
@@ -126,8 +126,8 @@ export default function DepositsPage() {
                 <div key={d.id} className="flex items-center gap-3">
                   <CoinIcon symbol={d.assetSymbol} />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-900 dark:text-white">{d.assetName}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 tabular-nums">
+                    <p className="text-sm font-semibold text-cd-text">{d.assetName}</p>
+                    <p className="text-xs text-cd-muted tabular-nums">
                       +{d.amount.toFixed(8)} {d.assetSymbol}
                       {d.usdValue ? ` ${d.usdValue.toFixed(2)} USD` : ''}
                     </p>

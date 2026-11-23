@@ -68,19 +68,19 @@ export default function NotificationsPage() {
   };
 
   return (
-    <div className="min-h-full flex flex-col bg-white dark:bg-[#050505] pb-20">
+    <div className="min-h-full flex flex-col bg-cd-page pb-20">
       
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-4 bg-white dark:bg-[#101010] sticky top-0 z-10 border-b border-gray-50 dark:border-gray-800">
-        <button type="button" onClick={() => router.back()} className="text-gray-900 dark:text-white p-1">
+      <header className="flex items-center justify-between px-4 py-4 bg-cd-card sticky top-0 z-10 border-b border-cd-line">
+        <button type="button" onClick={() => router.back()} className="text-cd-text p-1">
           <ArrowLeft size={22} />
         </button>
-        <h1 className="text-[17px] font-semibold text-gray-900 dark:text-white">
+        <h1 className="text-[17px] font-semibold text-cd-text">
           Notifications
         </h1>
         <div className="flex items-center gap-3">
           <ThemeToggle />
-          <button onClick={handleClearAll} className="text-[14px] font-semibold text-[#2d68d8] dark:text-blue-500 hover:opacity-80">
+          <button onClick={handleClearAll} className="text-[14px] font-semibold text-cd-accent-text hover:opacity-80">
             Clear All
           </button>
         </div>
@@ -93,7 +93,7 @@ export default function NotificationsPage() {
           )}
           
           {!loading && notifications.map((notif) => (
-            <div key={notif.id} className="bg-white dark:bg-[#101010] border border-gray-100 dark:border-gray-700/50 rounded-2xl p-4 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] relative overflow-hidden">
+            <div key={notif.id} className="bg-cd-card border border-cd-line rounded-xl p-4 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] relative overflow-hidden">
               
               <div className="flex items-start gap-4">
                 {/* Icon */}
@@ -106,14 +106,14 @@ export default function NotificationsPage() {
                 
                 {/* Content */}
                 <div className="flex-1 pr-4">
-                  <h3 className="font-semibold text-[16px] text-gray-900 dark:text-white mb-1">
+                  <h3 className="font-semibold text-[16px] text-cd-text mb-1">
                     {notif.title}
                   </h3>
-                  <p className="text-[14px] text-gray-600 dark:text-gray-400 font-medium leading-relaxed">
+                  <p className="text-[14px] text-cd-muted font-medium leading-relaxed">
                     {notif.message}
                   </p>
                   {notif.adminNote && (
-                    <p className="text-[13px] text-gray-500 dark:text-gray-400 italic mt-1.5 bg-gray-50 dark:bg-gray-800/50 rounded-lg px-3 py-2">
+                    <p className="text-[13px] text-cd-muted italic mt-1.5 bg-cd-raised rounded-lg px-3 py-2">
                       &ldquo;{notif.adminNote}&rdquo;
                     </p>
                   )}

@@ -53,7 +53,7 @@ export default function TransactionsPage() {
         </div>
 
         {/* Table */}
-        <div className="glass rounded-2xl overflow-hidden">
+        <div className="glass rounded-xl overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center h-40">
               <div className="w-7 h-7 border-2 border-brand-400 border-t-transparent rounded-full animate-spin" />

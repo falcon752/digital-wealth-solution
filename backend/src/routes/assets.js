@@ -18,7 +18,12 @@ const COIN_IDS = {
 
 const router = express.Router();
 
-// GET /api/assets/prices  — live USD prices proxied from CoinGecko
+// GET /api/assets/prices  — live USD prices proxied from CoinGecko.
+// Kept for a minute and shared by every client, so page loads don't hit CoinGecko's rate limit;
+// if CoinGecko fails, the last good prices are served instead of none (which showed $0.00 balances).
+const PRICE_TTL_MS = 60 * 1000;
+let priceCache = { key: '', at: 0, body: null };
+
 router.get('/prices', authenticate, async (req, res) => {
   try {
     const assets = await Asset.find({ isActive: true }).select('symbol').lean();
@@ -27,23 +32,36 @@ router.get('/prices', authenticate, async (req, res) => {
 
     if (!ids) return res.json({ prices: {} });
 
-    const r = await fetch(
-      `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`,
-      { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(8000) }
-    );
-    const data = await r.json();
+    const key = `${ids}|${symbols.join(',')}`;
+    if (priceCache.body && priceCache.key === key && Date.now() - priceCache.at < PRICE_TTL_MS) {
+      return res.json(priceCache.body);
+    }
 
-    const prices = {};
-    const changes24h = {};
-    symbols.forEach((sym) => {
-      const cgId = COIN_IDS[sym];
-      if (cgId && data[cgId]?.usd) {
-        prices[sym] = data[cgId].usd;
-        changes24h[sym] = data[cgId].usd_24h_change || 0;
-      }
-    });
+    try {
+      const r = await fetch(
+        `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`,
+        { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(8000) }
+      );
+      if (!r.ok) throw new Error(`CoinGecko HTTP ${r.status}`);
+      const data = await r.json();
 
-    res.json({ prices, changes24h });
+      const prices = {};
+      const changes24h = {};
+      symbols.forEach((sym) => {
+        const cgId = COIN_IDS[sym];
+        if (cgId && data[cgId]?.usd) {
+          prices[sym] = data[cgId].usd;
+          changes24h[sym] = data[cgId].usd_24h_change || 0;
+        }
+      });
+      if (!Object.keys(prices).length) throw new Error('CoinGecko returned no prices');
+
+      priceCache = { key, at: Date.now(), body: { prices, changes24h } };
+      res.json(priceCache.body);
+    } catch (error) {
+      if (priceCache.body) return res.json(priceCache.body);
+      throw error;
+    }
   } catch {
     res.json({ prices: {}, changes24h: {} });
   }

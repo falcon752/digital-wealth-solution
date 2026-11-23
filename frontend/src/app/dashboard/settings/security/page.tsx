@@ -37,14 +37,14 @@ export default function SecuritySettingsPage() {
   };
 
   return (
-    <div className="min-h-full flex flex-col bg-white dark:bg-[#050505] pb-20">
+    <div className="min-h-full flex flex-col bg-cd-page pb-20">
       
       {/* Header */}
-      <header className="flex items-center px-4 py-4 bg-white dark:bg-[#101010] sticky top-0 z-10">
-        <button type="button" onClick={() => router.back()} className="text-gray-900 dark:text-white p-1 absolute left-4">
+      <header className="flex items-center px-4 py-4 bg-cd-card sticky top-0 z-10">
+        <button type="button" onClick={() => router.back()} className="text-cd-text p-1 absolute left-4">
           <ArrowLeft size={22} />
         </button>
-        <h1 className="flex-1 text-center font-semibold text-gray-900 dark:text-white text-[17px]">
+        <h1 className="flex-1 text-center font-semibold text-cd-text text-[17px]">
           Security Settings
         </h1>
         <div className="absolute right-4">
@@ -54,7 +54,7 @@ export default function SecuritySettingsPage() {
 
       <div className="flex-1 px-5 mt-4">
         
-        <p className="text-center text-[15px] font-medium text-gray-600 dark:text-gray-400 mb-8 px-4">
+        <p className="text-center text-[15px] font-medium text-cd-muted mb-8 px-4">
           Change or edit your password and passcode.
         </p>
 
@@ -62,7 +62,7 @@ export default function SecuritySettingsPage() {
           
           {/* Current Password */}
           <div className="space-y-2">
-            <label className="text-[14px] font-semibold text-gray-900 dark:text-white ml-1">
+            <label className="text-[14px] font-semibold text-cd-text ml-1">
               Current Password
             </label>
             <div className="relative">
@@ -70,7 +70,7 @@ export default function SecuritySettingsPage() {
                 type={showCurrent ? "text" : "password"}
                 placeholder="Enter current password"
                 {...pwForm.register('currentPassword', { required: true })}
-                className="w-full bg-[#f4f5f8] dark:bg-[#101010] text-gray-900 dark:text-white placeholder:text-[#a0a8b9] font-medium text-[15px] py-4 pl-4 pr-12 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full bg-cd-raised text-cd-text placeholder:text-[#a0a8b9] font-medium text-[15px] py-4 pl-4 pr-12 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20"
               />
               <button 
                 type="button" 
@@ -84,7 +84,7 @@ export default function SecuritySettingsPage() {
 
           {/* New Password */}
           <div className="space-y-2">
-            <label className="text-[14px] font-semibold text-gray-900 dark:text-white ml-1">
+            <label className="text-[14px] font-semibold text-cd-text ml-1">
               New Password
             </label>
             <div className="relative">
@@ -92,7 +92,7 @@ export default function SecuritySettingsPage() {
                 type={showNew ? "text" : "password"}
                 placeholder="Enter new password"
                 {...pwForm.register('newPassword', { required: true })}
-                className="w-full bg-[#f4f5f8] dark:bg-[#101010] text-gray-900 dark:text-white placeholder:text-[#a0a8b9] font-medium text-[15px] py-4 pl-4 pr-12 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full bg-cd-raised text-cd-text placeholder:text-[#a0a8b9] font-medium text-[15px] py-4 pl-4 pr-12 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20"
               />
               <button 
                 type="button" 
@@ -106,7 +106,7 @@ export default function SecuritySettingsPage() {
 
           {/* Confirm New Password */}
           <div className="space-y-2">
-            <label className="text-[14px] font-semibold text-gray-900 dark:text-white ml-1">
+            <label className="text-[14px] font-semibold text-cd-text ml-1">
               Confirm New Password
             </label>
             <div className="relative">
@@ -114,7 +114,7 @@ export default function SecuritySettingsPage() {
                 type={showNew ? "text" : "password"}
                 placeholder="Confirm new password"
                 {...pwForm.register('confirmPassword', { required: true })}
-                className="w-full bg-[#f4f5f8] dark:bg-[#101010] text-gray-900 dark:text-white placeholder:text-[#a0a8b9] font-medium text-[15px] py-4 pl-4 pr-12 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full bg-cd-raised text-cd-text placeholder:text-[#a0a8b9] font-medium text-[15px] py-4 pl-4 pr-12 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20"
               />
             </div>
           </div>
@@ -123,7 +123,7 @@ export default function SecuritySettingsPage() {
             <button 
               type="submit" 
               disabled={loading}
-              className="w-full flex items-center justify-center bg-blue-600 dark:bg-blue-500 text-white font-semibold py-4 rounded-2xl hover:bg-blue-700 transition disabled:opacity-50"
+              className="w-full flex items-center justify-center bg-cd-accent text-white font-semibold py-4 rounded-xl hover:bg-blue-700 transition disabled:opacity-50"
             >
               {loading ? 'Updating...' : 'Confirm Changes'}
             </button>

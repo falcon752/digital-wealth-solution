@@ -1,127 +1,149 @@
 'use client';
 
+/**
+ * The client dashboard's sidebar, laid out like Anchorage Digital's: the logo, a flat list of
+ * sections with outline icons, groups that open with a chevron, and the account and sign-out at
+ * the bottom. A fixed column from 1024px; a drawer on smaller screens.
+ */
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { ChevronDown, LogOut, X } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useSidebar } from '@/context/SidebarContext';
 import { cn } from '@/lib/utils';
-import { X, LogOut } from 'lucide-react';
-import {
-  BarChart2, Building2, CircleDollarSign, Coins,
-  LayoutDashboard, ArrowDownToLine, ArrowUpFromLine, Users, Package, Activity,
-  CheckCircle, CreditCard, MessageSquare, KeyRound, Mail, ShieldCheck, Receipt
-} from 'lucide-react';
+import { CLIENT_NAV, isActive, type ClientNavItem } from '@/components/client/nav';
+import { CountBadge } from '@/components/client/ui';
+import { usePendingCount } from '@/components/client/usePendingCount';
 
-const userNav = [
-  { href: '/dashboard', icon: BarChart2, label: 'Overview' },
-  { href: '/dashboard/llc', icon: Building2, label: 'LLC Management' },
-  { href: '/dashboard/wallet', icon: CircleDollarSign, label: 'Anchorage Digital Bank' },
-  { href: '/dashboard/lending', icon: Coins, label: 'Crypto Lending' },
-];
+function NavGroup({ item, pathname, onNavigate }: { item: ClientNavItem; pathname: string; onNavigate: () => void }) {
+  const childActive = item.children!.some((child) => isActive(pathname, child, true));
+  const [open, setOpen] = useState(childActive);
+  const Icon = item.icon;
 
-const adminNav = [
-  { href: '/admin', icon: LayoutDashboard, label: 'Overview' },
-  { href: '/admin/llc', icon: Building2, label: 'LLC Apps' },
-  { href: '/admin/consultations', icon: MessageSquare, label: 'Consultations' },
-  { href: '/admin/kyc', icon: ShieldCheck, label: 'KYC Verification' },
-  { href: '/admin/access-requests', icon: KeyRound, label: 'Access Requests' },
-  { href: '/admin/cards', icon: CreditCard, label: 'Cards' },
-  { href: '/admin/assets', icon: Package, label: 'Assets' },
-  { href: '/admin/deposits', icon: ArrowDownToLine, label: 'Deposits' },
-  { href: '/admin/withdrawals', icon: ArrowUpFromLine, label: 'Withdrawals' },
-  { href: '/admin/loans', icon: Coins, label: 'Loans' },
-  { href: '/admin/payment-proofs', icon: Receipt, label: 'Payment Proofs' },
-  { href: '/admin/onboarding-payments', icon: CheckCircle, label: 'Onboarding Fee' },
-  { href: '/admin/users', icon: Users, label: 'Users' },
-  { href: '/admin/broadcast', icon: Mail, label: 'Broadcast' },
-  { href: '/admin/referrals', icon: Users, label: 'Referrals' },
-  { href: '/admin/live-visitors', icon: Activity, label: 'Live Visitors' },
-  { href: '/admin/activity', icon: Activity, label: 'Activity Log' },
-];
+  useEffect(() => {
+    if (childActive) setOpen(true);
+  }, [childActive]);
+
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        aria-expanded={open}
+        className={cn(
+          'group flex h-11 w-full items-center gap-3.5 rounded-md px-3 text-[14.5px] transition-colors',
+          childActive && !open ? 'bg-cd-band text-cd-text' : 'text-cd-text/90 hover:bg-cd-raised',
+        )}
+      >
+        <Icon size={18} strokeWidth={1.75} className="shrink-0 text-cd-muted group-hover:text-cd-text" />
+        <span className="flex-1 text-left">{item.label}</span>
+        <ChevronDown size={16} className={cn('text-cd-muted transition-transform', open && 'rotate-180')} />
+      </button>
+      {open && (
+        <div className="mb-1 mt-0.5 space-y-0.5">
+          {item.children!.map((child) => {
+            const active = isActive(pathname, child, true);
+            return (
+              <Link
+                key={child.href}
+                href={child.href}
+                onClick={onNavigate}
+                aria-current={active ? 'page' : undefined}
+                className={cn(
+                  'relative flex h-9 items-center rounded-md pl-[46px] pr-3 text-[13.5px] transition-colors',
+                  active ? 'bg-cd-band font-medium text-cd-text' : 'text-cd-muted hover:bg-cd-raised hover:text-cd-text',
+                )}
+              >
+                {active && <span className="absolute inset-y-2 left-0 w-[3px] rounded-r bg-cd-accent" />}
+                {child.label}
+              </Link>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function DashboardSidebar() {
   const { user, logout } = useAuth();
   const { sidebarOpen, closeSidebar } = useSidebar();
-  const pathname = usePathname();
+  const pathname = usePathname() || '';
+  const pending = usePendingCount();
 
-  const navItems = user?.role === 'admin' ? adminNav : userNav;
+  const initials = `${user?.firstName?.[0] || ''}${user?.lastName?.[0] || ''}`.toUpperCase() || 'DW';
 
   return (
     <>
-      {/* Mobile backdrop */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/50 md:hidden"
-          onClick={closeSidebar}
-        />
-      )}
+      {sidebarOpen && <div className="fixed inset-0 z-40 bg-black/60 lg:hidden" onClick={closeSidebar} />}
 
-      {/* Sidebar panel */}
       <aside
         className={cn(
-          // Base — fixed drawer on mobile
-          'fixed inset-y-0 left-0 z-50 flex flex-col h-[100dvh] w-[80%] max-w-[320px] bg-white dark:bg-[#101010] border-r border-gray-200 dark:border-gray-800 transition-transform duration-300 ease-in-out',
-          // Desktop — static, narrower
-          'md:static md:translate-x-0 md:w-64 md:shrink-0',
-          // Mobile — slide in/out
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          'fixed inset-y-0 left-0 z-50 flex h-[100dvh] w-[82%] max-w-[300px] flex-col border-r border-cd-line bg-cd-sidebar transition-transform duration-300 ease-in-out',
+          'lg:static lg:w-[264px] lg:max-w-none lg:shrink-0 lg:translate-x-0',
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full',
         )}
       >
-        {/* Header: Menu + close button */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 dark:border-gray-800">
-          <span className="font-semibold text-[17px] text-gray-900 dark:text-white">Menu</span>
+        <div className="flex items-center justify-between px-6 pb-7 pt-7">
+          <Link href="/dashboard/wallet" onClick={closeSidebar} className="flex items-center">
+            <Image src="/dwp-logo.png" alt="Digital Wealth Partners" width={150} height={40} className="h-9 w-auto dark:hidden" priority />
+            <Image src="/dwp-logo-dark.png" alt="Digital Wealth Partners" width={150} height={40} className="hidden h-9 w-auto dark:block" priority />
+          </Link>
           <button
             onClick={closeSidebar}
-            className="md:hidden p-1 rounded-lg text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className="rounded-md p-1.5 text-cd-muted hover:bg-cd-raised hover:text-cd-text lg:hidden"
             aria-label="Close menu"
           >
-            <X size={20} strokeWidth={2.5} />
+            <X size={20} />
           </button>
         </div>
 
-        {/* Nav links */}
-        <nav className="flex-1 py-6 px-4 space-y-3 overflow-y-auto">
-          {navItems.map(({ href, icon: Icon, label }) => {
-            const active =
-              pathname === href ||
-              (href !== '/dashboard' && href !== '/admin' && pathname.startsWith(href));
+        <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 pb-4" aria-label="Dashboard">
+          {CLIENT_NAV.map((item) => {
+            if (item.children) return <NavGroup key={item.label} item={item} pathname={pathname} onNavigate={closeSidebar} />;
+            const active = isActive(pathname, item);
+            const Icon = item.icon;
             return (
               <Link
-                key={href}
-                href={href}
+                key={item.href}
+                href={item.href}
                 onClick={closeSidebar}
+                aria-current={active ? 'page' : undefined}
                 className={cn(
-                  'group flex items-center gap-4 px-3 py-2.5 rounded-xl transition-all duration-200 text-[15px] font-semibold',
-                  active
-                    ? 'bg-[#f4f8ff] border border-blue-100 dark:bg-blue-900/20 dark:border-blue-900 text-[#2d68d8] dark:text-blue-400'
-                    : 'bg-white border border-transparent dark:bg-[#101010] text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
+                  'group relative flex h-11 items-center gap-3.5 rounded-md px-3 text-[14.5px] transition-colors',
+                  active ? 'bg-cd-accent font-medium text-white dark:bg-cd-band dark:text-cd-text' : 'text-cd-text/90 hover:bg-cd-raised',
                 )}
               >
-                <div className={cn(
-                  "w-[38px] h-[38px] rounded-xl flex items-center justify-center shrink-0 border transition-colors",
-                  active 
-                    ? "bg-[#2d68d8] border-[#2d68d8] text-white shadow-md shadow-blue-500/20" 
-                    : "bg-[#f4f5f8] dark:bg-[#1a1a1a] border-gray-100 dark:border-gray-800 text-gray-500 dark:text-gray-400 group-hover:bg-[#eaf1ff] dark:group-hover:bg-blue-900/30 group-hover:text-[#2d68d8] dark:group-hover:text-blue-400 group-hover:border-blue-200 dark:group-hover:border-blue-800"
-                )}>
-                  <Icon size={20} className="shrink-0" />
-                </div>
-                <span>{label}</span>
+                {active && <span className="absolute inset-y-2.5 left-0 hidden w-[3px] rounded-r bg-cd-accent dark:block" />}
+                <Icon size={18} strokeWidth={1.75} className={cn('shrink-0', active ? 'text-white dark:text-cd-text' : 'text-cd-muted group-hover:text-cd-text')} />
+                <span className="flex-1">{item.label}</span>
+                {item.badge === 'pending' && <CountBadge count={pending} className={active ? 'bg-white text-cd-accent dark:bg-cd-accent dark:text-white' : undefined} />}
               </Link>
             );
           })}
         </nav>
 
-        {/* Footer */}
-        <div className="border-t border-gray-100 dark:border-gray-800 px-6 py-5 space-y-4">
-          <div className="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide leading-relaxed">
-            Digital Wealth Partners<br />
-            Business Management Platform
-          </div>
+        <div className="border-t border-cd-line px-3 py-3">
+          <Link
+            href="/dashboard/settings/profile"
+            onClick={closeSidebar}
+            className="flex items-center gap-3 rounded-md px-3 py-2.5 hover:bg-cd-raised"
+          >
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-cd-text text-[11px] font-semibold text-cd-page">
+              {initials}
+            </span>
+            <span className="min-w-0">
+              <span className="block truncate text-[13.5px] font-medium text-cd-text">{[user?.firstName, user?.lastName].filter(Boolean).join(' ') || 'My account'}</span>
+              <span className="block truncate text-[12px] text-cd-muted">{user?.email}</span>
+            </span>
+          </Link>
           <button
             onClick={() => { closeSidebar(); logout(); }}
-            className="flex items-center gap-2 text-[14px] font-semibold text-red-500 hover:text-red-600 transition-colors"
+            className="group flex h-10 w-full items-center gap-3.5 rounded-md px-3 text-[14px] text-cd-text/90 hover:bg-cd-raised"
           >
-            <LogOut size={16} />
+            <LogOut size={18} strokeWidth={1.75} className="text-cd-muted group-hover:text-cd-text" />
             Sign out
           </button>
         </div>

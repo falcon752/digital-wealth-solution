@@ -115,11 +115,11 @@ export default function SwapCryptoPage() {
     return (
       <>
         <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)}></div>
-        <div className="absolute top-full left-0 mt-2 w-[220px] bg-white dark:bg-[#101010] rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 max-h-[300px] overflow-y-auto z-50">
+        <div className="absolute top-full left-0 mt-2 w-[220px] bg-cd-card rounded-xl shadow-xl border border-cd-line max-h-[300px] overflow-y-auto z-50">
           {assets.map((asset) => (
             <button
               key={asset.id}
-              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition border-b border-gray-50 dark:border-gray-700/50 last:border-0"
+              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-cd-raised transition border-b border-cd-line last:border-0"
               onClick={() => {
                 onSelect(asset.id);
                 setIsOpen(false);
@@ -135,7 +135,7 @@ export default function SwapCryptoPage() {
                 }}
               />
               <div className="flex flex-col items-start">
-                <span className="font-semibold text-[14px] text-gray-900 dark:text-white">{asset.name}</span>
+                <span className="font-semibold text-[14px] text-cd-text">{asset.name}</span>
                 <span className="font-medium text-[12px] text-gray-500">{asset.symbol.toUpperCase()}</span>
               </div>
             </button>
@@ -146,14 +146,14 @@ export default function SwapCryptoPage() {
   };
 
   return (
-    <div className="h-full min-h-[calc(100vh-64px)] flex flex-col bg-[#f4f5f8] dark:bg-[#050505] relative">
+    <div className="h-full min-h-[calc(100vh-64px)] flex flex-col bg-cd-page relative">
       
       {/* Header */}
-      <header className="flex items-center px-4 py-4 bg-white dark:bg-[#101010] border-b border-gray-100 dark:border-gray-800 sticky top-0 z-10">
-        <button type="button" onClick={() => router.back()} className="text-[#2d68d8] dark:text-blue-500 absolute left-4">
+      <header className="flex items-center px-4 py-4 bg-cd-card border-b border-cd-line sticky top-0 z-10">
+        <button type="button" onClick={() => router.back()} className="text-cd-accent-text absolute left-4">
           <ArrowLeft size={22} />
         </button>
-        <h1 className="flex-1 text-center font-semibold text-gray-900 dark:text-white text-[17px]">
+        <h1 className="flex-1 text-center font-semibold text-cd-text text-[17px]">
           Swap Crypto
         </h1>
         <div className="absolute right-4">
@@ -178,17 +178,17 @@ export default function SwapCryptoPage() {
           </div>
         )}
 
-        <div className="bg-white dark:bg-[#101010] rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] border border-gray-100 dark:border-gray-700/50 p-4 pb-6 flex flex-col gap-4 relative">
+        <div className="bg-cd-card rounded-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] border border-cd-line p-4 pb-6 flex flex-col gap-4 relative">
           
           {/* FROM SECTION */}
           <div className="flex justify-between items-center px-1">
             <span className="text-[13px] font-medium text-[#8e98bc]">From</span>
             <span className="text-[13px] font-medium text-[#8e98bc]">
-              Balance: <span className="text-gray-900 dark:text-gray-300">{fromBalance.toFixed(6)}</span> <span className="text-[#2d68d8] dark:text-blue-400">${fromBalanceUsd.toFixed(2)}</span>
+              Balance: <span className="text-gray-900 dark:text-gray-300">{fromBalance.toFixed(6)}</span> <span className="text-cd-accent-text">${fromBalanceUsd.toFixed(2)}</span>
             </span>
           </div>
           
-          <div className={`bg-[#f4f5f8] dark:bg-[#101010] rounded-xl p-4 flex flex-col gap-4 border border-gray-50/50 mb-8 relative ${fromDropdownOpen ? 'z-30' : 'z-10'}`}>
+          <div className={`bg-cd-raised rounded-xl p-4 flex flex-col gap-4 border border-gray-50/50 mb-8 relative ${fromDropdownOpen ? 'z-30' : 'z-10'}`}>
             <div className="flex justify-between items-center">
               <div className="relative">
                 <button 
@@ -196,7 +196,7 @@ export default function SwapCryptoPage() {
                     setFromDropdownOpen(!fromDropdownOpen);
                     setToDropdownOpen(false);
                   }}
-                  className="flex items-center gap-1 font-semibold text-gray-900 dark:text-white text-[15px] hover:opacity-80 transition"
+                  className="flex items-center gap-1 font-semibold text-cd-text text-[15px] hover:opacity-80 transition"
                 >
                   {fromAsset?.name || 'Select'} - {fromBalance.toFixed(6)} <ChevronDown size={18} className="text-[#8e98bc]" />
                 </button>
@@ -208,7 +208,7 @@ export default function SwapCryptoPage() {
                 placeholder="0.000000" 
                 value={fromAmount}
                 onChange={(e) => setFromAmount(e.target.value)}
-                className="bg-transparent text-right text-[26px] font-semibold text-gray-900 dark:text-white focus:outline-none w-1/2" 
+                className="bg-transparent text-right text-[26px] font-semibold text-cd-text focus:outline-none w-1/2" 
               />
             </div>
             <div className="flex justify-between items-center">
@@ -217,7 +217,7 @@ export default function SwapCryptoPage() {
                   <button 
                     key={pct} 
                     onClick={() => handlePercentage(pct)}
-                    className="bg-white dark:bg-[#101010] text-[#8e98bc] hover:text-[#2d68d8] dark:hover:text-blue-400 text-[11px] font-semibold px-3 py-1.5 rounded-[6px] shadow-sm border border-gray-100 dark:border-gray-700 transition"
+                    className="bg-cd-card text-[#8e98bc] hover:text-[#2d68d8] dark:hover:text-blue-400 text-[11px] font-semibold px-3 py-1.5 rounded-[6px] shadow-sm border border-cd-line transition"
                   >
                     {pct === 100 ? 'MAX' : `${pct}%`}
                   </button>
@@ -232,7 +232,7 @@ export default function SwapCryptoPage() {
           {/* SWAP ICON */}
           <div 
             onClick={handleSwapValues}
-            className="absolute left-1/2 top-[190px] -translate-x-1/2 -translate-y-1/2 w-[44px] h-[44px] bg-[#2d68d8] rounded-full border-4 border-white dark:border-gray-800 flex items-center justify-center text-white z-10 shadow-[0_2px_8px_rgba(0,0,0,0.12)] cursor-pointer hover:bg-[#255bc2] transition"
+            className="absolute left-1/2 top-[190px] -translate-x-1/2 -translate-y-1/2 w-[44px] h-[44px] bg-cd-accent rounded-full border-4 border-white dark:border-cd-line flex items-center justify-center text-white z-10 shadow-[0_2px_8px_rgba(0,0,0,0.12)] cursor-pointer hover:bg-cd-accent-hover transition"
           >
             <ArrowRightLeft size={16} strokeWidth={3} className="-rotate-45" />
           </div>
@@ -241,11 +241,11 @@ export default function SwapCryptoPage() {
           <div className="flex justify-between items-center px-1 mt-4">
             <span className="text-[13px] font-medium text-[#8e98bc]">To</span>
             <span className="text-[13px] font-medium text-[#8e98bc]">
-              Balance: <span className="text-gray-900 dark:text-gray-300">{toBalance.toFixed(6)}</span> <span className="text-[#2d68d8] dark:text-blue-400">${toBalanceUsd.toFixed(2)}</span>
+              Balance: <span className="text-gray-900 dark:text-gray-300">{toBalance.toFixed(6)}</span> <span className="text-cd-accent-text">${toBalanceUsd.toFixed(2)}</span>
             </span>
           </div>
 
-          <div className={`bg-[#f4f5f8] dark:bg-[#101010] rounded-xl p-4 flex flex-col gap-2 border border-gray-50/50 relative ${toDropdownOpen ? 'z-30' : 'z-10'}`}>
+          <div className={`bg-cd-raised rounded-xl p-4 flex flex-col gap-2 border border-gray-50/50 relative ${toDropdownOpen ? 'z-30' : 'z-10'}`}>
             <div className="flex justify-between items-center">
               <div className="relative">
                 <button 
@@ -253,7 +253,7 @@ export default function SwapCryptoPage() {
                     setToDropdownOpen(!toDropdownOpen);
                     setFromDropdownOpen(false);
                   }}
-                  className="flex items-center gap-1 font-semibold text-gray-900 dark:text-white text-[15px] hover:opacity-80 transition"
+                  className="flex items-center gap-1 font-semibold text-cd-text text-[15px] hover:opacity-80 transition"
                 >
                   {toAsset?.name || 'Select'} <ChevronDown size={18} className="text-[#8e98bc]" />
                 </button>
@@ -264,7 +264,7 @@ export default function SwapCryptoPage() {
                 type="text" 
                 placeholder="0.00000000" 
                 value={toAmount > 0 ? toAmount.toFixed(8) : ''}
-                className="bg-transparent text-right text-[26px] font-semibold text-gray-900 dark:text-white focus:outline-none w-1/2" 
+                className="bg-transparent text-right text-[26px] font-semibold text-cd-text focus:outline-none w-1/2" 
                 readOnly
               />
             </div>
@@ -276,16 +276,16 @@ export default function SwapCryptoPage() {
           </div>
 
           {/* EXCHANGE DETAILS */}
-          <div className="bg-[#f8f9fb] dark:bg-[#101010] rounded-xl p-4 mt-2 flex flex-col gap-3 border border-gray-50 dark:border-gray-800">
+          <div className="bg-cd-raised rounded-xl p-4 mt-2 flex flex-col gap-3 border border-cd-line">
             <div className="flex items-start gap-8">
               <span className="text-[13px] text-[#8e98bc] font-medium w-16">Exchange<br/>Rate</span>
-              <span className="text-[13px] font-semibold text-gray-900 dark:text-white pt-0.5">
+              <span className="text-[13px] font-semibold text-cd-text pt-0.5">
                 {fromAsset && toAsset ? `1 ${fromAsset.symbol.toUpperCase()} = ${exchangeRate.toFixed(8)} ${toAsset.symbol.toUpperCase()}` : '-'}
               </span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-[13px] text-[#8e98bc] font-medium">You'll receive</span>
-              <span className="text-[13px] font-semibold text-[#2d68d8] dark:text-blue-400">
+              <span className="text-[13px] font-semibold text-cd-accent-text">
                 {toAmount > 0 ? `${toAmount.toFixed(6)} ${toAsset?.symbol.toUpperCase()}` : '0.00'}
               </span>
             </div>
@@ -296,7 +296,7 @@ export default function SwapCryptoPage() {
             <button 
               onClick={handleSubmit}
               disabled={submitting}
-              className="w-full bg-[#2d68d8] hover:bg-[#255bc2] text-white font-semibold text-[16px] py-4 rounded-xl transition shadow-[0_4px_12px_rgba(45,104,216,0.2)] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full bg-cd-accent hover:bg-cd-accent-hover text-white font-semibold text-[16px] py-4 rounded-xl transition shadow-[0_4px_12px_rgba(45,104,216,0.2)] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {submitting && <Loader2 size={18} className="animate-spin" />}
               {submitting ? 'Processing...' : 'Swap Now'}

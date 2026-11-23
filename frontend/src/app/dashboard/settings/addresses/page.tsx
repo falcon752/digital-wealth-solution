@@ -57,21 +57,21 @@ export default function CryptoAddressesPage() {
   }
 
   return (
-    <div className="min-h-full flex flex-col bg-white dark:bg-[#050505] pb-20">
+    <div className="min-h-full flex flex-col bg-cd-page pb-20">
       
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-4 bg-white dark:bg-[#101010] sticky top-0 z-10 border-b border-gray-50 dark:border-gray-800">
-        <button type="button" onClick={() => router.back()} className="text-gray-900 dark:text-white p-1">
+      <header className="flex items-center justify-between px-4 py-4 bg-cd-card sticky top-0 z-10 border-b border-cd-line">
+        <button type="button" onClick={() => router.back()} className="text-cd-text p-1">
           <X size={22} />
         </button>
-        <h1 className="text-[17px] font-semibold text-gray-900 dark:text-white">
+        <h1 className="text-[17px] font-semibold text-cd-text">
           Receive
         </h1>
         <div className="w-8"></div> {/* Spacer for centering */}
       </header>
 
       {/* Search Bar */}
-      <div className="px-4 py-3 border-b border-gray-50 dark:border-gray-800">
+      <div className="px-4 py-3 border-b border-cd-line">
         <div className="relative">
           <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 font-semibold" />
           <input 
@@ -79,13 +79,13 @@ export default function CryptoAddressesPage() {
             placeholder="Search" 
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-[#f4f5f8] dark:bg-[#101010] text-gray-900 dark:text-white placeholder:text-gray-400 font-medium text-[15px] py-3 pl-10 pr-4 rounded-xl focus:outline-none"
+            className="w-full bg-cd-raised text-cd-text placeholder:text-gray-400 font-medium text-[15px] py-3 pl-10 pr-4 rounded-xl focus:outline-none"
           />
         </div>
       </div>
 
       {/* Filter Chips */}
-      <div className="px-4 py-3 overflow-x-auto no-scrollbar border-b border-gray-50 dark:border-gray-800">
+      <div className="px-4 py-3 overflow-x-auto no-scrollbar border-b border-cd-line">
         <div className="flex gap-2 min-w-max">
           {filters.map(filter => {
             const isActive = activeFilter === filter;
@@ -98,8 +98,8 @@ export default function CryptoAddressesPage() {
                   onClick={() => setActiveFilter(filter)}
                   className={`px-4 py-1.5 rounded-lg text-[14px] font-semibold border transition ${
                     isActive 
-                      ? 'bg-[#2d68d8]/10 dark:bg-blue-900/30 border-[#2d68d8] text-[#2d68d8] dark:text-blue-400' 
-                      : 'bg-[#f4f5f8] dark:bg-[#101010] border-transparent text-gray-500 dark:text-gray-400'
+                      ? 'bg-cd-accent/10 dark:bg-blue-900/30 border-cd-accent text-cd-accent-text' 
+                      : 'bg-cd-raised border-transparent text-cd-muted'
                   }`}
                 >
                   All
@@ -115,8 +115,8 @@ export default function CryptoAddressesPage() {
                 onClick={() => setActiveFilter(filter)}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition ${
                   isActive 
-                    ? 'bg-[#2d68d8]/10 dark:bg-blue-900/30 border-[#2d68d8] opacity-100' 
-                    : 'bg-[#f4f5f8] dark:bg-[#101010] border-transparent opacity-80 hover:opacity-100'
+                    ? 'bg-cd-accent/10 dark:bg-blue-900/30 border-cd-accent opacity-100' 
+                    : 'bg-cd-raised border-transparent opacity-80 hover:opacity-100'
                 }`}
               >
                 <img 
@@ -136,8 +136,8 @@ export default function CryptoAddressesPage() {
 
       {/* List Header */}
       <div className="px-4 py-3 flex items-center justify-between">
-        <span className="text-[14px] font-semibold text-gray-500 dark:text-gray-400">Popular</span>
-        <div className="bg-[#f4f5f8] dark:bg-[#101010] text-gray-500 dark:text-gray-400 text-[12px] font-semibold px-2 py-0.5 rounded flex items-center gap-1">
+        <span className="text-[14px] font-semibold text-cd-muted">Popular</span>
+        <div className="bg-cd-raised text-cd-muted text-[12px] font-semibold px-2 py-0.5 rounded flex items-center gap-1">
           {displayedAssets.length}
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
         </div>
@@ -146,7 +146,7 @@ export default function CryptoAddressesPage() {
       {/* Asset List */}
       <div className="flex flex-col">
         {displayedAssets.map((asset) => (
-          <div key={asset.id} className="flex items-center justify-between px-4 py-4 border-b border-gray-50 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition">
+          <div key={asset.id} className="flex items-center justify-between px-4 py-4 border-b border-cd-line hover:bg-cd-raised transition">
             
             <div className="flex items-center gap-4 flex-1 overflow-hidden pr-2">
               <div className="relative">
@@ -161,7 +161,7 @@ export default function CryptoAddressesPage() {
                 />
                 {/* Small network badge (optional visual touch) */}
                 {asset.network && asset.network.toUpperCase() !== asset.symbol.toUpperCase() && (
-                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-white dark:bg-[#101010] rounded-full border border-white dark:border-gray-900 flex items-center justify-center">
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-cd-card rounded-full border border-white dark:border-gray-900 flex items-center justify-center">
                     <img 
                       src={`https://assets.coincap.io/assets/icons/${(asset.network.includes('BNB') || asset.network.includes('Smart Chain') ? 'bnb' : asset.network.includes('Ethereum') || asset.network.includes('ERC20') ? 'eth' : asset.network.split(' ')[0]).toLowerCase()}@2x.png`} 
                       className="w-3 h-3 rounded-full"
@@ -173,14 +173,14 @@ export default function CryptoAddressesPage() {
               
               <div className="flex flex-col min-w-0 flex-1">
                 <div className="flex items-center gap-2 mb-0.5">
-                  <span className="font-semibold text-gray-900 dark:text-white text-[16px] tracking-wide shrink-0">
+                  <span className="font-semibold text-cd-text text-[16px] tracking-wide shrink-0">
                     {asset.symbol}
                   </span>
-                  <span className="text-[11px] text-gray-500 dark:text-gray-400 bg-[#f4f5f8] dark:bg-[#101010] px-1.5 py-0.5 rounded font-medium truncate">
+                  <span className="text-[11px] text-cd-muted bg-cd-raised px-1.5 py-0.5 rounded font-medium truncate">
                     {asset.network || asset.name}
                   </span>
                 </div>
-                <span className="text-[13px] text-gray-400 dark:text-gray-500 font-medium truncate w-full">
+                <span className="text-[13px] text-cd-faint font-medium truncate w-full">
                   {truncateAddress(asset.walletAddress)}
                 </span>
               </div>
@@ -189,13 +189,13 @@ export default function CryptoAddressesPage() {
             <div className="flex items-center gap-2 shrink-0">
               <button 
                 onClick={() => setSelectedAsset(asset)}
-                className="w-9 h-9 rounded-full bg-[#f4f5f8] dark:bg-[#101010] flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-[#2d68d8] dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition"
+                className="w-9 h-9 rounded-full bg-cd-raised flex items-center justify-center text-cd-muted hover:text-[#2d68d8] dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition"
               >
                 <QrCode size={16} />
               </button>
               <button 
                 onClick={() => handleCopy(asset.walletAddress)}
-                className="w-9 h-9 rounded-full bg-[#f4f5f8] dark:bg-[#101010] flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-[#2d68d8] dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition"
+                className="w-9 h-9 rounded-full bg-cd-raised flex items-center justify-center text-cd-muted hover:text-[#2d68d8] dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition"
               >
                 <Copy size={16} />
               </button>
@@ -214,10 +214,10 @@ export default function CryptoAddressesPage() {
       {/* QR Code Modal */}
       {selectedAsset && (
         <div className="fixed inset-0 z-[100] flex flex-col bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200 justify-center items-center">
-          <div className="bg-white dark:bg-[#101010] w-full max-w-sm rounded-3xl p-6 shadow-2xl relative flex flex-col items-center">
+          <div className="bg-cd-card w-full max-w-sm rounded-xl p-6 shadow-2xl relative flex flex-col items-center">
             <button 
               onClick={() => setSelectedAsset(null)}
-              className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-[#101010] text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition"
+              className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-cd-raised text-cd-muted hover:text-gray-900 dark:hover:text-white transition"
             >
               <X size={18} />
             </button>
@@ -232,10 +232,10 @@ export default function CryptoAddressesPage() {
                   e.currentTarget.src = `https://ui-avatars.com/api/?name=${selectedAsset.symbol[0]}&background=${getAssetColor(selectedAsset.symbol).replace('#','')}&color=fff&rounded=true&bold=true`;
                 }}
               />
-              <h3 className="font-semibold text-[18px] text-gray-900 dark:text-white">Receive {selectedAsset.symbol}</h3>
+              <h3 className="font-semibold text-[18px] text-cd-text">Receive {selectedAsset.symbol}</h3>
             </div>
             
-            <div className="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 mb-6 w-full flex items-center justify-center aspect-square max-w-[240px]">
+            <div className="bg-white p-3 rounded-xl shadow-sm border border-cd-line mb-6 w-full flex items-center justify-center aspect-square max-w-[240px]">
               {selectedAsset.qrCodeImage ? (
                 <img src={`${apiBase}${selectedAsset.qrCodeImage}`} alt="QR Code" className="w-full h-full object-contain" />
               ) : (
@@ -246,21 +246,21 @@ export default function CryptoAddressesPage() {
               )}
             </div>
             
-            <div className="w-full bg-[#f4f5f8] dark:bg-[#101010] rounded-[14px] p-2 flex items-center justify-between gap-3 mb-2">
+            <div className="w-full bg-cd-raised rounded-[14px] p-2 flex items-center justify-between gap-3 mb-2">
               <div className="flex-1 overflow-hidden">
-                <p className="text-[13px] font-medium text-gray-600 dark:text-gray-300 truncate w-full pl-3">
+                <p className="text-[13px] font-medium text-cd-muted truncate w-full pl-3">
                   {selectedAsset.walletAddress}
                 </p>
               </div>
               <button
                 onClick={() => handleCopy(selectedAsset.walletAddress)}
-                className="bg-[#2d68d8] text-white px-5 py-2.5 rounded-[10px] text-[14px] font-semibold flex items-center gap-2 hover:bg-blue-700 transition-colors shrink-0"
+                className="bg-cd-accent text-white px-5 py-2.5 rounded-[10px] text-[14px] font-semibold flex items-center gap-2 hover:bg-blue-700 transition-colors shrink-0"
               >
                 <Copy size={16} />
                 Copy
               </button>
             </div>
-            <p className="text-[12px] text-center text-gray-500 dark:text-gray-400 mt-2">Only send {selectedAsset.symbol} ({selectedAsset.network || selectedAsset.name}) to this address.</p>
+            <p className="text-[12px] text-center text-cd-muted mt-2">Only send {selectedAsset.symbol} ({selectedAsset.network || selectedAsset.name}) to this address.</p>
           </div>
         </div>
       )}

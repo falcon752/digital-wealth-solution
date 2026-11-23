@@ -43,38 +43,38 @@ export default function WelcomePopup() {
       onClick={close}
     >
       <div
-        className="w-full sm:max-w-sm bg-white dark:bg-[#101010] rounded-t-[32px] sm:rounded-2xl p-6 pb-safe shadow-2xl animate-in slide-in-from-bottom-full duration-300"
+        className="w-full sm:max-w-sm bg-cd-card rounded-t-[32px] sm:rounded-xl p-6 pb-safe shadow-2xl animate-in slide-in-from-bottom-full duration-300"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between mb-4">
-          <div className="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
-            <Sparkles size={20} className="text-blue-600 dark:text-blue-400" />
+          <div className="w-11 h-11 rounded-xl bg-cd-accent-soft flex items-center justify-center">
+            <Sparkles size={20} className="text-cd-accent-text" />
           </div>
           <button onClick={close} className="text-gray-400 hover:text-gray-600 -mt-1 -mr-1">
             <X size={22} />
           </button>
         </div>
 
-        <h2 className="text-[19px] font-semibold text-gray-900 dark:text-white mb-1">
+        <h2 className="text-[19px] font-semibold text-cd-text mb-1">
           Welcome back{user?.firstName ? `, ${user.firstName}` : ''}!
         </h2>
-        <p className="text-[14px] text-gray-500 dark:text-gray-400 mb-5">
+        <p className="text-[14px] text-cd-muted mb-5">
           We&apos;re glad to have you here. Here&apos;s a quick tip for today.
         </p>
 
-        <div className="flex items-start gap-3 bg-gray-50 dark:bg-[#181818] rounded-2xl p-4 mb-6">
-          <div className="w-9 h-9 rounded-lg bg-white dark:bg-[#101010] border border-gray-100 dark:border-gray-700 flex items-center justify-center shrink-0">
-            <Icon size={18} className="text-blue-600 dark:text-blue-400" />
+        <div className="flex items-start gap-3 bg-cd-raised rounded-xl p-4 mb-6">
+          <div className="w-9 h-9 rounded-lg bg-cd-card border border-cd-line flex items-center justify-center shrink-0">
+            <Icon size={18} className="text-cd-accent-text" />
           </div>
           <div>
-            <div className="text-[14px] font-semibold text-gray-900 dark:text-white mb-0.5">{tip.title}</div>
-            <div className="text-[13px] text-gray-500 dark:text-gray-400 leading-relaxed">{tip.message}</div>
+            <div className="text-[14px] font-semibold text-cd-text mb-0.5">{tip.title}</div>
+            <div className="text-[13px] text-cd-muted leading-relaxed">{tip.message}</div>
           </div>
         </div>
 
         <button
           onClick={close}
-          className="w-full py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-[15px] transition-colors"
+          className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-[15px] transition-colors"
         >
           Got it
         </button>

@@ -102,16 +102,16 @@ export default function DepositConfirmPage() {
     : null;
 
   return (
-    <div className="flex flex-col min-h-full bg-white dark:bg-[#050505]">
+    <div className="flex flex-col min-h-full bg-cd-page">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 h-14 border-b border-gray-100 dark:border-gray-800 shrink-0">
+      <div className="flex items-center justify-between px-4 h-14 border-b border-cd-line shrink-0">
         <button
           onClick={() => router.back()}
-          className="w-9 h-9 flex items-center justify-center text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+          className="w-9 h-9 flex items-center justify-center text-gray-500 hover:text-gray-700 dark:text-cd-muted dark:hover:text-gray-200 transition-colors"
         >
           <ChevronLeft size={22} />
         </button>
-        <h1 className="text-sm font-semibold text-gray-900 dark:text-white text-center leading-tight">
+        <h1 className="text-sm font-semibold text-cd-text text-center leading-tight">
           Confirm {name} ({symbol}) Deposit
         </h1>
         <div className="w-9" />
@@ -124,7 +124,7 @@ export default function DepositConfirmPage() {
           <div className="flex items-center gap-2">
             <CoinIcon symbol={symbol} />
             <div>
-              <p className="text-sm font-semibold text-gray-900 dark:text-white">{network}</p>
+              <p className="text-sm font-semibold text-cd-text">{network}</p>
               <p className="text-xs text-blue-500 cursor-pointer">Scan QR code to receive</p>
             </div>
           </div>
@@ -135,10 +135,10 @@ export default function DepositConfirmPage() {
               alt="QR Code"
               width={140}
               height={140}
-              className="rounded-lg border border-gray-200 dark:border-gray-700"
+              className="rounded-lg border border-cd-line"
             />
           ) : (
-            <div className="w-36 h-36 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg flex flex-col items-center justify-center gap-1">
+            <div className="w-36 h-36 border-2 border-dashed border-cd-line rounded-lg flex flex-col items-center justify-center gap-1">
               <svg viewBox="0 0 200 200" width="100" height="100" xmlns="http://www.w3.org/2000/svg">
                 {/* Simple QR placeholder pattern */}
                 <rect width="200" height="200" fill="white" />
@@ -165,14 +165,14 @@ export default function DepositConfirmPage() {
         </div>
 
         {/* Wallet address + copy */}
-        <div className="flex items-center gap-2 bg-gray-50 dark:bg-[#101010] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3">
-          <p className="flex-1 text-sm text-gray-700 dark:text-gray-300 break-all font-mono">
+        <div className="flex items-center gap-2 bg-cd-raised border border-cd-line rounded-xl px-4 py-3">
+          <p className="flex-1 text-sm text-cd-text/85 break-all font-mono">
             {walletAddress || 'No address configured'}
           </p>
           <button
             type="button"
             onClick={handleCopy}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#2d5be3] hover:bg-[#2450c8] text-white text-sm font-medium rounded-lg transition-colors shrink-0"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-cd-accent hover:bg-cd-accent-hover text-white text-sm font-medium rounded-lg transition-colors shrink-0"
           >
             {copied ? <Check size={14} /> : <Copy size={14} />}
             {copied ? 'Copied' : 'Copy'}
@@ -182,32 +182,32 @@ export default function DepositConfirmPage() {
         {/* Amount to deposit */}
         <div>
           <div className="flex items-center justify-between mb-1.5">
-            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Amount to deposit</p>
+            <p className="text-sm font-medium text-cd-text/85">Amount to deposit</p>
             <p className="text-xs text-gray-400">USD ↔ {symbol}</p>
           </div>
-          <div className="flex items-center bg-gray-50 dark:bg-[#101010] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3.5">
-            <p className="flex-1 text-lg font-semibold text-[#2d5be3] tabular-nums">{cryptoAmount}</p>
-            <span className="text-sm font-semibold text-gray-500 dark:text-gray-400">{symbol}</span>
+          <div className="flex items-center bg-cd-raised border border-cd-line rounded-xl px-4 py-3.5">
+            <p className="flex-1 text-lg font-semibold text-cd-accent-text tabular-nums">{cryptoAmount}</p>
+            <span className="text-sm font-semibold text-cd-muted">{symbol}</span>
           </div>
         </div>
 
         {/* Transaction ID */}
         <div>
-          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Transaction ID</p>
+          <p className="text-sm font-medium text-cd-text/85 mb-1.5">Transaction ID</p>
           <input
             type="text"
             value={txHash}
             onChange={(e) => setTxHash(e.target.value)}
             placeholder="Enter transaction ID"
-            className="w-full bg-gray-50 dark:bg-[#101010] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2d5be3]/40"
+            className="w-full bg-cd-raised border border-cd-line rounded-xl px-4 py-3.5 text-sm text-cd-text placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2d5be3]/40"
           />
         </div>
 
         {/* Proof of payment */}
         <div>
-          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Transaction ID</p>
+          <p className="text-sm font-medium text-cd-text/85 mb-1.5">Transaction ID</p>
           <div
-            className="w-full bg-gray-50 dark:bg-[#101010] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3.5 cursor-pointer"
+            className="w-full bg-cd-raised border border-cd-line rounded-xl px-4 py-3.5 cursor-pointer"
             onClick={() => fileRef.current?.click()}
           >
             <input
@@ -217,7 +217,7 @@ export default function DepositConfirmPage() {
               className="hidden"
               onChange={(e) => setProofFile(e.target.files?.[0] ?? null)}
             />
-            <span className="text-sm text-gray-500 dark:text-gray-400">
+            <span className="text-sm text-cd-muted">
               {proofFile ? proofFile.name : 'No file chosen'}
             </span>
           </div>
@@ -229,7 +229,7 @@ export default function DepositConfirmPage() {
           type="button"
           onClick={handleSubmit}
           disabled={submitting}
-          className="w-full h-13 bg-[#2d5be3] hover:bg-[#2450c8] disabled:opacity-60 text-white font-semibold rounded-xl transition-colors"
+          className="w-full h-13 bg-cd-accent hover:bg-cd-accent-hover disabled:opacity-60 text-white font-semibold rounded-xl transition-colors"
         >
           {submitting ? 'Submitting…' : 'Confirm Deposit'}
         </button>

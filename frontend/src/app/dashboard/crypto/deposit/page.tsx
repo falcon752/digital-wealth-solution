@@ -93,23 +93,23 @@ export default function DepositPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-full bg-white dark:bg-[#050505]">
+    <div className="flex flex-col min-h-full bg-cd-page">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 h-14 border-b border-gray-100 dark:border-gray-800 shrink-0">
+      <div className="flex items-center justify-between px-4 h-14 border-b border-cd-line shrink-0">
         <button
           onClick={() => router.back()}
-          className="w-9 h-9 flex items-center justify-center text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+          className="w-9 h-9 flex items-center justify-center text-gray-500 hover:text-gray-700 dark:text-cd-muted dark:hover:text-gray-200 transition-colors"
         >
           <ChevronLeft size={22} />
         </button>
-        <h1 className="text-base font-semibold text-gray-900 dark:text-white">Deposit Crypto</h1>
+        <h1 className="text-base font-semibold text-cd-text">Deposit Crypto</h1>
         <div className="w-9" />
       </div>
 
       <div className="flex-1 px-4 py-6 space-y-4">
         {/* Card */}
-        <div className="bg-white dark:bg-[#101010] rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden">
-          <p className="px-5 pt-5 pb-3 text-base font-semibold text-gray-900 dark:text-white">
+        <div className="bg-cd-card rounded-xl border border-cd-line overflow-hidden">
+          <p className="px-5 pt-5 pb-3 text-base font-semibold text-cd-text">
             Create New Deposit
           </p>
 
@@ -118,7 +118,7 @@ export default function DepositPage() {
             <button
               type="button"
               onClick={() => setDropOpen((o) => !o)}
-              className="w-full flex items-center justify-between px-4 py-3.5 bg-gray-100 dark:bg-[#101010] rounded-xl text-sm font-medium text-gray-900 dark:text-white"
+              className="w-full flex items-center justify-between px-4 py-3.5 bg-cd-raised rounded-xl text-sm font-medium text-cd-text"
             >
               <span className="flex items-center gap-2.5">
                 {selected && <CoinIcon symbol={selected.symbol} size={22} />}
@@ -128,13 +128,13 @@ export default function DepositPage() {
             </button>
 
             {dropOpen && (
-              <div className="mt-1 bg-white dark:bg-[#101010] border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg overflow-hidden z-20 relative">
+              <div className="mt-1 bg-cd-card border border-cd-line rounded-xl shadow-lg overflow-hidden z-20 relative">
                 {assets.map((a) => (
                   <button
                     key={a.id}
                     type="button"
                     onClick={() => { setSelected(a); setDropOpen(false); }}
-                    className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-gray-800 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-cd-text hover:bg-cd-raised transition-colors"
                   >
                     <CoinIcon symbol={a.symbol} size={22} />
                     {a.name} ({a.symbol})
@@ -146,17 +146,17 @@ export default function DepositPage() {
 
           {/* Amount input */}
           <div className="px-4 pb-5">
-            <div className="bg-gray-100 dark:bg-[#101010] rounded-xl px-4 py-3">
-              <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">Amount</p>
+            <div className="bg-cd-raised rounded-xl px-4 py-3">
+              <p className="text-xs text-cd-faint mb-1">Amount</p>
               <div className="flex items-center justify-between gap-2">
-                <span className="text-gray-400 dark:text-gray-500 text-sm">$</span>
+                <span className="text-cd-faint text-sm">$</span>
                 <input
                   type="number"
                   min="0"
                   value={usdAmount}
                   onChange={(e) => setUsdAmount(e.target.value)}
                   placeholder="0"
-                  className="flex-1 bg-transparent text-right text-xl font-semibold text-gray-900 dark:text-white focus:outline-none tabular-nums"
+                  className="flex-1 bg-transparent text-right text-xl font-semibold text-cd-text focus:outline-none tabular-nums"
                 />
               </div>
               {selected && (
@@ -173,7 +173,7 @@ export default function DepositPage() {
           type="button"
           onClick={handleContinue}
           disabled={!selected || !usdAmount || parseFloat(usdAmount) <= 0}
-          className="w-full h-13 bg-[#2d5be3] hover:bg-[#2450c8] disabled:opacity-50 text-white font-semibold rounded-xl transition-colors"
+          className="w-full h-13 bg-cd-accent hover:bg-cd-accent-hover disabled:opacity-50 text-white font-semibold rounded-xl transition-colors"
         >
           Continue Deposit
         </button>

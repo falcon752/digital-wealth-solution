@@ -12,7 +12,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { user, isLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const isReferralLink = pathname?.match(/^\/dashboard\/[A-Za-z0-9]{8}$/);
+  // Referral codes are 8 hex characters (e.g. /dashboard/A7B9F102). Matching any 8 letters also
+  // caught /dashboard/withdraw and /dashboard/settings, which then lost the sidebar and sign-in check.
+  const isReferralLink = pathname?.match(/^\/dashboard\/[0-9A-Fa-f]{8}$/);
 
   useEffect(() => {
     // Check if this is a referral link redirect (e.g., /dashboard/A7B9F102)
@@ -29,7 +31,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   if (isReferralLink) {
     return (
-      <div className="flex flex-col min-h-screen bg-white dark:bg-[#050505]">
+      <div className="flex flex-col min-h-screen bg-cd-page">
         {children}
       </div>
     );
@@ -38,7 +40,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (isLoading || !user || !isAuthorized) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-cd-accent border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -55,9 +57,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <SidebarProvider>
-      <div className="flex h-screen overflow-hidden bg-gray-100 dark:bg-[#050505]">
+      <div className="flex h-screen overflow-hidden bg-cd-page text-cd-text">
         <DashboardSidebar />
-        <main className="flex-1 overflow-y-auto pb-16 scrollbar-hide bg-white dark:bg-[#050505]">
+        <main className="min-w-0 flex-1 overflow-y-auto bg-cd-page pb-20 lg:pb-0">
           {children}
         </main>
         <MobileBottomNav />

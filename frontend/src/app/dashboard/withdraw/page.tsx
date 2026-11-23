@@ -111,28 +111,28 @@ export default function WithdrawPage() {
 
   if (step === 'success') {
     return (
-      <div className="fixed inset-0 z-[100] flex flex-col bg-white dark:bg-[#050505] pb-8 animate-in fade-in zoom-in-95 duration-300">
+      <div className="fixed inset-0 z-[100] flex flex-col bg-cd-page pb-8 animate-in fade-in zoom-in-95 duration-300">
         <div className="flex-1 flex flex-col items-center justify-center p-6">
           <div className="w-24 h-24 rounded-full bg-green-50 dark:bg-green-900/20 flex items-center justify-center mx-auto mb-6">
             <div className="w-16 h-16 rounded-full bg-green-500 text-white flex items-center justify-center shadow-lg shadow-green-500/30">
               <Check size={36} strokeWidth={3} />
             </div>
           </div>
-          <h2 className="text-[28px] font-semibold text-gray-900 dark:text-white mb-3 tracking-tight">Withdrawal Submitted</h2>
-          <p className="text-gray-500 dark:text-gray-400 text-[15px] text-center max-w-[280px] font-medium leading-relaxed">
+          <h2 className="text-[28px] font-semibold text-cd-text mb-3 tracking-tight">Withdrawal Submitted</h2>
+          <p className="text-cd-muted text-[15px] text-center max-w-[280px] font-medium leading-relaxed">
             Your withdrawal request has been verified and submitted. The admin will process it shortly.
           </p>
         </div>
 
         <div className="px-6 flex flex-col gap-3 w-full max-w-md mx-auto">
           <Link href="/dashboard/assets" className="w-full">
-            <Button className="w-full bg-[#2d68d8] text-white hover:bg-blue-700 h-[52px] text-[16px] font-semibold rounded-2xl border-none">
+            <Button className="w-full bg-cd-accent text-white hover:bg-blue-700 h-[52px] text-[16px] font-semibold rounded-xl border-none">
               Done
             </Button>
           </Link>
           <Button
             onClick={resetFlow}
-            className="w-full bg-[#f4f5f8] dark:bg-[#101010] text-gray-900 dark:text-white h-[52px] text-[16px] font-semibold rounded-2xl hover:bg-gray-200 dark:hover:bg-gray-700 border-none"
+            className="w-full bg-cd-raised text-cd-text h-[52px] text-[16px] font-semibold rounded-xl hover:bg-cd-raised border-none"
           >
             New Withdrawal
           </Button>
@@ -148,7 +148,7 @@ export default function WithdrawPage() {
       <div className="flex-1 p-6">
         <div className="max-w-2xl mx-auto space-y-6">
           {/* Balance */}
-          <div className="glass rounded-2xl p-5 flex items-center justify-between">
+          <div className="glass rounded-xl p-5 flex items-center justify-between">
             <div>
               <p className="text-xs text-[var(--text-muted)] mb-1">Available to Withdraw</p>
               <p className="text-2xl font-semibold text-[var(--text-primary)]">
@@ -173,7 +173,7 @@ export default function WithdrawPage() {
 
           {step === 'form' && (
             <>
-              <div className="glass rounded-2xl p-5 flex gap-3">
+              <div className="glass rounded-xl p-5 flex gap-3">
                 <Info size={18} className="text-brand-400 flex-shrink-0 mt-0.5" />
                 <div className="text-sm text-[var(--text-muted)]">
                   <p className="font-medium text-[var(--text-secondary)] mb-1">Withdrawal requires verification:</p>
@@ -184,7 +184,7 @@ export default function WithdrawPage() {
                 </div>
               </div>
 
-              <div className="glass rounded-2xl p-5 flex gap-3 border border-amber-400/30 bg-amber-500/10">
+              <div className="glass rounded-xl p-5 flex gap-3 border border-amber-400/30 bg-amber-500/10">
                 <TriangleAlert size={19} className="text-amber-500 flex-shrink-0 mt-0.5" />
                 <div className="text-sm text-[var(--text-muted)]">
                   <p className="font-semibold text-[var(--text-secondary)] mb-1">Tax warning before withdrawal</p>
@@ -235,9 +235,9 @@ export default function WithdrawPage() {
                   {...register('destinationAddress')}
                 />
 
-                <div className="rounded-xl bg-gray-50 dark:bg-gray-800/50 p-4 border border-gray-100 dark:border-gray-800 flex justify-between items-center text-sm">
+                <div className="rounded-xl bg-cd-raised p-4 border border-cd-line flex justify-between items-center text-sm">
                   <span className="text-gray-500 font-medium">Withdrawal Fee</span>
-                  <span className="text-gray-900 dark:text-white font-semibold">9.04% + Network Fee</span>
+                  <span className="text-cd-text font-semibold">9.04% + Network Fee</span>
                 </div>
 
                 <Button type="submit" className="w-full" size="lg" loading={isLoading}>
@@ -248,9 +248,9 @@ export default function WithdrawPage() {
           )}
 
           {step === 'otp' && (
-            <div className="glass rounded-2xl p-7 space-y-5">
+            <div className="glass rounded-xl p-7 space-y-5">
               <div className="text-center">
-                <div className="w-14 h-14 rounded-2xl bg-brand-600/20 border border-brand-500/30 flex items-center justify-center mx-auto mb-4">
+                <div className="w-14 h-14 rounded-xl bg-brand-600/20 border border-brand-500/30 flex items-center justify-center mx-auto mb-4">
                   <Shield size={24} className="text-brand-400" />
                 </div>
                 <h2 className="text-lg font-semibold text-[var(--text-primary)]">Email Verification</h2>

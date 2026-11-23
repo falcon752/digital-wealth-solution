@@ -45,7 +45,7 @@ function CoinIcon({ symbol }: { symbol: string }) {
 
   if (errored) {
     return (
-      <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-semibold text-gray-500 dark:text-gray-400">
+      <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-semibold text-cd-muted">
         {symbol.slice(0, 2)}
       </div>
     );
@@ -108,14 +108,14 @@ function BuyModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-0 sm:p-4">
-      <div className="bg-white dark:bg-[#101010] w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 max-h-[90vh] overflow-y-auto">
+      <div className="bg-cd-card w-full sm:max-w-md rounded-t-3xl sm:rounded-xl shadow-2xl border border-cd-line max-h-[90vh] overflow-y-auto">
         {/* Modal header */}
-        <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100 dark:border-gray-800">
+        <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-cd-line">
           <div className="flex items-center gap-3">
             <CoinIcon symbol={asset.symbol} />
             <div>
-              <p className="font-semibold text-gray-900 dark:text-white">Buy {asset.symbol}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">{asset.name}</p>
+              <p className="font-semibold text-cd-text">Buy {asset.symbol}</p>
+              <p className="text-xs text-cd-muted">{asset.name}</p>
             </div>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
@@ -126,9 +126,9 @@ function BuyModal({
         <form onSubmit={handleSubmit(onSubmit)} className="px-6 py-5 space-y-5">
           {/* Wallet address */}
           <div>
-            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Send {asset.symbol} to this address</p>
-            <div className="flex items-center gap-2 bg-gray-50 dark:bg-[#101010] rounded-xl px-3 py-3 border border-gray-200 dark:border-gray-700">
-              <p className="flex-1 text-xs font-mono text-gray-700 dark:text-gray-300 break-all leading-relaxed">
+            <p className="text-xs font-medium text-cd-muted mb-2">Send {asset.symbol} to this address</p>
+            <div className="flex items-center gap-2 bg-cd-raised rounded-xl px-3 py-3 border border-cd-line">
+              <p className="flex-1 text-xs font-mono text-cd-text/85 break-all leading-relaxed">
                 {asset.walletAddress}
               </p>
               <button type="button" onClick={copyAddress} className="shrink-0 text-gray-400 hover:text-blue-500 transition-colors ml-2">
@@ -136,13 +136,13 @@ function BuyModal({
               </button>
             </div>
             {asset.network && (
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1.5">Network: {asset.network}</p>
+              <p className="text-xs text-cd-faint mt-1.5">Network: {asset.network}</p>
             )}
           </div>
 
           {/* Amount */}
           <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
+            <label className="block text-xs font-medium text-cd-muted mb-1.5">
               Amount ({asset.symbol})
             </label>
             <input
@@ -150,14 +150,14 @@ function BuyModal({
               type="number"
               step="any"
               placeholder={`Min: ${asset.minDeposit || 0}`}
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#101010] text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2.5 rounded-xl border border-cd-line bg-cd-card text-sm text-cd-text placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             {errors.amount && <p className="text-xs text-red-500 mt-1">{errors.amount.message}</p>}
           </div>
 
           {/* USD Value */}
           <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
+            <label className="block text-xs font-medium text-cd-muted mb-1.5">
               USD Value <span className="text-gray-400">(optional)</span>
             </label>
             <input
@@ -165,20 +165,20 @@ function BuyModal({
               type="number"
               step="any"
               placeholder="e.g. 500"
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#101010] text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2.5 rounded-xl border border-cd-line bg-cd-card text-sm text-cd-text placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
           {/* Tx Hash */}
           <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
+            <label className="block text-xs font-medium text-cd-muted mb-1.5">
               Transaction Hash <span className="text-gray-400">(optional but recommended)</span>
             </label>
             <input
               {...register('txHash')}
               type="text"
               placeholder="0x..."
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#101010] text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2.5 rounded-xl border border-cd-line bg-cd-card text-sm text-cd-text placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
@@ -187,14 +187,14 @@ function BuyModal({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              className="flex-1 px-4 py-3 rounded-xl border border-cd-line text-sm font-medium text-cd-muted hover:bg-cd-raised transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 px-4 py-3 rounded-xl bg-[#2d5be3] text-white text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-60"
+              className="flex-1 px-4 py-3 rounded-xl bg-cd-accent text-white text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-60"
             >
               {isSubmitting ? 'Submitting…' : 'Confirm Deposit'}
             </button>
@@ -227,9 +227,9 @@ function ReceiveModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-0 sm:p-4">
-      <div className="bg-white dark:bg-[#101010] w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700">
-        <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100 dark:border-gray-800">
-          <p className="font-semibold text-gray-900 dark:text-white">Receive {asset.symbol}</p>
+      <div className="bg-cd-card w-full sm:max-w-sm rounded-t-3xl sm:rounded-xl shadow-2xl border border-cd-line">
+        <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-cd-line">
+          <p className="font-semibold text-cd-text">Receive {asset.symbol}</p>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
             <X size={20} />
           </button>
@@ -242,17 +242,17 @@ function ReceiveModal({
                 alt="QR Code"
                 width={160}
                 height={160}
-                className="rounded-xl border border-gray-100 dark:border-gray-800"
+                className="rounded-xl border border-cd-line"
               />
             </div>
           )}
-          <div className="bg-gray-50 dark:bg-[#101010] rounded-xl px-4 py-3 border border-gray-200 dark:border-gray-700">
-            <p className="text-xs font-mono text-gray-700 dark:text-gray-300 break-all">{asset.walletAddress}</p>
+          <div className="bg-cd-raised rounded-xl px-4 py-3 border border-cd-line">
+            <p className="text-xs font-mono text-cd-text/85 break-all">{asset.walletAddress}</p>
           </div>
           {asset.network && <p className="text-xs text-gray-400">Network: {asset.network}</p>}
           <button
             onClick={copyAddress}
-            className="w-full py-3 rounded-xl bg-[#2d5be3] text-white text-sm font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
+            className="w-full py-3 rounded-xl bg-cd-accent text-white text-sm font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
           >
             {copied ? <Check size={16} /> : <Copy size={16} />}
             {copied ? 'Copied!' : 'Copy Address'}
@@ -260,7 +260,7 @@ function ReceiveModal({
           {/* After sending, user notifies admin via the deposit form */}
           <button
             onClick={onDeposit}
-            className="w-full py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center justify-center gap-2"
+            className="w-full py-2.5 rounded-xl border border-cd-line text-sm font-medium text-cd-muted hover:bg-cd-raised transition-colors flex items-center justify-center gap-2"
           >
             I&apos;ve sent the funds — Notify Admin →
           </button>
@@ -284,26 +284,26 @@ function AssetPickerModal({
 }) {
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-0 sm:p-4">
-      <div className="bg-white dark:bg-[#101010] w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 max-h-[70vh] flex flex-col">
-        <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
-          <p className="font-semibold text-gray-900 dark:text-white">
+      <div className="bg-cd-card w-full sm:max-w-sm rounded-t-3xl sm:rounded-xl shadow-2xl border border-cd-line max-h-[70vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-cd-line shrink-0">
+          <p className="font-semibold text-cd-text">
             {mode === 'buy' ? 'Buy — Select Asset' : mode === 'receive' ? 'Receive — Select Asset' : 'Send — Select Asset'}
           </p>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
             <X size={20} />
           </button>
         </div>
-        <div className="overflow-y-auto divide-y divide-gray-100 dark:divide-gray-800">
+        <div className="overflow-y-auto divide-y divide-cd-line">
           {assets.map((a) => (
             <button
               key={a.id}
               onClick={() => onSelect(a)}
-              className="w-full flex items-center gap-4 px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-left"
+              className="w-full flex items-center gap-4 px-6 py-4 hover:bg-cd-raised transition-colors text-left"
             >
               <CoinIcon symbol={a.symbol} />
               <div>
-                <p className="text-sm font-semibold text-gray-900 dark:text-white">{a.symbol}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{a.name}</p>
+                <p className="text-sm font-semibold text-cd-text">{a.symbol}</p>
+                <p className="text-xs text-cd-muted">{a.name}</p>
               </div>
             </button>
           ))}
@@ -406,12 +406,12 @@ function SendModal({
       {/* Validation error overlay */}
       {validationError && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/30 backdrop-blur-sm p-4">
-          <div className="bg-white dark:bg-[#101010] rounded-2xl shadow-2xl p-8 max-w-xs w-full text-center">
+          <div className="bg-cd-card rounded-xl shadow-2xl p-8 max-w-xs w-full text-center">
             <div className="w-16 h-16 rounded-full border-2 border-red-400 flex items-center justify-center mx-auto mb-4">
               <X size={28} className="text-red-400" />
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Error</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">{validationError}</p>
+            <h3 className="text-xl font-semibold text-cd-text mb-2">Error</h3>
+            <p className="text-sm text-cd-muted mb-6">{validationError}</p>
             <button
               onClick={() => setValidationError(null)}
               className="px-10 py-2.5 rounded-xl bg-red-500 text-white font-semibold hover:opacity-90 transition-opacity"
@@ -423,16 +423,16 @@ function SendModal({
       )}
 
       <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-0 sm:p-4">
-        <div className="bg-white dark:bg-[#101010] w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 max-h-[90vh] overflow-y-auto">
+        <div className="bg-cd-card w-full sm:max-w-md rounded-t-3xl sm:rounded-xl shadow-2xl border border-cd-line max-h-[90vh] overflow-y-auto">
 
           {/* ── Step 1: Withdrawal form ── */}
           {step === 'form' && (
             <>
-              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-cd-line">
                 <button onClick={onClose} className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
                   <X size={20} />
                 </button>
-                <p className="font-semibold text-gray-900 dark:text-white">Withdraw {asset.name}</p>
+                <p className="font-semibold text-cd-text">Withdraw {asset.name}</p>
                 <div className="w-5" />
               </div>
 
@@ -440,44 +440,44 @@ function SendModal({
                 {/* Amount */}
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Amount</label>
+                    <label className="text-sm font-medium text-cd-text/85">Amount</label>
                     <button
                       type="button"
                       onClick={() => setAmountMode((m) => m === 'usd' ? 'crypto' : 'usd')}
-                      className="text-xs font-medium text-gray-500 dark:text-gray-400 border border-gray-300 dark:border-gray-600 rounded-lg px-2.5 py-1 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                      className="text-xs font-medium text-cd-muted border border-cd-line rounded-lg px-2.5 py-1 hover:bg-cd-raised transition-colors"
                     >
                       {amountMode === 'usd' ? `USD ↔ ${asset.symbol}` : `${asset.symbol} ↔ USD`}
                     </button>
                   </div>
-                  <div className="flex items-center bg-gray-50 dark:bg-[#101010] border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+                  <div className="flex items-center bg-cd-raised border border-cd-line rounded-xl overflow-hidden">
                     <input
                       {...register('amount')}
                       type="number"
                       step="any"
                       placeholder="0.00"
-                      className="flex-1 px-4 py-3.5 bg-transparent text-gray-900 dark:text-white text-base focus:outline-none"
+                      className="flex-1 px-4 py-3.5 bg-transparent text-cd-text text-base focus:outline-none"
                     />
-                    <span className="pr-4 text-sm font-semibold text-blue-600 dark:text-blue-400">
+                    <span className="pr-4 text-sm font-semibold text-cd-accent-text">
                       {amountMode === 'usd' ? 'USD' : asset.symbol}
                     </span>
                   </div>
                   {errors.amount && <p className="text-xs text-red-500 mt-1">{errors.amount.message}</p>}
-                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-2 text-center">
+                  <p className="text-xs text-cd-faint mt-2 text-center">
                     ≈ {converted} {amountMode === 'usd' ? asset.symbol : 'USD'}
                   </p>
                 </div>
 
                 {/* Destination wallet */}
                 <div>
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                  <label className="text-sm font-medium text-cd-text/85 mb-2 block">
                     Your Destination Wallet Address
                   </label>
-                  <div className="bg-gray-50 dark:bg-[#101010] border border-gray-200 dark:border-gray-700 rounded-xl">
+                  <div className="bg-cd-raised border border-cd-line rounded-xl">
                     <input
                       {...register('destinationAddress')}
                       type="text"
                       placeholder="0x... or bc1..."
-                      className="w-full px-4 py-3.5 bg-transparent text-gray-900 dark:text-white text-sm focus:outline-none"
+                      className="w-full px-4 py-3.5 bg-transparent text-cd-text text-sm focus:outline-none"
                     />
                   </div>
                   {errors.destinationAddress && (
@@ -488,7 +488,7 @@ function SendModal({
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-4 rounded-2xl bg-[#2d5be3] text-white font-semibold text-base hover:opacity-90 transition-opacity disabled:opacity-60"
+                  className="w-full py-4 rounded-xl bg-cd-accent text-white font-semibold text-base hover:opacity-90 transition-opacity disabled:opacity-60"
                 >
                   {isSubmitting ? 'Submitting…' : 'Request Withdrawal'}
                 </button>
@@ -499,21 +499,21 @@ function SendModal({
           {/* ── Step 2: OTP verification ── */}
           {step === 'otp' && (
             <>
-              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-cd-line">
                 <button onClick={() => setStep('form')} className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 transition-colors text-sm">
                   ← Back
                 </button>
-                <p className="font-semibold text-gray-900 dark:text-white">Verify Withdrawal</p>
+                <p className="font-semibold text-cd-text">Verify Withdrawal</p>
                 <div className="w-12" />
               </div>
 
               <div className="px-5 py-8 space-y-6 text-center">
-                <div className="w-16 h-16 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center mx-auto">
+                <div className="w-16 h-16 rounded-full bg-cd-accent-soft flex items-center justify-center mx-auto">
                   <span className="text-2xl">📧</span>
                 </div>
                 <div>
-                  <p className="font-semibold text-gray-900 dark:text-white mb-1">Check your email</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                  <p className="font-semibold text-cd-text mb-1">Check your email</p>
+                  <p className="text-sm text-cd-muted">
                     We sent a 6-digit verification code to your registered email. Enter it below to confirm this withdrawal.
                   </p>
                 </div>
@@ -525,13 +525,13 @@ function SendModal({
                   value={otp}
                   onChange={(e) => setOtp(e.target.value.slice(0, 6))}
                   placeholder="000000"
-                  className="w-full text-center text-2xl font-semibold tracking-widest px-4 py-4 rounded-2xl border-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#101010] text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 transition-colors"
+                  className="w-full text-center text-2xl font-semibold tracking-widest px-4 py-4 rounded-xl border-2 border-cd-line bg-cd-raised text-cd-text focus:outline-none focus:border-blue-500 transition-colors"
                 />
 
                 <button
                   onClick={verifyOtp}
                   disabled={isSubmitting || otp.length !== 6}
-                  className="w-full py-4 rounded-2xl bg-[#2d5be3] text-white font-semibold text-base hover:opacity-90 transition-opacity disabled:opacity-60"
+                  className="w-full py-4 rounded-xl bg-cd-accent text-white font-semibold text-base hover:opacity-90 transition-opacity disabled:opacity-60"
                 >
                   {isSubmitting ? 'Verifying…' : 'Confirm Withdrawal'}
                 </button>
@@ -599,17 +599,17 @@ export default function CryptoAssetsPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-full bg-white dark:bg-[#050505]">
+    <div className="flex flex-col min-h-full bg-cd-page">
       {/* Wallet header */}
-      <div className="flex items-center justify-between px-5 h-14 border-b border-gray-100 dark:border-gray-800 shrink-0">
-        <button onClick={openSidebar} className="w-9 h-9 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
+      <div className="flex items-center justify-between px-5 h-14 border-b border-cd-line shrink-0">
+        <button onClick={openSidebar} className="w-9 h-9 flex items-center justify-center text-cd-muted hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
           <AlignJustify size={20} />
         </button>
-        <button className="flex items-center gap-1.5 text-sm font-semibold text-gray-900 dark:text-white hover:opacity-80 transition-opacity">
+        <button className="flex items-center gap-1.5 text-sm font-semibold text-cd-text hover:opacity-80 transition-opacity">
           Main Wallet 1
           <ChevronDown size={15} className="text-gray-500" />
         </button>
-        <button className="relative w-9 h-9 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
+        <button className="relative w-9 h-9 flex items-center justify-center text-cd-muted hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
           <Bell size={20} />
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-gray-950" />
         </button>
@@ -617,10 +617,10 @@ export default function CryptoAssetsPage() {
 
       {/* Balance */}
       <div className="text-center pt-8 pb-6 px-6 shrink-0">
-        <p className="text-5xl font-semibold text-gray-900 dark:text-white tracking-tight">
+        <p className="text-5xl font-semibold text-cd-text tracking-tight">
           ${balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </p>
-        <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">$0.00 (0.00%)</p>
+        <p className="text-sm text-cd-faint mt-2">$0.00 (0.00%)</p>
       </div>
 
       {/* Action buttons */}
@@ -634,7 +634,7 @@ export default function CryptoAssetsPage() {
           <button
             key={key}
             onClick={() => handleActionClick(key)}
-            className="flex flex-col items-center justify-center gap-2 py-4 rounded-2xl text-sm font-medium transition-all bg-gray-100 dark:bg-[#101010] text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 active:bg-[#2d5be3] active:text-white"
+            className="flex flex-col items-center justify-center gap-2 py-4 rounded-xl text-sm font-medium transition-all bg-cd-raised text-cd-text/85 hover:bg-cd-raised active:bg-[#2d5be3] active:text-white"
           >
             <Icon size={20} />
             <span className="text-xs">{label}</span>
@@ -643,14 +643,14 @@ export default function CryptoAssetsPage() {
       </div>
 
       {/* Crypto / NFTs tabs */}
-      <div className="flex items-center justify-between px-5 border-b border-gray-100 dark:border-gray-800 shrink-0">
+      <div className="flex items-center justify-between px-5 border-b border-cd-line shrink-0">
         <div className="flex">
           {(['crypto', 'nfts'] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
               className={`px-1 py-3 mr-6 text-sm font-semibold border-b-2 transition-colors ${tab === t
-                  ? 'border-[#2d5be3] text-[#2d5be3]'
+                  ? 'border-cd-accent text-cd-accent-text'
                   : 'border-transparent text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
                 }`}
             >
@@ -664,18 +664,18 @@ export default function CryptoAssetsPage() {
       {/* Asset list */}
       {loading ? (
         <div className="flex items-center justify-center h-40">
-          <div className="w-7 h-7 border-2 border-[#2d5be3] border-t-transparent rounded-full animate-spin" />
+          <div className="w-7 h-7 border-2 border-cd-accent border-t-transparent rounded-full animate-spin" />
         </div>
       ) : tab === 'nfts' ? (
-        <div className="flex items-center justify-center h-40 text-sm text-gray-400 dark:text-gray-500">
+        <div className="flex items-center justify-center h-40 text-sm text-cd-faint">
           No NFTs in this wallet
         </div>
       ) : assets.length === 0 ? (
-        <div className="flex items-center justify-center h-40 text-sm text-gray-400 dark:text-gray-500">
+        <div className="flex items-center justify-center h-40 text-sm text-cd-faint">
           No assets available
         </div>
       ) : (
-        <div className="flex-1 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-800/60">
+        <div className="flex-1 overflow-y-auto divide-y divide-cd-line">
           {assets.map((asset) => (
             <button
               key={asset.id}
@@ -688,15 +688,15 @@ export default function CryptoAssetsPage() {
               </div>
               {/* Name / price */}
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                <p className="text-sm font-semibold text-cd-text">
                   {asset.name} ({asset.symbol})
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                <p className="text-xs text-cd-muted mt-0.5">
                   0.00000000 {asset.symbol}
                 </p>
               </div>
               {/* View Details */}
-              <div className="flex items-center gap-1 shrink-0 ml-4 text-gray-400 dark:text-gray-500">
+              <div className="flex items-center gap-1 shrink-0 ml-4 text-cd-faint">
                 <span className="text-xs font-medium">View Details</span>
                 <ChevronRight size={14} />
               </div>

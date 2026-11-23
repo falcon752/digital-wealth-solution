@@ -28,6 +28,26 @@
   --color-text-primary:   #111827;
   --color-text-secondary: #374151;
   --color-text-muted:     #6b7280;
+
+  /* Client dashboard tokens (values in :root / .dark below): bg-cd-card, text-cd-muted, … */
+  --color-cd-page:        var(--cd-page);
+  --color-cd-sidebar:     var(--cd-sidebar);
+  --color-cd-card:        var(--cd-card);
+  --color-cd-raised:      var(--cd-raised);
+  --color-cd-band:        var(--cd-band);
+  --color-cd-input:       var(--cd-input);
+  --color-cd-line:        var(--cd-line);
+  --color-cd-line-strong: var(--cd-line-strong);
+  --color-cd-text:        var(--cd-text);
+  --color-cd-muted:       var(--cd-muted);
+  --color-cd-faint:       var(--cd-faint);
+  --color-cd-accent:      var(--cd-accent);
+  --color-cd-accent-hover:var(--cd-accent-hover);
+  --color-cd-accent-soft: var(--cd-accent-soft);
+  --color-cd-accent-text: var(--cd-accent-text);
+  --color-cd-positive:    var(--cd-positive);
+  --color-cd-negative:    var(--cd-negative);
+  --color-cd-warning:     var(--cd-warning);
 }
 
 /* ─── Light mode CSS vars ────────────────────────────────────────────────── */
@@ -53,6 +73,58 @@
   --text-muted:    #9ca3af;
   --glow:          rgba(37,99,235,0.35);
 }
+
+
+/* ─── Client dashboard theme ───────────────────────────────────────────────
+   Dark follows Anchorage Digital's web dashboard: a black page, grey cards
+   stepped up by brightness (no borders or shadows), a periwinkle accent used
+   only for the main action, links and counts. Light follows DirectStay's host
+   and traveler dashboards: an off-white page, white cards, charcoal text. */
+:root {
+  --cd-page:        #FBFBFB;
+  --cd-sidebar:     #FBFBFB;
+  --cd-card:        #FFFFFF;
+  --cd-raised:      #F0F1F4;
+  --cd-band:        #F5F5F7;
+  --cd-input:       #F3F3F3;
+  --cd-line:        #E8E8E8;
+  --cd-line-strong: #DADCE0;
+  --cd-text:        #2C3236;
+  --cd-muted:       #606060;
+  --cd-faint:       #9A9DA3;
+  --cd-accent:      #4569FD;
+  --cd-accent-hover:#3558FC;
+  --cd-accent-soft: rgba(69, 105, 253, 0.10);
+  --cd-accent-text: #3D5CD6;
+  --cd-positive:    #166534;
+  --cd-negative:    #FB3748;
+  --cd-warning:     #B7791F;
+  --cd-card-shadow: 0 2px 4px rgba(27, 28, 29, 0.04);
+}
+.dark {
+  --cd-page:        #000000;
+  --cd-sidebar:     #000000;
+  --cd-card:        #141414;
+  --cd-raised:      #1E1F21;
+  --cd-band:        #262626;
+  --cd-input:       #1E1F21;
+  --cd-line:        #252525;
+  --cd-line-strong: #333436;
+  --cd-text:        #FFFFFF;
+  --cd-muted:       #A2A4A9;
+  --cd-faint:       #5F6166;
+  --cd-accent:      #5580F6;
+  --cd-accent-hover:#6B91F8;
+  --cd-accent-soft: rgba(85, 128, 246, 0.16);
+  --cd-accent-text: #7C9BF8;
+  --cd-positive:    #8ED09C;
+  --cd-negative:    #F08A84;
+  --cd-warning:     #F2C46D;
+  --cd-card-shadow: none;
+}
+.cd-card { background: var(--cd-card); box-shadow: var(--cd-card-shadow); }
+.dark .cd-card { box-shadow: none; }
+.cd-num { font-variant-numeric: tabular-nums; }
 
 /* ─── Base ───────────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }

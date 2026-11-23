@@ -52,9 +52,9 @@ export default function LLCStartPage() {
   }, []);
 
   return (
-    <div className="min-h-full bg-white dark:bg-[#050505] font-sans text-gray-900 dark:text-white">
+    <div className="min-h-full bg-cd-page font-sans text-cd-text">
       {/* Header */}
-      <header className="bg-white dark:bg-[#101010] px-4 md:px-6 h-16 flex items-center justify-between border-b border-gray-200 dark:border-gray-800">
+      <header className="bg-cd-card px-4 md:px-6 h-16 flex items-center justify-between border-b border-cd-line">
         <div className="flex items-center">
           <img 
             src={isDarkMode ? '/wyoming-dark.png' : '/wyoming-light.png'} 
@@ -64,11 +64,11 @@ export default function LLCStartPage() {
         </div>
         <div className="flex items-center gap-6">
           <ThemeToggle />
-          <button className="flex items-center gap-2 text-[15px] font-medium text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white">
-            <FeedbackIcon className="text-gray-500 dark:text-gray-400" />
+          <button className="flex items-center gap-2 text-[15px] font-medium text-cd-text/85 hover:text-black dark:hover:text-white">
+            <FeedbackIcon className="text-cd-muted" />
             Feedback
           </button>
-          <button onClick={() => router.push('/dashboard')} className="text-[15px] font-semibold text-gray-900 dark:text-white hover:opacity-80">
+          <button onClick={() => router.push('/dashboard')} className="text-[15px] font-semibold text-cd-text hover:opacity-80">
             Login
           </button>
         </div>
@@ -76,7 +76,7 @@ export default function LLCStartPage() {
 
       {/* Info Banner */}
       {bannerVisible && (
-        <div className="bg-[#5c50f6] text-white px-4 py-3.5 relative text-center text-[15px] leading-relaxed">
+        <div className="bg-cd-accent text-white px-4 py-3.5 relative text-center text-[15px] leading-relaxed">
           Welcome to our new intake experience! If you find any issues, please use the <strong className="font-semibold">feedback icon above</strong>. Be the <strong className="font-semibold">first to report a validated bug</strong> and we'll refund your entire formation fee!
           <button onClick={() => setBannerVisible(false)} className="absolute right-3 top-1/2 -translate-y-1/2 p-2 hover:bg-white/20 rounded-full transition-colors">
             <X size={20} />
@@ -88,14 +88,14 @@ export default function LLCStartPage() {
 
         {/* Hero */}
         <div className="flex flex-col items-center text-center gap-5">
-          <div className="w-20 h-20 bg-[#3b82f6] rounded-2xl flex items-center justify-center shadow-lg">
+          <div className="w-20 h-20 bg-cd-accent rounded-xl flex items-center justify-center shadow-lg">
             <Building2 size={38} className="text-white" />
           </div>
           <div>
-            <h1 className="text-[34px] md:text-[40px] font-semibold text-gray-900 dark:text-white tracking-tight leading-[1.1]">
+            <h1 className="text-[34px] md:text-[40px] font-semibold text-cd-text tracking-tight leading-[1.1]">
               Start Your Business Journey
             </h1>
-            <p className="mt-4 text-[16px] text-gray-600 dark:text-gray-400 max-w-md mx-auto leading-relaxed font-medium">
+            <p className="mt-4 text-[16px] text-cd-muted max-w-md mx-auto leading-relaxed font-medium">
               Choose the structure that best fits your business needs. We&apos;ll help you make the right choice.
             </p>
           </div>
@@ -104,19 +104,19 @@ export default function LLCStartPage() {
         {/* Choice cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           {/* New Company */}
-          <div className="bg-white dark:bg-[#101010] rounded-2xl border border-gray-300 dark:border-gray-700 shadow-sm p-8 flex flex-col items-center text-center gap-4 hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
-            <div className="w-14 h-14 bg-[#3b82f6] rounded-xl flex items-center justify-center">
+          <div className="bg-cd-card rounded-xl border border-cd-line shadow-sm p-8 flex flex-col items-center text-center gap-4 hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
+            <div className="w-14 h-14 bg-cd-accent rounded-xl flex items-center justify-center">
               <Building2 size={26} className="text-white" />
             </div>
             <div>
-              <h2 className="text-[20px] font-semibold text-gray-900 dark:text-white">New Company</h2>
-              <p className="mt-2 text-[14.5px] text-gray-600 dark:text-gray-400 leading-relaxed font-medium">
+              <h2 className="text-[20px] font-semibold text-cd-text">New Company</h2>
+              <p className="mt-2 text-[14.5px] text-cd-muted leading-relaxed font-medium">
                 Perfect for starting a standalone business or individual venture.
               </p>
             </div>
             <button
               onClick={() => router.push('/dashboard/llc/new?type=new')}
-              className="mt-3 w-full flex items-center justify-center gap-2 bg-[#3b82f6] hover:bg-[#2563eb] text-white font-semibold py-3.5 rounded-xl transition-colors"
+              className="mt-3 w-full flex items-center justify-center gap-2 bg-cd-accent hover:bg-cd-accent-hover text-white font-semibold py-3.5 rounded-xl transition-colors"
             >
               <ArrowRight size={18} />
               Choose
@@ -124,19 +124,19 @@ export default function LLCStartPage() {
           </div>
 
           {/* Existing Company */}
-          <div className="bg-white dark:bg-[#101010] rounded-2xl border border-gray-300 dark:border-gray-700 shadow-sm p-8 flex flex-col items-center text-center gap-4 hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
-            <div className="w-14 h-14 bg-[#3b82f6] rounded-xl flex items-center justify-center">
+          <div className="bg-cd-card rounded-xl border border-cd-line shadow-sm p-8 flex flex-col items-center text-center gap-4 hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
+            <div className="w-14 h-14 bg-cd-accent rounded-xl flex items-center justify-center">
               <RefreshCw size={26} className="text-white" />
             </div>
             <div>
-              <h2 className="text-[20px] font-semibold text-gray-900 dark:text-white">Existing Company</h2>
-              <p className="mt-2 text-[14.5px] text-gray-600 dark:text-gray-400 leading-relaxed font-medium">
+              <h2 className="text-[20px] font-semibold text-cd-text">Existing Company</h2>
+              <p className="mt-2 text-[14.5px] text-cd-muted leading-relaxed font-medium">
                 Switch to our registered agent service for enhanced protection and support.
               </p>
             </div>
             <button
               onClick={() => router.push('/dashboard/llc/new?type=existing')}
-              className="mt-3 w-full flex items-center justify-center gap-2 bg-[#3b82f6] hover:bg-[#2563eb] text-white font-semibold py-3.5 rounded-xl transition-colors"
+              className="mt-3 w-full flex items-center justify-center gap-2 bg-cd-accent hover:bg-cd-accent-hover text-white font-semibold py-3.5 rounded-xl transition-colors"
             >
               <ArrowRight size={18} />
               Choose
@@ -145,19 +145,19 @@ export default function LLCStartPage() {
         </div>
 
         {/* Understanding Business Structures */}
-        <div className="bg-[#f8fafc] dark:bg-[#101010] rounded-2xl border border-gray-200 dark:border-gray-800 p-8 mt-4">
-          <h2 className="text-[20px] font-semibold text-gray-900 dark:text-white mb-6">
+        <div className="bg-cd-raised rounded-xl border border-cd-line p-8 mt-4">
+          <h2 className="text-[20px] font-semibold text-cd-text mb-6">
             Understanding Business Structures
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {STRUCTURES.map(({ icon: Icon, title, description }) => (
               <div key={title} className="flex items-start gap-4">
-                <div className="w-10 h-10 bg-[#3b82f6] rounded-xl flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 bg-cd-accent rounded-xl flex items-center justify-center shrink-0">
                   <Icon size={20} className="text-white" />
                 </div>
                 <div>
-                  <p className="text-[15.5px] font-semibold text-gray-900 dark:text-white">{title}</p>
-                  <p className="mt-1 text-[13.5px] text-gray-600 dark:text-gray-400 leading-relaxed font-medium">
+                  <p className="text-[15.5px] font-semibold text-cd-text">{title}</p>
+                  <p className="mt-1 text-[13.5px] text-cd-muted leading-relaxed font-medium">
                     {description}
                   </p>
                 </div>
@@ -170,7 +170,7 @@ export default function LLCStartPage() {
         <div className="text-center pt-4">
           <button
             onClick={() => router.push('/dashboard/llc')}
-            className="text-[14px] font-semibold text-[#3b82f6] hover:text-[#2563eb] dark:hover:text-blue-400"
+            className="text-[14px] font-semibold text-cd-accent-text hover:text-[#2563eb] dark:hover:text-blue-400"
           >
             ← Back to LLC Management
           </button>

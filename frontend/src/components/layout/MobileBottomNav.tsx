@@ -1,64 +1,37 @@
 'use client';
 
+/** The phone's tab bar, like Anchorage's app: a few outline icons on the page colour, the current one in full colour. */
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
-import {
-  Home, Database, ArrowLeftRight, Monitor, Settings,
-  BarChart2, Building2, CircleDollarSign,
-  LayoutDashboard, ArrowDownToLine, ArrowUpFromLine, Users, Package,
-} from 'lucide-react';
-
-const userNav = [
-  { href: '/dashboard/wallet', icon: Home, label: 'Home' },
-  { href: '/dashboard/assets', icon: Database, label: 'Assets' },
-  { href: '/dashboard/finance', icon: CircleDollarSign, label: 'Loan & Invest' },
-  { href: '/dashboard/settings', icon: Settings, label: 'Me' },
-];
-
-const adminNav = [
-  { href: '/admin', icon: LayoutDashboard, label: 'Overview' },
-  { href: '/admin/assets', icon: Package, label: 'Assets' },
-  { href: '/admin/deposits', icon: ArrowDownToLine, label: 'Deposits' },
-  { href: '/admin/withdrawals', icon: ArrowUpFromLine, label: 'Withdrawals' },
-  { href: '/admin/users', icon: Users, label: 'Users' },
-];
+import { CLIENT_TABS, isActive } from '@/components/client/nav';
+import { usePendingCount } from '@/components/client/usePendingCount';
 
 export default function MobileBottomNav() {
-  const { user } = useAuth();
-  const pathname = usePathname();
-
-  const navItems = user?.role === 'admin' ? adminNav : userNav;
+  const pathname = usePathname() || '';
+  const pending = usePendingCount();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 md:left-64 z-30 bg-white dark:bg-[#101010] border-t border-gray-200 dark:border-gray-800 safe-area-pb">
-      <div className="flex items-center justify-around h-16 px-1">
-        {navItems.map(({ href, icon: Icon, label }) => {
-          const active = pathname === href || (href !== '/dashboard' && href !== '/admin' && pathname.startsWith(href));
+    <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-cd-line bg-cd-page/95 backdrop-blur-md safe-area-pb lg:hidden" aria-label="Main">
+      <div className="mx-auto flex h-16 max-w-lg items-stretch justify-around px-2">
+        {CLIENT_TABS.map((tab) => {
+          const active = isActive(pathname, tab);
+          const Icon = tab.icon;
           return (
             <Link
-              key={href}
-              href={href}
-              className={cn(
-                'flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl min-w-0 flex-1 transition-all duration-150',
-                active
-                  ? 'text-blue-600 dark:text-blue-400'
-                  : 'text-gray-500 dark:text-gray-400'
-              )}
+              key={tab.href}
+              href={tab.href}
+              aria-current={active ? 'page' : undefined}
+              className={cn('relative flex flex-1 flex-col items-center justify-center gap-1', active ? 'text-cd-text' : 'text-cd-muted')}
             >
-              <div className={cn(
-                'p-1.5 rounded-xl transition-all duration-150',
-                active ? 'bg-blue-50 dark:bg-blue-900/20' : ''
-              )}>
-                <Icon size={20} strokeWidth={active ? 2.5 : 1.8} />
-              </div>
-              <span className={cn(
-                'text-[10px] font-medium truncate w-full text-center',
-                active ? 'font-semibold' : ''
-              )}>
-                {label}
+              <span className="relative">
+                <Icon size={21} strokeWidth={active ? 2 : 1.6} />
+                {tab.href === '/dashboard/transactions' && pending > 0 && (
+                  <span className="absolute -right-1.5 -top-1 h-2 w-2 rounded-full bg-cd-accent ring-2 ring-cd-page" />
+                )}
               </span>
+              <span className={cn('text-[10.5px]', active && 'font-medium')}>{tab.label}</span>
+              {active && <span className="absolute top-0 h-[2px] w-8 rounded-b bg-cd-text" />}
             </Link>
           );
         })}

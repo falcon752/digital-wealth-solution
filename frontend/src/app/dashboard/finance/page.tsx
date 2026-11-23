@@ -59,12 +59,12 @@ export default function FinanceDashboardPage() {
   useEffect(() => { load(); }, []);
 
   return (
-    <div className="flex flex-col min-h-full pb-20 bg-white dark:bg-[#050505]">
+    <div className="flex flex-col min-h-full pb-20 bg-cd-page">
       <DashboardHeader title="Finance Dashboard" logo="dwp" />
 
       {/* Dismissable Purple Banner */}
       {bannerVisible && (
-        <div className="bg-[#5c68f2] text-white px-4 py-3 flex items-start justify-between">
+        <div className="bg-cd-accent text-white px-4 py-3 flex items-start justify-between">
           <p className="text-[13px] font-medium leading-relaxed pr-4">
             👋 <span className="font-semibold">Welcome, {user?.firstName || ''}!</span> Manage your active crypto loans, collateral, and earnings.
           </p>
@@ -78,8 +78,8 @@ export default function FinanceDashboardPage() {
         
         {/* Page heading */}
         <div className="pt-2">
-          <h2 className="text-[22px] font-semibold text-gray-900 dark:text-white leading-tight mb-1">Loan & Invest Overview</h2>
-          <p className="text-[14px] font-medium text-gray-600 dark:text-gray-400 leading-relaxed">
+          <h2 className="text-[22px] font-semibold text-cd-text leading-tight mb-1">Loan & Invest Overview</h2>
+          <p className="text-[14px] font-medium text-cd-muted leading-relaxed">
             Track your borrowed assets and passive income deposits.
           </p>
         </div>
@@ -94,41 +94,41 @@ export default function FinanceDashboardPage() {
             <div className="grid grid-cols-2 gap-4">
               
               {/* Active Loans */}
-              <div className="bg-white dark:bg-[#101010] rounded-[16px] border border-gray-100 dark:border-gray-700 p-5 flex flex-col items-center justify-center gap-3 shadow-sm">
+              <div className="bg-cd-card rounded-xl border border-cd-line p-5 flex flex-col items-center justify-center gap-3 shadow-sm">
                 <div className="w-10 h-10 rounded-full bg-[#eff6ff] dark:bg-blue-900/30 flex items-center justify-center shrink-0">
-                  <ArrowRightLeft size={18} className="text-[#3b82f6]" strokeWidth={2.5} />
+                  <ArrowRightLeft size={18} className="text-cd-accent-text" strokeWidth={2.5} />
                 </div>
                 <div className="text-center">
-                  <p className="text-[18px] font-semibold text-gray-900 dark:text-white leading-none mb-1">
+                  <p className="text-[18px] font-semibold text-cd-text leading-none mb-1">
                     {formatCurrency(stats.activeLoansUsd)}
                   </p>
-                  <p className="text-[13px] font-medium text-gray-500 dark:text-gray-400">Active Loans</p>
+                  <p className="text-[13px] font-medium text-cd-muted">Active Loans</p>
                 </div>
               </div>
 
               {/* Active Collateral */}
-              <div className="bg-white dark:bg-[#101010] rounded-[16px] border border-gray-100 dark:border-gray-700 p-5 flex flex-col items-center justify-center gap-3 shadow-sm">
+              <div className="bg-cd-card rounded-xl border border-cd-line p-5 flex flex-col items-center justify-center gap-3 shadow-sm">
                 <div className="w-10 h-10 rounded-full bg-[#fef2f2] dark:bg-red-900/30 flex items-center justify-center shrink-0">
                   <CircleDollarSign size={18} className="text-[#ef4444]" strokeWidth={2.5} />
                 </div>
                 <div className="text-center">
-                  <p className="text-[18px] font-semibold text-gray-900 dark:text-white leading-none mb-1">
+                  <p className="text-[18px] font-semibold text-cd-text leading-none mb-1">
                     {formatCurrency(stats.activeCollateralUsd)}
                   </p>
-                  <p className="text-[13px] font-medium text-gray-500 dark:text-gray-400">Locked Collateral</p>
+                  <p className="text-[13px] font-medium text-cd-muted">Locked Collateral</p>
                 </div>
               </div>
 
               {/* Active Earnings */}
-              <div className="col-span-2 bg-white dark:bg-[#101010] rounded-[16px] border border-gray-100 dark:border-gray-700 p-5 flex flex-col items-center justify-center gap-3 shadow-sm">
+              <div className="col-span-2 bg-cd-card rounded-xl border border-cd-line p-5 flex flex-col items-center justify-center gap-3 shadow-sm">
                 <div className="w-10 h-10 rounded-full bg-[#ecfdf5] dark:bg-green-900/30 flex items-center justify-center shrink-0">
                   <PiggyBank size={18} className="text-[#10b981]" strokeWidth={2.5} />
                 </div>
                 <div className="text-center">
-                  <p className="text-[20px] font-semibold text-gray-900 dark:text-white leading-none mb-1">
+                  <p className="text-[20px] font-semibold text-cd-text leading-none mb-1">
                     {formatCurrency(stats.activeEarningsUsd)}
                   </p>
-                  <p className="text-[13px] font-medium text-gray-500 dark:text-gray-400">Active Deposits (Earnings)</p>
+                  <p className="text-[13px] font-medium text-cd-muted">Active Deposits (Earnings)</p>
                 </div>
               </div>
 
@@ -138,7 +138,7 @@ export default function FinanceDashboardPage() {
             <div className="pt-2">
               <Button 
                 onClick={() => router.push('/dashboard/lending')} 
-                className="w-full h-14 text-[16px] font-semibold rounded-2xl flex items-center justify-center gap-2"
+                className="w-full h-14 text-[16px] font-semibold rounded-xl flex items-center justify-center gap-2"
               >
                 <Plus size={20} />
                 New Loan or Invest

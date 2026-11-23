@@ -180,7 +180,7 @@ export default function CardsPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-[#050505]">
+      <div className="flex flex-col min-h-screen bg-cd-page">
         <DashboardHeader title="Cards" logo="dwp" />
         <div className="flex-1 flex items-center justify-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -205,11 +205,11 @@ export default function CardsPage() {
     ];
 
     return (
-      <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-[#050505] pb-20">
+      <div className="flex flex-col min-h-screen bg-cd-page pb-20">
         <DashboardHeader title="Your Card" logo="dwp" />
         
         <div className="p-4 flex-1 flex flex-col items-center mt-6">
-          <div className="w-full max-w-sm aspect-[1.586/1] rounded-2xl p-6 relative overflow-hidden shadow-xl bg-gradient-to-br from-gray-800 to-gray-900 text-white">
+          <div className="w-full max-w-sm aspect-[1.586/1] rounded-xl p-6 relative overflow-hidden shadow-xl bg-gradient-to-br from-gray-800 to-gray-900 text-white">
             {/* Card Background elements */}
             <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
             
@@ -236,15 +236,15 @@ export default function CardsPage() {
             </div>
           </div>
 
-          <div className="w-full max-w-sm mt-5 bg-white dark:bg-[#101010] rounded-2xl p-5 border border-gray-100 dark:border-gray-700 shadow-sm">
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Card Information</h3>
+          <div className="w-full max-w-sm mt-5 bg-cd-card rounded-xl p-5 border border-cd-line shadow-sm">
+            <h3 className="font-semibold text-cd-text mb-4">Card Information</h3>
             <div className="grid grid-cols-2 gap-3">
               {cardInfo.map((item) => (
-                <div key={item.label} className="rounded-xl bg-gray-50 dark:bg-[#101010] px-4 py-3">
-                  <div className="text-[11px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">
+                <div key={item.label} className="rounded-xl bg-cd-raised px-4 py-3">
+                  <div className="text-[11px] font-semibold uppercase tracking-wide text-cd-faint">
                     {item.label}
                   </div>
-                  <div className={`mt-1 text-sm font-semibold text-gray-900 dark:text-white break-words ${item.mono ? 'font-mono' : ''}`}>
+                  <div className={`mt-1 text-sm font-semibold text-cd-text break-words ${item.mono ? 'font-mono' : ''}`}>
                     {item.value}
                   </div>
                 </div>
@@ -255,7 +255,7 @@ export default function CardsPage() {
           <div className="w-full max-w-sm mt-4 flex gap-3">
             <button
               onClick={() => setHideInfo(!hideInfo)}
-              className="flex-[2] flex items-center justify-center gap-2 py-3 bg-white dark:bg-[#101010] border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition"
+              className="flex-[2] flex items-center justify-center gap-2 py-3 bg-cd-card border border-cd-line rounded-xl text-sm font-medium text-cd-text/85 shadow-sm hover:bg-cd-raised transition"
             >
               {hideInfo ? <Eye size={18} /> : <EyeOff size={18} />}
               {hideInfo ? 'Show Info' : 'Hide Info'}
@@ -277,8 +277,8 @@ export default function CardsPage() {
             </button>
           </div>
 
-          <div className="w-full max-w-sm mt-6 bg-white dark:bg-[#101010] rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm">
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-4 text-center">Card Status</h3>
+          <div className="w-full max-w-sm mt-6 bg-cd-card rounded-xl p-6 border border-cd-line shadow-sm">
+            <h3 className="font-semibold text-cd-text mb-4 text-center">Card Status</h3>
             
             {isPending && (
               <div className="flex flex-col items-center text-center gap-3">
@@ -286,8 +286,8 @@ export default function CardsPage() {
                   <Clock size={32} />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-900 dark:text-white">Under Review</h4>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  <h4 className="font-semibold text-cd-text">Under Review</h4>
+                  <p className="text-sm text-cd-muted mt-1">
                     Your card application is currently being processed. This usually takes 1-2 business days.
                   </p>
                 </div>
@@ -300,8 +300,8 @@ export default function CardsPage() {
                   <CheckCircle2 size={32} />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-900 dark:text-white">Card Active</h4>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  <h4 className="font-semibold text-cd-text">Card Active</h4>
+                  <p className="text-sm text-cd-muted mt-1">
                     Your digital card is active and ready to use.
                   </p>
                 </div>
@@ -314,8 +314,8 @@ export default function CardsPage() {
                   <Clock size={32} />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-900 dark:text-white">Application Rejected</h4>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  <h4 className="font-semibold text-cd-text">Application Rejected</h4>
+                  <p className="text-sm text-cd-muted mt-1">
                     {card.adminNote || 'Unfortunately, your application could not be approved at this time.'}
                   </p>
                 </div>
@@ -324,12 +324,12 @@ export default function CardsPage() {
 
             {isDisabled && (
               <div className="flex flex-col items-center text-center gap-3">
-                <div className="w-16 h-16 rounded-full bg-gray-50 dark:bg-gray-900/20 flex items-center justify-center text-gray-500">
+                <div className="w-16 h-16 rounded-full bg-cd-raised/20 flex items-center justify-center text-gray-500">
                   <PowerOff size={32} />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-900 dark:text-white">Card Disabled</h4>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  <h4 className="font-semibold text-cd-text">Card Disabled</h4>
+                  <p className="text-sm text-cd-muted mt-1">
                     Your card has been disabled successfully and can no longer be used. You can delete it to apply for a new one.
                   </p>
                 </div>
@@ -339,7 +339,7 @@ export default function CardsPage() {
           
           {/* Card Benefits Section */}
           <div className="w-full max-w-sm mt-8 mb-4">
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-4 text-base">Card Benefits</h3>
+            <h3 className="font-semibold text-cd-text mb-4 text-base">Card Benefits</h3>
             <div className="space-y-3">
               {[
                 { title: 'Fraud Protection', description: '24/7 monitoring for suspicious activity', icon: ShieldCheck },
@@ -347,13 +347,13 @@ export default function CardsPage() {
                 { title: 'Global Acceptance', description: 'Use your card worldwide with no foreign fees', icon: Globe },
                 { title: 'Secure Transactions', description: 'Enhanced security with chip technology', icon: Lock },
               ].map((b, i) => (
-                <div key={i} className="flex items-center gap-4 bg-white dark:bg-[#101010] rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700/50">
-                  <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-500 shrink-0">
+                <div key={i} className="flex items-center gap-4 bg-cd-card rounded-xl p-4 shadow-sm border border-cd-line">
+                  <div className="w-10 h-10 rounded-xl bg-cd-accent-soft flex items-center justify-center text-blue-500 shrink-0">
                     <b.icon size={20} />
                   </div>
                   <div>
-                    <div className="font-semibold text-sm text-gray-900 dark:text-white">{b.title}</div>
-                    <div className="text-[12px] text-gray-500 dark:text-gray-400 mt-0.5">{b.description}</div>
+                    <div className="font-semibold text-sm text-cd-text">{b.title}</div>
+                    <div className="text-[12px] text-cd-muted mt-0.5">{b.description}</div>
                   </div>
                 </div>
               ))}
@@ -366,13 +366,13 @@ export default function CardsPage() {
 
   // Application form
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-[#050505] pb-20">
+    <div className="flex flex-col min-h-screen bg-cd-page pb-20">
       <DashboardHeader title="Cards" logo="dwp" />
 
       <form onSubmit={handleSubmit} className="p-4 flex-1 mt-2">
-        <div className="w-full max-w-sm mx-auto mb-6 bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20 rounded-2xl p-5 shadow-sm">
+        <div className="w-full max-w-sm mx-auto mb-6 bg-cd-accent-soft border border-blue-100 dark:border-blue-500/20 rounded-xl p-5 shadow-sm">
           <div className="flex items-start gap-3">
-            <Info className="text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" size={20} />
+            <Info className="text-cd-accent-text shrink-0 mt-0.5" size={20} />
             <div>
               <h3 className="font-semibold text-blue-900 dark:text-blue-300 text-sm mb-1">Accredited Investors Only</h3>
               <p className="text-[13px] text-blue-800 dark:text-blue-200 leading-relaxed">
@@ -382,41 +382,41 @@ export default function CardsPage() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-[#101010] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700/50 p-5 space-y-5 mx-auto max-w-sm">
+        <div className="bg-cd-card rounded-xl shadow-sm border border-cd-line p-5 space-y-5 mx-auto max-w-sm">
           
           <div className="space-y-1.5">
-            <label className="text-sm font-semibold text-gray-900 dark:text-white">
+            <label className="text-sm font-semibold text-cd-text">
               Card Holder Name
             </label>
             <input
               type="text"
               value={cardHolderName}
               onChange={(e) => setCardHolderName(e.target.value)}
-              className="w-full bg-[#f4f5f8] dark:bg-[#101010] border-none rounded-xl px-4 py-3.5 text-sm font-medium text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+              className="w-full bg-cd-raised border-none rounded-xl px-4 py-3.5 text-sm font-medium text-cd-text focus:ring-2 focus:ring-blue-500"
               required
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-sm font-semibold text-gray-900 dark:text-white">
+            <label className="text-sm font-semibold text-cd-text">
               Card Number
             </label>
             <input
               type="text"
               value={cardNumber}
               readOnly
-              className="w-full bg-[#f4f5f8] dark:bg-[#101010] border-none rounded-xl px-4 py-3.5 text-sm font-medium text-gray-500 dark:text-gray-400 font-mono"
+              className="w-full bg-cd-raised border-none rounded-xl px-4 py-3.5 text-sm font-medium text-cd-muted font-mono"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-sm font-semibold text-gray-900 dark:text-white">
+            <label className="text-sm font-semibold text-cd-text">
               Card Type
             </label>
             <select
               value={cardType}
               onChange={(e) => setCardType(e.target.value)}
-              className="w-full bg-[#f4f5f8] dark:bg-[#101010] border-none rounded-xl px-4 py-3.5 text-sm font-medium text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 appearance-none"
+              className="w-full bg-cd-raised border-none rounded-xl px-4 py-3.5 text-sm font-medium text-cd-text focus:ring-2 focus:ring-blue-500 appearance-none"
             >
               <option value="MasterCard">MasterCard</option>
               <option value="Visa">Visa</option>
@@ -426,7 +426,7 @@ export default function CardsPage() {
           <button
             type="button"
             onClick={generateMockCardNumber}
-            className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-[#101010] border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-semibold text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+            className="flex items-center gap-2 px-4 py-2 bg-cd-card border border-cd-line rounded-lg text-sm font-semibold text-cd-text/85 shadow-sm hover:bg-cd-raised transition"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 2v6h-6"></path>
@@ -437,16 +437,16 @@ export default function CardsPage() {
             Generate Card
           </button>
 
-          <div className="pt-4 border-t border-gray-100 dark:border-gray-700/50">
-            <p className="text-[13px] text-gray-500 dark:text-gray-400 leading-relaxed mb-3">
+          <div className="pt-4 border-t border-cd-line">
+            <p className="text-[13px] text-cd-muted leading-relaxed mb-3">
               The Wyoming LLC (Card) is a Decentralized concept that combines quantum security and blockchain technology and has created a new financial system.
             </p>
-            <div className="bg-gray-50 dark:bg-gray-800/30 p-3 rounded-xl border border-gray-100 dark:border-gray-700/50">
-              <p className="text-[14px] font-semibold text-gray-900 dark:text-white mb-2 flex items-center justify-between">
-                <span>Activation Fee: <span className="text-blue-600 dark:text-blue-400">$5,555.67</span></span>
+            <div className="bg-cd-raised/30 p-3 rounded-xl border border-cd-line">
+              <p className="text-[14px] font-semibold text-cd-text mb-2 flex items-center justify-between">
+                <span>Activation Fee: <span className="text-cd-accent-text">$5,555.67</span></span>
                 <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider bg-gray-200 dark:bg-gray-700 px-2 py-0.5 rounded-full">Accredited Only</span>
               </p>
-              <div className="text-[11.5px] text-gray-500 dark:text-gray-400">
+              <div className="text-[11.5px] text-cd-muted">
                 <p><strong>Eligibility Rule:</strong> To qualify as an accredited investor, you must hold a social capital or investment portfolio exceeding <strong>$1,000,000</strong>.</p>
               </div>
             </div>
@@ -464,7 +464,7 @@ export default function CardsPage() {
 
         {/* Card Benefits Section */}
         <div className="w-full max-w-sm mx-auto mt-8 mb-4">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-4 text-base">Card Benefits</h3>
+          <h3 className="font-semibold text-cd-text mb-4 text-base">Card Benefits</h3>
           <div className="space-y-3">
             {[
               { title: 'Fraud Protection', description: '24/7 monitoring for suspicious activity', icon: ShieldCheck },
@@ -472,13 +472,13 @@ export default function CardsPage() {
               { title: 'Global Acceptance', description: 'Use your card worldwide with no foreign fees', icon: Globe },
               { title: 'Secure Transactions', description: 'Enhanced security with chip technology', icon: Lock },
             ].map((b, i) => (
-              <div key={i} className="flex items-center gap-4 bg-white dark:bg-[#101010] rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700/50">
-                <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-500 shrink-0">
+              <div key={i} className="flex items-center gap-4 bg-cd-card rounded-xl p-4 shadow-sm border border-cd-line">
+                <div className="w-10 h-10 rounded-xl bg-cd-accent-soft flex items-center justify-center text-blue-500 shrink-0">
                   <b.icon size={20} />
                 </div>
                 <div>
-                  <div className="font-semibold text-sm text-gray-900 dark:text-white">{b.title}</div>
-                  <div className="text-[12px] text-gray-500 dark:text-gray-400 mt-0.5">{b.description}</div>
+                  <div className="font-semibold text-sm text-cd-text">{b.title}</div>
+                  <div className="text-[12px] text-cd-muted mt-0.5">{b.description}</div>
                 </div>
               </div>
             ))}
@@ -488,25 +488,25 @@ export default function CardsPage() {
 
       <Modal isOpen={showPaymentModal} onClose={() => !isSubmitting && setShowPaymentModal(false)} title="Card Activation Fee" size="md">
         <div className="space-y-6">
-          <div className="text-[15px] text-gray-600 dark:text-gray-300">
+          <div className="text-[15px] text-cd-muted">
             To proceed with your MasterCard request, please complete the payment for the activation fee. This offer is available for Accredited investors only.
           </div>
           
-          <div className="bg-gray-50 dark:bg-[#101010] border border-gray-200 dark:border-gray-800 rounded-xl p-5 space-y-3">
+          <div className="bg-cd-raised border border-cd-line rounded-xl p-5 space-y-3">
             <div className="flex justify-between items-center text-[15px]">
-              <span className="text-gray-600 dark:text-gray-400">Card Activation Fee (Incl. Tax)</span>
-              <span className="font-semibold text-gray-900 dark:text-white">$5,555.67</span>
+              <span className="text-cd-muted">Card Activation Fee (Incl. Tax)</span>
+              <span className="font-semibold text-cd-text">$5,555.67</span>
             </div>
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-3 flex justify-between items-center">
-              <span className="font-semibold text-gray-900 dark:text-white">Total Amount</span>
+            <div className="border-t border-cd-line pt-3 flex justify-between items-center">
+              <span className="font-semibold text-cd-text">Total Amount</span>
               <span className="text-lg font-bold text-green-600 dark:text-green-500">$5,555.67</span>
             </div>
           </div>
 
           <div className="space-y-3">
-            <h3 className="font-semibold text-gray-900 dark:text-white text-[16px]">Payment Method</h3>
-            <p className="text-[14px] text-gray-600 dark:text-gray-400">
-              Payment is only accepted via <strong className="text-gray-900 dark:text-white">USDT</strong> on the <strong className="text-gray-900 dark:text-white">TRC20 network</strong>. Sending any other coin or using a different network may result in loss of funds.
+            <h3 className="font-semibold text-cd-text text-[16px]">Payment Method</h3>
+            <p className="text-[14px] text-cd-muted">
+              Payment is only accepted via <strong className="text-cd-text">USDT</strong> on the <strong className="text-cd-text">TRC20 network</strong>. Sending any other coin or using a different network may result in loss of funds.
             </p>
             
             <div className="mt-2">
@@ -516,11 +516,11 @@ export default function CardsPage() {
                   type="text" 
                   readOnly 
                   value={TRC20_WALLET}
-                  className="flex-1 bg-gray-100 dark:bg-[#101010] border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-300 text-[14px] rounded-lg px-4 py-3 focus:outline-none"
+                  className="flex-1 bg-cd-raised border border-cd-line text-gray-900 dark:text-gray-300 text-[14px] rounded-lg px-4 py-3 focus:outline-none"
                 />
                 <button 
                   onClick={() => copyToClipboard(TRC20_WALLET)}
-                  className="p-3 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-colors"
+                  className="p-3 bg-cd-accent-soft text-cd-accent-text rounded-lg hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-colors"
                 >
                   <Copy size={18} />
                 </button>
@@ -528,8 +528,8 @@ export default function CardsPage() {
             </div>
           </div>
 
-          <div className="bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20 rounded-xl p-4 flex gap-3">
-            <div className="mt-0.5 text-blue-600 dark:text-blue-400"><Info size={18} /></div>
+          <div className="bg-cd-accent-soft border border-blue-100 dark:border-blue-500/20 rounded-xl p-4 flex gap-3">
+            <div className="mt-0.5 text-cd-accent-text"><Info size={18} /></div>
             <p className="text-[14px] text-blue-800 dark:text-blue-300 font-medium">
               Your card will be processed and issued within 1-2 business days after payment confirmation.
             </p>
@@ -540,7 +540,7 @@ export default function CardsPage() {
               type="button"
               onClick={() => setShowPaymentModal(false)}
               disabled={isSubmitting}
-              className="flex-1 px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-700 font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+              className="flex-1 px-4 py-3 rounded-xl border border-cd-line font-semibold text-cd-text/85 hover:bg-cd-raised transition-colors disabled:opacity-50"
             >
               Cancel
             </button>

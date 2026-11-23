@@ -1,45 +1,53 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+/**
+ * The client's Anchorage Digital Bank account, laid out like an Anchorage vault: the account name
+ * and ID with Convert / Withdraw / Deposit on the right, the total balance, then the holdings split
+ * into Fiat and Crypto tables.
+ */
+import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
+import { ArrowDownToLine, ArrowLeftRight, ArrowUpFromLine, Eye, EyeOff, Landmark, RefreshCw, Zap } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { useSidebar } from '@/context/SidebarContext';
 import { usersAPI, assetsAPI } from '@/lib/api';
 import { formatCurrency } from '@/lib/utils';
-import { ArrowUp, QrCode, Zap, ArrowLeftRight, Bell, List, Menu } from 'lucide-react';
-import Link from 'next/link';
-import Image from 'next/image';
-import ThemeToggle from '@/components/layout/ThemeToggle';
+import DashboardHeader from '@/components/layout/DashboardHeader';
+import AssetTable, { type HoldingRow } from '@/components/client/AssetTable';
+import { ActionButton, Card, Change, EmptyState, Money, PageHeader, Skeleton, shortId } from '@/components/client/ui';
 
 type DashboardStats = {
+  balance?: number;
   assetBalances?: Record<string, number>;
+  availableAssetBalances?: Record<string, number>;
 };
 
-type DbAsset = {
-  id: string;
-  symbol: string;
-  name: string;
-};
+type DbAsset = { id: string; symbol: string; name: string; network?: string | null };
 
-// Helper to assign colors to crypto icons
-function getAssetColor(symbol: string) {
-  const colors: Record<string, string> = {
-    BTC: '#F7931A', ETH: '#627EEA', DOGE: '#C2A633', LTC: '#BFBBBB',
-    XRP: '#23292F', XLM: '#08B5E5', USDT: '#26A17B', USDC: '#2775CA',
-    BNB: '#F3BA2F', SOL: '#14F195', ADA: '#0033AD'
-  };
-  return colors[symbol.toUpperCase()] || '#3b82f6'; // fallback blue
-}
+const HIDE_KEY = 'dwp_hide_balances';
 
-export default function UserDashboard() {
+export default function AnchorageAccountPage() {
   const { user } = useAuth();
-  const { openSidebar } = useSidebar();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [dbAssets, setDbAssets] = useState<DbAsset[]>([]);
   const [prices, setPrices] = useState<Record<string, number>>({});
   const [changes24h, setChanges24h] = useState<Record<string, number>>({});
-  const [isBalanceHidden, setIsBalanceHidden] = useState(true);
+  const [hidden, setHidden] = useState(true);
   const [assetsLoading, setAssetsLoading] = useState(true);
   const [assetsError, setAssetsError] = useState(false);
+
+  // Balances start hidden; the client's choice is remembered on this device.
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(HIDE_KEY);
+      if (saved !== null) setHidden(saved === '1');
+    } catch {}
+  }, []);
+  const toggleHidden = () => {
+    setHidden((value) => {
+      try { localStorage.setItem(HIDE_KEY, value ? '0' : '1'); } catch {}
+      return !value;
+    });
+  };
 
   const loadAssets = (retriesLeft = 2) => {
     if (retriesLeft === 2) {
@@ -47,7 +55,7 @@ export default function UserDashboard() {
       setAssetsError(false);
     }
     assetsAPI.list()
-      .then(res => {
+      .then((res) => {
         setDbAssets(res.data.assets || []);
         setAssetsLoading(false);
       })
@@ -65,225 +73,147 @@ export default function UserDashboard() {
   useEffect(() => {
     usersAPI.getDashboardStats().then((res) => setStats(res.data)).catch(console.error);
     loadAssets();
-    assetsAPI.prices().then(res => {
+    assetsAPI.prices().then((res) => {
       setPrices(res.data.prices || {});
       setChanges24h(res.data.changes24h || {});
     }).catch(console.error);
   }, []);
 
-  const { totalBalance, previousTotalBalance } = dbAssets.reduce(
-    (acc, a) => {
-      const symbol = a.symbol.toUpperCase();
-      const price = prices[symbol] || 0;
-      const change24h = changes24h[symbol] || 0;
-      const balanceCrypto = stats?.assetBalances?.[a.id] || 0;
-      
-      const currentUsd = balanceCrypto * price;
-      // Formula: previousPrice = currentPrice / (1 + (change / 100))
-      const previousPrice = price / (1 + change24h / 100);
-      const previousUsd = balanceCrypto * previousPrice;
-      
-      return {
-        totalBalance: acc.totalBalance + currentUsd,
-        previousTotalBalance: acc.previousTotalBalance + previousUsd,
-      };
-    },
-    { totalBalance: 0, previousTotalBalance: 0 }
-  );
+  const { cryptoRows, cryptoTotal, previousTotal } = useMemo(() => {
+    let total = 0;
+    let previous = 0;
+    const rows: HoldingRow[] = dbAssets
+      .filter((a) => !user?.hiddenAssets?.includes(a.symbol.toUpperCase()))
+      .map((a) => {
+        const symbol = a.symbol.toUpperCase();
+        const price = prices[symbol] || 0;
+        const change24h = changes24h[symbol] || 0;
+        const amount = stats?.assetBalances?.[a.id] || 0;
+        const available = stats?.availableAssetBalances?.[a.id];
+        const usd = amount * price;
+        total += usd;
+        previous += amount * (price / (1 + change24h / 100));
+        return { symbol, name: a.name, network: a.network || a.name, usd, amount, price, change24h, available, href: `/dashboard/wallet/${symbol.toLowerCase()}` };
+      })
+      .sort((x, y) => y.usd - x.usd || x.symbol.localeCompare(y.symbol));
+    return { cryptoRows: rows, cryptoTotal: total, previousTotal: previous };
+  }, [dbAssets, prices, changes24h, stats, user?.hiddenAssets]);
 
-  const absoluteChange = totalBalance - previousTotalBalance;
-  const percentageChange = previousTotalBalance > 0 ? (absoluteChange / previousTotalBalance) * 100 : 0;
-  const isPositive = absoluteChange >= 0;
+  const usdBalance = stats?.balance || 0;
+  const totalBalance = cryptoTotal + usdBalance;
+  const change = cryptoTotal - previousTotal;
+  const changePct = previousTotal > 0 ? (change / previousTotal) * 100 : 0;
 
-  const activeAssets = dbAssets
-    .filter(a => !user?.hiddenAssets?.includes(a.symbol.toUpperCase()))
-    .map(a => {
-      const symbol = a.symbol.toUpperCase();
-      const price = prices[symbol] || 0;
-      const change24h = changes24h[symbol] || 0;
-      const balanceCrypto = stats?.assetBalances?.[a.id] || 0;
-      const balanceUsd = balanceCrypto * price;
-      
-      return {
-        symbol,
-        name: a.name,
-        price,
-        change24h,
-        balance: balanceCrypto,
-        balanceUsd,
-        color: getAssetColor(symbol)
-      };
-    });
+  const fiatRows: HoldingRow[] = [
+    { symbol: 'USD', name: 'US Dollars', network: 'US Dollars', usd: usdBalance, amount: usdBalance, price: 1, glyph: '$' },
+  ];
+
+  const accountName = [user?.firstName, user?.lastName].filter(Boolean).join(' ') || 'Digital Wealth Partners';
+  const accountId = user?.id ? shortId(String(user.id)) : '';
+
+  const actions = [
+    { label: 'Convert', href: '/dashboard/swap', icon: ArrowLeftRight },
+    { label: 'Buy', href: '/dashboard/buy', icon: Zap },
+    { label: 'Withdraw', href: '/dashboard/withdraw', icon: ArrowUpFromLine },
+  ];
 
   return (
-    <div className="min-h-full flex flex-col bg-white dark:bg-[#050505] pb-10">
-      
-      {/* Header */}
-      <header className="flex justify-between items-center px-4 py-4 bg-white dark:bg-[#101010] sticky top-0 z-10">
-        <div className="flex items-center gap-3">
-          <button onClick={openSidebar} className="text-gray-900 dark:text-white hover:opacity-80 transition p-1 -ml-1 shrink-0">
-            <Menu size={24} />
-          </button>
-          <div className="flex items-center">
-            <Image src="/anchorage-light.png" alt="Anchorage" width={110} height={30} className="h-7 w-auto dark:hidden" priority />
-            <Image src="/anchorage-dark.png" alt="Anchorage" width={110} height={30} className="h-7 w-auto hidden dark:block" priority />
-            <span className="hidden sm:inline ml-3 pl-3 border-l border-gray-200 dark:border-gray-700 text-sm font-semibold text-gray-900 dark:text-white">
-              Anchorage Digital Bank
-            </span>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <ThemeToggle />
-          <Link href="/dashboard/notifications" className="text-gray-900 dark:text-white relative hover:opacity-80 transition">
-            <Bell size={22} />
-            <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
-          </Link>
-        </div>
-      </header>
+    <div className="min-h-full">
+      <DashboardHeader title="Anchorage Digital Bank" breadcrumb />
 
-      <div className="px-4 pt-4">
-        <h1 className="text-lg font-semibold text-gray-900 dark:text-white">Anchorage Digital Bank</h1>
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Digital asset custody and account management</p>
-      </div>
-
-      {/* Balance */}
-      <div className="flex flex-col items-center mt-6 mb-8">
-        <button
-          type="button"
-          onClick={() => setIsBalanceHidden((hidden) => !hidden)}
-          aria-pressed={isBalanceHidden}
-          aria-label={isBalanceHidden ? 'Show balance' : 'Hide balance'}
-          className="text-4xl font-semibold text-gray-900 dark:text-white tracking-tight cursor-pointer select-none"
-        >
-          {isBalanceHidden ? '****' : formatCurrency(totalBalance)}
-        </button>
-        <div className="flex items-center gap-1.5 mt-1 font-medium text-sm">
-          <span className={isPositive ? 'text-green-500' : 'text-red-500'}>
-            {isPositive ? '+' : '-'}{formatCurrency(Math.abs(absoluteChange))}
-          </span>
-          <span className={`px-1.5 py-0.5 rounded-md text-xs ${isPositive ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
-            {isPositive ? '+' : ''}{percentageChange.toFixed(2)}%
-          </span>
-        </div>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="grid grid-cols-4 gap-3 px-4 mb-8">
-        <Link href="/dashboard/withdraw" className="flex flex-col items-center justify-center gap-1.5 bg-[#f4f5f8] dark:bg-[#101010] rounded-2xl text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 active:bg-[#2d68d8] active:text-white transition py-3.5">
-          <ArrowUp size={22} />
-          <span className="text-xs font-semibold">Transfer</span>
-        </Link>
-        <Link href="/dashboard/deposit" className="flex flex-col items-center justify-center gap-1.5 bg-[#f4f5f8] dark:bg-[#101010] rounded-2xl text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 active:bg-[#2d68d8] active:text-white transition py-3.5">
-          <QrCode size={22} />
-          <span className="text-xs font-semibold">Deposit</span>
-        </Link>
-        <Link href="/dashboard/buy" className="flex flex-col items-center justify-center gap-1.5 bg-[#f4f5f8] dark:bg-[#101010] rounded-2xl text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 active:bg-[#2d68d8] active:text-white transition py-3.5">
-          <Zap size={22} className="fill-current" />
-          <span className="text-xs font-semibold">Buy</span>
-        </Link>
-        <Link href="/dashboard/swap" className="flex flex-col items-center justify-center gap-1.5 bg-[#f4f5f8] dark:bg-[#101010] rounded-2xl text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 active:bg-[#2d68d8] active:text-white transition py-3.5">
-          <ArrowLeftRight size={22} />
-          <span className="text-xs font-semibold">Swap</span>
-        </Link>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex justify-between items-center px-4 border-b border-gray-100 dark:border-gray-800 pb-2">
-        <div className="flex gap-6">
-          <button className="text-[#2d68d8] dark:text-blue-500 font-semibold border-b-[3px] border-[#2d68d8] pb-2 -mb-[9px] text-[15px]">
-            Crypto
-          </button>
-          <button className="text-gray-400 font-semibold pb-2 text-[15px]">
-            NFTs
-          </button>
-        </div>
-        <button className="text-gray-400 pb-2">
-          <List size={20} />
-        </button>
-      </div>
-
-      {/* Asset List */}
-      <div className="flex flex-col">
-        {assetsLoading && (
-          <div className="flex flex-col" aria-label="Loading assets">
-            {[0, 1, 2, 3].map((item) => (
-              <div key={item} className="flex items-start gap-3 px-4 py-4 border-b border-gray-50 dark:border-gray-800/50">
-                <div className="w-[42px] h-[42px] rounded-full bg-gray-100 dark:bg-[#101010] animate-pulse shrink-0" />
-                <div className="flex-1 space-y-2.5">
-                  <div className="flex justify-between gap-4">
-                    <div className="h-4 w-16 rounded bg-gray-100 dark:bg-[#101010] animate-pulse" />
-                    <div className="h-4 w-24 rounded bg-gray-100 dark:bg-[#101010] animate-pulse" />
-                  </div>
-                  <div className="flex justify-between gap-4">
-                    <div className="h-3 w-28 rounded bg-gray-100 dark:bg-[#101010] animate-pulse" />
-                    <div className="h-3 w-14 rounded bg-gray-100 dark:bg-[#101010] animate-pulse" />
-                  </div>
-                  <div className="h-3 w-20 rounded bg-gray-100 dark:bg-[#101010] animate-pulse" />
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-        {activeAssets.map((asset) => (
-          <div key={asset.symbol} className="flex items-start gap-3 px-4 py-4 border-b border-gray-50 dark:border-gray-800/50 hover:bg-gray-50 dark:hover:bg-gray-800/20 transition cursor-pointer">
-            <img 
-              src={`https://assets.coincap.io/assets/icons/${asset.symbol.toLowerCase()}@2x.png`} 
-              alt={asset.symbol} 
-              className="w-[42px] h-[42px] rounded-full object-cover shadow-sm shrink-0 bg-white dark:bg-[#101010]"
-              onError={(e) => {
-                e.currentTarget.onerror = null; 
-                e.currentTarget.src = `https://ui-avatars.com/api/?name=${asset.symbol[0]}&background=${asset.color.replace('#','')}&color=fff&rounded=true&bold=true`;
-              }}
-            />
-            <div className="flex-1 flex flex-col">
-              <div className="flex justify-between items-center leading-tight">
-                <span className="font-semibold text-gray-900 dark:text-white text-[15px] tracking-wide">{asset.symbol}</span>
-                <span className="font-semibold text-gray-900 dark:text-white text-[15px] tracking-wide">
-                  {isBalanceHidden ? `**** ${asset.symbol}` : `${asset.balance.toFixed(8)} ${asset.symbol}`}
-                </span>
-              </div>
-              <div className="flex justify-between items-center leading-tight mt-1">
-                <span className="text-[13px] text-gray-400 font-medium">{asset.name}</span>
-                <span className="text-[13px] text-gray-400 font-medium">
-                  {isBalanceHidden ? '****' : `$${asset.balanceUsd.toFixed(2)}`}
-                </span>
-              </div>
-              <div className="mt-1.5 leading-tight flex items-center gap-2">
-                <span className="text-[13px] font-semibold text-gray-900 dark:text-white">
-                  ${asset.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                </span>
-                <span className={`text-[12px] font-medium ${asset.change24h >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                  {asset.change24h >= 0 ? '+' : ''}{asset.change24h.toFixed(2)}%
-                </span>
-              </div>
+      <div className="mx-auto w-full max-w-[1180px] px-4 pb-12 pt-5 sm:px-6 lg:px-10 lg:pt-3">
+        <PageHeader
+          icon={Landmark}
+          title="Anchorage Digital Bank"
+          titleOnPhone={false}
+          meta={[accountName, accountId && `Account ID: ${accountId}`].filter(Boolean)}
+          actions={
+            <div className="hidden gap-2.5 lg:flex">
+              {actions.map((action) => (
+                <ActionButton key={action.label} href={action.href} icon={action.icon}>{action.label}</ActionButton>
+              ))}
+              <ActionButton href="/dashboard/deposit" icon={ArrowDownToLine} variant="primary">Deposit</ActionButton>
             </div>
-          </div>
-        ))}
-        {!assetsLoading && assetsError && (
-          <div className="py-10 text-center text-gray-400 font-medium">
-            <p>Failed to load assets.</p>
+          }
+        />
+
+        {/* Total balance */}
+        <div className="mt-7 flex flex-col items-center text-center lg:items-start lg:text-left">
+          <div className="flex items-center gap-2">
+            <Money value={totalBalance} hidden={hidden} className="text-[38px] font-light leading-none tracking-tight text-cd-text sm:text-[44px]" />
             <button
               type="button"
-              onClick={() => loadAssets()}
-              className="mt-2 text-[#2d68d8] dark:text-blue-400 font-semibold hover:underline"
+              onClick={toggleHidden}
+              aria-pressed={hidden}
+              aria-label={hidden ? 'Show balances' : 'Hide balances'}
+              className="rounded-md p-2 text-cd-muted hover:bg-cd-raised hover:text-cd-text"
             >
-              Try again
+              {hidden ? <Eye size={18} strokeWidth={1.75} /> : <EyeOff size={18} strokeWidth={1.75} />}
             </button>
           </div>
-        )}
-        {!assetsLoading && !assetsError && activeAssets.length === 0 && (
-          <div className="py-10 text-center text-gray-400 font-medium">
-            No assets available
-          </div>
-        )}
-      </div>
+          <p className="mt-2 flex items-center gap-2.5 text-[13px] text-cd-muted">
+            <span className="uppercase tracking-[0.08em]">Total balance</span>
+            {!hidden && previousTotal > 0 && (
+              <>
+                <span className="h-3 w-px bg-cd-line-strong" />
+                <Change value={changePct} />
+                <span className="cd-num">{change >= 0 ? '+' : '−'}{formatCurrency(Math.abs(change))} today</span>
+              </>
+            )}
+          </p>
+        </div>
 
-      <div className="flex justify-center mt-6">
-        <Link href="/dashboard/assets" className="text-[#1e3a8a] dark:text-blue-400 font-semibold text-[15px] tracking-wide hover:underline">
-          Anchorage Digital Bank
-        </Link>
-      </div>
+        {/* Phone: the actions as a row of tiles */}
+        <div className="mt-7 grid grid-cols-4 gap-2.5 lg:hidden">
+          <Link href="/dashboard/deposit" className="flex h-[70px] flex-col items-center justify-center gap-1.5 rounded-lg bg-cd-accent text-[12.5px] font-medium text-white">
+            <ArrowDownToLine size={20} strokeWidth={1.75} />
+            Deposit
+          </Link>
+          {[actions[2], actions[0], actions[1]].map(({ label, href, icon: Icon }) => (
+            <Link key={label} href={href} className="cd-card flex h-[70px] flex-col items-center justify-center gap-1.5 rounded-lg border border-cd-line text-[12.5px] font-medium text-cd-text dark:border-transparent">
+              <Icon size={20} strokeWidth={1.75} className="text-cd-accent-text" />
+              {label}
+            </Link>
+          ))}
+        </div>
 
+        <div className="mt-8 space-y-5 lg:mt-10">
+          <Card title="Fiat">
+            <AssetTable rows={fiatRows} hidden={hidden} unitLabel={false} />
+          </Card>
+
+          <Card
+            title="Crypto"
+            action={<Link href="/dashboard/assets" className="text-[13px] font-medium text-cd-accent-text hover:underline">Manage assets</Link>}
+          >
+            {assetsLoading ? (
+              <div className="space-y-4 px-3 py-4">
+                {[0, 1, 2, 3].map((i) => (
+                  <div key={i} className="flex items-center gap-3.5">
+                    <Skeleton className="h-8 w-8 rounded-full" />
+                    <div className="flex-1 space-y-2"><Skeleton className="h-3.5 w-40" /><Skeleton className="h-3 w-20" /></div>
+                    <Skeleton className="h-3.5 w-24" />
+                  </div>
+                ))}
+              </div>
+            ) : assetsError ? (
+              <EmptyState
+                icon={RefreshCw}
+                title="We couldn't load your assets"
+                action={<ActionButton onClick={() => loadAssets()}>Try again</ActionButton>}
+              />
+            ) : cryptoRows.length === 0 ? (
+              <EmptyState
+                title="No assets yet"
+                text="Make a deposit to add funds to this account."
+                action={<ActionButton href="/dashboard/deposit" variant="primary" icon={ArrowDownToLine}>Deposit</ActionButton>}
+              />
+            ) : (
+              <AssetTable rows={cryptoRows} hidden={hidden} />
+            )}
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }

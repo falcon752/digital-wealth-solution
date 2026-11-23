@@ -1,152 +1,120 @@
 'use client';
 
+/**
+ * The client dashboard's top bar. On a computer it is a quiet strip above the page (Anchorage puts
+ * its titles in the page itself): the page name on the left, the theme switch, notifications and
+ * the account on the right. On a phone it follows Anchorage's app: the menu or back arrow on the
+ * left, the title centred, notifications on the right.
+ */
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import { ArrowLeft, Bell, ChevronRight, Menu } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useSidebar } from '@/context/SidebarContext';
-import ThemeToggle from './ThemeToggle';
-import { ArrowLeft, ChevronDown, LogOut, Menu } from 'lucide-react';
-import Link from 'next/link';
-import Image from 'next/image';
-import { usePathname, useRouter } from 'next/navigation';
-import { useRef, useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
+import ThemeToggle from './ThemeToggle';
 
 interface Tab {
   label: string;
   href: string;
 }
 
-type LogoType = 'wyoming' | 'anchorage' | 'dwp';
-
 interface DashboardHeaderProps {
   title: string;
   subtitle?: string;
   tabs?: Tab[];
   backHref?: string;
-  logo?: LogoType;
+  /** Kept for older pages; the logo now lives in the sidebar. */
+  logo?: 'wyoming' | 'anchorage' | 'dwp';
+  /** For pages that print their own title: on a computer the bar shows "Home › title" instead. */
+  breadcrumb?: boolean;
 }
 
-export default function DashboardHeader({ title, subtitle, tabs, backHref, logo = 'dwp' }: DashboardHeaderProps) {
-  const { user, logout } = useAuth();
+export default function DashboardHeader({ title, subtitle, tabs, backHref, breadcrumb = false }: DashboardHeaderProps) {
+  const { user } = useAuth();
   const { openSidebar } = useSidebar();
   const pathname = usePathname();
   const router = useRouter();
-  const [open, setOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  const initials = `${user?.firstName?.[0] || ''}${user?.lastName?.[0] || ''}`.toUpperCase();
+  const avatarSrc = user?.profileImage ? `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/uploads/${user.profileImage}` : null;
 
   return (
-    <header className="bg-white dark:bg-[#101010] border-b border-gray-200 dark:border-gray-800 sticky top-0 z-10">
-      <div className="flex items-center justify-between px-4 md:px-6 h-16 gap-3">
+    <header className="sticky top-0 z-20 border-b border-cd-line bg-cd-page/90 backdrop-blur-md lg:border-transparent lg:bg-cd-page">
+      <div className="grid h-14 grid-cols-[44px_1fr_auto] items-center gap-2 px-3 lg:flex lg:h-16 lg:justify-between lg:px-10">
+        {/* Phone: menu or back */}
+        <div className="lg:hidden">
+          {backHref ? (
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="flex h-10 w-10 items-center justify-center rounded-md text-cd-text hover:bg-cd-raised"
+              aria-label="Go back"
+            >
+              <ArrowLeft size={21} strokeWidth={1.75} />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={openSidebar}
+              className="flex h-10 w-10 items-center justify-center rounded-md text-cd-text hover:bg-cd-raised"
+              aria-label="Open menu"
+            >
+              <Menu size={22} strokeWidth={1.75} />
+            </button>
+          )}
+        </div>
 
-        {/* Left: hamburger and title (or logo on mobile) */}
-        <div className="flex items-center gap-2 min-w-0 md:min-w-[auto]">
+        <div className="min-w-0 text-center lg:flex lg:items-center lg:gap-3 lg:text-left">
           {backHref && (
             <button
               type="button"
               onClick={() => router.back()}
-              className="p-2 -ml-1 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors shrink-0"
+              className="hidden h-9 w-9 items-center justify-center rounded-md text-cd-muted hover:bg-cd-raised hover:text-cd-text lg:flex"
               aria-label="Go back"
             >
-              <ArrowLeft size={22} />
+              <ArrowLeft size={19} strokeWidth={1.75} />
             </button>
           )}
-          <button
-            onClick={openSidebar}
-            className={`${backHref ? 'hidden' : 'md:hidden'} p-2 -ml-1 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors shrink-0`}
-            aria-label="Open menu"
-          >
-            <Menu size={24} />
-          </button>
-          
-          {/* Logo (Mobile only) */}
-          <div className="md:hidden flex items-center ml-1">
-            {logo === 'wyoming' && (
-              <>
-                <Image src="/wyoming-light.png" alt="Wyoming" width={110} height={30} className="h-7 w-auto dark:hidden" priority />
-                <Image src="/wyoming-dark.png" alt="Wyoming" width={110} height={30} className="h-7 w-auto hidden dark:block" priority />
-              </>
-            )}
-            {logo === 'anchorage' && (
-              <>
-                <Image src="/anchorage-light.png" alt="Anchorage" width={110} height={30} className="h-7 w-auto dark:hidden" priority />
-                <Image src="/anchorage-dark.png" alt="Anchorage" width={110} height={30} className="h-7 w-auto hidden dark:block" priority />
-              </>
-            )}
-            {logo === 'dwp' && (
-              <>
-                <Image src="/dwp-logo.png" alt="DWP" width={110} height={30} className="h-7 w-auto dark:hidden" priority />
-                <Image src="/dwp-logo-dark.png" alt="DWP" width={110} height={30} className="h-7 w-auto hidden dark:block" priority />
-              </>
-            )}
-          </div>
-
-          {/* Title (Desktop only) */}
-          <div className="hidden md:block min-w-0">
-            <h1 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white truncate">{title}</h1>
-            {subtitle && (
-              <p className="text-xs text-gray-500 dark:text-gray-400 truncate hidden sm:block">{subtitle}</p>
+          <div className="min-w-0">
+            <p className={cn('truncate text-[16px] font-medium text-cd-text lg:text-[15px]', breadcrumb && 'lg:hidden')}>{title}</p>
+            {subtitle && !breadcrumb && <p className="hidden truncate text-[12.5px] text-cd-muted lg:block">{subtitle}</p>}
+            {breadcrumb && (
+              <p className="hidden items-center gap-2 text-[13.5px] lg:flex">
+                <Link href="/dashboard/wallet" className="text-cd-faint hover:text-cd-text">Home</Link>
+                <ChevronRight size={14} className="text-cd-faint" />
+                <span className="truncate text-cd-text">{title}</span>
+              </p>
             )}
           </div>
         </div>
 
-        {/* Center tabs — desktop only */}
-        {tabs && (
-          <nav className="hidden md:flex items-center">
-            {tabs.map((tab) => {
-              const active = pathname === tab.href;
-              return (
-                <Link
-                  key={tab.href}
-                  href={tab.href}
-                  className={cn(
-                    'px-4 h-14 inline-flex items-center text-sm font-medium border-b-2 transition-colors',
-                    active
-                      ? 'border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400'
-                      : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-                  )}
-                >
-                  {tab.label}
-                </Link>
-              );
-            })}
-          </nav>
-        )}
-
-        {/* Right: theme toggle + avatar */}
-        <div className="flex items-center gap-2 shrink-0">
-          <div>
-            <ThemeToggle />
-          </div>
-          <div className="relative">
-            <div className="flex items-center gap-1.5">
-              <div className="w-9 h-9 rounded-full bg-[#2d68d8] flex items-center justify-center text-white text-xs font-semibold shadow-md overflow-hidden shrink-0 border border-gray-100 dark:border-gray-700">
-                {user?.profileImage ? (
-                  <img 
-                    src={`${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/uploads/${user.profileImage}`} 
-                    alt="Profile" 
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <>{user?.firstName?.[0]}{user?.lastName?.[0]}</>
-                )}
-              </div>
-            </div>
-          </div>
+        <div className="flex items-center justify-end gap-1 lg:gap-2">
+          <span className="hidden sm:block"><ThemeToggle /></span>
+          <Link
+            href="/dashboard/notifications"
+            className="flex h-10 w-10 items-center justify-center rounded-md text-cd-text hover:bg-cd-raised"
+            aria-label="Notifications"
+          >
+            <Bell size={20} strokeWidth={1.75} />
+          </Link>
+          <Link
+            href="/dashboard/settings/profile"
+            className="ml-1 hidden h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-cd-text text-[11px] font-semibold text-cd-page lg:flex"
+            aria-label="Your profile"
+          >
+            {avatarSrc ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={avatarSrc} alt="" className="h-full w-full object-cover" />
+            ) : (
+              initials
+            )}
+          </Link>
         </div>
       </div>
 
-      {/* Mobile tabs — below the header bar */}
       {tabs && (
-        <div className="md:hidden flex border-t border-gray-100 dark:border-gray-800 overflow-x-auto">
+        <nav className="flex gap-1 overflow-x-auto border-t border-cd-line px-4 lg:border-t-0 lg:px-10">
           {tabs.map((tab) => {
             const active = pathname === tab.href;
             return (
@@ -154,17 +122,15 @@ export default function DashboardHeader({ title, subtitle, tabs, backHref, logo 
                 key={tab.href}
                 href={tab.href}
                 className={cn(
-                  'flex-1 text-center px-4 py-2.5 text-sm font-medium border-b-2 whitespace-nowrap transition-colors',
-                  active
-                    ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                    : 'border-transparent text-gray-500 dark:text-gray-400'
+                  '-mb-px whitespace-nowrap border-b-2 px-3 py-2.5 text-[14px] transition-colors lg:first:pl-0',
+                  active ? 'border-cd-text font-medium text-cd-text' : 'border-transparent text-cd-muted hover:text-cd-text',
                 )}
               >
                 {tab.label}
               </Link>
             );
           })}
-        </div>
+        </nav>
       )}
     </header>
   );
