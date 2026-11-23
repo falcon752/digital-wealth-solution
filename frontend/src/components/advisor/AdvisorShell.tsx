@@ -14,6 +14,7 @@ import { useAuth } from '@/context/AuthContext';
 import { SidebarProvider, useSidebar } from '@/context/SidebarContext';
 import ThemeToggle from '@/components/layout/ThemeToggle';
 import { CountBadge } from '@/components/client/ui';
+import { useGreeting } from '@/components/client/greetings';
 import { Avatar } from '@/components/support/parts';
 import { advisorAPI } from '@/lib/supportApi';
 import { cn } from '@/lib/utils';
@@ -152,7 +153,10 @@ function TabBar() {
 /* ─── Top bar ─────────────────────────────────────────────────────────────── */
 
 /** Each page's top bar: menu (or back) on phones, the page name, the theme switch. */
-export function AdvisorHeader({ title, backHref }: { title: string; backHref?: string }) {
+export function AdvisorHeader({ title, backHref, greet = false }: { title: string; backHref?: string; /** Show a random greeting (the overview). */ greet?: boolean }) {
+  const { user } = useAuth();
+  const greeting = useGreeting('advisor', user?.firstName);
+  const showGreeting = greet && !!greeting;
   const { openSidebar } = useSidebar();
   const router = useRouter();
   const back = () => (window.history.length > 1 ? router.back() : router.push(backHref || '/advisor'));
@@ -175,10 +179,21 @@ export function AdvisorHeader({ title, backHref }: { title: string; backHref?: s
               <ArrowLeft size={19} strokeWidth={1.75} />
             </Link>
           )}
-          <p className="truncate text-[16px] font-medium text-cd-text lg:text-[13.5px] lg:font-normal lg:text-cd-faint">
-            <span className="hidden lg:inline">Advisor console › </span>
-            <span className="lg:text-cd-text">{title}</span>
-          </p>
+          {showGreeting ? (
+            <div className="min-w-0 text-center lg:text-left">
+              <p className="truncate text-[11.5px] leading-tight text-cd-muted lg:hidden">{greeting.head}</p>
+              <p className="truncate text-[15px] font-medium leading-tight text-cd-text lg:hidden">{title}</p>
+              <p className="hidden truncate text-[14.5px] lg:block">
+                <span className="font-medium text-cd-text">{greeting.head}</span>
+                <span className="text-cd-muted"> · {greeting.line}</span>
+              </p>
+            </div>
+          ) : (
+            <p className="truncate text-[16px] font-medium text-cd-text lg:text-[13.5px] lg:font-normal lg:text-cd-faint">
+              <span className="hidden lg:inline">Advisor console › </span>
+              <span className="lg:text-cd-text">{title}</span>
+            </p>
+          )}
         </div>
         <div className="flex items-center justify-end"><ThemeToggle /></div>
       </div>

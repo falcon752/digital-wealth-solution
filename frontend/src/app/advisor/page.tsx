@@ -40,8 +40,6 @@ export default function AdvisorOverviewPage() {
     advisorAPI.tickets({ status: 'done', limit: 5 }).then((res) => setRecent(res.data.tickets)).catch(() => setError(true));
   }, []);
 
-  const hour = new Date().getHours();
-  const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
   const listSkeleton = (
     <div className="space-y-5 px-3 py-4">
       {[0, 1, 2].map((i) => <div key={i} className="space-y-2 pl-5"><Skeleton className="h-4 w-56" /><Skeleton className="h-3 w-40" /></div>)}
@@ -50,11 +48,11 @@ export default function AdvisorOverviewPage() {
 
   return (
     <div className="min-h-full">
-      <AdvisorHeader title="Overview" />
+      <AdvisorHeader title="Overview" greet />
       <div className="mx-auto w-full max-w-[1180px] px-4 pb-12 pt-5 sm:px-6 lg:px-10 lg:pt-3">
         <PageHeader
           icon={LayoutDashboard}
-          title={`${greeting}, ${user?.firstName || 'there'}`}
+          title="Overview"
           meta={[
             stats ? `${stats.unread} ${stats.unread === 1 ? 'ticket needs' : 'tickets need'} your reply` : 'Loading…',
             stats?.highPriority ? `${stats.highPriority} high priority` : null,

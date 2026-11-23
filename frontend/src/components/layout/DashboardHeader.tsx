@@ -15,6 +15,7 @@ import { useSidebar } from '@/context/SidebarContext';
 import { cn } from '@/lib/utils';
 import ThemeToggle from './ThemeToggle';
 import AdvisorButton from './AdvisorDrawer';
+import { useGreeting } from '@/components/client/greetings';
 
 interface Tab {
   label: string;
@@ -38,6 +39,9 @@ export default function DashboardHeader({ title, subtitle, tabs, backHref, bread
   const pathname = usePathname();
   const router = useRouter();
 
+  // The home page greets the client (a random greeting each visit, see greetings.ts).
+  const greeting = useGreeting('client', user?.firstName);
+  const showGreeting = pathname === '/dashboard' && !!greeting;
   const initials = `${user?.firstName?.[0] || ''}${user?.lastName?.[0] || ''}`.toUpperCase();
   const avatarSrc = user?.profileImage ? `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/uploads/${user.profileImage}` : null;
 
@@ -79,9 +83,18 @@ export default function DashboardHeader({ title, subtitle, tabs, backHref, bread
             </button>
           )}
           <div className="min-w-0">
-            <p className={cn('truncate text-[16px] font-medium text-cd-text lg:text-[15px]', breadcrumb && 'lg:hidden')}>{title}</p>
-            {subtitle && !breadcrumb && <p className="hidden truncate text-[12.5px] text-cd-muted lg:block">{subtitle}</p>}
-            {breadcrumb && (
+            {/* Phone: the greeting's short part sits above the title. */}
+            {showGreeting && <p className="truncate text-[11.5px] leading-tight text-cd-muted lg:hidden">{greeting.head}</p>}
+            <p className={cn('truncate font-medium text-cd-text lg:text-[15px]', showGreeting ? 'text-[15px] leading-tight' : 'text-[16px]', (breadcrumb || showGreeting) && 'lg:hidden')}>{title}</p>
+            {subtitle && !breadcrumb && !showGreeting && <p className="hidden truncate text-[12.5px] text-cd-muted lg:block">{subtitle}</p>}
+            {/* Computer: the whole greeting in place of the breadcrumb. */}
+            {showGreeting && (
+              <p className="hidden truncate text-[14.5px] lg:block">
+                <span className="font-medium text-cd-text">{greeting.head}</span>
+                <span className="text-cd-muted"> · {greeting.line}</span>
+              </p>
+            )}
+            {breadcrumb && !showGreeting && (
               <p className="hidden items-center gap-2 text-[13.5px] lg:flex">
                 <Link href="/dashboard" className="text-cd-faint hover:text-cd-text">Home</Link>
                 <ChevronRight size={14} className="text-cd-faint" />
