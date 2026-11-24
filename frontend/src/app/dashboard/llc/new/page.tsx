@@ -7,7 +7,6 @@ import { X, Lock, Copy } from 'lucide-react';
 import { llcAPI } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import toast from 'react-hot-toast';
-import ThemeToggle from '@/components/layout/ThemeToggle';
 import Modal from '@/components/ui/Modal';
 
 // --- Custom Icons matching the screenshots ---
@@ -224,7 +223,6 @@ function NewLLCForm() {
           />
         </div>
         <div className="flex items-center gap-6">
-          <ThemeToggle />
           {/* <button className="flex items-center gap-2 text-[15px] font-medium text-gray-700 hover:text-black">
             <FeedbackIcon className="text-cd-muted" />
             Feedback

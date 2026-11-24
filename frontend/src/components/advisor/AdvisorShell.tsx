@@ -12,9 +12,9 @@ import { useEffect, useSyncExternalStore, type ReactNode } from 'react';
 import { ArrowLeft, Inbox, LayoutDashboard, LogOut, Menu, UserRound, Users, X, type LucideIcon } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { SidebarProvider, useSidebar } from '@/context/SidebarContext';
-import ThemeToggle from '@/components/layout/ThemeToggle';
 import { CountBadge } from '@/components/client/ui';
 import { useGreeting } from '@/components/client/greetings';
+import { useDeviceTheme } from '@/components/client/useDeviceTheme';
 import { Avatar } from '@/components/support/parts';
 import { advisorAPI } from '@/lib/supportApi';
 import { cn } from '@/lib/utils';
@@ -195,7 +195,8 @@ export function AdvisorHeader({ title, backHref, greet = false }: { title: strin
             </p>
           )}
         </div>
-        <div className="flex items-center justify-end"><ThemeToggle /></div>
+        {/* Keeps the title centred on phones (the theme follows the device; there is no button). */}
+        <div className="h-10 w-10 lg:hidden" aria-hidden />
       </div>
     </header>
   );
@@ -204,6 +205,7 @@ export function AdvisorHeader({ title, backHref, greet = false }: { title: strin
 /** The whole console frame. */
 export default function AdvisorShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  useDeviceTheme();
   // Refresh the unread count when moving between pages and every minute.
   useEffect(() => {
     refreshAdvisorShell();

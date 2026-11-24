@@ -13,7 +13,6 @@ import { ArrowLeft, Bell, ChevronRight, Menu } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useSidebar } from '@/context/SidebarContext';
 import { cn } from '@/lib/utils';
-import ThemeToggle from './ThemeToggle';
 import AdvisorButton from './AdvisorDrawer';
 import { useGreeting } from '@/components/client/greetings';
 
@@ -105,7 +104,6 @@ export default function DashboardHeader({ title, subtitle, tabs, backHref, bread
         </div>
 
         <div className="flex items-center justify-end gap-1 lg:gap-2">
-          <span className="hidden sm:block"><ThemeToggle /></span>
           {user?.role === 'user' && <AdvisorButton />}
           <Link
             href="/dashboard/notifications"

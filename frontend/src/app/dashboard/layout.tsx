@@ -9,6 +9,7 @@ import MobileBottomNav from '@/components/layout/MobileBottomNav';
 import WelcomePopup from '@/components/WelcomePopup';
 import { clientFontClasses } from './fonts';
 import { ActionsProvider } from '@/components/client/actions';
+import { useDeviceTheme } from '@/components/client/useDeviceTheme';
 
 // DirectStay's Fira Sans for the whole client dashboard. The class also goes on <html> so dialogs
 // and toasts rendered outside this tree get the font too.
@@ -21,6 +22,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   // Referral codes are 8 hex characters (e.g. /dashboard/A7B9F102). Matching any 8 letters also
   // caught /dashboard/withdraw and /dashboard/settings, which then lost the sidebar and sign-in check.
   const isReferralLink = pathname?.match(/^\/dashboard\/[0-9A-Fa-f]{8}$/);
+  useDeviceTheme();
 
   useEffect(() => {
     const classes = CLIENT_CLASSES.split(' ');
