@@ -1,6 +1,7 @@
 'use client';
 
 import { use, useState } from 'react';
+import { useReversals } from '@/components/admin/money/Reversals';
 import Link from 'next/link';
 import CircularProgress from '@mui/material/CircularProgress';
 import Grid from '@mui/material/Grid';
@@ -100,6 +101,9 @@ function PaymentView({ data, reload }: { data: PaymentRecord; reload: () => Prom
   const { payment: p, user, reviewer, consultation, commission, related, activity } = data;
   const amount = `${p.assetAmount} ${p.asset}`;
   const v = p.verification;
+  // Overpayment reversal and refunds, once the payment has been decided.
+  const reversals = useReversals('onboarding-payments', p.id, reload);
+  const decided = p.status !== 'under_review';
   const ledgerOk = v.state === 'verified' || v.state === 'legacy_manual';
   // Payment-proof (manual) records are checked by the admin against the wallet; hash records need the ledger check.
   const canConfirm = p.status === 'under_review' && (ledgerOk || p.source === 'manual');
@@ -171,6 +175,7 @@ function PaymentView({ data, reload }: { data: PaymentRecord; reload: () => Prom
               <Icon>verified_user</Icon>&nbsp;Activate account
             </MDButton>
           )}
+          {decided && reversals.buttons}
         </>
       }
     >
@@ -221,6 +226,11 @@ function PaymentView({ data, reload }: { data: PaymentRecord; reload: () => Prom
         <Grid item xs={12} md={6} lg={4}>
           <PersonCard person={user} />
         </Grid>
+        {decided && reversals.card && (
+          <Grid item xs={12} md={6} lg={4}>
+            {reversals.card}
+          </Grid>
+        )}
         <Grid item xs={12} md={6} lg={4}>
           <SectionCard title="Ledger check">
             <MDBox mb={1}><StatusBadge {...verificationBadge(v.state)} label={humanize(v.state)} /></MDBox>
@@ -330,6 +340,7 @@ function PaymentView({ data, reload }: { data: PaymentRecord; reload: () => Prom
           onClose={() => setAction(null)}
         />
       )}
+      {reversals.dialog}
     </AdminPage>
   );
 }

@@ -90,6 +90,7 @@ app.use('/api/admin/advisors', require('./routes/adminAdvisors'));
 app.use('/api/admin/records/users', require('./routes/adminUserRecords'));
 app.use('/api/admin/records/service', require('./routes/adminServiceRecords'));
 app.use('/api/admin/records', require('./routes/adminMoneyRecords'));
+app.use('/api/admin/reversals', require('./routes/adminReversals'));
 app.use('/api/admin', adminRoutes);
 app.use('/api/support', require('./routes/support'));
 app.use('/api/advisor', require('./routes/advisor'));

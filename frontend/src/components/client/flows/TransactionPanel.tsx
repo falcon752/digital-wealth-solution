@@ -9,7 +9,7 @@
 import { useEffect, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { ArrowDownLeft, ArrowLeftRight, ArrowUpRight, Check, Copy, MessageSquareText, X, type LucideIcon } from 'lucide-react';
+import { ArrowDownLeft, ArrowLeftRight, ArrowUpRight, Check, Copy, MessageSquareText, X, Undo2, type LucideIcon } from 'lucide-react';
 import { assetsAPI } from '@/lib/api';
 import { cn, formatCurrency, formatDate } from '@/lib/utils';
 import type { FlowProps } from '../actions';
@@ -31,12 +31,15 @@ export type TransactionRow = {
   destinationAddress?: string | null;
   adminNote?: string | null;
   isManual?: boolean;
+  /** 'reversal': money returned on an overpaid or refunded onboarding fee. */
+  kind?: string;
 };
 
 const TYPE_META: Record<string, { label: string; icon: LucideIcon }> = {
   deposit: { label: 'Deposit', icon: ArrowDownLeft },
   withdrawal: { label: 'Withdrawal', icon: ArrowUpRight },
   swap: { label: 'Swap', icon: ArrowLeftRight },
+  reversal: { label: 'Reversal', icon: Undo2 },
 };
 
 type StepState = 'done' | 'current' | 'upcoming' | 'failed';
@@ -195,7 +198,7 @@ export default function TransactionPanel({ params, setHeader, openAction }: Flow
     }
   }, [symbol, tx?.usdValue]);
 
-  const meta = TYPE_META[tx?.type || ''] || { label: tx?.type ? tx.type.replace(/^\w/, (c) => c.toUpperCase()) : 'Operation', icon: ArrowLeftRight };
+  const meta = TYPE_META[tx?.kind === 'reversal' ? 'reversal' : tx?.type || ''] || { label: tx?.type ? tx.type.replace(/^\w/, (c) => c.toUpperCase()) : 'Operation', icon: ArrowLeftRight };
   const Icon = meta.icon;
 
   useEffect(() => {

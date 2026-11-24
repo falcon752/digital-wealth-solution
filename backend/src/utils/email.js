@@ -600,6 +600,43 @@ async function sendUserDepositStatusEmail({ userEmail, firstName, assetSymbol, a
   });
 }
 
+/** Money returned on an onboarding payment: an overpayment reversal or a refund. */
+async function sendPaymentReversalEmail({ userEmail, firstName, kind, destination, amount, asset, usdValue, reason, reference, paymentReference, walletAddress, txHash }) {
+  const transporter = createTransporter();
+  const overpayment = kind === 'overpayment';
+  const toAccount = destination === 'account';
+  const headline = overpayment ? 'Overpayment reversed' : 'Payment refunded';
+  const intro = toAccount
+    ? `${amount} ${asset}${usdValue ? ` (${usd(usdValue)})` : ''} has been ${overpayment ? 'reversed' : 'refunded'} to your Digital Wealth Partners account${overpayment ? ' because you paid more than your onboarding fee' : ''}. It is already in your balance.`
+    : `${amount} ${asset}${usdValue ? ` (${usd(usdValue)})` : ''} has been ${overpayment ? 'returned' : 'refunded'} to your wallet${overpayment ? ' because you paid more than your onboarding fee' : ''}.`;
+
+  await sendWithLayout(transporter, {
+    from: FROM(),
+    to: userEmail,
+    subject: `${headline}: ${amount} ${asset} - Digital Wealth Partners`,
+  }, {
+    hero: 'payment',
+    preheader: `${amount} ${asset} ${toAccount ? 'returned to your account' : 'returned to your wallet'}.`,
+    eyebrow: 'Onboarding fee',
+    title: headline,
+    paragraphs: [hi(firstName), intro],
+    details: [
+      { label: 'Date & time', value: nowEt() },
+      { label: 'Amount', value: { html: strong(`${amount} ${asset}`) } },
+      { label: 'Value (USD)', value: usdValue ? usd(usdValue) : null },
+      { label: 'Returned to', value: toAccount ? 'Your DWP account balance' : 'Your wallet' },
+      { label: 'Wallet address', value: !toAccount ? walletAddress : null },
+      { label: 'Transaction hash', value: !toAccount ? txHash : null },
+      { label: 'Original payment', value: paymentReference || null },
+      { label: 'Reference', value: reference },
+    ],
+    detailsVariant: 'card',
+    callout: reason ? { title: 'Reason', text: String(reason) } : null,
+    action: toAccount ? { label: 'View Your Balance', url: `${appUrl()}/dashboard` } : null,
+    supporting: [TRANSACTION_HELP()],
+  });
+}
+
 async function sendUserWithdrawalStatusEmail({ userEmail, firstName, assetSymbol, amount, status, adminNote, destinationAddress, usdValue, isManual }) {
   const transporter = createTransporter();
   const statusMap = {
@@ -1312,6 +1349,7 @@ async function sendUserKYCStatusEmail({ userEmail, firstName, status, rejectionR
 }
 
 module.exports = {
+  sendPaymentReversalEmail,
   sendSignupOTPEmail,
   sendDepositNotificationEmail,
   sendWithdrawalNotificationEmail,

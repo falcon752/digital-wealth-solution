@@ -270,7 +270,7 @@ export default function AssetPanel({ params, setHeader, close, openAction }: Flo
                 const shownAmount = tx.type === 'swap' && tx.toAssetSymbol?.toUpperCase() === symbol ? Number(tx.toAmount || 0) : Number(tx.amount);
                 const label = tx.type === 'swap' && tx.toAssetSymbol
                   ? `${tx.assetSymbol} → ${tx.toAssetSymbol}`
-                  : `${TYPE_LABEL[tx.type] || tx.type}`;
+                  : (tx as { kind?: string }).kind === 'reversal' ? 'Reversal' : `${TYPE_LABEL[tx.type] || tx.type}`;
                 return (
                   <li key={tx.id} className="border-b border-cd-line last:border-b-0">
                     <button

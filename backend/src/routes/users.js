@@ -200,6 +200,7 @@ router.get('/dashboard-stats', authenticate, async (req, res) => {
     const recentTransactions = [
       ...recentDeposits.map((d) => ({
         type: 'deposit',
+        kind: d.kind || 'deposit',
         id: d._id.toString(),
         amount: d.amount,
         usdValue: d.usdValue,
@@ -302,6 +303,7 @@ router.get('/transactions', authenticate, async (req, res) => {
       transactions = transactions.concat(
         deposits.map((d) => ({
           type: 'deposit',
+          kind: d.kind || 'deposit',
           id: d._id.toString(),
           amount: d.amount,
           usdValue: d.usdValue,

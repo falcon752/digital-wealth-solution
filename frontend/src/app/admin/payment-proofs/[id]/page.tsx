@@ -1,6 +1,7 @@
 'use client';
 
 import { use, useEffect, useState } from 'react';
+import { useReversals } from '@/components/admin/money/Reversals';
 import Link from 'next/link';
 import Checkbox from '@mui/material/Checkbox';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -150,6 +151,9 @@ function ProofView({ data, reload }: { data: ProofRecord; reload: () => Promise<
   const { proof: p, user, accountLinked, reviewer, onboardingPayment, related, activity } = data;
   const amount = `${p.amount} ${p.asset}`;
   const expected = p.expected?.amount ? Number(p.expected.amount) : null;
+  // Overpayment reversal and refunds, once the proof has been decided.
+  const reversals = useReversals('payment-proofs', p.id, reload);
+  const decided = p.status !== 'pending';
   const difference = expected ? (Number(p.amount) - expected) / expected : null;
   const mismatch = difference !== null && Math.abs(difference) > 0.02;
 
@@ -200,6 +204,7 @@ function ProofView({ data, reload }: { data: ProofRecord; reload: () => Promise<
               </MDButton>
             </>
           )}
+          {decided && reversals.buttons}
         </>
       }
     >
@@ -246,6 +251,11 @@ function ProofView({ data, reload }: { data: ProofRecord; reload: () => Promise<
         <Grid item xs={12} lg={5}>
           <Screenshot id={p.id} file={p.screenshot} />
         </Grid>
+        {decided && reversals.card && (
+          <Grid item xs={12} md={6} lg={3.5}>
+            {reversals.card}
+          </Grid>
+        )}
         <Grid item xs={12} md={6} lg={3.5}>
           <PersonCard
             title="Client account"
@@ -359,6 +369,7 @@ function ProofView({ data, reload }: { data: ProofRecord; reload: () => Promise<
           )}
         </ConfirmDialog>
       )}
+      {reversals.dialog}
     </AdminPage>
   );
 }

@@ -30,7 +30,10 @@ export default function NotificationsPage() {
         let title = '';
         let message = '';
 
-        if (isDeposit) {
+        if (isDeposit && tx.kind === 'reversal') {
+          title = 'Onboarding fee reversal';
+          message = tx.adminNote || `${tx.amount} ${tx.assetSymbol} has been returned to your account.`;
+        } else if (isDeposit) {
           title = tx.status === 'confirmed' ? 'Deposit Confirmed' : 'Deposit Processing';
           if (tx.status === 'confirmed' && tx.isManual) {
             message = tx.adminNote || `Your account has been credited ${tx.amount} ${tx.assetSymbol} directly by our team.`;

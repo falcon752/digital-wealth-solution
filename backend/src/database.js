@@ -108,6 +108,10 @@ const depositSchema = new mongoose.Schema(
     adminNote: { type: String, default: null },
     confirmedAt: { type: Date, default: null },
     isManual: { type: Boolean, default: false },
+    // 'reversal': money returned to the client for an overpaid or refunded payment (see
+    // PaymentReversal). It counts towards the balance like any confirmed deposit.
+    kind: { type: String, enum: ['deposit', 'reversal'], default: 'deposit' },
+    reversalId: { type: mongoose.Schema.Types.ObjectId, ref: 'PaymentReversal', default: null },
   },
   { timestamps: true }
 );
@@ -541,6 +545,36 @@ const activityLogSchema = new mongoose.Schema(
 applyToJSON(activityLogSchema);
 const ActivityLog = mongoose.model('ActivityLog', activityLogSchema);
 
+// ─── PAYMENT REVERSALS ────────────────────────────────────────────────────────
+// Money given back on an onboarding payment or payment proof: the overpaid part ('overpayment')
+// or any part of it ('refund'). 'account' credits the client's DWP balance (through a Deposit
+// with kind 'reversal'); 'wallet' records a refund an admin sent on-chain themselves.
+const paymentReversalSchema = new mongoose.Schema(
+  {
+    reference: { type: String, unique: true },
+    sourceType: { type: String, enum: ['onboarding_payment', 'payment_proof'], required: true },
+    sourceId: { type: mongoose.Schema.Types.ObjectId, required: true, index: true },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    email: { type: String, default: null, lowercase: true, trim: true },
+    kind: { type: String, enum: ['overpayment', 'refund'], required: true },
+    destination: { type: String, enum: ['account', 'wallet'], required: true },
+    asset: { type: String, required: true, uppercase: true, trim: true },
+    amount: { type: String, required: true, trim: true },
+    usdValue: { type: Number, default: null },
+    reason: { type: String, required: true, trim: true, maxlength: 1000 },
+    depositId: { type: mongoose.Schema.Types.ObjectId, ref: 'Deposit', default: null },
+    walletAddress: { type: String, default: null, trim: true },
+    txHash: { type: String, default: null, trim: true },
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  },
+  { timestamps: true }
+);
+paymentReversalSchema.pre('validate', function setReference() {
+  if (!this.reference) this.reference = `REV-${require('crypto').randomBytes(4).toString('hex').toUpperCase()}`;
+});
+applyToJSON(paymentReversalSchema);
+const PaymentReversal = mongoose.model('PaymentReversal', paymentReversalSchema);
+
 // ─── PARTNER PROGRAM ──────────────────────────────────────────────────────────
 // One settings document (key 'default'): the commission the admin sets for partner referrals.
 const referralConfigSchema = new mongoose.Schema(
@@ -752,4 +786,5 @@ module.exports = {
   ReferralConfig,
   ReferralCommission,
   SupportTicket,
+  PaymentReversal,
 };

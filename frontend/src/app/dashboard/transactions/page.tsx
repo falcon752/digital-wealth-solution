@@ -6,7 +6,7 @@
  * row folds to two lines: type and asset on the left, amount and status on the right.
  */
 import { useCallback, useEffect, useState } from 'react';
-import { ArrowDownLeft, ArrowLeftRight, ArrowUpRight, ChevronRight, ListChecks } from 'lucide-react';
+import { ArrowDownLeft, ArrowLeftRight, ArrowUpRight, ChevronRight, ListChecks, Undo2 } from 'lucide-react';
 import { usersAPI } from '@/lib/api';
 import { Transaction } from '@/types';
 import DashboardHeader from '@/components/layout/DashboardHeader';
@@ -20,7 +20,7 @@ const LIMIT = 20;
 type Filter = 'all' | 'deposit' | 'withdrawal' | 'swap';
 
 /** The API also returns swaps, which carry the asset they were swapped into. */
-type ActivityRow = Omit<Transaction, 'type'> & { type: string; toAssetSymbol?: string; toAmount?: number };
+type ActivityRow = Omit<Transaction, 'type'> & { type: string; toAssetSymbol?: string; toAmount?: number; /** 'reversal' for money returned on an onboarding fee. */ kind?: string };
 
 const TABS: { value: Filter; label: string }[] = [
   { value: 'all', label: 'All' },
@@ -33,6 +33,8 @@ const TYPE_META: Record<string, { label: string; icon: typeof ArrowDownLeft }> =
   deposit: { label: 'Deposit', icon: ArrowDownLeft },
   withdrawal: { label: 'Withdrawal', icon: ArrowUpRight },
   swap: { label: 'Swap', icon: ArrowLeftRight },
+  // Money returned on an overpaid or refunded onboarding fee (a deposit with kind 'reversal').
+  reversal: { label: 'Reversal', icon: Undo2 },
 };
 
 const GRID = 'md:grid md:grid-cols-[1fr_1.3fr_1.2fr_0.9fr_0.9fr_1.1fr] md:items-center md:gap-x-4';
@@ -121,7 +123,7 @@ export default function TransactionsPage() {
           ) : (
             <Stagger key={`${filter}-${page}`} className="[&>div:last-child>button]:border-b-0">
               {transactions.map((tx) => {
-                const meta = TYPE_META[tx.type] || { label: tx.type, icon: ArrowDownLeft };
+                const meta = TYPE_META[tx.kind === 'reversal' ? 'reversal' : tx.type] || { label: tx.type, icon: ArrowDownLeft };
                 const assetLabel = tx.type === 'swap' && tx.toAssetSymbol ? `${tx.assetSymbol} → ${tx.toAssetSymbol}` : tx.assetSymbol;
                 const value = tx.usdValue ? formatCurrency(tx.usdValue) : '—';
                 return (
@@ -133,7 +135,7 @@ export default function TransactionsPage() {
                   >
                     {/* Phone: two lines */}
                     <div className="flex items-center gap-3 md:hidden">
-                      <TypeIcon type={tx.type} />
+                      <TypeIcon type={tx.kind === 'reversal' ? 'reversal' : tx.type} />
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-[14px] font-medium text-cd-text">
                           {meta.label}
@@ -151,7 +153,7 @@ export default function TransactionsPage() {
                     {/* Computer: the six columns */}
                     <div className={cn('hidden', GRID)}>
                       <div className="flex min-w-0 items-center gap-3">
-                        <TypeIcon type={tx.type} />
+                        <TypeIcon type={tx.kind === 'reversal' ? 'reversal' : tx.type} />
                         <span className="truncate text-[14px] text-cd-text">{meta.label}</span>
                       </div>
                       <div className="flex min-w-0 items-center gap-2.5">
