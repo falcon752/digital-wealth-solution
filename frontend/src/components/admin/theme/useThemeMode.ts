@@ -1,12 +1,10 @@
 "use client";
 
 import { useEffect } from "react";
-import { setSystemPrefersDark, setThemeMode, useMaterialUIController } from "@/components/admin/context";
-import { hasThemeCookie, modeFromLegacySettings, themeCookie } from "@/components/admin/lib/theme-mode";
+import { setSystemPrefersDark, useMaterialUIController } from "@/components/admin/context";
+import { themeCookie } from "@/components/admin/lib/theme-mode";
 
 const PREFERS_DARK = "(prefers-color-scheme: dark)";
-/** Where display settings used to keep dark mode (see modeFromLegacySettings). */
-const LEGACY_SETTINGS_KEY = "dwp-admin:display";
 
 /**
  * Keeps the theme in step with the choice: follows the computer's light/dark setting live while
@@ -15,19 +13,6 @@ const LEGACY_SETTINGS_KEY = "dwp-admin:display";
  */
 export function useThemeMode(): void {
   const [{ themeMode, darkMode }, dispatch] = useMaterialUIController();
-
-  // First visit since the cookie existed: keep dark mode for anyone who had switched it on.
-  useEffect(() => {
-    if (hasThemeCookie(document.cookie)) return;
-    let legacy: string | null = null;
-    try {
-      legacy = window.localStorage.getItem(LEGACY_SETTINGS_KEY);
-    } catch {
-      // Storage blocked: nothing to carry over.
-    }
-    const mode = modeFromLegacySettings(legacy);
-    if (mode) setThemeMode(dispatch, mode);
-  }, [dispatch]);
 
   // "System": show what the computer prefers now, and change when it does.
   useEffect(() => {

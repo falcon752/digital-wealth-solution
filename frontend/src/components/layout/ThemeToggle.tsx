@@ -1,10 +1,18 @@
 'use client';
+
+/**
+ * The theme button. By default the site follows the device's light/dark setting ("Device"); a tap
+ * cycles Device → Light → Dark → Device, for anyone who wants to override it.
+ */
 import { useTheme } from 'next-themes';
-import { Sun, Moon } from 'lucide-react';
+import { Monitor, Moon, Sun } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
+const NEXT: Record<string, string> = { system: 'light', light: 'dark', dark: 'system' };
+const LABEL: Record<string, string> = { system: 'Device', light: 'Light', dark: 'Dark' };
+
 export default function ThemeToggle({ className = '' }: { className?: string }) {
-  const { resolvedTheme, setTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -13,17 +21,19 @@ export default function ThemeToggle({ className = '' }: { className?: string }) 
   }, []);
   if (!mounted) return <div className={`h-10 w-10 ${className}`} />;
 
+  const current = theme && NEXT[theme] ? theme : 'system';
+  const Icon = current === 'system' ? Monitor : current === 'dark' ? Moon : Sun;
+  const title = `Theme: ${LABEL[current]}${current === 'system' ? ' (follows your device)' : ''}. Switch to ${LABEL[NEXT[current]]}.`;
+
   return (
     <button
-      onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
+      type="button"
+      onClick={() => setTheme(NEXT[current])}
       className={`inline-flex h-10 w-10 items-center justify-center rounded-md text-cd-text transition-colors hover:bg-cd-raised ${className}`}
-      aria-label="Toggle theme"
+      aria-label={title}
+      title={title}
     >
-      {resolvedTheme === 'dark' ? (
-        <Sun size={19} strokeWidth={1.75} />
-      ) : (
-        <Moon size={19} strokeWidth={1.75} />
-      )}
+      <Icon size={19} strokeWidth={1.75} />
     </button>
   );
 }

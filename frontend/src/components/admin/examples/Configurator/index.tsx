@@ -51,7 +51,7 @@ import type { ThemeMode } from "@/components/admin/lib/theme-mode";
 const THEME_OPTIONS: { mode: ThemeMode; label: string; icon: string }[] = [
   { mode: "light", label: "Light", icon: "light_mode" },
   { mode: "dark", label: "Dark", icon: "dark_mode" },
-  { mode: "system", label: "System", icon: "contrast" },
+  { mode: "system", label: "Device", icon: "contrast" },
 ];
 
 function Configurator() {
@@ -178,7 +178,7 @@ function Configurator() {
         <MDBox mb={3} lineHeight={1}>
           <MDTypography variant="h6">Theme</MDTypography>
           <MDTypography variant="button" color="text">
-            System matches your computer.
+            Device follows your phone or computer.
           </MDTypography>
           <MDBox role="radiogroup" aria-label="Theme" display="flex" gap={1} mt={2}>
             {THEME_OPTIONS.map(({ mode, label, icon }) => (

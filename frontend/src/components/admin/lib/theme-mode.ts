@@ -14,7 +14,8 @@ export interface ThemeChoice {
   dark: boolean;
 }
 
-export const THEME_COOKIE = "dwp_admin_theme";
+// Renamed (was dwp_admin_theme) so every admin starts on "Device" after the switch to device themes.
+export const THEME_COOKIE = "dwp_admin_theme_device";
 export const THEME_MODES: readonly ThemeMode[] = ["light", "dark", "system"];
 export const DEFAULT_THEME: ThemeChoice = { mode: "system", dark: false };
 
