@@ -185,7 +185,7 @@ export function SectionCard({ title, description, action, children, noPadding = 
 }) {
   return (
     <Card sx={{ height: "100%" }}>
-      <MDBox px={3} pt={3} pb={noPadding ? 1 : 0} display="flex" justifyContent="space-between" alignItems="flex-start" gap={2}>
+      <MDBox px={3} pt={3} pb={noPadding ? 1 : 0} display="flex" justifyContent="space-between" alignItems="flex-start" gap={2} flexWrap="wrap">
         <MDBox>
           <MDTypography variant="h6">{title}</MDTypography>
           {description && <MDTypography variant="caption" color="text" component="div">{description}</MDTypography>}

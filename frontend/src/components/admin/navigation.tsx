@@ -49,6 +49,7 @@ export const NAVIGATION: readonly NavItem[] = [
   page("loans", "Loans", "account_balance"),
   page("cards", "Cards", "payment"),
   page("assets", "Assets", "category"),
+  page("holdings", "Portfolio Holdings", "savings"),
 
   { type: "title", key: "outreach-title", title: "Outreach" },
   page("broadcast", "Broadcast", "campaign"),

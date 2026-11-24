@@ -141,6 +141,14 @@ import {
   Exchange01Icon,
   NoteEditIcon,
   QrCodeIcon,
+  Archive02Icon,
+  ArchiveRestoreIcon,
+  Blockchain01Icon,
+  ChartIncreaseIcon,
+  GoldIngotsIcon,
+  PiggyBankIcon,
+  RestoreBinIcon,
+  UmbrellaDollarIcon,
 } from "@hugeicons/core-free-icons";
 
 export type HugeIcon = typeof Home01Icon;
@@ -330,6 +338,15 @@ export const ICONS: Record<string, HugeIcon> = {
   edit_note: NoteEditIcon,
   north_east: ArrowUpRight01Icon,
   receipt_long: Invoice01Icon,
+  // Portfolio holdings (/admin/holdings): the page and its categories.
+  savings: PiggyBankIcon,
+  umbrella: UmbrellaDollarIcon,
+  trending_up: ChartIncreaseIcon,
+  workspace_premium: GoldIngotsIcon,
+  hub: Blockchain01Icon,
+  archive: Archive02Icon,
+  unarchive: ArchiveRestoreIcon,
+  restore_from_trash: RestoreBinIcon,
 };
 
 /** Shown for a name with no match, so a missing icon is visible rather than blank. */

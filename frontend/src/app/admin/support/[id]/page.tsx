@@ -193,6 +193,11 @@ export default function AdminTicketDetailPage({ params }: { params: Promise<{ id
                   <Icon>person</Icon>&nbsp;Open client
                 </MDButton>
               )}
+              {client && ticket.category === 'portfolio' && (
+                <MDButton component={Link} href={`/admin/holdings?search=${encodeURIComponent(client.email)}&status=all`} variant="outlined" color="dark" size="small">
+                  <Icon>savings</Icon>&nbsp;Client&apos;s holdings
+                </MDButton>
+              )}
               {ticket.advisor && (
                 <MDButton component={Link} href={`/admin/advisors/${ticket.advisor.id}`} variant="outlined" color="dark" size="small">
                   <Icon>support_agent</Icon>&nbsp;Open advisor

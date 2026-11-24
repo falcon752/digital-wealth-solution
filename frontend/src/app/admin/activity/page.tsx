@@ -52,6 +52,11 @@ const ACTION_COLORS: Record<string, ActionStyle> = {
   USER_DEACTIVATED: { color: 'error', bold: true },
   BALANCE_ADJUSTED: { color: 'primary', bold: true },
   ADMIN_CREATED_USER: { color: 'info', bold: true },
+
+  // Portfolio holdings (/admin/holdings)
+  HOLDING_ADDED: { color: 'success', bold: true },
+  HOLDING_UPDATED: { color: 'info' },
+  HOLDING_STATUS_CHANGED: { color: 'warning', bold: true },
 };
 
 const pulse = keyframes`

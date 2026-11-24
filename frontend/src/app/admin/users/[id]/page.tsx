@@ -5,7 +5,8 @@
  * header has who they are and every main field; then balances, onboarding and KYC, each related
  * list (rows open their own details page), the partner program, their advisor and the activity log.
  * The account actions from the users list (edit balance, suspend/activate) are in the page heading,
- * plus assigning an advisor.
+ * plus assigning an advisor. Clients also have a "Portfolio holdings" section (retirement accounts,
+ * investments, metals, NFTs, DeFi) whose active total is included in the total balance KPI.
  */
 import { use, useCallback, useEffect, useMemo, useState, type ChangeEvent, type ReactNode } from 'react';
 import Link from 'next/link';
@@ -33,6 +34,7 @@ import MDInput from '@/components/admin/components/MDInput';
 import MDTypography from '@/components/admin/components/MDTypography';
 import { humanize } from '@/components/admin/lib/format';
 import { errorMessage } from '@/components/admin/lib/errors';
+import ClientHoldings from '@/components/admin/holdings/ClientHoldings';
 
 /* ─── Types (GET /api/admin/records/users/:id) ─────────────────────────────── */
 
@@ -409,6 +411,9 @@ function UserView({ record, valued, accent, onAction }: {
   const isClient = user.role === 'user';
   const location = [user.city, user.state, user.country].filter(Boolean).join(', ');
   const latestPayment = record.onboardingPayments[0];
+  // Active portfolio holdings (reported by the holdings section), added to the total balance.
+  const [holdingsUsd, setHoldingsUsd] = useState<number | null>(null);
+  const holdingsClient = useMemo(() => ({ id: user.id, name: user.name || '', email: user.email || '', photoUrl: photoSrc(user.photo) }), [user.id, user.name, user.email, user.photo]);
 
   const actions = isClient ? (
     <>
@@ -647,8 +652,8 @@ function UserView({ record, valued, accent, onAction }: {
       <Grid container spacing={3} mt={0.5}>
         <Grid item xs={12} sm={6} lg={3}>
           <MDBox mt={1.5}>
-            <StatCard icon="account_balance_wallet" color="dark" title="Total balance" value={fmtUsd(valued.total) ?? '—'}
-              footnote={{ label: `Cash ${fmtUsd(record.balances.cashUsd)} · crypto ${fmtUsd(valued.crypto)} ${valued.havePrices ? '' : '(no prices)'}`.trim(), color: 'secondary' }} />
+            <StatCard icon="account_balance_wallet" color="dark" title={holdingsUsd ? 'Total incl. holdings' : 'Total balance'} value={fmtUsd(valued.total + (holdingsUsd ?? 0)) ?? '—'}
+              footnote={{ label: `Cash ${fmtUsd(record.balances.cashUsd)} · crypto ${fmtUsd(valued.crypto)}${valued.havePrices ? '' : ' (no prices)'}${holdingsUsd ? ` · holdings ${fmtUsd(holdingsUsd)}` : ''}`, color: 'secondary' }} />
           </MDBox>
         </Grid>
         <Grid item xs={12} sm={6} lg={3}>
@@ -691,6 +696,12 @@ function UserView({ record, valued, accent, onAction }: {
         <Grid item xs={12} lg={5}>
           <TimelineCard title="Onboarding & KYC" events={timeline} />
         </Grid>
+
+        {isClient && (
+          <Grid item xs={12}>
+            <ClientHoldings client={holdingsClient} onTotal={setHoldingsUsd} />
+          </Grid>
+        )}
 
         <Grid item xs={12} lg={6}>
           <RelatedTable title="Deposits" description={latest(record.deposits.length, counts.deposits)} rows={record.deposits} columns={depositColumns}
