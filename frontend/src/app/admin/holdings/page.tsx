@@ -214,7 +214,7 @@ export default function AdminHoldingsPage() {
           const meta = CATEGORY_META[c];
           const totals = summary?.[c];
           return (
-            <Grid item xs={12} sm={6} lg={4} xl={2} key={c}>
+            <Grid item xs={12} sm={6} lg={4} key={c}>
               <MDBox
                 mb={1.5}
                 role="button"

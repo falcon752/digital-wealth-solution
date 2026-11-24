@@ -56,8 +56,11 @@ function ComplexStatisticsCard({
 }: ComplexStatisticsCardProps) {
   return (
     <Card>
-      <MDBox display="flex" justifyContent="space-between" pt={1} px={2}>
+      <MDBox display="flex" justifyContent="space-between" gap={1.5} pt={1} px={2}>
         <MDBox
+          // A fixed square: long amounts beside it must never squeeze it.
+          flexShrink={0}
+          minWidth="4rem"
           variant="gradient"
           bgColor={color}
           color={color === "light" ? "dark" : "white"}
@@ -74,11 +77,11 @@ function ComplexStatisticsCard({
             {icon}
           </Icon>
         </MDBox>
-        <MDBox textAlign="right" lineHeight={1.25}>
+        <MDBox textAlign="right" lineHeight={1.25} minWidth={0}>
           <MDTypography variant="button" fontWeight="light" color="text">
             {title}
           </MDTypography>
-          <MDTypography variant="h4">{count}</MDTypography>
+          <MDTypography variant="h4" sx={{ overflowWrap: "anywhere" }}>{count}</MDTypography>
         </MDBox>
       </MDBox>
       <Divider />
