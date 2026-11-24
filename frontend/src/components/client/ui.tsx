@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { useState, type ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { cn, formatCurrency } from '@/lib/utils';
+import { convertUsd, formatMoney, getDisplayCurrency } from '@/lib/currency';
 
 /* ─── Money ─────────────────────────────────────────────────────────────── */
 
@@ -19,12 +20,13 @@ export function Money({ value, hidden = false, className, centsClassName }: {
   className?: string;
   centsClassName?: string;
 }) {
-  if (hidden) return <span className={cn('cd-num tracking-wider', className)}>$••••••</span>;
-  const [whole, cents = '00'] = formatCurrency(value).split('.');
+  // In the client's display currency (lib/currency.ts); yen has no cents.
+  if (hidden) return <span className={cn('cd-num tracking-wider', className)}>{getDisplayCurrency().symbol}••••••</span>;
+  const [whole, cents] = formatCurrency(value).split('.');
   return (
     <span className={cn('cd-num', className)}>
       {whole}
-      <span className={cn('text-[0.62em]', centsClassName)}>.{cents}</span>
+      {cents !== undefined && <span className={cn('text-[0.62em]', centsClassName)}>.{cents}</span>}
     </span>
   );
 }
@@ -40,8 +42,11 @@ export function formatAmount(value: number, symbol?: string) {
 /** A price: 2 decimals at $1 and over, more below so small prices stay readable. */
 export function formatPrice(value: number) {
   if (!value) return '—';
-  const digits = value >= 1 ? 2 : value >= 0.01 ? 4 : 6;
-  return `$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: digits })}`;
+  // Small prices keep more places so they stay readable (in the display currency).
+  const shown = convertUsd(value);
+  const { decimals } = getDisplayCurrency();
+  const digits = shown >= 100 ? decimals : shown >= 1 ? Math.max(decimals, 2) : shown >= 0.01 ? 4 : 6;
+  return formatMoney(value, { decimals: digits, minDecimals: Math.min(decimals, digits) });
 }
 
 /** "86c4…2302": long IDs and addresses are shortened in the middle. */

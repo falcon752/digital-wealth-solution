@@ -440,7 +440,7 @@ export default function LendingPage() {
                       <Row stacked label="Duration">{aprOption.term}</Row>
                       <Row stacked label="Monthly interest">{monthlyInterest.toFixed(6)} {loanAsset?.symbol}</Row>
                       <Row stacked label="Origination fee">{originationFee.toFixed(6)} {loanAsset?.symbol}</Row>
-                      <Row stacked label="Margin call">{marginCallPrice.toFixed(2)} {collateralAsset?.symbol}/USD</Row>
+                      <Row stacked label="Margin call">{formatCurrency(marginCallPrice)} per {collateralAsset?.symbol}</Row>
                     </Group>
 
                     {/* Contact */}

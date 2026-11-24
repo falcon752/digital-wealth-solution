@@ -8,6 +8,7 @@
 import Link from 'next/link';
 import { motion, useReducedMotion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { getDisplayCurrency } from '@/lib/currency';
 import { PriceTick } from './motion';
 import { AssetIcon, AssetName, Change, Money, TableHead, formatAmount, formatPrice } from './ui';
 
@@ -44,7 +45,7 @@ export default function AssetTable({ rows, hidden = false, unitLabel = true, onR
         <span>Asset</span>
         <span className="text-right sm:text-right">
           <span className="sm:hidden">Balance</span>
-          <span className="hidden sm:inline">Balance (USD)</span>
+          <span className="hidden sm:inline">Balance ({getDisplayCurrency().code})</span>
         </span>
         <span className="hidden pl-4 sm:block">Balance</span>
         <span className="hidden text-right sm:block">Price</span>

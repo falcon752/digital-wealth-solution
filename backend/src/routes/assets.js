@@ -63,6 +63,37 @@ async function getLivePrices() {
   }
 }
 
+// GET /api/assets/fx — how many GBP, EUR, JPY and CNY one US dollar buys, for the client
+// dashboard's display currency. From CoinGecko's exchange rates (BTC-based, so each is divided
+// by the USD rate); kept for an hour, and the last good rates are used if CoinGecko fails.
+const FX_TTL_MS = 60 * 60 * 1000;
+const FX_CODES = ['usd', 'gbp', 'eur', 'jpy', 'cny'];
+let fxCache = { at: 0, rates: null };
+
+router.get('/fx', authenticate, async (req, res) => {
+  if (fxCache.rates && Date.now() - fxCache.at < FX_TTL_MS) {
+    return res.json({ base: 'USD', rates: fxCache.rates, at: fxCache.at });
+  }
+  try {
+    const r = await fetch('https://api.coingecko.com/api/v3/exchange_rates', { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(8000) });
+    if (!r.ok) throw new Error(`CoinGecko HTTP ${r.status}`);
+    const data = (await r.json()).rates || {};
+    const usd = Number(data.usd?.value);
+    if (!usd) throw new Error('No USD rate');
+    const rates = {};
+    FX_CODES.forEach((code) => {
+      const value = Number(data[code]?.value);
+      if (value > 0) rates[code.toUpperCase()] = value / usd;
+    });
+    rates.USD = 1;
+    fxCache = { at: Date.now(), rates };
+    res.json({ base: 'USD', rates, at: fxCache.at });
+  } catch {
+    // Last good rates if we have them; otherwise US dollars only (the dashboard falls back to USD).
+    res.json({ base: 'USD', rates: fxCache.rates || { USD: 1 }, at: fxCache.at || null, stale: true });
+  }
+});
+
 // GET /api/assets/prices
 router.get('/prices', authenticate, async (req, res) => {
   try {

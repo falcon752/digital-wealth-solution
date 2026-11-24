@@ -92,6 +92,22 @@ router.put('/profile', authenticate, upload.single('profileImage'), [
 });
 
 // PUT /api/users/change-password
+// PUT /api/users/preferences — the client's display currency
+const DISPLAY_CURRENCIES = ['USD', 'GBP', 'EUR', 'JPY', 'CNY'];
+router.put('/preferences', authenticate, [
+  body('displayCurrency').isIn(DISPLAY_CURRENCIES).withMessage('Choose USD, GBP, EUR, JPY or CNY'),
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ error: errors.array()[0].msg });
+  try {
+    const user = await User.findByIdAndUpdate(req.user.id, { displayCurrency: req.body.displayCurrency }, { new: true }).select('displayCurrency');
+    logActivity(req.user.id, 'DISPLAY_CURRENCY_CHANGED', { displayCurrency: user.displayCurrency }, req);
+    res.json({ displayCurrency: user.displayCurrency });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to save your preference' });
+  }
+});
+
 router.put('/change-password', authenticate, [
   body('currentPassword').notEmpty(),
   body('newPassword')

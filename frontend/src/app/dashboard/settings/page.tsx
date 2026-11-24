@@ -4,6 +4,7 @@
  * The client's account hub, laid out like Anchorage's settings: a profile summary at the top, then
  * grouped cards of list rows (icon, label, grey description, chevron) separated by thin lines.
  */
+import { CurrencyChips } from '@/components/client/currency';
 import { useState, useEffect, type ReactNode } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -130,6 +131,13 @@ export default function SettingsPage() {
           </section>
 
           <div className="mt-5 space-y-5">
+            <Card title="Display currency">
+              <p className="mb-3 text-[13px] text-cd-muted">
+                Show your balances and prices in the currency you prefer, at today&apos;s exchange rate. Your account itself stays in US dollars.
+              </p>
+              <CurrencyChips />
+            </Card>
+
             <SettingsGroup title="Settings">
               <SettingsRow href="/dashboard/settings/profile" icon={UserRound} label="Profile" description="Name, photo, phone and address" />
               <SettingsRow href="/dashboard/settings/security" icon={Lock} label="Security" description="Change your password" />

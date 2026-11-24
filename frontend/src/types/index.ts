@@ -23,6 +23,7 @@ export interface User {
   accountActivatedAt?: string | null;
   referralCode?: string;
   hiddenAssets?: string[];
+  displayCurrency?: 'USD' | 'GBP' | 'EUR' | 'JPY' | 'CNY';
   createdAt: string;
 }
 

@@ -235,6 +235,7 @@ router.post('/login', [
         accountActivatedAt: user.accountActivatedAt,
         referralCode: user.referralCode,
         hiddenAssets: user.hiddenAssets,
+        displayCurrency: user.displayCurrency || 'USD',
       },
     });
   } catch (err) {

@@ -1,17 +1,14 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { formatMoney } from './currency';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+/** A US-dollar amount, written in the client's display currency inside the client dashboard (see lib/currency.ts). */
 export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount);
+  return formatMoney(amount);
 }
 
 export const APP_TIMEZONE = process.env.NEXT_PUBLIC_APP_TIMEZONE || 'America/New_York';

@@ -6,6 +6,7 @@
  * and range tabs, then Holdings / History / About. The actions open as pop-up sheets over this
  * page, and History rows open the operation's details.
  */
+import { getDisplayCurrency } from '@/lib/currency';
 import { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
@@ -240,7 +241,7 @@ export default function CoinDetailPage() {
         {/* Chart */}
         <Card className="mt-8 lg:mt-10" bodyClassName="p-0 sm:p-0">
           <div className="flex flex-col gap-3 px-4 pt-4 sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:pt-5">
-            <p className="text-[15px] font-medium text-cd-text">{symbol} / USD</p>
+            <p className="text-[15px] font-medium text-cd-text">{symbol} / {getDisplayCurrency().code}</p>
             <Tabs tabs={PERIOD_TABS} value={period} onChange={setPeriod} className="border-b-0" />
           </div>
           <div className="h-[180px] px-4 pb-5 pt-5 sm:h-[240px] sm:px-5">

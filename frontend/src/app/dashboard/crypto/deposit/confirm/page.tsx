@@ -138,7 +138,7 @@ export default function DepositConfirmPage() {
             <div className="mt-3">
               <Row label="Amount to deposit">
                 <span className="cd-num">{cryptoAmount} <span className="text-[12px] text-cd-muted">{symbol}</span></span>
-                {usdAmount > 0 && <p className="cd-num mt-0.5 text-[12.5px] text-cd-muted">≈ {formatCurrency(usdAmount)} USD</p>}
+                {usdAmount > 0 && <p className="cd-num mt-0.5 text-[12.5px] text-cd-muted">≈ {formatCurrency(usdAmount)}</p>}
               </Row>
               <Row label="Asset">
                 {symbol}

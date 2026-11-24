@@ -67,6 +67,8 @@ const userSchema = new mongoose.Schema(
       isAvailable: { type: Boolean, default: true },
     },
     hiddenAssets: { type: [String], default: [] },
+    // The currency the client dashboard shows money in (amounts are stored in USD).
+    displayCurrency: { type: String, enum: ['USD', 'GBP', 'EUR', 'JPY', 'CNY'], default: 'USD' },
   },
   { timestamps: true }
 );

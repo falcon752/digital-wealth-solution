@@ -448,7 +448,7 @@ export default function WithdrawFlow({ variant, params, setHeader, close }: Flow
         <span className="cd-num">{fmt(amountNumber)} <span className="text-[12px] text-cd-muted">{selectedAsset.symbol}</span></span>
       </Row>
       {price > 0 && (
-        <Row label="≈ USD">
+        <Row label="≈ Value">
           <span className="cd-num">{formatCurrency(amountNumber * price)}</span>
           <p className="cd-num mt-0.5 text-[12.5px] text-cd-muted">@ {formatCurrency(price)}/{selectedAsset.symbol}</p>
         </Row>
@@ -565,7 +565,7 @@ export default function WithdrawFlow({ variant, params, setHeader, close }: Flow
                 <span className="shrink-0 text-[18px] text-cd-muted">{selectedAsset.symbol}</span>
               </div>
               <p className="cd-num mt-2.5 min-h-[20px] text-[14px] text-cd-muted">
-                {price > 0 ? `≈ ${formatCurrency(amountNumber * price)} USD` : ' '}
+                {price > 0 ? `≈ ${formatCurrency(amountNumber * price)}` : ' '}
               </p>
               {(errors.amount?.message || amountError) && (
                 <p className="mt-1.5 text-[12.5px] text-cd-negative">{amountError || errors.amount?.message}</p>

@@ -5,6 +5,7 @@
  * and ID with Convert / Withdraw / Deposit on the right, the total balance, then the holdings split
  * into Fiat and Crypto tables.
  */
+import { CurrencySelect } from '@/components/client/currency';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ArrowDownToLine, ArrowLeftRight, ArrowUpFromLine, Eye, EyeOff, Landmark, RefreshCw, Zap } from 'lucide-react';
@@ -165,6 +166,7 @@ export default function AnchorageAccountPage() {
           </div>
           <p className="mt-2 flex items-center gap-2.5 text-[13px] text-cd-muted">
             <span className="uppercase tracking-[0.08em]">Total balance</span>
+            <CurrencySelect />
             {!hidden && previousTotal > 0 && (
               <>
                 <span className="h-3 w-px bg-cd-line-strong" />
