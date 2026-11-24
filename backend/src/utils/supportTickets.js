@@ -8,7 +8,7 @@
 const mongoose = require('mongoose');
 const { User, KYCSubmission } = require('../database');
 
-const TICKET_CATEGORIES = ['account', 'deposit', 'withdrawal', 'kyc', 'llc', 'lending', 'cards', 'other'];
+const TICKET_CATEGORIES = ['account', 'deposit', 'withdrawal', 'kyc', 'llc', 'lending', 'cards', 'portfolio', 'other'];
 const TICKET_STATUSES = ['open', 'in_progress', 'resolved', 'closed'];
 const TICKET_PRIORITIES = ['normal', 'high'];
 // Tickets that still need the advisor's attention.

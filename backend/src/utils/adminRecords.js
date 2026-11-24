@@ -10,7 +10,7 @@ const RECORD_KEYS = [
   'id', 'userId', 'targetId', 'targetUserId', 'clientId', 'advisorId', 'depositId', 'withdrawalId', 'swapId',
   'loanId', 'earnId', 'cardId', 'applicationId', 'llcId', 'submissionId', 'kycId', 'proofId', 'paymentProofId',
   'paymentId', 'onboardingPaymentId', 'requestId', 'accessRequestId', 'ticketId', 'commissionId', 'assetId',
-  'consultationId', 'contactId', 'broadcastId',
+  'consultationId', 'contactId', 'broadcastId', 'holdingId', 'reversalId',
 ];
 
 /** A person without secrets: what a details page shows in its header or in a linked-person card. */

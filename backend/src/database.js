@@ -547,6 +547,37 @@ const activityLogSchema = new mongoose.Schema(
 applyToJSON(activityLogSchema);
 const ActivityLog = mongoose.model('ActivityLog', activityLogSchema);
 
+// ─── PORTFOLIO HOLDINGS ───────────────────────────────────────────────────────
+// A client's wider wealth beyond their DWP crypto and cash: retirement accounts (401(k), IRA,
+// Roth IRA…), brokerage investments, precious metals, NFTs and DeFi positions. Entered and kept
+// up to date by DWP's team (from statements or the custodian); clients see them read-only.
+const HOLDING_CATEGORIES = ['retirement', 'investment', 'precious_metal', 'nft', 'defi', 'other'];
+const holdingSchema = new mongoose.Schema(
+  {
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+    category: { type: String, enum: HOLDING_CATEGORIES, required: true },
+    // e.g. 401k, ira, roth_ira, sep_ira, brokerage, stock, etf, fund, gold, silver, platinum, nft, staking, lending, liquidity
+    type: { type: String, trim: true, maxlength: 40, default: null },
+    name: { type: String, required: true, trim: true, maxlength: 120 },
+    institution: { type: String, trim: true, maxlength: 120, default: null },
+    accountLast4: { type: String, trim: true, maxlength: 4, default: null },
+    symbol: { type: String, trim: true, uppercase: true, maxlength: 20, default: null },
+    quantity: { type: Number, default: null, min: 0 },
+    unit: { type: String, trim: true, maxlength: 20, default: null },
+    valueUsd: { type: Number, required: true, min: 0 },
+    costBasisUsd: { type: Number, default: null, min: 0 },
+    valuedAt: { type: Date, default: Date.now },
+    notes: { type: String, trim: true, maxlength: 1000, default: null },
+    adminNote: { type: String, trim: true, maxlength: 1000, default: null },
+    status: { type: String, enum: ['active', 'closed', 'removed'], default: 'active' },
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+  },
+  { timestamps: true }
+);
+applyToJSON(holdingSchema);
+const Holding = mongoose.model('Holding', holdingSchema);
+
 // ─── PAYMENT REVERSALS ────────────────────────────────────────────────────────
 // Money given back on an onboarding payment or payment proof: the overpaid part ('overpayment')
 // or any part of it ('refund'). 'account' credits the client's DWP balance (through a Deposit
@@ -630,7 +661,7 @@ const supportTicketSchema = new mongoose.Schema(
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     advisorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null, index: true },
     subject: { type: String, required: true, trim: true, maxlength: 160 },
-    category: { type: String, enum: ['account', 'deposit', 'withdrawal', 'kyc', 'llc', 'lending', 'cards', 'other'], default: 'other' },
+    category: { type: String, enum: ['account', 'deposit', 'withdrawal', 'kyc', 'llc', 'lending', 'cards', 'portfolio', 'other'], default: 'other' },
     priority: { type: String, enum: ['normal', 'high'], default: 'normal' },
     status: { type: String, enum: ['open', 'in_progress', 'resolved', 'closed'], default: 'open' },
     messages: { type: [ticketMessageSchema], default: [] },
@@ -789,4 +820,6 @@ module.exports = {
   ReferralCommission,
   SupportTicket,
   PaymentReversal,
+  Holding,
+  HOLDING_CATEGORIES,
 };
