@@ -3,12 +3,13 @@
 /**
  * The client's Anchorage Digital Bank account, laid out like an Anchorage vault: the account name
  * and ID with Convert / Withdraw / Deposit on the right, the total balance, then the holdings split
- * into Fiat and Crypto tables.
+ * into Fiat and Crypto tables, followed by the wider portfolio DWP records for the client
+ * (retirement accounts, investments, precious metals, NFTs, DeFi), one card per category.
  */
 import { CurrencySelect } from '@/components/client/currency';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { ArrowDownToLine, ArrowLeftRight, ArrowUpFromLine, Eye, EyeOff, Landmark, RefreshCw, Zap } from 'lucide-react';
+import { ArrowDownToLine, ArrowLeftRight, ArrowUpFromLine, ChevronRight, Eye, EyeOff, Landmark, RefreshCw, Zap } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { usersAPI, assetsAPI } from '@/lib/api';
 import { formatCurrency } from '@/lib/utils';
@@ -17,7 +18,8 @@ import AssetTable, { type HoldingRow } from '@/components/client/AssetTable';
 import { useActions, useBalancesChanged, type ActionKind } from '@/components/client/actions';
 import { AnimatedMoney } from '@/components/client/motion';
 import { useLivePrices } from '@/components/client/live';
-import { ActionButton, Card, Change, EmptyState, PageHeader, Skeleton, shortId } from '@/components/client/ui';
+import { HoldingsCards, WiderPortfolioCard, usePortfolio } from '@/components/client/portfolio';
+import { ActionButton, Card, Change, EmptyState, Money, PageHeader, Skeleton, shortId } from '@/components/client/ui';
 
 type DashboardStats = {
   balance?: number;
@@ -110,8 +112,13 @@ export default function AnchorageAccountPage() {
     return { cryptoRows: rows, cryptoTotal: total, previousTotal: previous };
   }, [dbAssets, prices, changes24h, stats, user?.hiddenAssets]);
 
+  // Holdings DWP records for the client (retirement accounts, investments, metals, NFTs, DeFi).
+  const { data: portfolio } = usePortfolio();
+  const holdingsTotal = portfolio?.totalUsd || 0;
+  const hasHoldings = (portfolio?.holdings.length || 0) > 0;
+
   const usdBalance = stats?.balance || 0;
-  const totalBalance = cryptoTotal + usdBalance;
+  const totalBalance = cryptoTotal + usdBalance + holdingsTotal;
   const change = cryptoTotal - previousTotal;
   const changePct = previousTotal > 0 ? (change / previousTotal) * 100 : 0;
 
@@ -175,6 +182,20 @@ export default function AnchorageAccountPage() {
               </>
             )}
           </p>
+          {hasHoldings && (
+            <div className="mt-2.5 flex flex-col items-center gap-x-2.5 gap-y-1.5 text-[13px] text-cd-muted lg:flex-row">
+              <p className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1">
+                <span>Cash &amp; crypto <Money value={cryptoTotal + usdBalance} hidden={hidden} className="text-cd-text" centsClassName="text-[1em]" /></span>
+                <span className="h-3 w-px bg-cd-line-strong" />
+                <span>Other holdings <Money value={holdingsTotal} hidden={hidden} className="text-cd-text" centsClassName="text-[1em]" /></span>
+              </p>
+              <span className="hidden h-3 w-px bg-cd-line-strong lg:block" />
+              <Link href="/dashboard/portfolio" className="inline-flex items-center gap-0.5 font-medium text-cd-accent-text hover:underline">
+                View portfolio
+                <ChevronRight size={14} strokeWidth={2} />
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* Phone: the actions as a row of tiles */}
@@ -226,6 +247,12 @@ export default function AnchorageAccountPage() {
               <AssetTable rows={cryptoRows} hidden={hidden} onRowClick={(row) => openAction('asset', { symbol: row.symbol })} />
             )}
           </Card>
+
+          {portfolio && (hasHoldings ? (
+            <HoldingsCards holdings={portfolio.holdings} hidden={hidden} onOpen={(holding) => openAction('holding', { holding })} />
+          ) : (
+            <WiderPortfolioCard onRequest={() => openAction('portfolio-request')} />
+          ))}
         </div>
       </div>
     </div>

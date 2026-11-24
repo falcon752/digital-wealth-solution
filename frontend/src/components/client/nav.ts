@@ -1,5 +1,5 @@
 import {
-  ArrowLeftRight, Building2, Coins, CreditCard, Handshake, Headset, House, ListChecks, Settings, UserRound, type LucideIcon,
+  ArrowLeftRight, Building2, Coins, CreditCard, Handshake, Headset, House, ListChecks, PieChart, Settings, UserRound, type LucideIcon,
 } from 'lucide-react';
 
 export interface ClientNavLink {
@@ -18,6 +18,7 @@ export interface ClientNavItem extends ClientNavLink {
 
 export const CLIENT_NAV: ClientNavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: House, match: ['/dashboard/wallet', '/dashboard/assets', '/dashboard/crypto', '/dashboard/deposit', '/dashboard/withdraw'] },
+  { label: 'Portfolio', href: '/dashboard/portfolio', icon: PieChart },
   { label: 'Activity', href: '/dashboard/transactions', icon: ListChecks, badge: 'pending', match: ['/dashboard/transactions', '/dashboard/notifications'] },
   { label: 'Trade', href: '/dashboard/swap', icon: ArrowLeftRight, match: ['/dashboard/swap', '/dashboard/buy'] },
   { label: 'Lend & Invest', href: '/dashboard/finance', icon: Coins, match: ['/dashboard/finance', '/dashboard/lending'] },
@@ -46,10 +47,10 @@ export const CLIENT_NAV: ClientNavItem[] = [
 
 /** The phone's bottom tab bar. */
 export const CLIENT_TABS: (ClientNavLink & { icon: LucideIcon })[] = [
-  { label: 'Home', href: '/dashboard', icon: House, match: CLIENT_NAV[0].match },
-  { label: 'Activity', href: '/dashboard/transactions', icon: ListChecks, match: CLIENT_NAV[1].match },
-  { label: 'Trade', href: '/dashboard/swap', icon: ArrowLeftRight, match: CLIENT_NAV[2].match },
-  { label: 'Invest', href: '/dashboard/finance', icon: Coins, match: CLIENT_NAV[3].match },
+  { label: 'Home', href: '/dashboard', icon: House, match: [...(CLIENT_NAV[0].match || []), '/dashboard/portfolio'] },
+  { label: 'Activity', href: '/dashboard/transactions', icon: ListChecks, match: CLIENT_NAV[2].match },
+  { label: 'Trade', href: '/dashboard/swap', icon: ArrowLeftRight, match: CLIENT_NAV[3].match },
+  { label: 'Invest', href: '/dashboard/finance', icon: Coins, match: CLIENT_NAV[4].match },
   { label: 'Me', href: '/dashboard/settings', icon: UserRound, match: ['/dashboard/settings', '/dashboard/cards'] },
 ];
 

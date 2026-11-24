@@ -6,7 +6,7 @@
 import api, { apiBase } from './api';
 
 export type TicketStatus = 'open' | 'in_progress' | 'resolved' | 'closed';
-export type TicketCategory = 'account' | 'deposit' | 'withdrawal' | 'kyc' | 'llc' | 'lending' | 'cards' | 'other';
+export type TicketCategory = 'account' | 'deposit' | 'withdrawal' | 'kyc' | 'llc' | 'lending' | 'cards' | 'portfolio' | 'other';
 export type TicketPriority = 'normal' | 'high';
 
 export interface AdvisorCardData {
@@ -211,6 +211,7 @@ export const TICKET_CATEGORIES: { value: TicketCategory; label: string }[] = [
   { value: 'llc', label: 'LLC formation' },
   { value: 'lending', label: 'Lending' },
   { value: 'cards', label: 'Cards' },
+  { value: 'portfolio', label: 'Portfolio' },
   { value: 'other', label: 'Something else' },
 ];
 export const categoryLabel = (value: string) => TICKET_CATEGORIES.find((c) => c.value === value)?.label || value;

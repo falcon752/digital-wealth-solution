@@ -15,7 +15,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { Sheet } from './Sheet';
 import { Skeleton } from './ui';
 
-export type ActionKind = 'deposit' | 'withdraw' | 'convert' | 'buy' | 'send' | 'asset' | 'transaction';
+export type ActionKind = 'deposit' | 'withdraw' | 'convert' | 'buy' | 'send' | 'asset' | 'transaction' | 'holding' | 'portfolio-request';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ActionParams = Record<string, any>;
 
@@ -60,10 +60,13 @@ const FLOWS: Record<ActionKind, ComponentType<FlowProps>> = {
   send: dynamic(() => import('./flows/SendFlow'), { loading: Loading }),
   asset: dynamic(() => import('./flows/AssetPanel'), { loading: Loading }),
   transaction: dynamic(() => import('./flows/TransactionPanel'), { loading: Loading }),
+  holding: dynamic(() => import('./flows/HoldingPanel'), { loading: Loading }),
+  'portfolio-request': dynamic(() => import('./flows/PortfolioRequestFlow'), { loading: Loading }),
 };
 
 const DEFAULT_TITLES: Record<ActionKind, string> = {
   deposit: 'Deposit', withdraw: 'Withdraw', convert: 'Convert', buy: 'Buy', send: 'Send', asset: 'Asset', transaction: 'Transaction',
+  holding: 'Holding', 'portfolio-request': 'Portfolio request',
 };
 
 interface ActionsContextValue {
