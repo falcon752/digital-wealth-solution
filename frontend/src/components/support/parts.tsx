@@ -269,7 +269,8 @@ export function Composer({ onSend, placeholder = 'Write a message…', disabledR
 /* ─── Forms ─────────────────────────────────────────────────────────────── */
 
 export const inputClass = 'h-11 w-full rounded-md border border-transparent bg-cd-input px-3.5 text-[14px] text-cd-text placeholder:text-cd-faint focus:border-cd-accent focus:outline-none';
-export const textareaClass = 'w-full rounded-md border border-transparent bg-cd-input px-3.5 py-3 text-[14px] leading-relaxed text-cd-text placeholder:text-cd-faint focus:border-cd-accent focus:outline-none';
+// No drag handle; the box grows with the text instead (where the browser supports field-sizing).
+export const textareaClass = 'block min-h-[6.5rem] max-h-[45vh] w-full resize-none [field-sizing:content] overflow-y-auto rounded-md border border-transparent bg-cd-input px-3.5 py-3 text-[14px] leading-relaxed text-cd-text placeholder:text-cd-faint focus:border-cd-accent focus:outline-none';
 
 export function Field({ label, hint, className, children }: { label: string; hint?: string; className?: string; children: ReactNode }) {
   return (

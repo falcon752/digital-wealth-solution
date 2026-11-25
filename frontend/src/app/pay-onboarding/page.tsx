@@ -6,13 +6,13 @@
  * with plain instructions, and any other step can be opened to read ahead. The payment logic, API
  * calls and statuses are the same as before: only the layout and the wording around them changed.
  */
-import { Suspense, useCallback, useEffect, useState } from 'react';
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { QRCodeSVG } from 'qrcode.react';
 import {
-  AlertTriangle, Check, CheckCircle2, ChevronDown, Clock3, Copy, ExternalLink, FileCheck2, Mail,
-  MessageSquareText, RefreshCw, ShieldCheck, UserRound, XCircle,
+  AlertTriangle, Check, CheckCircle2, ChevronDown, ClipboardPaste, Clock3, Copy, ExternalLink, FileCheck2, Mail,
+  MessageSquareText, RefreshCw, ShieldCheck, UserRound, X, XCircle,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Navbar from '@/components/layout/Navbar';
@@ -60,6 +60,74 @@ function currentStepFor(signedIn: boolean, status: OnboardingStatus): number {
 }
 
 /** A small "Copy" button that confirms with a tick. */
+/** The 64-character hash out of whatever was pasted: a bare hash, one with spaces, or an explorer link. */
+function cleanHash(raw: string) {
+  const found = raw.match(/[A-Fa-f0-9]{64}/);
+  return (found ? found[0] : raw.replace(/\s+/g, '')).slice(0, 200);
+}
+
+/**
+ * The transaction hash box: a Paste button, no autocorrect, dark text forced on the white box (some
+ * phones in dark mode drew the hash invisibly), and the hash echoed underneath so the client can see
+ * it really went in.
+ */
+function HashField({ asset, value, onChange }: { asset: string; value: string; onChange: (value: string) => void }) {
+  const input = useRef<HTMLInputElement>(null);
+  const valid = /^[A-Fa-f0-9]{64}$/.test(value);
+
+  const paste = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (!text.trim()) throw new Error('empty');
+      onChange(cleanHash(text));
+    } catch {
+      input.current?.focus();
+      toast('Press and hold inside the box, then tap Paste.');
+    }
+  };
+
+  return (
+    <div>
+      <label htmlFor="transaction-hash" className="text-sm font-semibold text-gray-800">{asset} transaction hash</label>
+      <div className="mt-2 flex h-12 items-stretch border border-gray-300 bg-white focus-within:border-[#0033AD]">
+        <input
+          id="transaction-hash"
+          ref={input}
+          required
+          minLength={64}
+          pattern="[A-Fa-f0-9]{64}"
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck={false}
+          value={value}
+          onChange={(event) => onChange(cleanHash(event.target.value))}
+          placeholder="Paste the 64-character hash"
+          className="min-w-0 flex-1 bg-white px-3 font-mono text-sm text-gray-900 caret-[#0033AD] [-webkit-text-fill-color:#111827] placeholder:text-gray-400 placeholder:[-webkit-text-fill-color:#9ca3af] focus:outline-none"
+        />
+        {value ? (
+          <button type="button" onClick={() => { onChange(''); input.current?.focus(); }} aria-label="Clear the hash" className="flex w-11 shrink-0 items-center justify-center text-gray-500 hover:text-gray-900">
+            <X size={18} />
+          </button>
+        ) : (
+          <button type="button" onClick={paste} className="flex shrink-0 items-center gap-1.5 border-l border-gray-200 px-3.5 text-sm font-semibold text-[#0033AD] hover:bg-[#f0f4ff]">
+            <ClipboardPaste size={16} /> Paste
+          </button>
+        )}
+      </div>
+      {value && (
+        <p className={`mt-2 break-all font-mono text-xs leading-5 ${valid ? 'text-gray-700' : 'text-amber-700'}`}>
+          {valid ? <Check size={13} className="mr-1 inline -translate-y-px text-emerald-600" /> : null}
+          {value}
+          <span className="ml-1.5 font-sans">
+            {valid ? '(64 characters)' : `(${value.length} of 64 characters; check you copied the whole hash)`}
+          </span>
+        </p>
+      )}
+    </div>
+  );
+}
+
 function CopyButton({ value, label, onCopy }: { value: string; label: string; onCopy?: () => Promise<void> | void }) {
   const [done, setDone] = useState(false);
   const copy = async () => {
@@ -339,7 +407,7 @@ function OnboardingPageContent() {
             <h4 className="font-semibold text-[#17205c]">Then, tell us you have paid</h4>
             {user && canSubmit ? (
               <form onSubmit={submitPayment} className="mt-4 space-y-4">
-                <label className="block"><span className="text-sm font-semibold text-gray-800">{asset} transaction hash</span><input required maxLength={64} minLength={64} pattern="[A-Fa-f0-9]{64}" value={transactionReference} onChange={(event) => setTransactionReference(event.target.value.trim())} placeholder="64-character transaction hash" className="mt-2 h-12 w-full border border-gray-300 bg-white px-3 font-mono text-sm focus:border-[#0033AD] focus:outline-none" /></label>
+                <HashField asset={asset} value={transactionReference} onChange={setTransactionReference} />
                 <p className="-mt-2 text-xs leading-5 text-gray-500">We check it on the {asset} Ledger automatically, so a correct hash is the fastest way to be approved.</p>
                 <label className="flex items-start gap-3 text-sm leading-6 text-gray-700"><input type="checkbox" required checked={termsAccepted} onChange={(event) => setTermsAccepted(event.target.checked)} className="mt-1" /><span className="text-gray-700">I acknowledge the <Link href={config?.termsUrl || '/legal/terms-of-service'} className="font-semibold text-[#0033AD] underline">terms and conditions</Link>, the <Link href={config?.refundPolicyUrl || '/legal/refund-policy'} className="font-semibold text-[#0033AD] underline">refund policy</Link>, the payment amount, and that submitting a transaction does not automatically approve payment or product eligibility.</span></label>
                 <Button type="submit" disabled={!canSubmit || !termsAccepted} loading={submitting} className="w-full bg-[#0033AD]! py-3 text-white">I&apos;ve made this transfer</Button>

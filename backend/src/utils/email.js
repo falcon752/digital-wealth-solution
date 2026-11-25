@@ -123,12 +123,10 @@ const noteParagraphs = (note, buttonLabel) => noteBlocks(note, buttonLabel).map(
 // "your account is active" email (wording supplied by DWP).
 const KYC_INTRO = 'Please follow the steps below to complete your DWP Institutional Custody KYC verification process:';
 const KYC_STEPS = [
-  'Log into your Digital Wealth custody account.',
-  'Click on the three-dot menu.',
-  'Select <strong>Anchorage Digital Bank</strong> to access your Digital Banking custody dashboard.',
-  'Navigate to the user profile (<strong>Me</strong>) button located below the dashboard.',
-  'Scroll down to the bottom of your Profile Settings Overview to locate the <strong>KYC</strong> page.',
-  'Proceed to <strong>Account Setup &amp; Identity Verification</strong> to complete the process.',
+  'Sign in to your Digital Wealth account. You will land on your <strong>Anchorage Digital Bank</strong> dashboard.',
+  'On your phone, tap <strong>Me</strong> in the bar at the bottom of the screen. On a computer, click <strong>Settings</strong> in the menu on the left.',
+  'Under Settings, open <strong>Identity verification</strong>.',
+  'Follow <strong>Account Setup &amp; Identity Verification</strong> to add your details and upload your documents.',
 ];
 const KYC_NOTE = 'Kindly ensure all required documents are available and correctly uploaded to avoid any delays in verification.';
 
