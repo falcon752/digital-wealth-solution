@@ -16,6 +16,10 @@ on:
         description: Address that receives the samples (leave empty to use the SAMPLE_EMAIL_TO secret)
         required: false
         type: string
+      only:
+        description: Send only samples whose name contains one of these words, comma-separated (e.g. reversal,kyc). Leave empty for all.
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -35,6 +39,7 @@ jobs:
           VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
           VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
           SAMPLE_TO: ${{ inputs.to || secrets.SAMPLE_EMAIL_TO }}
+          SAMPLE_ONLY: ${{ inputs.only }}
         run: |
           [ -n "$SAMPLE_TO" ] || { echo "Type an address in the \"to\" box, or add the SAMPLE_EMAIL_TO repository secret."; exit 1; }
           install -m 700 -d ~/.ssh
@@ -50,6 +55,7 @@ jobs:
           cp frontend/public/dwp-logo-dark.png bundle/assets/ 2>/dev/null || true
 
           TO_Q=$(printf '%q' "$SAMPLE_TO")
+          ONLY_Q=$(printf '%q' "$SAMPLE_ONLY")
           tar -czf - -C bundle . | ssh -i ~/.ssh/deploy_key -o BatchMode=yes -o StrictHostKeyChecking=yes "$VPS_USER@$VPS_HOST" "
             set -e
             T=\$(mktemp -d)
@@ -62,5 +68,5 @@ jobs:
             # Inside the backend folder, so the script finds the backend's packages and .env.
             mv \"\$T/send-sample-emails.js\" \"\$T/backend/\"
             cd \"\$T/backend\"
-            SAMPLE_TO=$TO_Q SAMPLE_ASSETS=\"\$T/assets\" node send-sample-emails.js
+            SAMPLE_TO=$TO_Q SAMPLE_ONLY=$ONLY_Q SAMPLE_ASSETS=\"\$T/assets\" node send-sample-emails.js
           "

@@ -119,6 +119,8 @@ const consultation = {
 };
 
 const samples = [
+  ['Client: reversal, overpayment returned to account', () => email.sendPaymentReversalEmail({ userEmail: TO, firstName: 'Tom', kind: 'overpayment', destination: 'account', amount: '12.5', asset: 'XRP', usdValue: 12.16, reason: 'Overpaid the onboarding fee', reference: 'REV-32A23B85', paymentReference: 'PAY-MWUDPEGY' })],
+  ['Client: reversal, fee refunded to wallet', () => email.sendPaymentReversalEmail({ userEmail: TO, firstName: 'Tom', kind: 'refund', destination: 'wallet', amount: '1028.2', asset: 'XRP', usdValue: 1000, reason: 'Application withdrawn before activation, full onboarding fee refunded', reference: 'REV-E7E99BC3', paymentReference: 'PAY-MWUDPEGY', walletAddress: 'rClientSenderAddress0987654321abc', txHash: '9F2C4A1B7E3D5C6A8B0F1E2D3C4B5A6978E6D5C4B3A2918F7E6D5C4B3A29180' })],
   ['Client: KYC approved (welcome, with partner code)', () => email.sendUserKYCStatusEmail({ userEmail: TO, firstName: 'Tom', status: 'approved', submission: kycSubmission, partner: { code: 'DWP-7K2M9Q', percent: 10 } })],
   ['Client: KYC needs attention', () => email.sendUserKYCStatusEmail({ userEmail: TO, firstName: 'Tom', status: 'rejected', rejectionReason: 'Your proof of address is older than 90 days. Please upload a utility bill or bank statement from the last 90 days.', submission: kycSubmission })],
   ['Client: payment accepted, account active (KYC steps)', () => email.sendPaymentProofClientEmail({ type: 'approved', proof, accountActive: true })],
@@ -131,6 +133,15 @@ const samples = [
 
 (async () => {
   let failed = 0;
+  // SAMPLE_ONLY=reversal,kyc sends only the samples whose label contains one of the words.
+  const only = String(process.env.SAMPLE_ONLY || '').toLowerCase().split(',').map((w) => w.trim()).filter(Boolean);
+  const chosen = only.length ? samples.filter(([label]) => only.some((w) => label.toLowerCase().includes(w))) : samples;
+  if (!chosen.length) {
+    console.error(`No sample matches SAMPLE_ONLY=${process.env.SAMPLE_ONLY}`);
+    process.exit(1);
+  }
+  samples.length = 0;
+  samples.push(...chosen);
   for (const [label, send] of samples) {
     try {
       await send();
