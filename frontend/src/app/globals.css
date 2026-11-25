@@ -212,3 +212,8 @@ body {
 .dark:not(.dwp-admin) form label {
   color: #ffffff;
 }
+
+/* Pages that are always light (the onboarding payment page) keep their own dark label text, not white. */
+.dark:not(.dwp-admin) [data-light-page] form label {
+  color: revert-layer;
+}

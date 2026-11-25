@@ -102,8 +102,8 @@ function HashField({ asset, value, onChange }: { asset: string; value: string; o
           spellCheck={false}
           value={value}
           onChange={(event) => onChange(cleanHash(event.target.value))}
-          placeholder="Paste the 64-character hash"
-          className="min-w-0 flex-1 bg-white px-3 font-mono text-sm text-gray-900 caret-[#0033AD] [-webkit-text-fill-color:#111827] placeholder:text-gray-400 placeholder:[-webkit-text-fill-color:#9ca3af] focus:outline-none"
+          placeholder="Paste the hash here"
+          className="min-w-0 flex-1 bg-white px-3 font-mono text-sm text-gray-900 caret-[#0033AD] [-webkit-text-fill-color:#111827] placeholder:font-sans placeholder:text-gray-400 placeholder:[-webkit-text-fill-color:#9ca3af] focus:outline-none"
         />
         {value ? (
           <button type="button" onClick={() => { onChange(''); input.current?.focus(); }} aria-label="Clear the hash" className="flex w-11 shrink-0 items-center justify-center text-gray-500 hover:text-gray-900">
@@ -116,11 +116,11 @@ function HashField({ asset, value, onChange }: { asset: string; value: string; o
         )}
       </div>
       {value && (
-        <p className={`mt-2 break-all font-mono text-xs leading-5 ${valid ? 'text-gray-700' : 'text-amber-700'}`}>
-          {valid ? <Check size={13} className="mr-1 inline -translate-y-px text-emerald-600" /> : null}
-          {value}
-          <span className="ml-1.5 font-sans">
-            {valid ? '(64 characters)' : `(${value.length} of 64 characters; check you copied the whole hash)`}
+        <p className={`mt-2 text-xs leading-5 ${valid ? 'text-gray-700' : 'text-amber-700'}`}>
+          <span className="block break-all font-mono">{value}</span>
+          <span className="mt-0.5 flex items-center gap-1 font-medium">
+            {valid ? <Check size={13} className="shrink-0 text-emerald-600" /> : <AlertTriangle size={13} className="shrink-0" />}
+            {valid ? 'Complete hash: 64 characters' : `${value.length} of 64 characters. Check you copied the whole hash.`}
           </span>
         </p>
       )}
@@ -499,7 +499,7 @@ function OnboardingPageContent() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-gray-900">
+    <div data-light-page className="min-h-screen bg-white text-gray-900 [color-scheme:light]">
       <Navbar />
       <main className="pt-24">
         <section className="border-b border-gray-200 bg-[#f7f9fc] px-5 py-10 md:py-14">
