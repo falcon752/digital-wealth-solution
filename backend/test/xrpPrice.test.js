@@ -77,16 +77,16 @@ test('accepts a payment within the tolerance and records the delivered amount', 
   assert.equal(result.deliveredAmount, '750');
 });
 
-test('rejects a payment outside the tolerance', async () => {
+test('sends a payment below the tolerance to review instead of rejecting it', async () => {
   mockPayment('700000000');
-  await assert.rejects(() => verifyXrplPayment(hash, quote), (error) => {
-    assert.ok(error instanceof PaymentVerificationError);
-    assert.equal(error.code, 'AMOUNT_MISMATCH');
-    return true;
-  });
+  const result = await verifyXrplPayment(hash, quote);
+  assert.equal(result.state, 'manual_review');
+  assert.ok(Number(result.shortfallAmount) > 0);
 });
 
-test('requires an exact amount when no tolerance is set', async () => {
+test('needs the full amount when no tolerance is set: 0.58 XRP short goes to review', async () => {
   mockPayment('757000000');
-  await assert.rejects(() => verifyXrplPayment(hash, { ...quote, tolerancePercent: 0 }), (error) => error.code === 'AMOUNT_MISMATCH');
+  const result = await verifyXrplPayment(hash, { ...quote, tolerancePercent: 0 });
+  assert.equal(result.state, 'manual_review');
+  assert.equal(result.shortfallAmount, '0.58');
 });

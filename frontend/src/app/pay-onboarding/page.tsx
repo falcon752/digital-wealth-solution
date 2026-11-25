@@ -195,7 +195,7 @@ function OnboardingPageContent() {
       setStatus('payment_under_review');
       setTransactionReference('');
       await refreshUser();
-      toast.success(response.data.idempotent ? 'This transaction was already submitted.' : 'Payment submitted for verification and review.');
+      toast.success(response.data.idempotent ? 'This transaction was already submitted.' : (response.data.message || 'Payment submitted for verification and review.'), { duration: 7000 });
     } catch (error: unknown) {
       toast.error(getApiError(error, 'Unable to submit payment'));
     } finally {

@@ -60,6 +60,36 @@ async function getXrpUsdPrice() {
   return null;
 }
 
+const historyCache = new Map();
+
+/** XRP/USD close to `date` (CoinGecko's price history, nearest point within ±3 hours); null if unknown. */
+async function getXrpUsdPriceAt(date) {
+  const at = new Date(date).getTime();
+  if (!Number.isFinite(at)) return null;
+  const hourKey = Math.floor(at / 3600000);
+  if (historyCache.has(hourKey)) return historyCache.get(hourKey);
+  const from = Math.floor(at / 1000) - 3 * 3600;
+  const to = Math.floor(at / 1000) + 3 * 3600;
+  try {
+    const data = await fetchJson(`https://api.coingecko.com/api/v3/coins/ripple/market_chart/range?vs_currency=usd&from=${from}&to=${to}`);
+    const points = Array.isArray(data?.prices) ? data.prices : [];
+    let best = null;
+    for (const [time, price] of points) {
+      if (!(Number(price) > 0)) continue;
+      if (!best || Math.abs(time - at) < Math.abs(best[0] - at)) best = [time, Number(price)];
+    }
+    const value = best ? best[1] : null;
+    if (value) {
+      historyCache.set(hourKey, value);
+      if (historyCache.size > 500) historyCache.delete(historyCache.keys().next().value);
+    }
+    return value;
+  } catch (error) {
+    console.error('XRP price history lookup failed:', error.message);
+    return null;
+  }
+}
+
 function tolerancePercent() {
   const raw = (process.env.ONBOARDING_AMOUNT_TOLERANCE_PERCENT || '').trim();
   const value = raw === '' ? NaN : Number(raw);
@@ -101,4 +131,4 @@ function resetPriceCache() {
   inflight = null;
 }
 
-module.exports = { getXrpUsdPrice, getLiveQuote, resetPriceCache };
+module.exports = { getXrpUsdPrice, getLiveQuote, resetPriceCache, getXrpUsdPriceAt };

@@ -284,6 +284,13 @@ const paymentVerificationSchema = new mongoose.Schema(
     ledgerIndex: { type: Number, default: null },
     senderAddress: { type: String, default: null, trim: true },
     deliveredAmount: { type: String, default: null, trim: true },
+    // What the fee came to in XRP when it was checked (at the payment's own time when that was
+    // lower), and how far the payment was over or under it.
+    expectedAmount: { type: String, default: null, trim: true },
+    overpaidAmount: { type: String, default: null, trim: true },
+    shortfallAmount: { type: String, default: null, trim: true },
+    paidAt: { type: Date, default: null },
+    priceUsdAtPayment: { type: Number, default: null },
     failureReason: { type: String, default: null, trim: true, maxlength: 1000 },
   },
   { _id: false }

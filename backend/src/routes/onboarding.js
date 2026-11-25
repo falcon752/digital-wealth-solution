@@ -140,8 +140,8 @@ router.post('/payments', authenticate, [
       feeUsd: config.feeUsd,
       asset: config.asset,
       network: config.network,
-      assetAmount: quote.assetAmount,
-      quotePriceUsd: quote.priceUsd,
+      assetAmount: verification.expectedAmount || quote.assetAmount,
+      quotePriceUsd: verification.priceUsdAtPayment || quote.priceUsd,
       destinationAddress: config.destinationAddress,
       destinationTag: config.destinationTag,
       transactionReference,
@@ -189,7 +189,11 @@ router.post('/payments', authenticate, [
     });
     await payment.save();
     res.status(201).json({
-      message: 'Payment submitted for verification and administrative review',
+      message: verification.shortfallAmount
+        ? `Payment received, but it came to ${verification.shortfallAmount} XRP less than the fee. Our team will review it and contact you.`
+        : verification.overpaidAmount
+          ? `Payment received. You sent ${verification.overpaidAmount} XRP more than the fee; our team will return the extra to your account.`
+          : 'Payment submitted for verification and administrative review',
       payment: mapPayment(payment),
       emailDelivery: { user: userDelivery, admin: adminDelivery },
     });
@@ -259,7 +263,8 @@ router.put('/admin/payments/:id/review', authenticate, requireAdmin, [
 
     // "I have made the transfer" confirmations are checked by the admin against the wallet, so they can be
     // confirmed without a verified hash. Hash submissions still need the ledger check to pass.
-    if (req.body.status === 'confirmed' && payment.source !== 'manual' && !['verified', 'legacy_manual'].includes(payment.verification.state)) {
+    const reviewedShortfall = (v) => v?.state === 'manual_review' && Boolean(v.shortfallAmount);
+    if (req.body.status === 'confirmed' && payment.source !== 'manual' && !['verified', 'legacy_manual'].includes(payment.verification.state) && !reviewedShortfall(payment.verification)) {
       if (payment.source !== 'legacy') {
         try {
           payment.verification = await verifyXrplPayment(payment.transactionReference, payment);
@@ -271,7 +276,7 @@ router.put('/admin/payments/:id/review', authenticate, requireAdmin, [
           }
         }
       }
-      if (!['verified', 'legacy_manual'].includes(payment.verification.state)) {
+      if (!['verified', 'legacy_manual'].includes(payment.verification.state) && !reviewedShortfall(payment.verification)) {
         await payment.save();
         return res.status(409).json({ error: payment.verification.failureReason || 'Server-side transaction verification is not complete' });
       }

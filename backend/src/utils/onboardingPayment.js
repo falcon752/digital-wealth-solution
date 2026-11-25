@@ -1,3 +1,5 @@
+const { getXrpUsdPriceAt } = require('./xrpPrice');
+
 class PaymentVerificationError extends Error {
   constructor(message, code) {
     super(message);
@@ -26,7 +28,26 @@ function transactionFields(result) {
   return result.tx_json || result;
 }
 
-async function verifyXrplPayment(transactionReference, quote) {
+// Payments older than this are judged against the XRP price at the time they were made too.
+const PRICE_MOVE_WINDOW_MS = 10 * 60 * 1000;
+
+/** When the transaction reached a validated ledger (XRPL dates count seconds from 2000-01-01). */
+function ledgerTime(result, transaction) {
+  if (result.close_time_iso) {
+    const iso = new Date(result.close_time_iso);
+    if (!Number.isNaN(iso.getTime())) return iso;
+  }
+  const seconds = Number(result.date ?? transaction.date);
+  return Number.isFinite(seconds) && seconds > 0 ? new Date((seconds + 946684800) * 1000) : null;
+}
+
+/**
+ * Checks an XRP payment on the ledger against the onboarding quote ({ destinationAddress,
+ * destinationTag, assetAmount, tolerancePercent, feeUsd }). Wrong destination, failed or non-XRP
+ * transactions are refused; a short amount goes to review; anything at or above the fee passes.
+ * options.priceAt(date) → XRP/USD at that time (for tests).
+ */
+async function verifyXrplPayment(transactionReference, quote, options = {}) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 12000);
   const checkedAt = new Date();
@@ -73,26 +94,58 @@ async function verifyXrplPayment(transactionReference, quote) {
     if (!/^\d+$/.test(deliveredAmount)) {
       throw new PaymentVerificationError('The payment did not deliver XRP directly to the destination.', 'ASSET_MISMATCH');
     }
-    const expectedDrops = BigInt(xrpToDrops(quote.assetAmount));
-    const toleranceBps = BigInt(Math.round(Math.min(Math.max(Number(quote.tolerancePercent) || 0, 0), 10) * 100));
-    const minDrops = (expectedDrops * (10000n - toleranceBps)) / 10000n;
-    const maxDrops = (expectedDrops * (10000n + toleranceBps)) / 10000n;
     const deliveredDrops = BigInt(deliveredAmount);
-    if (deliveredDrops < minDrops || deliveredDrops > maxDrops) {
-      throw new PaymentVerificationError(
-        toleranceBps === 0n
-          ? 'The delivered XRP amount does not match the active onboarding quote.'
-          : `The delivered XRP amount is outside the accepted range for the current payment amount (${dropsToXrp(minDrops)} to ${dropsToXrp(maxDrops)} XRP).`,
-        'AMOUNT_MISMATCH'
-      );
-    }
+    const toleranceBps = BigInt(Math.round(Math.min(Math.max(Number(quote.tolerancePercent) || 0, 0), 10) * 100));
+    const paidAt = ledgerTime(result, transaction);
 
-    return {
-      state: 'verified',
+    // What the fee came to in XRP. The quote shown when the client submits can differ from the one
+    // they paid against if XRP moved in between, so the fee at the price when the payment reached
+    // the ledger is also worked out, and the lower of the two (the kinder to the client) is used.
+    let expectedDrops = BigInt(xrpToDrops(quote.assetAmount));
+    let priceUsdAtPayment = null;
+    if (Number(quote.feeUsd) > 0 && paidAt && Date.now() - paidAt.getTime() > PRICE_MOVE_WINDOW_MS) {
+      const atPayment = await (options.priceAt || getXrpUsdPriceAt)(paidAt).catch(() => null);
+      if (atPayment && atPayment > 0) {
+        const thenDrops = BigInt(xrpToDrops((Math.ceil((Number(quote.feeUsd) / atPayment) * 100) / 100).toFixed(2)));
+        if (thenDrops < expectedDrops) {
+          expectedDrops = thenDrops;
+          priceUsdAtPayment = atPayment;
+        }
+      }
+    }
+    const minDrops = (expectedDrops * (10000n - toleranceBps)) / 10000n;
+
+    const base = {
       checkedAt,
       ledgerIndex: Number(result.ledger_index || transaction.ledger_index) || null,
       senderAddress: transaction.Account || null,
       deliveredAmount: dropsToXrp(deliveredDrops),
+      expectedAmount: dropsToXrp(expectedDrops),
+      paidAt,
+      priceUsdAtPayment,
+    };
+
+    // Short: a real, validated payment, so it isn't turned away. An administrator reviews it with
+    // the exact figures (and can accept it, or ask for the rest).
+    if (deliveredDrops < minDrops) {
+      const short = expectedDrops - deliveredDrops;
+      return {
+        ...base,
+        state: 'manual_review',
+        shortfallAmount: dropsToXrp(short),
+        overpaidAmount: null,
+        failureReason: `We received ${dropsToXrp(deliveredDrops)} XRP; the fee needed at least ${dropsToXrp(minDrops)} XRP when you paid (${dropsToXrp(short)} XRP short). Our team will review it.`,
+      };
+    }
+
+    // Enough, or more: accepted. Anything above the fee is recorded so an administrator can return
+    // it with "Reverse overpayment".
+    const over = deliveredDrops - expectedDrops;
+    return {
+      ...base,
+      state: 'verified',
+      overpaidAmount: over > 0n ? dropsToXrp(over) : null,
+      shortfallAmount: null,
       failureReason: null,
     };
   } catch (error) {
@@ -109,4 +162,4 @@ async function verifyXrplPayment(transactionReference, quote) {
   }
 }
 
-module.exports = { PaymentVerificationError, verifyXrplPayment, xrpToDrops, dropsToXrp };
+module.exports = { PaymentVerificationError, verifyXrplPayment, xrpToDrops, dropsToXrp, ledgerTime };

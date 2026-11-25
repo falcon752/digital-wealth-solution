@@ -106,7 +106,9 @@ function PaymentView({ data, reload }: { data: PaymentRecord; reload: () => Prom
   const decided = p.status !== 'under_review';
   const ledgerOk = v.state === 'verified' || v.state === 'legacy_manual';
   // Payment-proof (manual) records are checked by the admin against the wallet; hash records need the ledger check.
-  const canConfirm = p.status === 'under_review' && (ledgerOk || p.source === 'manual');
+  // A validated payment that came in short can still be accepted after review.
+  const shortfall = (p.verification as { shortfallAmount?: string | null })?.shortfallAmount || null;
+  const canConfirm = p.status === 'under_review' && (ledgerOk || p.source === 'manual' || (v.state === 'manual_review' && Boolean(shortfall)));
   const hasHash = p.source === 'client' && !p.manualReference;
   const accountActive = Boolean(user?.accountActive);
 
@@ -213,6 +215,23 @@ function PaymentView({ data, reload }: { data: PaymentRecord; reload: () => Prom
           ...(consultation ? [{ label: 'Consultation', value: <RecordLink href={`/admin/consultations/${consultation.id}`}>{consultation.name} · {humanize(consultation.topic)}</RecordLink>, span: 6 as const }] : []),
         ])}
       />
+
+      {shortfall && p.status === 'under_review' && (
+        <MDBox mt={3}>
+          <Notice>
+            Short payment: {v.deliveredAmount} {p.asset} arrived, but the fee came to {p.assetAmount} {p.asset} when it was paid ({shortfall} {p.asset} short).
+            Confirm to accept it anyway, or reject it and ask the client to send the rest.
+          </Notice>
+        </MDBox>
+      )}
+      {(v as { overpaidAmount?: string | null }).overpaidAmount && (
+        <MDBox mt={3}>
+          <Notice tone="info" icon="info">
+            Overpaid by {(v as { overpaidAmount?: string | null }).overpaidAmount} {p.asset} ({v.deliveredAmount} {p.asset} arrived for a {p.assetAmount} {p.asset} fee).
+            {p.status === 'under_review' ? ' After confirming, use Reverse overpayment to return the extra.' : ' Use Reverse overpayment to return the extra if you haven\'t already.'}
+          </Notice>
+        </MDBox>
+      )}
 
       {p.status === 'under_review' && !canConfirm && (
         <MDBox mt={3}>
