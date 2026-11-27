@@ -140,6 +140,67 @@ router.put('/users/:id/status', authenticate, requireAdmin, [
   }
 });
 
+// PUT /api/admin/users/:id/profile — a client's contact details. Only the fields sent are changed;
+// an empty string clears an optional field. The audit log keeps the old and new values.
+const PROFILE_FIELDS = ['firstName', 'lastName', 'email', 'phoneNumber', 'address', 'city', 'state', 'country'];
+router.put('/users/:id/profile', authenticate, requireAdmin, [
+  body('email').optional().trim().isEmail().withMessage('Enter a valid email address').isLength({ max: 160 }),
+  body('firstName').optional().trim().notEmpty().withMessage('First name cannot be empty').isLength({ max: 50 }).withMessage('First name is too long'),
+  body('lastName').optional().trim().notEmpty().withMessage('Last name cannot be empty').isLength({ max: 50 }).withMessage('Last name is too long'),
+  body('phoneNumber').optional({ values: 'null' }).trim().isLength({ max: 20 }).withMessage('Phone number is too long (20 characters at most)')
+    .matches(/^[0-9+()\-.\s]*$/).withMessage('Phone number can only use digits, spaces, +, -, ( and )'),
+  body('address').optional({ values: 'null' }).trim().isLength({ max: 100 }).withMessage('Address is too long (100 characters at most)'),
+  body('city').optional({ values: 'null' }).trim().isLength({ max: 50 }).withMessage('City is too long'),
+  body('state').optional({ values: 'null' }).trim().isLength({ max: 50 }).withMessage('State is too long'),
+  body('country').optional({ values: 'null' }).trim().isLength({ max: 50 }).withMessage('Country is too long'),
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ error: errors.array()[0].msg, errors: errors.array() });
+
+  try {
+    const user = await User.findOne({ _id: req.params.id, role: 'user' });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const changes = {};
+    for (const field of PROFILE_FIELDS) {
+      if (req.body[field] === undefined) continue;
+      let value = req.body[field] === null ? '' : String(req.body[field]).trim();
+      if (field === 'email') value = value.toLowerCase();
+      const next = value || null;
+      if ((user[field] || null) !== next) changes[field] = { from: user[field] || null, to: next };
+    }
+    if (!Object.keys(changes).length) return res.json({ message: 'Nothing changed' });
+
+    if (changes.email) {
+      if (await User.exists({ email: changes.email.to, _id: { $ne: user._id } })) {
+        return res.status(409).json({ error: 'Another account already uses this email address' });
+      }
+    }
+
+    const set = Object.fromEntries(Object.entries(changes).map(([field, { to }]) => [field, to]));
+    await User.updateOne({ _id: user._id }, { $set: set }, { runValidators: true });
+
+    logActivity(req.user.id, 'ADMIN_USER_PROFILE_UPDATED', { userId: String(user._id), changes }, req);
+
+    // Tell the old address when the sign-in email changes, so a client notices if it wasn't expected.
+    if (changes.email && changes.email.from) {
+      sendBroadcastEmail({
+        userEmail: changes.email.from,
+        firstName: set.firstName || user.firstName,
+        subject: 'Your sign-in email was changed',
+        title: 'Sign-in email changed',
+        message: `The email address on your Digital Wealth Partners account was changed by our team to ${changes.email.to}. From now on, sign in with the new address.\n\nIf you did not ask for this, contact support straight away.`,
+      }).catch((err) => console.error('Email change notice failed:', err.message));
+    }
+
+    res.json({ message: 'Details updated', changed: Object.keys(changes) });
+  } catch (err) {
+    if (err?.code === 11000) return res.status(409).json({ error: 'Another account already uses this email address' });
+    console.error('Admin user profile update error:', err);
+    res.status(500).json({ error: 'Failed to update the details' });
+  }
+});
+
 router.put('/users/:id/verify-payment', authenticate, requireAdmin, async (req, res) => {
   res.status(410).json({
     error: 'This legacy payment toggle has been retired. Review, confirm, and activate the payment from Onboarding Payments.',

@@ -254,6 +254,8 @@ export const adminAPI = {
     api.post('/admin/users', data),
   setUserStatus: (id: string, isActive: boolean) =>
     api.put(`/admin/users/${id}/status`, { isActive }),
+  updateUserProfile: (id: string, data: Partial<Record<'firstName' | 'lastName' | 'email' | 'phoneNumber' | 'address' | 'city' | 'state' | 'country', string>>) =>
+    api.put(`/admin/users/${id}/profile`, data),
   setUserBalance: (id: string, balance: number) =>
     api.put(`/admin/users/${id}/balance`, { balance }),
   adjustUserAssetBalance: (id: string, data: { assetId: string; action: 'credit' | 'deduct'; amount: number; usdValue?: number; adminNote?: string }) =>

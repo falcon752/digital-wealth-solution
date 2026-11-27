@@ -161,7 +161,26 @@ const primary = (main: ReactNode, sub?: ReactNode, wrap = false) => (
 const latest = (shown: number, total: number) => (total > shown ? `Latest ${shown} of ${total}` : total ? `${total} in total` : undefined);
 const nameOrEmail = (p?: { name?: string | null; email?: string | null } | null) => p?.name || p?.email || '—';
 
-type Action = 'status' | 'balance' | 'advisor' | null;
+type Action = 'status' | 'balance' | 'advisor' | 'details' | null;
+
+/** The contact details an admin can edit (PUT /api/admin/users/:id/profile). */
+const DETAIL_FIELDS = [
+  { key: 'firstName', label: 'First name', half: true, required: true },
+  { key: 'lastName', label: 'Last name', half: true, required: true },
+  { key: 'email', label: 'Email', type: 'email', required: true, help: 'They sign in with this. Their old address gets an email about the change.' },
+  { key: 'phoneNumber', label: 'Phone number', type: 'tel', help: 'Include the country code, e.g. +1 555 010 0100.' },
+  { key: 'address', label: 'Address' },
+  { key: 'city', label: 'City', half: true },
+  { key: 'state', label: 'State / region', half: true },
+  { key: 'country', label: 'Country' },
+] as const;
+type DetailKey = typeof DETAIL_FIELDS[number]['key'];
+type Details = Record<DetailKey, string>;
+
+const detailsOf = (u: UserInfo): Details => ({
+  firstName: u.firstName ?? '', lastName: u.lastName ?? '', email: u.email ?? '', phoneNumber: u.phone ?? '',
+  address: u.address ?? '', city: u.city ?? '', state: u.state ?? '', country: u.country ?? '',
+});
 
 /* ─── Page ────────────────────────────────────────────────────────────────── */
 
@@ -184,6 +203,17 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
   // Assign advisor
   const [advisors, setAdvisors] = useState<AdvisorWithStats[] | null>(null);
   const [advisorChoice, setAdvisorChoice] = useState('');
+
+  // Edit details
+  const [details, setDetails] = useState<Details | null>(null);
+  const detailChanges = useMemo(() => {
+    if (!record || !details) return {};
+    const before = detailsOf(record.user);
+    return Object.fromEntries(DETAIL_FIELDS.map((f) => f.key)
+      .filter((key) => details[key].trim() !== before[key].trim())
+      .map((key) => [key, details[key].trim()])) as Partial<Details>;
+  }, [record, details]);
+  const detailsInvalid = !details || !details.firstName.trim() || !details.lastName.trim() || !/^\S+@\S+\.\S+$/.test(details.email.trim());
 
   const load = useCallback((quiet = false) => {
     if (!quiet) setLoading(true);
@@ -230,6 +260,7 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
       setUsdValue('');
       setAdminNote('');
     }
+    if (next === 'details' && record) setDetails(detailsOf(record.user));
     if (next === 'advisor') {
       setAdvisorChoice(record?.user.advisorId ?? '');
       if (!advisors) {
@@ -352,6 +383,42 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
           </ConfirmDialog>
 
           <ConfirmDialog
+            open={action === 'details'}
+            title="Edit details"
+            message={<>Change the contact details for <strong>{nameOrEmail(record.user)}</strong>. Every change is recorded in the activity log.</>}
+            confirmLabel="Save changes"
+            tone="info"
+            confirmDisabled={detailsInvalid || !Object.keys(detailChanges).length}
+            onConfirm={async () => {
+              await adminAPI.updateUserProfile(record.user.id, detailChanges);
+              toast.success('Details updated');
+              await load(true);
+            }}
+            onClose={() => setAction(null)}
+          >
+            {details && (
+              <Grid container spacing={2} mb={1}>
+                {DETAIL_FIELDS.map((f) => (
+                  <Grid item xs={12} sm={'half' in f && f.half ? 6 : 12} key={f.key}>
+                    <MDInput
+                      fullWidth
+                      id={`user-${f.key}`}
+                      label={f.label}
+                      type={'type' in f ? f.type : 'text'}
+                      value={details[f.key]}
+                      required={'required' in f && f.required}
+                      error={'required' in f && f.required && !details[f.key].trim()}
+                      onChange={(e: ChangeEvent<HTMLInputElement>) => setDetails({ ...details, [f.key]: e.target.value })}
+                      helperText={'help' in f ? f.help : undefined}
+                      inputProps={{ maxLength: f.key === 'email' ? 160 : f.key === 'phoneNumber' ? 20 : f.key === 'address' ? 100 : 50 }}
+                    />
+                  </Grid>
+                ))}
+              </Grid>
+            )}
+          </ConfirmDialog>
+
+          <ConfirmDialog
             open={action === 'advisor'}
             title={record.advisor ? 'Change advisor' : 'Assign an advisor'}
             message="The advisor answers this client's support tickets and is shown on their dashboard."
@@ -417,6 +484,9 @@ function UserView({ record, valued, accent, onAction }: {
 
   const actions = isClient ? (
     <>
+      <MDButton variant="outlined" color={accent} size="small" onClick={() => onAction('details')}>
+        <Icon>edit</Icon>&nbsp;Edit details
+      </MDButton>
       <MDButton variant="outlined" color={accent} size="small" onClick={() => onAction('balance')}>
         <Icon>paid</Icon>&nbsp;Edit balance
       </MDButton>
