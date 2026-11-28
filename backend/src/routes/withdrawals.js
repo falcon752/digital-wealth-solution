@@ -2,14 +2,14 @@ const express = require('express');
 const crypto = require('crypto');
 const { body, validationResult } = require('express-validator');
 const { Asset, User, Withdrawal } = require('../database');
-const { authenticate } = require('../middleware/auth');
+const { authenticate, requireOwnSession } = require('../middleware/auth');
 const { logActivity } = require('../utils/activity');
 const { sendOTPEmail, sendWithdrawalNotificationEmail } = require('../utils/email');
 
 const router = express.Router();
 
 // POST /api/withdrawals
-router.post('/', authenticate, [
+router.post('/', authenticate, requireOwnSession, [
   body('assetId').notEmpty(),
   body('amount').isFloat({ min: 0.000001 }),
   body('destinationAddress').trim().notEmpty().isLength({ max: 200 }),
@@ -70,7 +70,7 @@ router.post('/', authenticate, [
 });
 
 // POST /api/withdrawals/:id/verify-otp
-router.post('/:id/verify-otp', authenticate, [
+router.post('/:id/verify-otp', authenticate, requireOwnSession, [
   body('otp').notEmpty().isLength({ min: 6, max: 6 }),
 ], async (req, res) => {
   const errors = validationResult(req);

@@ -6,6 +6,7 @@ import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "@/context/AuthContext";
 import VisitorTracker from "@/components/VisitorTracker";
 import SmartsuppWidget from "@/components/SmartsuppWidget";
+import AdminSessionBanner from "@/components/AdminSessionBanner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -52,6 +53,7 @@ export default function RootLayout({
           <AuthProvider>
             <VisitorTracker />
             {children}
+            <AdminSessionBanner />
             <SmartsuppWidget />
             <Toaster
               position="top-right"

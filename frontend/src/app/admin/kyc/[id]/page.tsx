@@ -82,7 +82,7 @@ interface KycRecord {
   activity: ActivityEntry[];
 }
 
-type Decision = 'approved' | 'rejected';
+type Decision = 'approved' | 'rejected' | 'pending';
 
 function PeopleTable({ title, people, ownership }: { title: string; people: RelatedPerson[]; ownership?: boolean }) {
   return (
@@ -195,10 +195,10 @@ export default function AdminKycDetailPage({ params }: { params: Promise<{ id: s
     const reviewEvents: TimelineEvent[] = reviews.map((e) => {
       const status = String(e.details?.status || '');
       return {
-        label: status === 'approved' ? 'Approved' : status === 'rejected' ? 'Rejected' : 'Reviewed',
+        label: status === 'approved' ? 'Approved' : status === 'rejected' ? 'Rejected' : status === 'pending' ? 'Moved back to pending' : 'Reviewed',
         at: e.createdAt,
         note: e.actor ? `By ${e.actor.name || e.actor.email}` : undefined,
-        tone: status === 'approved' ? 'success' : status === 'rejected' ? 'error' : 'info',
+        tone: status === 'approved' ? 'success' : status === 'rejected' ? 'error' : status === 'pending' ? 'warning' : 'info',
       };
     });
     const revealEvents: TimelineEvent[] = reveals.map((e) => ({
@@ -263,6 +263,13 @@ export default function AdminKycDetailPage({ params }: { params: Promise<{ id: s
                 </MDButton>
               </span>
             </Tooltip>
+            {decided && (
+              <Tooltip title="Sends it back for review. The documents stay; the client is not asked to resubmit.">
+                <MDButton variant="outlined" color="warning" size="small" onClick={() => setConfirm('pending')}>
+                  <Icon>undo</Icon>&nbsp;Move back to pending
+                </MDButton>
+              </Tooltip>
+            )}
             {s.status !== 'rejected' && s.status !== 'not_verified' && (
               <MDButton variant="outlined" color="error" size="small" onClick={() => setConfirm('rejected')}>
                 <Icon>close</Icon>&nbsp;Reject
@@ -484,6 +491,15 @@ export default function AdminKycDetailPage({ params }: { params: Promise<{ id: s
           confirmLabel="Approve"
           message={<>Approve <strong>{fullName}</strong>&apos;s {s.applicantType} verification? They are emailed a welcome email and their partner code.</>}
           onConfirm={() => decide('approved', '')}
+          onClose={() => setConfirm(null)}
+        />
+        <ConfirmDialog
+          open={confirm === 'pending'}
+          title="Move back to pending"
+          tone="warning"
+          confirmLabel="Move to pending"
+          message={<>Send <strong>{fullName}</strong>&apos;s verification back to pending? Their documents and details stay as they are, and they are emailed that it is under review. You can then approve or reject it again.</>}
+          onConfirm={() => decide('pending', '')}
           onClose={() => setConfirm(null)}
         />
         <ConfirmDialog

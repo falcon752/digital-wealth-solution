@@ -222,7 +222,7 @@ export const kycAPI = {
     api.get(`/kyc/documents/${submissionId}/${documentId}`, { responseType: 'blob' }),
   adminSubmissions: () => api.get('/kyc/admin/submissions'),
   adminSensitiveData: (id: string) => api.get(`/kyc/admin/submissions/${id}/sensitive`),
-  adminReview: (id: string, data: { status: 'approved' | 'rejected'; rejectionReason?: string }) =>
+  adminReview: (id: string, data: { status: 'approved' | 'rejected' | 'pending'; rejectionReason?: string }) =>
     api.put(`/kyc/admin/submissions/${id}`, data),
   createRequirement: (data: { name: string; description?: string; required?: boolean; active?: boolean; appliesTo?: 'all' | 'individual' | 'business'; sortOrder?: number }) =>
     api.post('/kyc/admin/requirements', data),

@@ -7,6 +7,7 @@ const {
 } = require('../database');
 const { authenticate, requireAdmin } = require('../middleware/auth');
 const { logActivity } = require('../utils/activity');
+const { canonicalEmail, findUserByEmail } = require('../utils/emailIdentity');
 const { 
   sendWelcomeEmail,
   sendUserDepositStatusEmail,
@@ -165,20 +166,32 @@ router.put('/users/:id/profile', authenticate, requireAdmin, [
     for (const field of PROFILE_FIELDS) {
       if (req.body[field] === undefined) continue;
       let value = req.body[field] === null ? '' : String(req.body[field]).trim();
-      if (field === 'email') value = value.toLowerCase();
+      // Saved the way sign-in looks it up, or the client can no longer sign in or reset.
+      if (field === 'email') value = canonicalEmail(value);
       const next = value || null;
       if ((user[field] || null) !== next) changes[field] = { from: user[field] || null, to: next };
     }
     if (!Object.keys(changes).length) return res.json({ message: 'Nothing changed' });
 
     if (changes.email) {
-      if (await User.exists({ email: changes.email.to, _id: { $ne: user._id } })) {
+      const holder = await findUserByEmail(changes.email.to, { select: '_id' });
+      if (holder && !holder._id.equals(user._id)) {
         return res.status(409).json({ error: 'Another account already uses this email address' });
       }
     }
 
     const set = Object.fromEntries(Object.entries(changes).map(([field, { to }]) => [field, to]));
     await User.updateOne({ _id: user._id }, { $set: set }, { runValidators: true });
+
+    // The verification record keeps its own copy of the email. Move it to the new address when it
+    // still held the old one, so the client sees one email everywhere.
+    if (changes.email && changes.email.from) {
+      const kycSynced = await KYCSubmission.updateOne(
+        { userId: user._id, emailAddress: { $in: [...new Set([changes.email.from, canonicalEmail(changes.email.from)])] } },
+        { $set: { emailAddress: changes.email.to } }
+      ).catch((err) => { console.error('KYC email sync failed:', err.message); return null; });
+      if (kycSynced?.modifiedCount) changes.kycEmail = { from: changes.email.from, to: changes.email.to };
+    }
 
     logActivity(req.user.id, 'ADMIN_USER_PROFILE_UPDATED', { userId: String(user._id), changes }, req);
 
@@ -191,6 +204,13 @@ router.put('/users/:id/profile', authenticate, requireAdmin, [
         title: 'Sign-in email changed',
         message: `The email address on your Digital Wealth Partners account was changed by our team to ${changes.email.to}. From now on, sign in with the new address.\n\nIf you did not ask for this, contact support straight away.`,
       }).catch((err) => console.error('Email change notice failed:', err.message));
+      sendBroadcastEmail({
+        userEmail: changes.email.to,
+        firstName: set.firstName || user.firstName,
+        subject: 'This is now your sign-in email',
+        title: 'Your sign-in email',
+        message: `Our team set ${changes.email.to} as the email for your Digital Wealth Partners account. Sign in with this address and your usual password; your password has not changed.\n\nIf you have forgotten it, use "Forgot password" on the sign-in page and we will send a code here.`,
+      }).catch((err) => console.error('New email notice failed:', err.message));
     }
 
     res.json({ message: 'Details updated', changed: Object.keys(changes) });

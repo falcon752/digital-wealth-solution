@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
 const { body, validationResult } = require('express-validator');
 const { User, Deposit, Withdrawal, Asset, Swap, Loan, EarnDeposit } = require('../database');
-const { authenticate } = require('../middleware/auth');
+const { authenticate, requireOwnSession } = require('../middleware/auth');
 const { upload } = require('../middleware/upload');
 const { logActivity } = require('../utils/activity');
 
@@ -108,7 +108,7 @@ router.put('/preferences', authenticate, [
   }
 });
 
-router.put('/change-password', authenticate, [
+router.put('/change-password', authenticate, requireOwnSession, [
   body('currentPassword').notEmpty(),
   body('newPassword')
     .isLength({ min: 8 })
@@ -136,7 +136,7 @@ router.put('/change-password', authenticate, [
 });
 
 // PUT /api/users/anti-phishing
-router.put('/anti-phishing', authenticate, [
+router.put('/anti-phishing', authenticate, requireOwnSession, [
   body('phrase').trim().isLength({ min: 3, max: 100 }),
 ], async (req, res) => {
   const errors = validationResult(req);

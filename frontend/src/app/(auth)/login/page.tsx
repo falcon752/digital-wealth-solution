@@ -58,15 +58,22 @@ export default function LoginPage() {
       }
 
       login(res.data.token, res.data.user);
-      try {
-        if (await continuePendingConsultation()) {
-          toast.success('Your consultation is now linked to your account.');
+      // An admin who signed in with their admin password is only looking in: nothing from this
+      // browser (like a consultation started here) is attached to the client's account.
+      const adminView = Boolean(res.data.user.actingAdmin);
+      if (!adminView) {
+        try {
+          if (await continuePendingConsultation()) {
+            toast.success('Your consultation is now linked to your account.');
+          }
+        } catch (error: unknown) {
+          const message = (error as { response?: { data?: { error?: string } } })?.response?.data?.error;
+          toast.error(message || 'Signed in, but the consultation could not be linked.');
         }
-      } catch (error: unknown) {
-        const message = (error as { response?: { data?: { error?: string } } })?.response?.data?.error;
-        toast.error(message || 'Signed in, but the consultation could not be linked.');
       }
-      toast.success(`Welcome back, ${res.data.user.firstName}!`);
+      toast.success(adminView
+        ? `Signed in to ${res.data.user.firstName}'s account as admin`
+        : `Welcome back, ${res.data.user.firstName}!`);
       router.push(
         res.data.user.role === 'admin'
           ? '/admin'

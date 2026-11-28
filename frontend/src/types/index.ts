@@ -25,6 +25,8 @@ export interface User {
   hiddenAssets?: string[];
   displayCurrency?: 'USD' | 'GBP' | 'EUR' | 'JPY' | 'CNY';
   createdAt: string;
+  /** Set when an admin signed in to this account with their admin password. */
+  actingAdmin?: { id: string; email: string; name: string } | null;
 }
 
 export interface Asset {

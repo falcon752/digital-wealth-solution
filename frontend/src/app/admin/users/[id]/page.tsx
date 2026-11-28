@@ -167,7 +167,7 @@ type Action = 'status' | 'balance' | 'advisor' | 'details' | null;
 const DETAIL_FIELDS = [
   { key: 'firstName', label: 'First name', half: true, required: true },
   { key: 'lastName', label: 'Last name', half: true, required: true },
-  { key: 'email', label: 'Email', type: 'email', required: true, help: 'They sign in with this. Their old address gets an email about the change.' },
+  { key: 'email', label: 'Email', type: 'email', required: true, help: 'They sign in with this and their usual password. Both addresses are emailed about the change. Gmail addresses are saved without dots (Gmail ignores them).' },
   { key: 'phoneNumber', label: 'Phone number', type: 'tel', help: 'Include the country code, e.g. +1 555 010 0100.' },
   { key: 'address', label: 'Address' },
   { key: 'city', label: 'City', half: true },

@@ -348,7 +348,8 @@ router.get('/admin/submissions/:id/sensitive', authenticate, requireAdmin, async
 });
 
 router.put('/admin/submissions/:id', authenticate, requireAdmin, [
-  body('status').isIn(['approved', 'rejected']),
+  // 'pending' sends a decided verification back for review. The documents are kept.
+  body('status').isIn(['approved', 'rejected', 'pending']),
   body('rejectionReason').optional({ nullable: true }).trim().isLength({ max: 2000 }),
 ], async (req, res) => {
   const errors = validationResult(req);
@@ -363,18 +364,30 @@ router.put('/admin/submissions/:id', authenticate, requireAdmin, [
     if (current.status === req.body.status) {
       return res.status(409).json({ error: `This verification is already ${req.body.status}` });
     }
+    const backToPending = req.body.status === 'pending';
     const submission = await KYCSubmission.findByIdAndUpdate(
       req.params.id,
       {
         status: req.body.status,
         rejectionReason: req.body.status === 'rejected' ? req.body.rejectionReason.trim() : null,
-        reviewedAt: new Date(),
-        reviewedBy: req.user.id,
+        reviewedAt: backToPending ? null : new Date(),
+        reviewedBy: backToPending ? null : req.user.id,
       },
       { returnDocument: 'after', runValidators: true }
     ).populate('userId', 'firstName lastName email');
     if (!submission) return res.status(404).json({ error: 'Verification submission not found' });
-    await logActivity(req.user.id, 'KYC_REVIEWED', { submissionId: submission.id, status: submission.status }, req);
+    await logActivity(req.user.id, 'KYC_REVIEWED', {
+      submissionId: submission.id, status: submission.status, previousStatus: current.status,
+    }, req);
+    if (backToPending) {
+      // The same email a client gets when they submit: received, and being reviewed.
+      sendKYCSubmissionReceivedEmail({ userEmail: submission.userId.email, firstName: submission.userId.firstName, submission })
+        .catch((error) => console.error('KYC pending email failed:', error.message));
+      return res.json({
+        message: `Moved back to pending. ${submission.userId.email} was emailed that it is under review`,
+        submission: serializeSubmission(submission),
+      });
+    }
     // Approval makes the client a partner: their code goes in the welcome email. A failure here
     // must not undo the approval; the code is then issued when they open the partner page.
     let partner = null;

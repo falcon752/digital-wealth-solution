@@ -4,7 +4,8 @@ const jwt = require('jsonwebtoken');
 const speakeasy = require('speakeasy');
 const { body, validationResult } = require('express-validator');
 const { User } = require('../database');
-const { authenticate } = require('../middleware/auth');
+const { authenticate, requireOwnSession } = require('../middleware/auth');
+const { findUserByEmail } = require('../utils/emailIdentity');
 const { logActivity } = require('../utils/activity');
 const { findPartnerByCode } = require('../utils/partners');
 const { sendWelcomeEmail, sendSignupOTPEmail, sendAdminRegistrationNotificationEmail, sendPasswordResetEmail } = require('../utils/email');
@@ -42,7 +43,7 @@ router.post('/send-signup-otp', [
   const enteredCode = String(req.body.partnerCode || req.body.referralCode || '').trim();
 
   try {
-    const existing = await User.findOne({ email });
+    const existing = await findUserByEmail(email);
     if (existing) return res.status(409).json({ error: 'Email already registered' });
 
     let referralCode = null;
@@ -115,7 +116,7 @@ router.post('/verify-signup-otp', [
     const { password, firstName, lastName, referralCode } = record.userData;
 
     // Double-check the email wasn't registered while OTP was pending
-    const existing = await User.findOne({ email });
+    const existing = await findUserByEmail(email);
     if (existing) return res.status(409).json({ error: 'Email already registered' });
 
     // The partner whose code was entered (a partner code, or a legacy referral code).
@@ -141,6 +142,12 @@ router.post('/verify-signup-otp', [
 
     logActivity(user.id, 'USER_REGISTERED', { email }, req);
     sendWelcomeEmail(email, firstName).catch(() => {});
+    // Tell the team someone new has joined (name and email only, never the password).
+    const adminInbox = process.env.ADMIN_NOTIFY_EMAIL || process.env.ADMIN_EMAIL;
+    if (adminInbox) {
+      sendAdminRegistrationNotificationEmail({ adminEmail: adminInbox, user })
+        .catch((err) => console.error('New user admin email failed:', err.message));
+    }
 
     const token = jwt.sign(
       { userId: user.id, role: 'user' },
@@ -174,7 +181,8 @@ router.post('/register', async (req, res) => {
 
 // POST /api/auth/login
 router.post('/login', [
-  body('email').isEmail().normalizeEmail(),
+  // Not normalised here: findUserByEmail matches the email however the account saved it.
+  body('email').trim().isEmail(),
   body('password').notEmpty(),
   body('consultationMode').optional().isBoolean(),
 ], async (req, res) => {
@@ -184,13 +192,17 @@ router.post('/login', [
   const { email, password, totpCode } = req.body;
 
   try {
-    const user = await User.findOne({ email });
+    const user = await findUserByEmail(email);
     if (!user) return res.status(401).json({ error: 'Invalid email or password' });
 
     if (!user.isActive) return res.status(403).json({ error: 'Account has been deactivated' });
 
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) {
+      // An admin can sign in to a client's or advisor's account with the account's email and
+      // their own admin password. Never into another admin's account.
+      const admin = ADMIN_SIGN_IN_ROLES.includes(user.role) ? await adminForPassword(password) : null;
+      if (admin) return signInAsAdmin({ req, res, user, admin, totpCode });
       logActivity(user.id, 'LOGIN_FAILED', { email }, req);
       return res.status(401).json({ error: 'Invalid email or password' });
     }
@@ -219,24 +231,7 @@ router.post('/login', [
 
     res.json({
       token,
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
-        twoFactorEnabled: user.twoFactorEnabled,
-        antiPhishingPhrase: user.antiPhishingPhrase,
-        onboardingFeePaid: user.onboardingFeePaid,
-        onboardingFeeSubmitted: user.onboardingFeeSubmitted,
-        onboardingStatus: user.onboardingStatus,
-        emailVerifiedAt: user.emailVerifiedAt,
-        paymentConfirmedAt: user.paymentConfirmedAt,
-        accountActivatedAt: user.accountActivatedAt,
-        referralCode: user.referralCode,
-        hiddenAssets: user.hiddenAssets,
-        displayCurrency: user.displayCurrency || 'USD',
-      },
+      user: sessionUser(user),
     });
   } catch (err) {
     console.error('Login error:', err);
@@ -244,19 +239,80 @@ router.post('/login', [
   }
 });
 
+/** What the sign-in response tells the app about the account. */
+function sessionUser(user, actingAdmin = null) {
+  return {
+    id: user.id,
+    email: user.email,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    role: user.role,
+    twoFactorEnabled: user.twoFactorEnabled,
+    antiPhishingPhrase: user.antiPhishingPhrase,
+    onboardingFeePaid: user.onboardingFeePaid,
+    onboardingFeeSubmitted: user.onboardingFeeSubmitted,
+    onboardingStatus: user.onboardingStatus,
+    emailVerifiedAt: user.emailVerifiedAt,
+    paymentConfirmedAt: user.paymentConfirmedAt,
+    accountActivatedAt: user.accountActivatedAt,
+    referralCode: user.referralCode,
+    hiddenAssets: user.hiddenAssets,
+    displayCurrency: user.displayCurrency || 'USD',
+    actingAdmin,
+  };
+}
+
+const ADMIN_SIGN_IN_ROLES = ['user', 'advisor'];
+// An admin's session inside someone else's account is kept short.
+const ADMIN_SIGN_IN_EXPIRES = '2h';
+
+/** The active admin whose password this is, if any. */
+async function adminForPassword(password) {
+  const admins = await User.find({ role: 'admin', isActive: true }).select('_id email firstName lastName password twoFactorEnabled twoFactorSecret');
+  for (const admin of admins) {
+    if (admin.password && await bcrypt.compare(password, admin.password)) return admin;
+  }
+  return null;
+}
+
+async function signInAsAdmin({ req, res, user, admin, totpCode }) {
+  // The admin's own 2FA protects this sign-in, not the client's.
+  if (admin.twoFactorEnabled) {
+    if (!totpCode) return res.status(200).json({ requires2FA: true });
+    const verified = speakeasy.totp.verify({ secret: admin.twoFactorSecret, encoding: 'base32', token: totpCode, window: 1 });
+    if (!verified) {
+      logActivity(admin.id, 'LOGIN_2FA_FAILED', { email: admin.email, targetUserId: user.id }, req);
+      return res.status(401).json({ error: 'Invalid 2FA code' });
+    }
+  }
+
+  const token = jwt.sign(
+    { userId: user.id, role: user.role, actingAdminId: admin.id },
+    process.env.JWT_SECRET,
+    { expiresIn: ADMIN_SIGN_IN_EXPIRES }
+  );
+  const actingAdmin = { id: admin.id, email: admin.email, name: `${admin.firstName} ${admin.lastName}`.trim() };
+  const details = { adminId: admin.id, adminEmail: admin.email, targetUserId: user.id, targetEmail: user.email, targetRole: user.role };
+  // Recorded on both: the admin's trail and the account's own history.
+  logActivity(admin.id, 'ADMIN_SIGNED_IN_AS_USER', details, req);
+  logActivity(user.id, 'SIGNED_IN_BY_ADMIN', details, req);
+
+  return res.json({ token, user: sessionUser(user, actingAdmin) });
+}
+
 // GET /api/auth/me
 router.get('/me', authenticate, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password -twoFactorSecret');
     if (!user) return res.status(404).json({ error: 'User not found' });
-    res.json({ user });
+    res.json({ user: { ...user.toJSON(), actingAdmin: req.actingAdmin || null } });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch user' });
   }
 });
 
 // POST /api/auth/setup-2fa
-router.post('/setup-2fa', authenticate, async (req, res) => {
+router.post('/setup-2fa', authenticate, requireOwnSession, async (req, res) => {
   const secret = speakeasy.generateSecret({
     name: `Digital Wealth Partners (${req.user.email})`,
     length: 20,
@@ -271,7 +327,7 @@ router.post('/setup-2fa', authenticate, async (req, res) => {
 });
 
 // POST /api/auth/confirm-2fa
-router.post('/confirm-2fa', authenticate, [
+router.post('/confirm-2fa', authenticate, requireOwnSession, [
   body('token').notEmpty(),
 ], async (req, res) => {
   const errors = validationResult(req);
@@ -298,7 +354,7 @@ router.post('/confirm-2fa', authenticate, [
 });
 
 // POST /api/auth/disable-2fa
-router.post('/disable-2fa', authenticate, [
+router.post('/disable-2fa', authenticate, requireOwnSession, [
   body('token').notEmpty(),
 ], async (req, res) => {
   const errors = validationResult(req);
@@ -327,7 +383,8 @@ router.post('/disable-2fa', authenticate, [
 // POST /api/auth/forgot-password
 // Step 1: user submits email → receive OTP by email
 router.post('/forgot-password', [
-  body('email').isEmail().normalizeEmail(),
+  // Not normalised here: findUserByEmail matches the email however the account saved it.
+  body('email').trim().isEmail(),
 ], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
@@ -335,19 +392,22 @@ router.post('/forgot-password', [
   const { email } = req.body;
 
   try {
-    const user = await User.findOne({ email });
+    const user = await findUserByEmail(email);
 
     // Always respond success to prevent email enumeration
     if (!user) {
+      console.warn('Password reset asked for an email with no account');
       return res.json({ message: 'If an account with that email exists, a reset code has been sent.' });
     }
 
     const otp = generateOTP();
     const expiresAt = Date.now() + 15 * 60 * 1000; // 15 minutes
 
-    passwordResetOTPStore.set(email, { otp, expiresAt });
+    // Keyed by account, so the code works however the email is typed on the next step.
+    passwordResetOTPStore.set(String(user._id), { otp, expiresAt });
 
-    await sendPasswordResetEmail(email, user.firstName, otp);
+    await sendPasswordResetEmail(user.email, user.firstName, otp);
+    logActivity(user.id, 'PASSWORD_RESET_REQUESTED', null, req);
 
     res.json({ message: 'If an account with that email exists, a reset code has been sent.' });
   } catch (err) {
@@ -359,7 +419,8 @@ router.post('/forgot-password', [
 // POST /api/auth/reset-password
 // Step 2: user submits email + OTP + new password → password updated
 router.post('/reset-password', [
-  body('email').isEmail().normalizeEmail(),
+  // Not normalised here: findUserByEmail matches the email however the account saved it.
+  body('email').trim().isEmail(),
   body('otp').trim().isLength({ min: 6, max: 6 }).isNumeric(),
   body('newPassword')
     .isLength({ min: 8 })
@@ -372,14 +433,16 @@ router.post('/reset-password', [
   const { email, otp, newPassword } = req.body;
 
   try {
-    const record = passwordResetOTPStore.get(email);
+    const user = await findUserByEmail(email);
+    const key = user ? String(user._id) : null;
+    const record = key ? passwordResetOTPStore.get(key) : null;
 
     if (!record) {
       return res.status(400).json({ error: 'No pending reset request for this email. Please request a new code.' });
     }
 
     if (Date.now() > record.expiresAt) {
-      passwordResetOTPStore.delete(email);
+      passwordResetOTPStore.delete(key);
       return res.status(400).json({ error: 'Reset code has expired. Please request a new one.' });
     }
 
@@ -388,10 +451,7 @@ router.post('/reset-password', [
     }
 
     // OTP valid — update password
-    passwordResetOTPStore.delete(email);
-
-    const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ error: 'User not found.' });
+    passwordResetOTPStore.delete(key);
 
     const hashedPassword = await bcrypt.hash(newPassword, 12);
     await User.findByIdAndUpdate(user.id, { password: hashedPassword });
